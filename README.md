@@ -4,9 +4,18 @@ This library uses [graphql-java v3.0](https://github.com/andimarek/graphql-java)
 
 It implements a schema builder to generate GraphQL Schema using JPA EntityManager and an JPA Data Fetchers to transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
 
+Modules
+-------
+The GraphQL-JPA-Query library consists of the following modules:
+
+1. GraphQL JPA Query Annotations - Provides annotations for instrumenting your entity models with GraphQL Schema Descriptions
+2. GraphQL JPA Query Schema - Provides interface specifications and implementation of the JPA schema builder and JPA data fetchers
+3. GraphQL JPA Query Web - Provides web interface endpoint for executing queries via HTTP
+4. GraphQL JPA Query Spring Boot Starter - Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
+
 Dependencies
 -----------------
-This library intends to have the following dependencies: graphql-java, and some javax annotation packages. The tests depend
+The library tries to keep the following dependencies: graphql-java, and some javax annotation packages. The tests depend
 on Spring Boot with Hibernate for JPA.  
 
 Schema Generation
@@ -16,7 +25,7 @@ The models are introspected using a JPA Entity Manager to auto-generate a GraphQ
 Schema Documentation
 --------------------
 GraphQL provides a well documented schema for your domain entity model.  The Schema Builder produces
-descriptions using `@GraphQLDescription` annotation on Java types and fields. These descriptions will show up in the GraphiQL schema browser to help you provide documented API to end-users.  See the GraphiQL section below for more details.
+descriptions using `@GraphQLDescription` annotation on Java types and fields. These descriptions will show up in the GraphiQL schema browser to help you provide documented API to end-users.  See the GraphiQL section below for more details. You can use  `@GraphQLIgnore` annotation to exclude entity type or field from schema.
 
 Queries
 --------------
