@@ -2,25 +2,25 @@ GraphQL Query for JPA Entity Model
 ===============
 This library uses [graphql-java v3.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
 
-It implements a schema builder to generate GraphQL Schema using JPA EntityManager and an JPA Data Fetchers to transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
+It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
 
 Modules
 -------
 The GraphQL-JPA-Query library consists of the following modules:
 
-1. GraphQL JPA Query Annotations - Provides annotations for instrumenting your entity models with GraphQL Schema Descriptions
-2. GraphQL JPA Query Schema - Provides interface specifications and implementation of the JPA schema builder and JPA data fetchers
-3. GraphQL JPA Query Web - Provides web interface endpoint for executing queries via HTTP
-4. GraphQL JPA Query Spring Boot Starter - Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
+1. `graphql-jpa-query-annotations` - Provides annotations for instrumenting your entity models with GraphQL Schema Descriptions
+2. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA schema builder and JPA data fetchers
+3. `graphql-jpa-query-boot-starter`- Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
+4. `graphql-jpa-query-example` - Provides example application for Books entity models
 
 Dependencies
 -----------------
-The library tries to keep the following dependencies: graphql-java, and some javax annotation packages. The tests depend
+The library tries to keep the following dependencies: graphql-java, and some javax Jpa 2.1 packages. The tests depend
 on Spring Boot with Hibernate for JPA.  
 
 Schema Generation
 -----------------
-The models are introspected using a JPA Entity Manager to auto-generate a GraphQL Schema. After that, you can use GraphQL schema to query your data.
+The models are introspected using a JPA Entity Manager to auto-generate a GraphQL Schema. After that, you can use GraphQL schema to execute GraphQL query against your data.
 
 Schema Documentation
 --------------------
@@ -29,11 +29,10 @@ descriptions using `@GraphQLDescription` annotation on Java types and fields. Th
 
 Queries
 --------------
-This library will wrap each entity into two query fields:  
-Each model (say Human or Droid - see tests) will have two representations in the generated schema:
+This library will wrap each entity into two query fields for each entity model (say Human or Droid - see tests) will have two representations in the generated schema:
 
-- One that models the Entities directly using singular form, i.e. Human or Droid to get single instance by id.
-- One that wraps the Entity in a pagable request with where criteria expression using Entity pluralized form, i.e. Humans or Droids
+- One that models the Entity directly using singular form, i.e. Human or Droid to get single instance by id.
+- One that wraps the Entity in a pagable query request with where criteria expression using Entity pluralized form, i.e. Humans or Droids
 
 Singular Query Wrapper
 --------------
