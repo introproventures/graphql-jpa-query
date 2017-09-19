@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate.ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console.enabled: true
+
+  graphql:
+    jpa:
+      query:
+        name: GraphQLJpaQueryExample
+        description: GraphQL Jpa Query Example Books Schema Description
+        enabled: true
