@@ -215,17 +215,37 @@ public class StarwarsQueryExecutorTests {
 
         
         String expected = "{Droid={name=R2-D2, friends=["
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Han Solo}, {name=Leia Organa}, {name=C-3PO}, {name=R2-D2}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Luke Skywalker}, {name=Leia Organa}, {name=R2-D2}]}, "
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Luke Skywalker}, {name=Han Solo}, {name=C-3PO}, {name=R2-D2}]}"
+            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=R2-D2}, {name=Luke Skywalker}]}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
             + "]}}";
-
+        
         //when:
         Object result = executor.execute(query).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    // Cannot simultaneously fetch multiple bags #2
+    @Test
+    public void queryDeepNestingPlural() {
+        //given:
+        String query = "query { Droids(where: {id: {EQ: \"2001\"}}) { select { name, friends { name, appearsIn, friends { name } } }  }}";
+
+        String expected = "{Droids={select=[{name=R2-D2, friends=["
+            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}]}"
+            + "]}}";
+        
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+        
     
     @Test
     public void queryWhereRoot() {
@@ -280,11 +300,12 @@ public class StarwarsQueryExecutorTests {
         //given:
         String query = "query { Humans ( where: { appearsIn: {IN: [THE_FORCE_AWAKENS]}}) { select { name appearsIn } } }";
         
+        
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, appearsIn=[EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS, A_NEW_HOPE]}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
             + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-            + "{name=Leia Organa, appearsIn=[RETURN_OF_THE_JEDI, EMPIRE_STRIKES_BACK, A_NEW_HOPE, THE_FORCE_AWAKENS]}"
-            + "]}}";
+            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+            + "]}}";      
 
         //when:
         Object result = executor.execute(query).getData();

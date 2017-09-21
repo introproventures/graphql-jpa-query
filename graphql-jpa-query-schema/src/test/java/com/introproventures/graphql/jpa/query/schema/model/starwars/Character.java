@@ -16,7 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.starwars;
 
-import java.util.Collection;
+import java.util.Set;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -26,14 +26,21 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OrderBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @GraphQLDescription("Abstract representation of an entity in the Star Wars Universe")
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(exclude={"appearsIn","friends"}) // Fixes NPE in Hibernate when initializing loaded collections #1
 public abstract class Character {
 
     @Id
@@ -48,11 +55,14 @@ public abstract class Character {
     @JoinTable(name="character_friends",
             joinColumns=@JoinColumn(name="source_id", referencedColumnName="id"),
             inverseJoinColumns=@JoinColumn(name="friend_id", referencedColumnName="id"))
-    Collection<Character> friends;
+    Set<Character> friends; 
 
     @GraphQLDescription("What Star Wars episodes does this character appear in")
     @ElementCollection(targetClass = Episode.class)
     @Enumerated(EnumType.ORDINAL)
-    Collection<Episode> appearsIn;
+    @OrderBy
+    Set<Episode> appearsIn;
+    
+    Character() {}
 
 }
