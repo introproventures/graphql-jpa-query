@@ -8,6 +8,6 @@ spring:
   graphql:
     jpa:
       query:
-        name: GraphQLJpaQueryExample
-        description: GraphQL Jpa Query Example Books Schema Description
+        name: GraphQLJpaQueryStarwars
+        description: GraphQL Jpa Query Starwars Schema Example
         enabled: true

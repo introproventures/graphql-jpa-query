@@ -17,24 +17,31 @@
 package com.introproventures.graphql.jpa.query.example.model;
 
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 
 import lombok.Data;
 
-@Data
 @Entity
-public class Book {
-	@Id
-	Long id;
+@GraphQLDescription("Database driven enumeration")
+@Data
+public class CodeList {
 
-	String title;
+    @Id
+    @GraphQLDescription("Primary Key for the Code List Class")
+    Long id;
 
-	@ManyToOne
-	Author author;
+    String type;
+    String code;
+    Integer sequence;
+    boolean active;
+    String description;
 
-	@Enumerated(EnumType.STRING)
-	Genre genre;
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    CodeList parent;
+
 }
