@@ -216,10 +216,10 @@ public class StarwarsQueryExecutorTests {
         
         String expected = "{Droid={name=R2-D2, friends=["
             + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=R2-D2}, {name=Luke Skywalker}]}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
-            + "]}}";
-        
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}"
+            + "]}}"; 
+            
         //when:
         Object result = executor.execute(query).getData();
 
