@@ -30,7 +30,7 @@ For GraphQL JPA Annotations use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-annotations</artifactId>
-	    <version>v0.1.0</version>
+	    <version>0.2.0</version>
     </dependency>
 
 For GraphQL JPA Schema Builder use:
@@ -38,7 +38,7 @@ For GraphQL JPA Schema Builder use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-schema</artifactId>
-	    <version>v0.1.0</version>
+	    <version>0.2.0</version>
     </dependency>
 
 For GraphQL JPA Query Boot Starter use:
@@ -46,12 +46,12 @@ For GraphQL JPA Query Boot Starter use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-boot-starter</artifactId>
-	    <version>v0.1.0</version>
+	    <version>0.2.0</version>
     </dependency>
 
 Other Dependencies
 -----------------
-The core library module `graphql-jpa-query-schema` keeps dependencies to a minimum. The main dependecies for schema module are `graphql-java`, `evo-inflector`, `javax.transaction-api`, `hibernate-jpa-2.1-api`. The tests depend on Spring Boot 1.5 with Web and Hibernate for JPA starters.  
+The core library module `graphql-jpa-query-schema` keeps dependencies to a minimum. The main dependecies for schema module are `graphql-java`, `evo-inflector`, `javax.transaction-api`, `hibernate-jpa-2.1-api`. The tests depend on Spring Boot 1.5 with Web and Hibernate for JPA starters as well as Project Lombok.  
 
 Schema Generation
 -----------------
