@@ -286,9 +286,11 @@ You can run GraphQL queries in the left pannel. Type the query and hit the run b
 panel. If your query has variables, there is a minimized panel at the bottom left.  Simply click on this to expand, and
 type in your variables as a JSON string with quoted keys.
 
-Docker
+Run Example in Docker
 ------
-[You can quickstart with docker](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
+You can quickly start GraphQL JPA Query Example in Docker Swarm online using the community-run Docker playground: play-with-docker.com (PWD) by clicking the button below:
+
+[![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
 
 
 License
