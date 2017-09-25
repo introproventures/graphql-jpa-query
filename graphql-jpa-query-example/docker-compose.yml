@@ -1,0 +1,18 @@
+version: "3.2"
+services:
+    gpaphql:
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        ports:
+            - 8080:8080
+        image: introproventures/graphql-jpa-query
+        networks:
+            - functions
+        deploy:
+            placement:
+                constraints:
+                    - 'node.role == manager'
+                    - 'node.platform.os == linux'
+networks:
+    functions:
+        driver: overlay
