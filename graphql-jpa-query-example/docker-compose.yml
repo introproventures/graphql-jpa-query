@@ -8,11 +8,6 @@ services:
         image: introproventures/graphql-jpa-query
         networks:
             - functions
-        deploy:
-            placement:
-                constraints:
-                    - 'node.role == manager'
-                    - 'node.platform.os == linux'
 networks:
     functions:
         driver: overlay
