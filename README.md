@@ -275,12 +275,12 @@ of sorting by name for Human objects. The default sort order can be specified us
 
 Performance
 -----------
-The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading.
+The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading. However, if there are composite foreign keys being used on `@ManyToOne` association declared in GraphQL query, Hibernate persistence provider will issue a separate SQL query to resolve the parent entity.
 
-Examples
+GraphiQL Browser
 --------
 
-GraphiQL (https://github.com/graphql/graphiql) can be used for simple testing. You can build and launch provided example as a Spring Boot Application, then navigate to http://localhost:8080/graphiql.html to load GraphiQL browser. The collapsed Docs panel can opened by clicking on the button in the upper right corner to expose current test schema models.
+GraphiQL (https://github.com/graphql/graphiql) can be used for simple testing. You can build and launch provided example as a Spring Boot Application, then navigate to http://localhost:8080/ to load GraphiQL browser. The collapsed Docs panel can opened by clicking on the button in the upper right corner to expose current test schema models.
 
 You can run GraphQL queries in the left pannel. Type the query and hit the run button. The results should come up in the middle
 panel. If your query has variables, there is a minimized panel at the bottom left.  Simply click on this to expand, and
