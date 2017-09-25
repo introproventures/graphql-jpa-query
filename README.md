@@ -288,8 +288,7 @@ type in your variables as a JSON string with quoted keys.
 
 Docker
 ------
-You can quickstart with docker: 
-[Link to play with docker]: http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql
+[You can quickstart with docker](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
 
 
 License
