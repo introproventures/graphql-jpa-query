@@ -1,11 +1,12 @@
+FROM openjdk:8-jdk-alpine
 
-FROM frolvlad/alpine-oraclejdk8:slim
 VOLUME /var/log/
+VOLUME /tmp
+
 EXPOSE 8080
 
+ADD graphql-jpa-query-example.jar app.jar
 
-COPY . /usr/src/
-WORKDIR /usr/src/
-# run the command
-CMD ["java","-jar", "graphql-jpa-query-example-0.3.0-SNAPSHOT.jar"]
+ENV JAVA_OPTS=""
 
+ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar
