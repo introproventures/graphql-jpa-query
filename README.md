@@ -275,16 +275,25 @@ of sorting by name for Human objects. The default sort order can be specified us
 
 Performance
 -----------
-The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading.
+The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading. However, if there are composite foreign keys being used on `@ManyToOne` association declared in GraphQL query, Hibernate persistence provider will issue a separate SQL query to resolve the parent entity.
 
-Examples
+GraphiQL Browser
 --------
 
-GraphiQL (https://github.com/graphql/graphiql) can be used for simple testing. You can build and launch provided example as a Spring Boot Application, then navigate to http://localhost:8080/graphiql.html to load GraphiQL browser. The collapsed Docs panel can opened by clicking on the button in the upper right corner to expose current test schema models.
+GraphiQL (https://github.com/graphql/graphiql) can be used for simple testing. You can build and launch provided example as a Spring Boot Application, then navigate to http://localhost:8080/ to load GraphiQL browser. The collapsed Docs panel can opened by clicking on the button in the upper right corner to expose current test schema models.
 
 You can run GraphQL queries in the left pannel. Type the query and hit the run button. The results should come up in the middle
 panel. If your query has variables, there is a minimized panel at the bottom left.  Simply click on this to expand, and
 type in your variables as a JSON string with quoted keys.
+
+Run Example in Docker
+------
+You can quickly start GraphQL JPA Query Example in Docker Swarm online using the community-run Docker playground: `play-with-docker.com (PWD)` by clicking the button below:
+
+[![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
+
+After PWD session is ready, select the Docker container instance on the left and then click on the link at the top with exposed port 8080 to run the example. If you get an error message that says: "error routing request", wait for at least 20 seconds after container instance is created to launch the Spring Boot Application.
+
 
 License
 -------
