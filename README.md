@@ -292,7 +292,7 @@ You can quickly start GraphQL JPA Query Example in Docker Swarm online using the
 
 [![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/play_with_doker/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
 
-After PWD session is ready, select the Docker container instance on the left and then click on the link at the top with exposed port 8080 to run the example.
+After PWD session is ready, select the Docker container instance on the left and then click on the link at the top with exposed port 8080 to run the example. If you get an error message that says: "error routing request", wait for at least 20 seconds after container instance is created to launch the Spring Boot Application.
 
 
 License
