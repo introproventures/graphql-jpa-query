@@ -41,7 +41,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     /**
      * Creates instance using GraphQLSchema parameter.
      *  
-     * @param graphQLSchema
+     * @param graphQLSchema instance
      */
     public GraphQLJpaExecutor(GraphQLSchema graphQLSchema) {
         this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();

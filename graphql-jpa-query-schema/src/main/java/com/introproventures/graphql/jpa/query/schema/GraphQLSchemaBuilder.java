@@ -28,7 +28,7 @@ public interface GraphQLSchemaBuilder {
     /**
      * Configures the name of GraphQL Schema. Cannot be null or empty;
      * 
-     * @param value
+     * @param value GraphQL schema name
      * @return this builder instance
      */
     GraphQLSchemaBuilder name(String value);
@@ -36,7 +36,7 @@ public interface GraphQLSchemaBuilder {
     /**
      * Configures the description of GraphQL Schema. 
      * 
-     * @param value
+     * @param value GraphQL schema description
      * @return this builder instance
      */
     GraphQLSchemaBuilder description(String value);
@@ -45,7 +45,7 @@ public interface GraphQLSchemaBuilder {
      * Add package path to scan for entities to be included in GraphQL Schema. 
      * All Entities are included by default
      * 
-     * @param path
+     * @param path GraphQL entitys package path 
      * @return this builder instance
      */
     GraphQLSchemaBuilder entityPath(String path);
@@ -53,7 +53,7 @@ public interface GraphQLSchemaBuilder {
     /**
      * Add package path to scan for entities to be included in GraphQL Schema. 
      * 
-     * @param path
+     * @param instance GraphQL query naming strategy
      * @return this builder instance
      */
     GraphQLSchemaBuilder namingStrategy(NamingStrategy instance);

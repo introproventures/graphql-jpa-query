@@ -54,8 +54,8 @@ public class GraphQLController {
     /**
      * Create instance of Spring GraphQLController RestController
      * 
-     * @param graphQLExecutor
-     * @param mapper
+     * @param graphQLExecutor instance
+     * @param mapper instance
      */
     public GraphQLController(GraphQLExecutor graphQLExecutor, ObjectMapper mapper) {
         super();
@@ -86,7 +86,7 @@ public class GraphQLController {
      * query and variables as String, so Spring MVC mapping is useless here.
      *
      * @param variables
-     * @return
+     * @return HashMap of parameter key-value pairs
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
@@ -118,8 +118,7 @@ public class GraphQLController {
         }
         
         /**
-         * @param query
-         * @param variables
+         * @param query string
          */
         public GraphQLQueryRequest(String query) {
             super();
@@ -134,7 +133,7 @@ public class GraphQLController {
         }
         
         /**
-         * @param variables
+         * @param variables string
          *            the variables to set
          */
         public void setVariables(String variables) {
