@@ -51,11 +51,30 @@
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.14</version>
+                <executions>
+                  <execution>
+                    <id>build-image</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>build</goal>
+                    </goals>
+                  </execution>
+                  <execution>
+                    <id>push-image</id>
+                    <phase>deploy</phase>
+                    <goals>
+                      <goal>push</goal>
+                    </goals>
+                    <configuration>
+                      <pushImage>true</pushImage>
+                    </configuration>                    
+                  </execution>        
+                </executions>                
                 <configuration>
                     <serverId>docker-hub</serverId>
                     <registryUrl>https://index.docker.io/v1/</registryUrl>
                     <imageName>introproventures/${project.artifactId}</imageName>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
