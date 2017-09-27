@@ -67,8 +67,9 @@
 			</dependency>
 
 		</dependencies>
+		
 	</dependencyManagement>
-	
+
 	<dependencies>
 
     <dependency>
@@ -123,7 +124,18 @@
 	</developers>  
   
     <build>
+		    <pluginManagement>
+  		    <plugins>
+					<plugin>
+					    <groupId>info.plichta.maven.plugins</groupId>
+					    <artifactId>git-changelog-maven-plugin</artifactId>
+					    <version>0.2.0</version>
+					</plugin>
+					</plugins>		    
+		    </pluginManagement>
+		    
         <plugins>
+        
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.5</version>
@@ -167,6 +179,8 @@
                 <version>2.5.1</version>
                 <configuration>
                     <mavenExecutorId>forked-path</mavenExecutorId>
+                    <preparationGoals>clean git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md -Dmessage="[maven-release-plugin] Update CHANGELOG.md" verify</preparationGoals>
+                    <completionGoals>git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md -Dmessage="[maven-release-plugin] Update CHANGELOG.md"</completionGoals>
                 </configuration>
             </plugin>
             <plugin>
