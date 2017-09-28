@@ -6,7 +6,6 @@ services:
 
 cache:
   directories:
-  - .autoconf
   - $HOME/.m2
   
 after_success:
