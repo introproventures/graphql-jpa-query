@@ -3,6 +3,11 @@ sudo: required
 
 services:
   - docker
+
+cache:
+  directories:
+  - .autoconf
+  - $HOME/.m2
   
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
