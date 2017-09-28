@@ -57,6 +57,7 @@ public class GraphQLControllerTest {
 	// Serialize a Query object
 	@Test
 	public void testGraphqlQuery() throws Exception {
+		System.out.println("testGraphqlQuery");
 		ok(new GraphQLQueryRequest("{Books(where:{title:{EQ:\"title\"}}){select {title genre}}}"));
 		verify(executor).execute("{Books(where:{title:{EQ:\"title\"}}){select {title genre}}}", null);
 	}
