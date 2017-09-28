@@ -33,7 +33,7 @@
 
   <distributionManagement>
     <repository>
-        <id>local</id>
+        <id>local-m2</id>
         <name>Local</name>
         <url>file:///C:/Users/Igor/.m2/repository</url>
     </repository>
