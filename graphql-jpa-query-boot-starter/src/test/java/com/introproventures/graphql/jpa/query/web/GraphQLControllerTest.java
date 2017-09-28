@@ -70,6 +70,7 @@ public class GraphQLControllerTest {
 	@SuppressWarnings( "serial" )
     @Test
 	public void testGraphqlArguments() throws Exception {
+		System.out.println("testGraphqlArguments");
 		GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(title: $title){title genre}}");
 		query.setVariables("{\"title\":\"value\"}");
 		

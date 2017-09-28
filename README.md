@@ -62,7 +62,7 @@ The models are introspected using a JPA Entity Manager to auto-generate a GraphQ
 Schema Documentation
 --------------------
 GraphQL provides a well documented schema for your domain entity model.  The Schema Builder produces
-descriptions using `@GraphQLDescription` annotation on Java types and fields. These descriptions will show up in the GraphiQL schema browser to help you provide documented API to end-users.  See the GraphiQL section below for more details. You can use  `@GraphQLIgnore` annotation to exclude entity type or field from schema.
+descriptions using `@GraphQLDescription` annotation on Java types and fields. These descriptions will show up in the GraphiQL schema browser to help you provide documented API to end-users. See the GraphiQL section below for more details. You can use  `@GraphQLIgnore` annotation to exclude entity type or field from schema.
 
 Queries
 --------------
