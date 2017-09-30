@@ -39,22 +39,22 @@
     </repository>
   </distributionManagement>
 
-	<dependencyManagement>
-		<dependencies>
+    <dependencyManagement>
+        <dependencies>
 
-			<dependency>
-				<groupId>io.spring.platform</groupId>
-				<artifactId>platform-bom</artifactId>
-				<version>Brussels-SR4</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+            <dependency>
+                <groupId>io.spring.platform</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>Brussels-SR4</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-			<dependency>
-				<groupId>com.introproventures</groupId>
-				<artifactId>graphql-jpa-query-annotations</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
       <dependency>
         <groupId>com.introproventures</groupId>
@@ -68,17 +68,17 @@
         <version>${project.version}</version>
       </dependency>
 
-			<dependency>
-				<groupId>com.graphql-java</groupId>
-				<artifactId>graphql-java</artifactId>
-				<version>${graphql-java.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
 
-		</dependencies>
-		
-	</dependencyManagement>
+        </dependencies>
+        
+    </dependencyManagement>
 
-	<dependencies>
+    <dependencies>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -97,55 +97,55 @@
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
-	
-	</dependencies>
+    
+    </dependencies>
   
-	<scm>
-		<connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
-		<developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
-		<url>https://github.com/introproventures/graphql-jpa-query</url>
-		<tag>HEAD</tag>
-	</scm>
+    <scm>
+        <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
+        <developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
+        <url>https://github.com/introproventures/graphql-jpa-query</url>
+        <tag>HEAD</tag>
+    </scm>
 
-	<inceptionYear>2017</inceptionYear>
-	<url>http://www.introproventures.com</url>
-	
-	<licenses>
-		<license>
-			<name>Apache 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
-		</license>
-	</licenses>
+    <inceptionYear>2017</inceptionYear>
+    <url>http://www.introproventures.com</url>
+    
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
 
-	<issueManagement>
-		<url>https://github.com/introproventures/graphql-jpa-query/issues</url>
-		<system>GitHub Issues</system>
-	</issueManagement>
+    <issueManagement>
+        <url>https://github.com/introproventures/graphql-jpa-query/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
 
-	<developers>
-		<developer>
-			<email>igor.dianov@introproventures.com</email>
-			<name>Igor Dianov</name>
-			<url>https://github.com/igdianov</url>
-			<id>igdianov</id>
-		</developer>
-	</developers>  
+    <developers>
+        <developer>
+            <email>igor.dianov@introproventures.com</email>
+            <name>Igor Dianov</name>
+            <url>https://github.com/igdianov</url>
+            <id>igdianov</id>
+        </developer>
+    </developers>  
   
     <build>
-		    <pluginManagement>
-  		    <plugins>
-						<plugin>
-						    <groupId>info.plichta.maven.plugins</groupId>
-						    <artifactId>git-changelog-maven-plugin</artifactId>
-						    <version>0.2.0</version>
-						</plugin>
-						<plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.1</version>
-						</plugin>
-					</plugins>		    
-		    </pluginManagement>
-		    
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>info.plichta.maven.plugins</groupId>
+                    <artifactId>git-changelog-maven-plugin</artifactId>
+                    <version>0.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.0.1</version>
+                </plugin>
+            </plugins>          
+        </pluginManagement>
+            
         <plugins>
         
             <plugin>
@@ -270,6 +270,43 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <!-- Unit tests configuration-->
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <!-- Integration tests configuration-->
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
