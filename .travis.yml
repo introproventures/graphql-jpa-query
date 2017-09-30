@@ -9,6 +9,9 @@ cache:
   - $HOME/.m2
   
 after_success:
+  # Send coverage data
+  - bash <(curl -s https://codecov.io/bash)
+  # Push docker image to Docker Hub
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
     docker push introproventures/graphql-jpa-query-example:latest;
