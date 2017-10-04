@@ -38,24 +38,17 @@
 
 	<distributionManagement>
 		<snapshotRepository>
-			<id>localhost-nexus-snapshots</id>
-			<name>Local Nexus snapshot repository</name>
-			<url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
+			<id>sonatype-nexus-snapshots</id>
+			<name>Sonatype 
+				Nexus snapshot repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 		<repository>
-			<id>localhost-nexus-staging</id>
-			<name>Local Nexus release repository</name>
-			<url>http://localhost:8081/nexus/content/repositories/releases/</url>
+			<id>sonatype-nexus-staging</id>
+			<name>Sonatype 
+				Nexus release repository</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
 		</repository>
-
-		<!-- <repository> <id>local-m2</id> <name>Local</name> <url>file:///C:/Users/Igor/.m2/repository</url> 
-			</repository> <snapshotRepository> <id>snapshot-m2</id> <name>Local Snapshot</name> 
-			<url>file:///C:/Users/Igor/.m2/repository</url> </snapshotRepository> -->
-		<!-- <snapshotRepository> <id>sonatype-nexus-snapshots</id> <name>Sonatype 
-			Nexus snapshot repository</name> <url>https://oss.sonatype.org/content/repositories/snapshots</url> 
-			</snapshotRepository> <repository> <id>sonatype-nexus-staging</id> <name>Sonatype 
-			Nexus release repository</name> <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url> 
-			</repository> -->
 	</distributionManagement>
 
 	<dependencyManagement>
@@ -402,12 +395,9 @@
 						</executions>
 						<extensions>true</extensions>
 						<configuration>
-
-							<serverId>localhost-nexus-staging</serverId>
-							<nexusUrl>http://localhost:8081/nexus</nexusUrl>
-							<skipStaging>true</skipStaging>
-							<!-- <serverId>sonatype-nexus-staging</serverId> <nexusUrl>https://oss.sonatype.org/</nexusUrl> 
-								<autoReleaseAfterClose>false</autoReleaseAfterClose> -->
+							<serverId>sonatype-nexus-staging</serverId> 
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl> 
+							<autoReleaseAfterClose>false</autoReleaseAfterClose>
 						</configuration>
 					</plugin>
 				</plugins>
