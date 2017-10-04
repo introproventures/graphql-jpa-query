@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.0
+## 0.3.1-SNAPSHOT
 * Fix error during deployment to Sonatype: &quot;Invalid Signature for Javdoc&quot; [eb207a6](null/commit/eb207a61a5fd58b4d5199d64d05b2fcd68b6ce50)
 * Setup Maven Central Release [fa67db0](null/commit/fa67db0e5fbd1841995433c56b10ee6cab1b9412)
 * Setup Sonatype Staging Repository Release in Maven [22358c1](null/commit/22358c1f3a3862b2d8c310e2805b84a3ca1a0ad5)
