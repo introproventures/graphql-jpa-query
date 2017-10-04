@@ -271,20 +271,21 @@
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
+			<!-- Required: javadoc JAR -->
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>2.9.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadoc</id>
-						<phase>deploy</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>jar</goal>
 						</goals>
 					</execution>
-
 				</executions>
 			</plugin>
+			<!-- Ensure the manifest contains artifact version information: -->
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.4</version>
@@ -297,6 +298,7 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<!-- Required: source JAR -->
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<version>2.1.2</version>
@@ -311,8 +313,7 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<!-- just to make sure deployed artifacts are always built (and tested) 
-					using JDK 6 -->
+				<!-- just to make sure deployed artifacts are always built (and tested) using JDK 8 -->
 				<artifactId>maven-enforcer-plugin</artifactId>
 				<version>1.1.1</version>
 				<executions>
@@ -325,7 +326,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>1.8</version>
+									<version>${java.version}</version>
 								</requireJavaVersion>
 							</rules>
 						</configuration>
