@@ -3,6 +3,8 @@ GraphQL Query for JPA Entity Model
 
 [![Build Status](https://travis-ci.org/introproventures/graphql-jpa-query.svg?branch=master)](https://travis-ci.org/introproventures/graphql-jpa-query)
 [![codecov](https://codecov.io/gh/introproventures/graphql-jpa-query/branch/master/graph/badge.svg)](https://codecov.io/gh/introproventures/graphql-jpa-query)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query)
+[![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
 This library uses [graphql-java v3.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
 
@@ -16,6 +18,34 @@ The GraphQL-JPA-Query library consists of the following modules:
 2. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
 3. `graphql-jpa-query-boot-starter`- Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
 4. `graphql-jpa-query-example` - Provides example application for Books entity models
+
+Building with Maven Central [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query)
+------------------------
+You can use Maven Central repository to include and build individual modules in your project. 
+
+For GraphQL JPA Annotations use:
+
+	<dependency>
+	  <groupId>com.introproventures</groupId>
+	  <artifactId>graphql-jpa-query-annotations</artifactId>
+	  <version>0.3.0</version>
+	</dependency>
+
+For GraphQL JPA Schema Builder use:
+
+    <dependency>
+	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
+	    <artifactId>graphql-jpa-query-schema</artifactId>
+	    <version>0.3.0</version>
+    </dependency>
+
+For GraphQL JPA Query Boot Starter use:
+
+	<dependency>
+	  <groupId>com.introproventures</groupId>
+	  <artifactId>graphql-jpa-query-boot-starter</artifactId>
+	  <version>0.3.0</version>
+	</dependency>
 
 Building with jitpack.io [![Release](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 ------------------------
@@ -33,7 +63,7 @@ For GraphQL JPA Annotations use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-annotations</artifactId>
-	    <version>0.2.0</version>
+	    <version>0.3.0</version>
     </dependency>
 
 For GraphQL JPA Schema Builder use:
@@ -41,7 +71,7 @@ For GraphQL JPA Schema Builder use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-schema</artifactId>
-	    <version>0.2.0</version>
+	    <version>0.3.0</version>
     </dependency>
 
 For GraphQL JPA Query Boot Starter use:
@@ -49,7 +79,7 @@ For GraphQL JPA Query Boot Starter use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-boot-starter</artifactId>
-	    <version>0.2.0</version>
+	    <version>0.3.0</version>
     </dependency>
 
 Other Dependencies
