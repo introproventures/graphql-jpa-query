@@ -1,6 +1,7 @@
 package com.introproventures.graphql.jpa.query.web;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,5 +72,10 @@ public class GraphQLControllerIT {
 class Result implements ExecutionResult {
 	Map<String, Object>   data;
 	List<GraphQLError>				   errors;
-	Map<Object, Object>                extensions;	
+	Map<Object, Object>                extensions;
+	
+	@Override
+	public Map<String, Object> toSpecification() {
+		return new HashMap<>();
+	}	
 }
