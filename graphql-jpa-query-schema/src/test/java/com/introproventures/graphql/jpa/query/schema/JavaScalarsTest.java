@@ -34,7 +34,7 @@ public class JavaScalarsTest {
     @Test
     public void long2LocalDateTime() {
         //given
-        Coercing coercing = JavaScalars.of(LocalDateTime.class).getCoercing();
+        Coercing<?,?> coercing = JavaScalars.of(LocalDateTime.class).getCoercing();
 
         LocalDateTime localDateTime = LocalDateTime.of(2017, 02, 02, 12, 30, 15);
         long input = localDateTime.toEpochSecond(ZoneId.systemDefault().getRules().getOffset(localDateTime));
@@ -58,7 +58,7 @@ public class JavaScalarsTest {
     @Test
     public void string2LocalDateTime() {
         //given
-        Coercing coercing = JavaScalars.of(LocalDateTime.class).getCoercing();
+        Coercing<?,?> coercing = JavaScalars.of(LocalDateTime.class).getCoercing();
         final String input = "2017-02-02T12:30:15";
 
         //when
@@ -79,7 +79,7 @@ public class JavaScalarsTest {
 
     public void long2LocalDate() {
         // given
-        Coercing coercing = JavaScalars.of(LocalDate.class).getCoercing();
+        Coercing<?,?> coercing = JavaScalars.of(LocalDate.class).getCoercing();
         LocalDateTime localDateTime = LocalDateTime.of(2017, 02, 02, 0, 0, 0);
         long input = localDateTime.toEpochSecond(ZoneId.systemDefault().getRules().getOffset(localDateTime));
 
@@ -98,7 +98,7 @@ public class JavaScalarsTest {
 
     public void string2LocalDate() {
         //given
-        Coercing coercing = JavaScalars.of(LocalDate.class).getCoercing();
+        Coercing<?,?> coercing = JavaScalars.of(LocalDate.class).getCoercing();
         final String input = "2017-02-02";
 
         //when

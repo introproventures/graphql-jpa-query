@@ -282,6 +282,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 
                 From<?,?> join = getCompoundJoin(path, argument.getName(), false);
                 Argument where = new Argument("where",  argument.getValue());
+                Map<String, Object> variables = Optional.ofNullable(environment.getContext())
+                		.filter(it -> it instanceof Map)
+                		.map(it -> (Map<String, Object>) it)
+                		.map(it -> (Map<String, Object>) it.get("variables"))
+                		.orElse(Collections.emptyMap());
                 
                 GraphQLFieldDefinition fieldDef = getFieldDef(
                     environment.getGraphQLSchema(),
@@ -290,7 +295,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 );
     
                 Map<String, Object> arguments = (Map<String, Object>) new ValuesResolver()
-                    .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), Collections.emptyMap())
+                    .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), variables)
                     .get("where");
                 
                 return getWherePredicate(cb, from, join, new WherePredicateEnvironment(environment, arguments), where);
