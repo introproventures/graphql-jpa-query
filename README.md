@@ -254,6 +254,18 @@ Type Safe Arguments
 -------------------
 The JPA Schema builder will derive QraphQL scalar types from JPA model attributes. At runtime, it will validate provided values against the schema. Enum Java types are also translated to QraphQL Enum scalar type.
 
+Variable Parameter Bindings
+-------------------
+Just like a REST API, it is possible to pass variable arguments to an endpoint in a GraphQL API. By declaring the arguments in the query defintion, typechecking happens automatically. Each variable argument must be named with `$` prefix and have a type. To use variable inside query, simply reference it in any criteria expressions. Each variable reference will be resolved to its value during query execution, for example:
+
+    {
+	"query": "query HumanById($id: Long!) {
+	      Human(id: $id) { name }
+	}",
+       "variables": {"id": 1}
+    }
+
+
 Pagination
 ----------
 GraphQL does not specify any language or idioms for performing Pagination. This library provides support for pageable queries with `page` argument on pluralized query wrapper.
