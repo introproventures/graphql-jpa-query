@@ -126,6 +126,24 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @SuppressWarnings("serial")
+	@Test
+    public void queryManyToOneJoinByIdWithVariables() {
+        //given:
+        String query = "query($id: String!) { Humans { select { name, homePlanet, favoriteDroid(where: {id: {EQ: $id}}) { name} } } }";
+        Map<String, Object> variables = new HashMap<String, Object>() {{
+            put("id", "2001");
+        }};
+        
+        String expected = "{Humans={select=[{name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}]}}";
+
+        //when:
+        Object result = executor.execute(query,variables).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
     @Test
     public void queryOneToManyJoinByID() {
         //given:

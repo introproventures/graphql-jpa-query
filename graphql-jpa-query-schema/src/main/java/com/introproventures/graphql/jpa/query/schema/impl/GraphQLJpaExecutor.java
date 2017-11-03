@@ -16,6 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.transaction.Transactional;
@@ -62,10 +63,21 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.SUPPORTS)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
+    	
+    	// Need to inject variables in context to support parameter bindings in reverse queries 
+    	Map<String, Object> context = Collections.singletonMap("variables", arguments);
+    	
+//    	ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+//    			.query(query)
+//    			.variables(arguments)
+//    			.root(context)
+//    			.context(context)
+//    			.build();
+    	
         if (arguments == null)
             return graphQL.execute(query);
         else
-            return graphQL.execute(query, (Object) null, arguments);
+            return graphQL.execute(query, context, arguments);
     }
 
 }
