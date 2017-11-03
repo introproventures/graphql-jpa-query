@@ -34,7 +34,7 @@ For GraphQL JPA Annotations use:
 For GraphQL JPA Schema Builder use:
 
     <dependency>
-	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
+	    <groupId>com.introproventures</groupId>
 	    <artifactId>graphql-jpa-query-schema</artifactId>
 	    <version>0.3.0</version>
     </dependency>
@@ -215,7 +215,7 @@ Will Return:
     
 Reverse Query
 -------------
-You can execute an inverse query to fitler results with a join in many-to-one association with some limitations. If you do this, be aware that only static parameter binding are supported in `where` criteria expressions.
+You can execute an inverse query to fitler results with a join in many-to-one association in one query with parameter bindings support added in 0.3.1
 
 For Example: 
 
