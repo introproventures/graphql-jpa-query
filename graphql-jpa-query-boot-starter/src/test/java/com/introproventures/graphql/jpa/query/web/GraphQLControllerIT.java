@@ -55,9 +55,12 @@ public class GraphQLControllerIT {
 	public void testGraphqlArguments() throws JsonParseException, JsonMappingException, IOException {
 		GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}");
 		
-		String variables = "{\"title\":\"" + WAR_AND_PEACE + "\"}";
+        HashMap<String, Object> variables = new HashMap<>();
+        variables.put("title", WAR_AND_PEACE);
+        
 		query.setVariables(variables);
 
+		
 		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
 		Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
 
