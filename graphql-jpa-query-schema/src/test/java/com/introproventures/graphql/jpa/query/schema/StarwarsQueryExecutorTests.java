@@ -314,6 +314,50 @@ public class StarwarsQueryExecutorTests {
     }
 
     @Test
+    public void queryOrderByFieldsNested() {
+        //given:
+        String query = "query { Humans(where: {id: {EQ: \"1000\"}}) { select {name(orderBy: DESC) homePlanet friends { name(orderBy:DESC) } } } }";
+        
+        String expected = "{Humans={select=["
+            + "{name=Luke Skywalker, homePlanet=Tatooine, "
+	            + "friends=["
+		            + "{name=R2-D2}, "
+		            + "{name=Leia Organa}, "
+		            + "{name=Han Solo}, "
+		            + "{name=C-3PO}"
+		        + "]"
+	        + "}"
+            + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryOrderByDefaultId() {
+        //given:
+        String query = "query { Humans { select { id } } }";
+        
+        String expected = "{Humans={select=["
+	            + "{id=1000}, "
+	            + "{id=1001}, "
+	            + "{id=1002}, "
+	            + "{id=1003}, "
+	            + "{id=1004}"
+            + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    
+    @Test
     public void queryByCollectionOfEnumsAtRootLevel() {
         //given:
         String query = "query { Humans ( where: { appearsIn: {IN: [THE_FORCE_AWAKENS]}}) { select { name appearsIn } } }";

@@ -18,12 +18,10 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -37,7 +35,7 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import graphql.language.Argument;
 import graphql.language.Field;
-import graphql.language.SelectionSet;
+import graphql.language.Selection;
 import graphql.schema.DataFetchingEnvironment;
 
 /**
@@ -63,40 +61,47 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         Object source = environment.getSource();
         Optional<Argument> whereArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME);
         
-        // Resolve collection query if where argument is present
-        if(whereArg.isPresent()) {
-//            // Create entity graph from selection
-//            EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
-//            
-//            try {
-//                Object result = getQuery(environment, field, true)
-//                    .setHint("javax.persistence.fetchgraph", entityGraph)
-//                    .getSingleResult();
-//                
-//                return getAttributeValue(result, attribute);
-//            } catch (NoResultException e) {
-//            }
-//            
-//            return Collections.emptyList();
+        // Resolve collection query if where argument is present or any field in selection has orderBy argument
+        if(whereArg.isPresent() || hasSelectionAnyOrderBy(field)) {
 
-            EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
+            //EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
             
             return getQuery(environment, field, true)
+                //.setHint("javax.persistence.fetchgraph", entityGraph) // TODO: fix runtime exception
                 .getResultList();
-
-//                .stream()
-//                .map(it -> (Tuple) it)
-//                .map(tuple -> tuple.get(attribute.getName()))
-//                .collect(Collectors.toList());
         }
 
         // Let hibernate resolve collection query
         return getAttributeValue(source, attribute);
-
-        // Must do this to resolve where and orderBy on child fields
-//        return getQuery(environment, field, true).getResultList();
     }
     
+    private boolean hasSelectionAnyOrderBy(Field field) {
+    	
+    	if(!hasSelectionSet(field)) return false;
+    	
+        // Loop through all of the fields being requested
+        for(Selection selection : field.getSelectionSet().getSelections()) {
+            if (selection instanceof Field) {
+                Field selectedField = (Field) selection;
+
+                // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
+                if(!"__typename".equals(selectedField.getName())) {
+
+	                // Optional orderBy argument
+	                Optional<Argument> orderBy = selectedField.getArguments().stream()
+	                    .filter(this::isOrderByArgument)
+	                    .findFirst();
+	                
+	                if(orderBy.isPresent()) {
+                    	return true;
+	                }
+                }
+            }
+        }
+
+        return false;
+    	
+    }    
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     @Override
     protected TypedQuery<?> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
@@ -144,7 +149,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
      * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
      */
     @SuppressWarnings("unchecked")
-    public <EntityType,FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
+    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
         try {
             Member member = field.getJavaMember();
             if (member instanceof Method) {
@@ -167,7 +172,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
      * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
      */
     @SuppressWarnings("unchecked")
-    public <EntityType,FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
+    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
         try {
             Member member = field.getJavaMember();
             if (member instanceof Method) {

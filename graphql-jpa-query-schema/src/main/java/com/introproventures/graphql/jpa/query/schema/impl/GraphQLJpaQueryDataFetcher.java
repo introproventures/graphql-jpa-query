@@ -41,52 +41,6 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import graphql.schema.GraphQLObjectType;
 
-/*
-query Q($ids: [Long]!, $status: String!) {
-  ProcessInstancesQuery (
-    page:{start:1, limit: 10}
-    distinct: true
-    where: {
-      OR: {
-        processInstanceId: {
-            IN: $ids
-        }
-        status: {
-            LIKE: $status
-        }
-      }
-      lastModified:{
-        OR: {
-          AND: {
-             GT: "9/01/17 0:00 AM"
-             LT: "10/01/17 0:00 AM"
-          }
-          IS_NULL: true
-        }
-      }
-    }
-  ) { 
-    total
-    pages
-    select {
-      processInstanceId(orderBy:ASC)
-      processDefinitionId
-      status
-      tasks {
-        id
-        assignee,
-        name
-        variables {
-          id
-          name
-          type,
-          value
-        }
-      }
-    }
-  }
-}
- */
 /**
  * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions   
  * 

@@ -45,7 +45,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.Bindable.BindableType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -150,7 +149,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         Optional<Argument> orderByArgument = selectedField.getArguments().stream()
                             .filter(this::isOrderByArgument)
                             .findFirst();
-                        
+
                         if (orderByArgument.isPresent()) {
                             if ("DESC".equals(((EnumValue) orderByArgument.get().getValue()).getName()))
                                 query.orderBy(cb.desc(fieldPath));
@@ -175,24 +174,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             }
                         }
                     } else  {
-//                        // If this a collection attribute then we try eagerly fetch causing eager left join
-//                        // Workaround fieldPath.getModel() is always null for PluralAttribute Hibernate implementation
-//                        if(fieldPath instanceof PluralAttributePath) {
-//                            PluralAttribute<?,?,?> attribute = ((PluralAttributePath<?>) fieldPath).getAttribute();
-//    
-//                            // Foreign side is many and there are no filter arguments
-//                            if((attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY 
-//                                || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)
-//                                && selectedField.getArguments().isEmpty()
-//                            ) {
-//                                // Must use query.distinct(true) for fetch left join
-//                                query.distinct(true);
-//                                // Eagerly fetch all collection elements in parent query 
-//                                from.fetch(attribute.getName(), JoinType.LEFT);
-//                            } else {
-//                                // Do nothing
-//                            }
-//                        }
+                    	// Do nothing
                     }
                 }
             }
@@ -301,11 +283,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 return getWherePredicate(cb, from, join, new WherePredicateEnvironment(environment, arguments), where);
             }
         }
-    }
-    
-    private boolean isOuterJoin(From<?,?> from, String name) {
-        BindableType bindableType = from.get(name).getModel().getBindableType();
-        return  (bindableType == BindableType.PLURAL_ATTRIBUTE) ? true : false;
     }
     
     @SuppressWarnings( "unchecked" )
@@ -419,7 +396,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         
     }
     
-    private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
+    @SuppressWarnings("serial")
+	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         EnumSet<PredicateFilter.Criteria> options = 
             EnumSet.of(PredicateFilter.Criteria.valueOf(argument.getName()));
 
