@@ -84,13 +84,16 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                             environment.getSource(),
                             environment.getArguments(), 
                             environment.getContext(), 
+                            environment.getRoot(),
+                            environment.getFieldDefinition(),
                             environment.getFields(), 
                             it.getType(),
                             environment.getParentType(),
                             environment.getGraphQLSchema(),
                             environment.getFragmentsByName(),
                             environment.getExecutionId(),
-                            environment.getSelectionSet()
+                            environment.getSelectionSet(),
+                            environment.getFieldTypeInfo()
                         )).orElse(environment);
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());

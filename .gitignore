@@ -1,6 +1,6 @@
 # Eclipse
 #.classpath
-#.project
+.project/
 .settings/
 build/
 .factorypath
@@ -16,3 +16,8 @@ build/
 # Maven
 log/
 target/
+.factorypath
+
+graphql-jpa-query-annotations/\.project
+
+graphql-jpa-query-schema/\.project
