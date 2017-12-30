@@ -3,7 +3,7 @@ GraphQL Query for JPA Entity Model
 
 [![Build Status](https://travis-ci.org/introproventures/graphql-jpa-query.svg?branch=master)](https://travis-ci.org/introproventures/graphql-jpa-query)
 [![codecov](https://codecov.io/gh/introproventures/graphql-jpa-query/branch/master/graph/badge.svg)](https://codecov.io/gh/introproventures/graphql-jpa-query)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query)
+[![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 [![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
 This library uses [graphql-java v3.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
@@ -19,7 +19,7 @@ The GraphQL-JPA-Query library consists of the following modules:
 3. `graphql-jpa-query-boot-starter`- Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
 4. `graphql-jpa-query-example` - Provides example application for Books entity models
 
-Building with Maven Central [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.introproventures/graphql-jpa-query)
+Building with Maven Central [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 ------------------------
 You can use Maven Central repository to include and build individual modules in your project. 
 
