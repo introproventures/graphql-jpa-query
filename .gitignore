@@ -18,6 +18,8 @@ log/
 target/
 .factorypath
 
-graphql-jpa-query-annotations/\.project
+# Eclipse
+.project
+.springBeans
 
-graphql-jpa-query-schema/\.project
+
