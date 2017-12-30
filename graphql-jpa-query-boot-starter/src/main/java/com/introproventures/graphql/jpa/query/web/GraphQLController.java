@@ -22,6 +22,10 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import graphql.ExecutionResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.MediaType;
@@ -32,32 +36,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-
-import graphql.ExecutionResult;
-
 /**
- * Spring Boot GraphQL Query Rest Controller with HTTP mapping endpoints for GraphQLExecutor relay 
- * 
- * @see <a href="http://graphql.org/learn/serving-over-http/">Serving GraphQL over HTTP</a> 
- * 
+ * Spring Boot GraphQL Query Rest Controller with HTTP mapping endpoints for GraphQLExecutor relay
+ *
+ * @see <a href="http://graphql.org/learn/serving-over-http/">Serving GraphQL over HTTP</a>
+ *
  */
 @RestController
 @ConditionalOnWebApplication
 @ConditionalOnClass(GraphQLExecutor.class)
 public class GraphQLController {
-    
+
     private static final String PATH = "${spring.graphql.jpa.query.path:/graphql}";
     public static final String APPLICATION_GRAPHQL_VALUE = "application/graphql";
-    
+
     private final GraphQLExecutor   graphQLExecutor;
     private final ObjectMapper  mapper;
 
     /**
      * Creates instance of Spring GraphQLController RestController
-     * 
+     *
      * @param graphQLExecutor {@link GraphQLExecutor} instance
      * @param mapper {@link ObjectMapper} instance
      */
@@ -66,10 +64,10 @@ public class GraphQLController {
         this.graphQLExecutor = graphQLExecutor;
         this.mapper = mapper;
     }
-    
+
     /**
-     * Handle standard GraphQL POST request that consumes 
-     * "application/json" content type with a JSON-encoded body 
+     * Handle standard GraphQL POST request that consumes
+     * "application/json" content type with a JSON-encoded body
      * of the following format:
      * <pre>
      * {
@@ -79,12 +77,12 @@ public class GraphQLController {
      * </pre>
      * @param queryRequest object
      * @return {@link ExecutionResult} response
-     * @throws IOException
+     * @throws IOException exception
      */
-    @PostMapping(value = PATH, 
-            consumes = {MediaType.APPLICATION_JSON_VALUE}, 
+    @PostMapping(value = PATH,
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest) throws IOException 
+    public ExecutionResult postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest) throws IOException
     {
         return graphQLExecutor.execute(queryRequest.getQuery(), queryRequest.getVariables());
     }
@@ -93,69 +91,69 @@ public class GraphQLController {
      * Handle HTTP GET request.
      * The GraphQL query should be specified in the "query" query string.
      * i.e. <pre> http://server/graphql?query={query{name}}</pre>
-     * 
-     * Query variables can be sent as a JSON-encoded string in an additional 
+     *
+     * Query variables can be sent as a JSON-encoded string in an additional
      * query parameter called variables.
-     * 
+     *
      * @param query encoded JSON string
      * @param variables encoded JSON string
      * @return {@link ExecutionResult} response
-     * @throws IOException
+     * @throws IOException exception
      */
-    @GetMapping(value = PATH, 
-            consumes = {APPLICATION_GRAPHQL_VALUE}, 
+    @GetMapping(value = PATH,
+            consumes = {APPLICATION_GRAPHQL_VALUE},
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult getQuery( 
-            @RequestParam(name="query") final String query, 
-            @RequestParam(name="variables", required = false) final  String variables) throws IOException 
+    public ExecutionResult getQuery(
+            @RequestParam(name="query") final String query,
+            @RequestParam(name="variables", required = false) final  String variables) throws IOException
     {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
-        
+
         return graphQLExecutor.execute(query, variablesMap);
     }
-    
+
     /**
      * Handle HTTP FORM POST request.
      * The GraphQL query should be specified in the "query" query parameter string.
-     * 
-     * Query variables can be sent as a JSON-encoded string in an additional 
+     *
+     * Query variables can be sent as a JSON-encoded string in an additional
      * query parameter called variables.
 
      * @param query encoded JSON string
      * @param variables encoded JSON string
      * @return {@link ExecutionResult} response
-     * @throws IOException
+     * @throws IOException exception
      */
-    @PostMapping(value = PATH, 
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, 
+    @PostMapping(value = PATH,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postForm( 
-            @RequestParam(name="query") final String query, 
-            @RequestParam(name="variables", required = false) final String variables) throws IOException 
+    public ExecutionResult postForm(
+            @RequestParam(name="query") final String query,
+            @RequestParam(name="variables", required = false) final String variables) throws IOException
     {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
-        
+
         return graphQLExecutor.execute(query, variablesMap);
     }
 
     /**
      * Handle POST with the "application/graphql" Content-Type header.
      * Treat the HTTP POST body contents as the GraphQL query string.
-     * 
-     * 
-     * @param queryRequest a valid {@link GraphQLQueryRequest} input argument
+     *
+     *
+     * @param query a valid {@link GraphQLQueryRequest} input argument
      * @return {@link ExecutionResult} response
-     * @throws IOException
+     * @throws IOException exception
      */
-    @PostMapping(value = PATH, 
-            consumes = APPLICATION_GRAPHQL_VALUE, 
+    @PostMapping(value = PATH,
+            consumes = APPLICATION_GRAPHQL_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postApplicationGraphQL( 
-            @RequestBody final String query) throws IOException 
+    public ExecutionResult postApplicationGraphQL(
+            @RequestBody final String query) throws IOException
     {
         return graphQLExecutor.execute(query, null);
     }
-    
+
     /**
      * Convert String argument to a Map as expected by {@link GraphQLJpaExecutor#execute(String, Map)}. GraphiQL posts both
      * query and variables as JSON encoded String, so Spring MVC mapping is useless here.
@@ -163,20 +161,20 @@ public class GraphQLController {
      *
      * @param json JSON encoded string variables
      * @return a {@link HashMap} object of variable key-value pairs
-     * @throws IOException
+     * @throws IOException exception
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> variablesStringToMap(final String json) throws IOException {
         Map<String, Object> variables = null;
-        
+
         if (json != null && !json.isEmpty())
             variables = mapper.readValue(json, Map.class);
-        
+
         return variables;
     }
 
     /**
-     * GraphQL JSON HTTP Request Wrapper Class  
+     * GraphQL JSON HTTP Request Wrapper Class
      */
     @Validated
     public static class GraphQLQueryRequest {
@@ -187,9 +185,9 @@ public class GraphQLController {
         private  Map<String, Object> variables;
 
         GraphQLQueryRequest() {}
-        
+
         /**
-         * @param query
+         * @param query string
          */
         public GraphQLQueryRequest(String query) {
             super();
@@ -225,5 +223,5 @@ public class GraphQLController {
         }
 
     }
-    
+
 }
