@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.1
+## 0.3.2-SNAPSHOT
 * Fix JavaDoc errors in GraphQLController [2197e5b](null/commit/2197e5b4ee0a0cd189dc6967986c00df21533e94)
 * Upgrade to graphql-java 6.0 (#26) [156f232](null/commit/156f232078f5a97435bc2ae99cb0fbe5da93e260)
 * Upgrade to graphql-java 5.0 (#23) [6306ffb](null/commit/6306ffb267960bb0f40aeea39416c677c6da71f4)
