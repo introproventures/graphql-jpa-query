@@ -56,7 +56,7 @@
 			<dependency>
 				<groupId>io.spring.platform</groupId>
 				<artifactId>platform-bom</artifactId>
-				<version>Brussels-SR4</version>
+				<version>Brussels-SR6</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
