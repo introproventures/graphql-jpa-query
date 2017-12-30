@@ -1,6 +1,14 @@
 # Change Log
 
-## 0.3.1-SNAPSHOT
+## 0.3.1
+* Fix JavaDoc errors in GraphQLController [2197e5b](null/commit/2197e5b4ee0a0cd189dc6967986c00df21533e94)
+* Upgrade to graphql-java 6.0 (#26) [156f232](null/commit/156f232078f5a97435bc2ae99cb0fbe5da93e260)
+* Upgrade to graphql-java 5.0 (#23) [6306ffb](null/commit/6306ffb267960bb0f40aeea39416c677c6da71f4)
+* Handle orderBy in nested queries (#22) [c2ab8af](null/commit/c2ab8afbb52e6dc2232420ac9ecc86bf15c6b3b8)
+* Update README.md [c7ceaf8](null/commit/c7ceaf8d60f5e2eea1a4376575e9383d7a76ec40)
+* Implemented support for parameter bindings in reverse queries (#17) [0d969c1](null/commit/0d969c1eddd0ef8c903a2794d31bbbd40e780ce2)
+* Update README.md [36f582d](null/commit/36f582de1453d63d22d98d54d1899ccead268cce)
+* Create jitpack.yml [9d9e4bf](null/commit/9d9e4bfe61d5f0835cdd79fbaa93e392b3e26992)
 * Fix error during deployment to Sonatype: &quot;Invalid Signature for Javdoc&quot; [eb207a6](null/commit/eb207a61a5fd58b4d5199d64d05b2fcd68b6ce50)
 * Setup Maven Central Release [fa67db0](null/commit/fa67db0e5fbd1841995433c56b10ee6cab1b9412)
 * Setup Sonatype Staging Repository Release in Maven [22358c1](null/commit/22358c1f3a3862b2d8c310e2805b84a3ca1a0ad5)
