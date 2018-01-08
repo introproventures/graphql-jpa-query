@@ -6,7 +6,7 @@ GraphQL Query for JPA Entity Model
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 [![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
-This library uses [graphql-java v3.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
+This library uses [graphql-java 6.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
 
 It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
 
@@ -28,7 +28,7 @@ For GraphQL JPA Annotations use:
 	<dependency>
 	  <groupId>com.introproventures</groupId>
 	  <artifactId>graphql-jpa-query-annotations</artifactId>
-	  <version>0.3.0</version>
+	  <version>tag</version>
 	</dependency>
 
 For GraphQL JPA Schema Builder use:
@@ -36,7 +36,7 @@ For GraphQL JPA Schema Builder use:
     <dependency>
 	    <groupId>com.introproventures</groupId>
 	    <artifactId>graphql-jpa-query-schema</artifactId>
-	    <version>0.3.0</version>
+	    <version>tag</version>
     </dependency>
 
 For GraphQL JPA Query Boot Starter use:
@@ -44,7 +44,7 @@ For GraphQL JPA Query Boot Starter use:
 	<dependency>
 	  <groupId>com.introproventures</groupId>
 	  <artifactId>graphql-jpa-query-boot-starter</artifactId>
-	  <version>0.3.0</version>
+	  <version>tag</version>
 	</dependency>
 
 Building with jitpack.io [![Release](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
@@ -63,7 +63,7 @@ For GraphQL JPA Annotations use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-annotations</artifactId>
-	    <version>0.3.0</version>
+	    <version>tag</version>
     </dependency>
 
 For GraphQL JPA Schema Builder use:
@@ -71,7 +71,7 @@ For GraphQL JPA Schema Builder use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-schema</artifactId>
-	    <version>0.3.0</version>
+	    <version>tag</version>
     </dependency>
 
 For GraphQL JPA Query Boot Starter use:
@@ -79,7 +79,7 @@ For GraphQL JPA Query Boot Starter use:
     <dependency>
 	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
 	    <artifactId>graphql-jpa-query-boot-starter</artifactId>
-	    <version>0.3.0</version>
+	    <version>tag</version>
     </dependency>
 
 Other Dependencies
@@ -268,14 +268,14 @@ Just like a REST API, it is possible to pass variable arguments to an endpoint i
 
 Pagination
 ----------
-GraphQL does not specify any language or idioms for performing Pagination. This library provides support for pageable queries with `page` argument on pluralized query wrapper.
+GraphQL does not specify any language or idioms for performing Pagination. This library provides support for pageable queries with `page` argument on pluralized query wrapper. Tha page start is 1-based, i.e. provide 1 as value for `start` parameter to request the first page with the number of records in the limit argument value. 
 
 This allows you to query for the "Page" version of any Entity, and return page metadata i.e. pages and total records count with the select data.  
 
 For example:
 
     query {
-        Humans(page:{start:0, limit: 3}) {
+        Humans(page:{start:1, limit: 3}) {
             pages
             total
             select {
