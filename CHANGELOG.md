@@ -1,6 +1,10 @@
 # Change Log
 
-## 0.3.2-SNAPSHOT
+## 0.3.2
+* Enable autoReleaseAfterClose in Maven release  [97d81b9](null/commit/97d81b91208abba899645d689025e6eb62b68fbf)
+* Fix: &#39;NE&#39; is generating &#39;LIKE&#39; statement instead of notEqual for Strings (#29) [b963eb8](null/commit/b963eb83f630e032d96c50cc5022e553f252e22b)
+* Update README.md [b848262](null/commit/b848262e5a3a79df5687c84e41fb525710e5dbc3)
+* Update README.md [f3aa186](null/commit/f3aa1866f93573fafd815dce4ad784a2329b2ac6)
 * Fix JavaDoc errors in GraphQLController [2197e5b](null/commit/2197e5b4ee0a0cd189dc6967986c00df21533e94)
 * Upgrade to graphql-java 6.0 (#26) [156f232](null/commit/156f232078f5a97435bc2ae99cb0fbe5da93e260)
 * Upgrade to graphql-java 5.0 (#23) [6306ffb](null/commit/6306ffb267960bb0f40aeea39416c677c6da71f4)
