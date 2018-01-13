@@ -86,15 +86,15 @@ class JpaPredicateBuilder {
      * @param filter
      * @return
      */
-    protected Predicate getStringPredicate(Path<?> root, PredicateFilter filter) {
+    protected Predicate getStringPredicate(Path<String> root, PredicateFilter filter) {
         Expression<String> fieldValue;
 
         // list or arrays only for in and not in
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
-        
+
         if(arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
-    
+
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
                 CriteriaBuilder.In<Object> in = cb.in(root);
                 return in.value(compareValue);
@@ -102,14 +102,19 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(root.in(compareValue));
             }
-            
+
             if (filter.getCriterias().contains(PredicateFilter.Criteria.CASE)) {
-                fieldValue = (Path<String>) root;
+                fieldValue = root;
             }
             else {
-                fieldValue = cb.lower((Path<String>) root);
+                fieldValue = cb.lower(root);
                 compareValue = compareValue.toLowerCase();
             }
+
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(fieldValue, compareValue);
+            }
+
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LIKE)) {
                 compareValue = "%" + compareValue + "%";
             }
@@ -125,7 +130,7 @@ class JpaPredicateBuilder {
             }
             return cb.like(fieldValue, compareValue);
         }
-        
+
         return arrayValuePredicate;
     }
 
@@ -148,8 +153,8 @@ class JpaPredicateBuilder {
     protected Predicate getIntegerPredicate(Path<? extends Number> root, PredicateFilter filter) {
 
         // list or arrays only for in and not in
-        Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);  
-        
+        Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
+
         if (arrayValuePredicate == null && filter.getValue() != null && filter.getValue() instanceof Number) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
                 CriteriaBuilder.In<Object> in = cb.in(root);
@@ -171,9 +176,9 @@ class JpaPredicateBuilder {
                 return cb.ge(root, (Number) filter.getValue());
             }
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
-                return cb.notEqual(root, (Number) filter.getValue());
+                return cb.notEqual(root, filter.getValue());
             }
-            return cb.equal(root, (Number) filter.getValue());
+            return cb.equal(root, filter.getValue());
         }
         return arrayValuePredicate;
     }
@@ -193,7 +198,7 @@ class JpaPredicateBuilder {
                 return cb.not(path.in((Object[]) filter.getValue()));
             }
         } else if ((filter.getValue() instanceof Collection)) {
-            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE) 
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
                 && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 for(Object n : (Collection<?>) filter.getValue()) {
@@ -205,11 +210,11 @@ class JpaPredicateBuilder {
                 return cb.not(path.in((Collection<?>) filter.getValue()));
             }
         }
-        
+
         return null;
-        
+
     }
-    
+
     protected Predicate getFloatingPointPredicate(Path<? extends Number> root, PredicateFilter filter) {
         if (filter.getValue() != null && filter.getValue() instanceof Number) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
@@ -222,10 +227,10 @@ class JpaPredicateBuilder {
                 return cb.ge(root, (Number) filter.getValue());
             }
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
-                return cb.equal(root, (Number) filter.getValue());
+                return cb.equal(root, filter.getValue());
             }
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
-                return cb.notEqual(root, (Number) filter.getValue());
+                return cb.notEqual(root, filter.getValue());
             }
             // LE or default
             return cb.le(root, (Number) filter.getValue());
@@ -246,10 +251,10 @@ class JpaPredicateBuilder {
                 return cb.greaterThanOrEqualTo(root, (Date) filter.getValue());
             }
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
-                return cb.equal(root, (Date) filter.getValue());
+                return cb.equal(root, filter.getValue());
             }
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
-                return cb.notEqual(root, (Date) filter.getValue());
+                return cb.notEqual(root, filter.getValue());
             }
             // LE or default
             return cb.lessThanOrEqualTo(root, (Date) filter.getValue());
@@ -257,11 +262,12 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
         Class<?> type = field.getJavaType();
         Object value = filter.getValue();
         Set<Criteria> criterias = filter.getCriterias();
-        
+
         if(value == null) {
             return cb.disjunction();
         }
@@ -270,25 +276,14 @@ class JpaPredicateBuilder {
             return (boolean) value ? cb.isNull(field) : cb.isNotNull(field);
         } else if (criterias.contains(Criteria.NOT_NULL)) {
             return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
-        } 
-        
-//        // Unwrap arrays and lists of 1 into single value
-//        if(value.getClass().isArray() && ((Object [])value).length == 1) {
-//            value = ((Object [])value)[0];
-//            type = value.getClass();
-//        }
-//
-//        if(value instanceof List && ((List)value).size() == 1) {
-//            value = ((List)value).get(0);
-//            type = value.getClass();
-//        }
-        
+        }
+
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
-        
+
         if (type.isPrimitive())
             type = JpaQueryBuilder.PRIMITIVES_TO_WRAPPERS.get(type);
         if (type.equals(String.class)) {
-            return getStringPredicate(field, filter);
+            return getStringPredicate((Path<String>)field, filter);
         }
         else if (type.equals(Long.class)
                 || type.equals(BigInteger.class)
@@ -307,12 +302,12 @@ class JpaPredicateBuilder {
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
-        } 
+        }
         else if(Collection.class.isAssignableFrom(type)) {
             if(field.getModel() == null)
-                return from.join(filter.getField()).in(value); 
+                return from.join(filter.getField()).in(value);
         }
-            
+
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());
     }
 
