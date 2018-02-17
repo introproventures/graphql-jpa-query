@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.3
+## 0.3.4-SNAPSHOT
 * Fix RTE in DataFetcher on GraphQL __typename introspection field (#32) [fa9e760](null/commit/fa9e7603cd3adaa5cc75b17eb1c09fb3ce080eb9)
 * Enable autoReleaseAfterClose in Maven release  [97d81b9](null/commit/97d81b91208abba899645d689025e6eb62b68fbf)
 * Fix: &#39;NE&#39; is generating &#39;LIKE&#39; statement instead of notEqual for Strings (#29) [b963eb8](null/commit/b963eb83f630e032d96c50cc5022e553f252e22b)
