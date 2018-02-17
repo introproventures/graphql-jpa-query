@@ -26,8 +26,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +33,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -225,7 +226,7 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
-//    @Test
+    @Test
     public void queryDeepNesting() {
         //given:
         String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name } } } }";
@@ -245,7 +246,7 @@ public class StarwarsQueryExecutorTests {
     }
 
     // Cannot simultaneously fetch multiple bags #2
-//    @Test
+    @Test
     public void queryDeepNestingPlural() {
         //given:
         String query = "query { Droids(where: {id: {EQ: \"2001\"}}) { select { name, friends { name, appearsIn, friends { name } } }  }}";
@@ -477,6 +478,41 @@ public class StarwarsQueryExecutorTests {
 
         String expected = "{CodeLists={select=["
                 + "{id=0, description=Male, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=1}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithTypenameDeepNesting() {
+        //given:
+        String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name __typename } __typename } __typename } }";
+
+
+        String expected = "{Droid={name=R2-D2, friends=["
+            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Han Solo, __typename=Character}], __typename=Character}"
+            + "], __typename=Droid}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithTypenameSimple() {
+        //given:
+        String query = "query { CodeLists(where: {sequence: {NE: 2}}) { select { id description active type sequence __typename} } }";
+
+        String expected = "{CodeLists={select=["
+                + "{id=0, description=Male, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=1, __typename=CodeList}"
                 + "]}}";
 
         //when:
