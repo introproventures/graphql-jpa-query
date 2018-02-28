@@ -32,8 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
@@ -152,5 +150,23 @@ public class GraphQLExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    
+    // https://github.com/introproventures/graphql-jpa-query/issues/33
+    @Test
+    public void queryForElementCollection() {
+        //given
+        String query = "{ Author(id: 1) { id name, phoneNumbers } }";
+        //String query = "{ Author(id: 1) { id name } }";
+        
+        String expected = "{Author={id=1, name=Leo Tolstoy, phoneNumbers=[1-123-1234, 1-123-5678]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
 
 }

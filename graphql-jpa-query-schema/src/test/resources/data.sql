@@ -105,3 +105,17 @@ insert into character_appears_in (character_id, appears_in) values
 -- Things
 insert into thing (id, type) values
     ('2D1EBC5B7D2741979CF0E84451C5BBB1', 'Thing1');
+    
+-- Books
+insert into author (id, name) values (1, 'Leo Tolstoy');
+insert into book (id, title, author_id, genre) values (2, 'War and Peace', 1, 'NOVEL');
+insert into book (id, title, author_id, genre) values (3, 'Anna Karenina', 1, 'NOVEL');
+insert into author (id, name) values (4, 'Anton Chekhov');
+insert into book (id, title, author_id, genre) values (5, 'The Cherry Orchard', 4, 'PLAY');
+insert into book (id, title, author_id, genre) values (6, 'The Seagull', 4, 'PLAY');
+insert into book (id, title, author_id, genre) values (7, 'Three Sisters', 4, 'PLAY');
+insert into author_phone_numbers(phone_number, author_id) values
+	('1-123-1234', 1),
+	('1-123-5678', 1),
+	('4-123-1234', 4),
+	('4-123-5678', 4);
