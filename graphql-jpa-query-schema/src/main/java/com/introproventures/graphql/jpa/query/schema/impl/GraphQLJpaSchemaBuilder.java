@@ -471,18 +471,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 Stream<Attribute> attributes = findBasicAttributes(foreignType.getAttributes());
 
                 // TODO fix page count query
-                // TODO fix argument bindings. Only static parameter bindings are supported due to GraphQL limitation 
                 arguments.add(getWhereArgument(foreignType));
 
-                // Disabled Simple attribute filtering
-//                attributes.forEach(it -> {
-//                    arguments.add(GraphQLArgument.newArgument()
-//                        .name(it.getName())
-//                        .type((GraphQLInputType) getAttributeType(it))
-//                        .build()
-//                    );
-//                });
-                
             } //  Get Sub-Objects fields queries via DataFetcher     
             else if (attribute instanceof PluralAttribute
                 && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
@@ -513,22 +503,24 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     @SuppressWarnings( "rawtypes" )
     private GraphQLType getAttributeType(Attribute<?,?> attribute) {
-        if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
-              if (attribute.getJavaType().isEnum()) {
-                  return getTypeFromJavaType(attribute.getJavaType());
-              } else {
-                  return JavaScalars.of(attribute.getJavaType());
-              }
-            
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY) {
+    	
+        if (isBasic(attribute)) {
+        	return getGraphQLTypeFromJavaType(attribute.getJavaType());        	
+        } 
+        else if (isToMany(attribute)) {
             EntityType foreignType = (EntityType) ((PluralAttribute) attribute).getElementType();
             return new GraphQLList(new GraphQLTypeReference(foreignType.getName()));
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE) {
+        } 
+        else if (isToOne(attribute)) {
             EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
             return new GraphQLTypeReference(foreignType.getName());
-        } else if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION) {
+        } 
+        else if (isElementCollection(attribute)) {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
-            return new GraphQLList(getTypeFromJavaType(foreignType.getJavaType()));
+            
+            if(foreignType.getPersistenceType() == Type.PersistenceType.BASIC) {
+            	return new GraphQLList(getGraphQLTypeFromJavaType(foreignType.getJavaType()));        	
+            }
         }
 
         final String declaringType = attribute.getDeclaringType().getJavaType().getName(); // fully qualified name of the entity class
@@ -538,7 +530,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 "Attribute could not be mapped to GraphQL: field '" + declaringMember + "' of entity class '"+ declaringType +"'");
     }
 
-    private boolean isValidInput(Attribute<?,?> attribute) {
+    protected final boolean isBasic(Attribute<?,?> attribute) {
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
+    }
+    
+    protected final boolean isElementCollection(Attribute<?,?> attribute) {
+    	return  attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
+    }
+    
+    protected final boolean isToMany(Attribute<?,?> attribute) {
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY 
+        		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY;
+    }
+
+    protected final boolean isToOne(Attribute<?,?> attribute) {
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE 
+        		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE;
+    }
+    
+
+    protected final boolean isValidInput(Attribute<?,?> attribute) {
         return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC ||
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
     }
@@ -586,7 +597,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     @SuppressWarnings( "unchecked" )
-    private GraphQLType getTypeFromJavaType(Class<?> clazz) {
+    private GraphQLType getGraphQLTypeFromJavaType(Class<?> clazz) {
         if (clazz.isEnum()) {
             
             if (classCache.containsKey(clazz))
@@ -597,15 +608,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             for (Enum<?> enumValue : ((Class<Enum<?>>)clazz).getEnumConstants())
                 enumBuilder.value(enumValue.name(), ordinal++);
 
-            GraphQLType answer = enumBuilder.build();
-            setNoOpCoercing(answer);
+            GraphQLType enumType = enumBuilder.build();
+            setNoOpCoercing(enumType);
 
-            classCache.putIfAbsent(clazz, answer);
+            classCache.putIfAbsent(clazz, enumType);
             
-            return answer;
+            return enumType;
         }
 
-        return null;
+        return JavaScalars.of(clazz);
     }
 
     protected GraphQLInputType getFieldsEnumType(EntityType<?> entityType) {
