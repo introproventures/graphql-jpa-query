@@ -119,3 +119,17 @@ insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-5678', 1),
 	('4-123-1234', 4),
 	('4-123-5678', 4);
+	
+-- Car
+insert into Car (id, brand) values
+	(1, 'Ford'),
+	(2, 'Cadillac'),
+	(3, 'Toyota');
+
+	
+-- Boat
+insert into Boat (id, identification) values
+	(1, '12345'),
+	(2, '23456'),
+	(3, '34567');
+	

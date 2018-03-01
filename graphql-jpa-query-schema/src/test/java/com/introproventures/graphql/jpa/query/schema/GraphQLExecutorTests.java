@@ -157,7 +157,6 @@ public class GraphQLExecutorTests {
     public void queryForElementCollection() {
         //given
         String query = "{ Author(id: 1) { id name, phoneNumbers } }";
-        //String query = "{ Author(id: 1) { id name } }";
         
         String expected = "{Author={id=1, name=Leo Tolstoy, phoneNumbers=[1-123-1234, 1-123-5678]}}";
 
@@ -167,6 +166,52 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    // https://github.com/introproventures/graphql-jpa-query/issues/30
+    @Test
+    public void queryForEntityWithMappedSuperclass() {
+        //given
+        String query = "{ Car(id: \"1\") { id brand } }";
+        
+        String expected = "{Car={id=1, brand=Ford}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    // https://github.com/introproventures/graphql-jpa-query/issues/30
+    @Test
+    public void queryForEntityWithEmeddableType() {
+        //given
+        String query = "{ Boat(id: \"1\") { id engine { identification } } }";
+        
+        String expected = "{Boat={id=1, engine={identification=12345}}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+//    // TODO
+//    @Test
+//    public void queryForEntityWithEmeddableTypeAndWhere() {
+//        //given
+//        String query = "{ Boats { id engine(where: { identification: { EQ: \"12345\"}}) { identification } } }";
+//        
+//        String expected = "{Boats={select[id=1, engine={identification=12345}]}}";
+//
+//        //when
+//        Object result = executor.execute(query).getData();
+//
+//        // then
+//        assertThat(result.toString()).isEqualTo(expected);
+//    }
+    
     
 
 }

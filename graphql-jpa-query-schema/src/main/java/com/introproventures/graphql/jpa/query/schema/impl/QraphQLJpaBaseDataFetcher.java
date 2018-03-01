@@ -45,6 +45,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -713,8 +714,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         selections(root)
             .forEach(it -> {
-
-                if(hasSelectionSet(it) && hasNoArguments(it)) {
+                if(hasSelectionSet(it) 
+                		&& hasNoArguments(it) 
+                		&& isManagedType(entityType.getAttribute(it.getName()))
+                ) {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
@@ -726,6 +729,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return entityGraph;
     };
 
+    
+    protected final boolean isManagedType(Attribute<?,?> attribute) {
+    	return attribute.getPersistentAttributeType() != PersistentAttributeType.EMBEDDED 
+    			&& attribute.getPersistentAttributeType() != PersistentAttributeType.BASIC
+    			&& attribute.getPersistentAttributeType() != PersistentAttributeType.ELEMENT_COLLECTION;
+    }
 
     protected final boolean hasNoArguments(Field field) {
         return !hasArguments(field);
