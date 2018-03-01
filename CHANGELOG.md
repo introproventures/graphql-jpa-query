@@ -1,6 +1,8 @@
 # Change Log
 
-## 0.3.4-SNAPSHOT
+## 0.3.4
+* Support @MappedSuperclass and @Embedded jpa annotations (#35) [09807ac](null/commit/09807ac4988f986b669ad60307c868d4590bdd34)
+* Support @ElementCollection attribute mappings (#34) [0df8a98](null/commit/0df8a98f5e4cd9cc6783e55af759eedc4a61c529)
 * Fix RTE in DataFetcher on GraphQL __typename introspection field (#32) [fa9e760](null/commit/fa9e7603cd3adaa5cc75b17eb1c09fb3ce080eb9)
 * Enable autoReleaseAfterClose in Maven release  [97d81b9](null/commit/97d81b91208abba899645d689025e6eb62b68fbf)
 * Fix: &#39;NE&#39; is generating &#39;LIKE&#39; statement instead of notEqual for Strings (#29) [b963eb8](null/commit/b963eb83f630e032d96c50cc5022e553f252e22b)
