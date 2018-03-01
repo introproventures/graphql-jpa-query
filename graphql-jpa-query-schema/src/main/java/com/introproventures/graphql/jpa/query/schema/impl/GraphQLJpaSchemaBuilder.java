@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -90,6 +91,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private Map<Class<?>, GraphQLType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
+    private Map<EmbeddableType<?>, GraphQLObjectType> embeddableCache = new HashMap<>();
     
     private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
@@ -127,14 +129,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .collect(Collectors.toList())
         );
         
-//        queryType.fields(
-//            entityManager.getMetamodel()
-//                .getEntities().stream()
-//                .filter(this::isNotIgnored)
-//                .map(this::getQueryFieldDefinition)
-//                .collect(Collectors.toList())
-//        );
-        
         queryType.fields(
             entityManager.getMetamodel()
                 .getEntities().stream()
@@ -146,21 +140,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return queryType.build();
     }
 
-    private GraphQLFieldDefinition getQueryFieldDefinition(EntityType<?> entityType) {
-        return GraphQLFieldDefinition.newFieldDefinition()
-                .name(namingStrategy.pluralize(entityType.getName()))
-                .description(getSchemaDescription( entityType.getJavaType()))
-                .type(new GraphQLList(getObjectType(entityType)))
-                .dataFetcher(new QraphQLJpaBaseDataFetcher(entityManager, entityType))
-                .argument(entityType.getAttributes().stream()
-                    .filter(this::isValidInput)
-                    .filter(this::isNotIgnored)
-                    .map(this::getArgument)
-                    .collect(Collectors.toList())
-                )
-                .build();
-    }
-    
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(entityType.getName())
@@ -179,13 +158,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private GraphQLFieldDefinition getQueryFieldSelectDefinition(EntityType<?> entityType) {
         
-        GraphQLArgument distinctArgument = GraphQLArgument.newArgument()
-            .name(SELECT_DISTINCT_PARAM_NAME)
-            .description("JPA Query DISTINCT specification")
-            .type(Scalars.GraphQLBoolean)
-            .defaultValue(true)
-            .build();   
-
         GraphQLObjectType pageType = GraphQLObjectType.newObject()
                 .name(namingStrategy.pluralize(entityType.getName()))
                 .description("Query response wrapper object for " + entityType.getName() + ".  When page is requested, this object will be returned with query metadata.")
@@ -205,7 +177,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .name(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME)
                     .description("The queried records container")
                     .type(new GraphQLList(getObjectType(entityType)))
-                    //.argument(distinctArgument)
                     .build()
                 )
                 .build();
@@ -286,12 +257,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Map<String, GraphQLInputType> whereAttributesMap = new HashMap<>();
     
     private GraphQLInputType getWhereAttributeType(Attribute<?,?> attribute) {
-       String type =  namingStrategy.singularize(attribute.getName())+((EntityType<?>)attribute.getDeclaringType()).getName()+"Criteria";
+        //String type =  namingStrategy.singularize(attribute.getName())+((EntityType<?>)attribute.getDeclaringType()).getName()+"Criteria";
+    	String type =  namingStrategy.singularize(attribute.getName())+attribute.getDeclaringType().getJavaType().getSimpleName()+"Criteria";
 
-       if(whereAttributesMap.containsKey(type))
+    	if(whereAttributesMap.containsKey(type))
            return whereAttributesMap.get(type);
        
-       GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject()
+    	GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject()
             .name(type)
             .description("Criteria expression specification of "+namingStrategy.singularize(attribute.getName())+" attribute in entity " + attribute.getDeclaringType().getJavaType())
             .field(GraphQLInputObjectField.newInputObjectField()
@@ -422,6 +394,28 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Input Argument");
     }
+    
+    private GraphQLObjectType getEmbeddableType(EmbeddableType<?> embeddableType) {
+        if (embeddableCache.containsKey(embeddableType))
+            return embeddableCache.get(embeddableType);        
+
+        String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+"EmbeddableType";
+        
+        GraphQLObjectType objectType = GraphQLObjectType.newObject()
+                .name(embeddableTypeName)
+                .description(getSchemaDescription( embeddableType.getJavaType()))
+                .fields(embeddableType.getAttributes().stream()
+                    .filter(this::isNotIgnored)
+                    .map(this::getObjectField)
+                    .collect(Collectors.toList())
+                )
+                .build();
+        
+        embeddableCache.putIfAbsent(embeddableType, objectType);
+        
+        return objectType;
+    }
+    
 
     private GraphQLObjectType getObjectType(EntityType<?> entityType) {
         if (entityCache.containsKey(entityType))
@@ -465,6 +459,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
             if (attribute instanceof SingularAttribute  
                 && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC
+                && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED
              ) {
 
                 EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
@@ -507,6 +502,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         if (isBasic(attribute)) {
         	return getGraphQLTypeFromJavaType(attribute.getJavaType());        	
         } 
+        else if (isEmbeddable(attribute)) {
+        	EmbeddableType embeddableType = (EmbeddableType) ((SingularAttribute) attribute).getType();
+        	return getEmbeddableType(embeddableType);
+        } 
         else if (isToMany(attribute)) {
             EntityType foreignType = (EntityType) ((PluralAttribute) attribute).getElementType();
             return new GraphQLList(new GraphQLTypeReference(foreignType.getName()));
@@ -530,6 +529,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 "Attribute could not be mapped to GraphQL: field '" + declaringMember + "' of entity class '"+ declaringType +"'");
     }
 
+    protected final boolean isEmbeddable(Attribute<?,?> attribute) {
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
+    }
+    
     protected final boolean isBasic(Attribute<?,?> attribute) {
     	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
     }
@@ -571,6 +574,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return null;
     }
 
+    private boolean isNotIgnored(EmbeddableType<?> attribute) {
+        return isNotIgnored(attribute.getJavaType());
+    }
+    
     private boolean isNotIgnored(Attribute<?,?> attribute) {
         return isNotIgnored(attribute.getJavaMember()) && isNotIgnored(attribute.getJavaType());
     }
