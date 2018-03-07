@@ -15,11 +15,11 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -32,6 +32,8 @@ import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.SingularAttribute;
 
+import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
+import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
@@ -42,19 +44,22 @@ import graphql.schema.DataFetchingEnvironmentImpl;
 import graphql.schema.GraphQLObjectType;
 
 /**
- * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions   
- * 
+ * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions
+ *
  * @author Igor Dianov
  *
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy authorizationStrategy) {
+        super(entityManager, entityType, authorizationStrategy);
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        if (authorization != null && !authorization.isAuthorized(entityType))
+            throw new AuthorizationException();
+
         Field field = environment.getFields().iterator().next();
         Map<String, Object> result = new LinkedHashMap<>();
 
@@ -65,54 +70,54 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
         Page page = extractPageArgument(environment, field);
         Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(true));
-        
+
         boolean isDistinct = ((BooleanValue) distinctArg.getValue()).isValue();
-        
+
         DataFetchingEnvironment queryEnvironment = environment;
         Field queryField = field;
-        
+
         if (recordsSelection.isPresent()) {
             // Override query environment  
             String fieldName = recordsSelection.get().getName();
-            
-            queryEnvironment = 
-                Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType)environment.getParentType(), field))
-                    .map(it -> (GraphQLObjectType) it.getType())
-                    .map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
-                    .map(it -> (DataFetchingEnvironment) 
-                        new DataFetchingEnvironmentImpl(
-                            environment.getSource(),
-                            environment.getArguments(), 
-                            environment.getContext(), 
-                            environment.getRoot(),
-                            environment.getFieldDefinition(),
-                            environment.getFields(), 
-                            it.getType(),
-                            environment.getParentType(),
-                            environment.getGraphQLSchema(),
-                            environment.getFragmentsByName(),
-                            environment.getExecutionId(),
-                            environment.getSelectionSet(),
-                            environment.getFieldTypeInfo()
-                        )).orElse(environment);
-            
+
+            queryEnvironment =
+                    Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType) environment.getParentType(), field))
+                            .map(it -> (GraphQLObjectType) it.getType())
+                            .map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
+                            .map(it -> (DataFetchingEnvironment)
+                                    new DataFetchingEnvironmentImpl(
+                                            environment.getSource(),
+                                            environment.getArguments(),
+                                            environment.getContext(),
+                                            environment.getRoot(),
+                                            environment.getFieldDefinition(),
+                                            environment.getFields(),
+                                            it.getType(),
+                                            environment.getParentType(),
+                                            environment.getGraphQLSchema(),
+                                            environment.getFragmentsByName(),
+                                            environment.getExecutionId(),
+                                            environment.getSelectionSet(),
+                                            environment.getFieldTypeInfo()
+                                    )).orElse(environment);
+
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
-            
+
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct)
-                .setMaxResults(page.size)
-                .setFirstResult((page.page - 1) * page.size);
-            
+                    .setMaxResults(page.size)
+                    .setFirstResult((page.page - 1) * page.size);
+
             // Create entity graph from selection
             EntityGraph<?> graph = buildEntityGraph(queryField);
             query.setHint("javax.persistence.fetchgraph", graph);
 
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
         }
-        
+
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
             final DataFetchingEnvironment countQueryEnvironment = queryEnvironment;
             final Field countQueryField = queryField;
-            
+
             final Long total = recordsSelection
                     .map(contentField -> getCountQuery(countQueryEnvironment, countQueryField).getSingleResult())
                     // if no "content" was selected an empty Field can be used
@@ -125,63 +130,66 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         return result;
     }
 
-    
+
     @Override
-    protected Predicate getPredicate(CriteriaBuilder cb, Root<?> root, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-        if(isLogicalArgument(argument) || isDistinctArgument(argument))
+    protected Predicate getPredicate(CriteriaBuilder cb, Root<?> root, From<?, ?> path, DataFetchingEnvironment environment, Argument argument) {
+        if (isLogicalArgument(argument) || isDistinctArgument(argument))
             return null;
-        
-        if(isWhereArgument(argument)) 
+
+        if (isWhereArgument(argument))
             return getWherePredicate(cb, root, path,
-                new ArgumentEnvironment(environment, argument.getName()),
-                argument);
-        
+                    new ArgumentEnvironment(environment, argument.getName()),
+                    argument);
+
         return super.getPredicate(cb, root, path, environment, argument);
     }
 
-    
+
     private TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<?> root = query.from(entityType);
 
-        SingularAttribute<?,?> idAttribute = entityType.getId(Object.class);
-        
+        SingularAttribute<?, ?> idAttribute = entityType.getId(Object.class);
+
         query.select(cb.count(root.get(idAttribute.getName())));
-        
-        List<Predicate> predicates = field.getArguments().stream()
-            .map(it -> getPredicate(cb, root, null, environment, it))
-            .filter(it -> it != null)
-            .collect(Collectors.toList());
-        
-        query.where(predicates.toArray(new Predicate[predicates.size()]));
+
+        if (field.getArguments() == null || field.getArguments().size() == 0) {
+            List<Predicate> predicates = Collections.emptyList();
+            query.where(predicates.toArray(new Predicate[predicates.size()]));
+        } else {
+            setPredicates(environment, field, cb, query, root);
+        }
+
+        query.orderBy();
+
 
         return entityManager.createQuery(query);
     }
 
     private Page extractPageArgument(DataFetchingEnvironment environment, Field field) {
         Optional<Argument> paginationRequest = field.getArguments()
-            .stream()
-            .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
-            .findFirst();
-        
+                .stream()
+                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
+                .findFirst();
+
         if (paginationRequest.isPresent()) {
             field.getArguments()
-                .remove(paginationRequest.get());
+                    .remove(paginationRequest.get());
 
             ObjectValue paginationValues = (ObjectValue) paginationRequest.get().getValue();
-            
+
             IntValue page = (IntValue) paginationValues.getObjectFields().stream()
-                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME.equals(it.getName()))
-                .findFirst()
-                .get()
-                .getValue();
-            
+                    .filter(it -> GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME.equals(it.getName()))
+                    .findFirst()
+                    .get()
+                    .getValue();
+
             IntValue size = (IntValue) paginationValues.getObjectFields().stream()
-                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME.equals(it.getName()))
-                .findFirst()
-                .get()
-                .getValue();
+                    .filter(it -> GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME.equals(it.getName()))
+                    .findFirst()
+                    .get()
+                    .getValue();
 
             return new Page(page.getValue().intValue(), size.getValue().intValue());
         }
@@ -191,7 +199,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     private Boolean isWhereArgument(Argument argument) {
         return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
-        
+
     }
 
     private Boolean isLogicalArgument(Argument argument) {
@@ -201,7 +209,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
     private Boolean isDistinctArgument(Argument argument) {
         return GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME.equals(argument.getName());
     }
-    
+
     private static final class Page {
         public Integer page;
         public Integer size;

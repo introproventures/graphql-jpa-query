@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +96,14 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          * Not In condition
          */
         NIN,
+        /**
+         * Between condition
+         */
+        BETWEEN,
+        /**
+         * Not Between condition
+         */
+        NOT_BETWEEN,
     }
 
     private final String field;
