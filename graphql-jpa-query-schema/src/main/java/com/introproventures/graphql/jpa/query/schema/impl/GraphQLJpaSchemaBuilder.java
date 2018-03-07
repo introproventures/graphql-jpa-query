@@ -33,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
@@ -270,7 +271,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private GraphQLInputType getWhereAttributeType(Attribute<?, ?> attribute) {
         //String type =  namingStrategy.singularize(attribute.getName())+((EntityType<?>)attribute.getDeclaringType()).getName()+"Criteria";
-        String type = namingStrategy.singularize(attribute.getName()) + namingStrategy.getName((EntityType<?>) attribute.getDeclaringType()) + "Criteria";
+        String type = namingStrategy.singularize(attribute.getName()) + namingStrategy.getName((ManagedType<?>) attribute.getDeclaringType()) + "Criteria";
 
         if (whereAttributesMap.containsKey(type))
             return whereAttributesMap.get(type);
