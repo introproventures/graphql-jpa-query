@@ -308,7 +308,11 @@ class GraphQLJpaQueryAlternateDataFetcher extends QraphQLJpaBaseDataFetcher {
     private void buildSubquery(Field field, List<Selection<?>> selectionList, CriteriaQuery<?> query, Join<?, ?> join, Attribute<?, ?> parentAttribute) {
         selections(field).forEach(it -> {
             if (hasSelectionSet(it)) {
-                EntityType<?> entityType = entityManager.getMetamodel().entity(parentAttribute.getJavaType());
+                EntityType<?> entityType = null;
+                if (parentAttribute.isCollection())
+                    entityType = entityManager.getMetamodel().entity(parentAttribute.getDeclaringType().getJavaType());
+                else
+                    entityType = entityManager.getMetamodel().entity(parentAttribute.getJavaType());
                 Attribute<?, ?> attribute = entityType.getAttribute(it.getName());
                 Optional<Argument> whereArgument = it.getArguments().stream().filter(arg -> !isOrderByArgument(arg)).findFirst();
                 Join<?, ?> nextJoin;
