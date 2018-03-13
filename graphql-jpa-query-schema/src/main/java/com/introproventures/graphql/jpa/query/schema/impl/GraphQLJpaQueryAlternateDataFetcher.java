@@ -101,18 +101,31 @@ class GraphQLJpaQueryAlternateDataFetcher extends QraphQLJpaBaseDataFetcher {
             // Override query environment
             String fieldName = recordsSelection.get().getName();
 
-            queryEnvironment = Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType) environment.getParentType(), field))
-                    .map(it -> (GraphQLObjectType) it.getType()).map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
-                    .map(it -> (DataFetchingEnvironment) new DataFetchingEnvironmentImpl(environment.getSource(), environment.getArguments(),
-                            environment.getContext(), environment.getRoot(), environment.getFieldDefinition(), environment.getFields(), it.getType(),
-                            environment.getParentType(), environment.getGraphQLSchema(), environment.getFragmentsByName(), environment.getExecutionId(),
-                            environment.getSelectionSet(), environment.getFieldTypeInfo()))
-                    .orElse(environment);
+            queryEnvironment =
+                    Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType) environment.getParentType(), field))
+                            .map(it -> (GraphQLObjectType) it.getType())
+                            .map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
+                            .map(it -> (DataFetchingEnvironment)
+                                    new DataFetchingEnvironmentImpl(
+                                            environment.getSource(),
+                                            environment.getArguments(),
+                                            environment.getContext(),
+                                            environment.getRoot(),
+                                            environment.getFieldDefinition(),
+                                            environment.getFields(),
+                                            it.getType(),
+                                            environment.getParentType(),
+                                            environment.getGraphQLSchema(),
+                                            environment.getFragmentsByName(),
+                                            environment.getExecutionId(),
+                                            environment.getSelectionSet(),
+                                            environment.getFieldTypeInfo()
+                                    )).orElse(environment);
 
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
 
             TypedQuery<?> query = null;
-            List<Object> entityIds = getIdsToRestrict(environment, queryField, page);
+            List<Object> entityIds = getIdsToRestrict(queryEnvironment, queryField, page);
             query = entityManager.createQuery(getQuery(queryEnvironment, queryField, isDistinct, entityIds));
 
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
@@ -271,19 +284,20 @@ class GraphQLJpaQueryAlternateDataFetcher extends QraphQLJpaBaseDataFetcher {
     private void buildQuery(Field field, CriteriaQuery<?> query, Root<?> root, boolean doSelect) {
         List<Selection<?>> selectionList = new ArrayList<Selection<?>>();
         selections(field).forEach(it -> {
-            if (hasSelectionSet(it)) {
-                Attribute<?, ?> attribute = root.getModel().getAttribute(it.getName());
-                Join<?, ?> join;
-                if (useOuterJoin(attribute, field))
-                    join = root.join(it.getName(), JoinType.LEFT);
-                else
-                    join = root.join(it.getName(), JoinType.INNER);
-                buildSubquery(it, selectionList, query, join, attribute);
-            } else {
-                Path<?> currentPath = root.get(it.getName());
-                selectionList.add(currentPath);
+            if (!TYPENAME.equals(it.getName())){
+                if (hasSelectionSet(it)) {
+                    Attribute<?, ?> attribute = root.getModel().getAttribute(it.getName());
+                    Join<?, ?> join;
+                    if (useOuterJoin(attribute, field))
+                        join = root.join(it.getName(), JoinType.LEFT);
+                    else
+                        join = root.join(it.getName(), JoinType.INNER);
+                    buildSubquery(it, selectionList, query, join, attribute);
+                } else {
+                    Path<?> currentPath = root.get(it.getName());
+                    selectionList.add(currentPath);
+                }
             }
-
         });
 
         if (!selectionList.isEmpty() && doSelect)
