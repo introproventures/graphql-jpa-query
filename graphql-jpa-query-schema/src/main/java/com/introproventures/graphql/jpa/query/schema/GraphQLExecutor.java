@@ -43,4 +43,16 @@ public interface GraphQLExecutor {
      */
     ExecutionResult execute(String query, Map<String, Object> arguments);
     
+    /**
+     * Execute GraphQL query provided in query argument and variables for the specified user context
+     *
+     * @param query GraphQL query string
+     * @param arguments List of arguments to substitute into the query
+     * @param userContext The user context under which to run the query
+     * @return GraphQL ExecutionResult
+     */
+    default ExecutionResult execute(String query, Map<String, Object> arguments, Object userContext) {
+        return execute(query, arguments);
+    }
+
 }

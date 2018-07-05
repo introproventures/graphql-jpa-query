@@ -15,8 +15,13 @@
  */
 package com.introproventures.graphql.jpa.query.schema;
 
+import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLDirective;
+
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
+import java.util.List;
 
 /**
  * Interface for defining authorization to various data returned through the defined schem
@@ -26,11 +31,15 @@ import javax.persistence.metamodel.EntityType;
  * @author Ghada Obaid
  */
 public interface IQueryAuthorizationStrategy {
-    default boolean isAuthorized(EntityType<?> entityType) {
+    static final String AUTHORIZATION = "authorization";
+
+    default boolean isAuthorized(Object context, GraphQLDirective authDirective) {
         return true;
     }
 
-    default boolean isAuthorized(Attribute<?, ?> attribute) {
-        return true;
+    default void checkAuthorization(DataFetchingEnvironment environment) {
+        GraphQLDirective authDirective = environment.getFieldDefinition().getDirective(IQueryAuthorizationStrategy.AUTHORIZATION);
+        if (authDirective != null && !isAuthorized(environment.getContext(), authDirective))
+            throw new AuthorizationException();
     }
 }

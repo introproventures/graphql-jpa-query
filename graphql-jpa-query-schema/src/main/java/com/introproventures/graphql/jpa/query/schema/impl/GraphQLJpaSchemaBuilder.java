@@ -38,6 +38,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import graphql.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,21 +51,6 @@ import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criter
 
 import graphql.Assert;
 import graphql.Scalars;
-import graphql.schema.Coercing;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInputType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLTypeReference;
-import graphql.schema.PropertyDataFetcher;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -89,7 +75,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     protected NamingStrategy namingStrategy = new NamingStrategy() {
     };
-    protected IQueryAuthorizationStrategy readQueryAuthorization = null;
+
+    protected IQueryAuthorizationStrategy queryAuthorization = new IQueryAuthorizationStrategy() {
+    };
 
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
 
@@ -145,19 +133,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
-        return GraphQLFieldDefinition.newFieldDefinition()
+        GraphQLFieldDefinition.Builder fieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition()
                 .name(namingStrategy.getName(entityType))
                 .description(getSchemaDescription(entityType.getJavaType()))
                 .type(getObjectType(entityType))
-                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType, readQueryAuthorization))
+                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType, queryAuthorization))
                 .argument(entityType.getAttributes().stream()
                         .filter(this::isValidInput)
                         .filter(this::isNotIgnored)
                         .filter(this::isIdentity)
                         .map(this::getArgument)
                         .collect(Collectors.toList())
-                )
-                .build();
+                );
+
+        List<GraphQLDirective> authDirectives = getAuthorizationDirectives(entityType);
+        if (authDirectives != null){
+            GraphQLDirective[] directives = new GraphQLDirective[authDirectives.size()];
+            fieldDefinitionBuilder.withDirectives(authDirectives.toArray(directives));
+        }
+
+        return fieldDefinitionBuilder.build();
     }
 
     private GraphQLFieldDefinition getQueryFieldSelectDefinition(EntityType<?> entityType) {
@@ -189,11 +184,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         DataFetcher dataFetcher = null;
         if (useAlternateDataFetchers())
-            dataFetcher = new GraphQLJpaQueryAlternateDataFetcher(entityManager, entityType, readQueryAuthorization);
+            dataFetcher = new GraphQLJpaQueryAlternateDataFetcher(entityManager, entityType, queryAuthorization);
         else
-            dataFetcher = new GraphQLJpaQueryDataFetcher(entityManager, entityType, readQueryAuthorization);
+            dataFetcher = new GraphQLJpaQueryDataFetcher(entityManager, entityType, queryAuthorization);
 
-        return GraphQLFieldDefinition.newFieldDefinition()
+        GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
                 .name(namingStrategy.pluralize(namingStrategy.getName(entityType)))
                 .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
                         + "Use query request arguments to specify query filter criterias. "
@@ -203,8 +198,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .dataFetcher(dataFetcher)
                 .argument(paginationArgument)
                 .argument(distinctArgument)
-                .argument(getWhereArgument(entityType))
-                .build();
+                .argument(getWhereArgument(entityType));
+
+        List<GraphQLDirective> authDirectives = getAuthorizationDirectives(entityType);
+        if (authDirectives != null){
+            GraphQLDirective [] directives = new GraphQLDirective[authDirectives.size()];
+            fieldBuilder.withDirectives(authDirectives.toArray(directives));
+        }
+
+        return fieldBuilder.build();
     }
 
     private Map<EntityType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
@@ -447,15 +449,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             return entityCache.get(entityType);
 
 
-        GraphQLObjectType objectType = GraphQLObjectType.newObject()
+        GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject()
                 .name(namingStrategy.getName(entityType))
                 .description(getSchemaDescription(entityType.getJavaType()))
                 .fields(entityType.getAttributes().stream()
                         .filter(this::isNotIgnored)
                         .map(this::getObjectField)
                         .collect(Collectors.toList())
-                )
-                .build();
+                );
+
+        List<GraphQLDirective> authDirectives = getAuthorizationDirectives(entityType);
+        if (authDirectives != null){
+            GraphQLDirective [] directives = new GraphQLDirective[authDirectives.size()];
+            objectTypeBuilder.withDirectives(authDirectives.toArray(directives));
+        }
+        GraphQLObjectType objectType = objectTypeBuilder.build();
 
         entityCache.putIfAbsent(entityType, objectType);
 
@@ -468,7 +476,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if (type instanceof GraphQLOutputType) {
             List<GraphQLArgument> arguments = new ArrayList<>();
-            DataFetcher dataFetcher = new PropertyDataFetcher<>(attribute.getName());
+            DataFetcher dataFetcher = new GraphQLJpaPropertyDataFetcher(attribute, queryAuthorization);
 
             // Only add the orderBy argument for basic attribute types
             if (attribute instanceof SingularAttribute
@@ -504,19 +512,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 //Use the alternate fetcher if so specified in the configuration -
                 // this fetcher assumes that JPA will handle batch fetching of such attributes
                 if (!useAlternateDataFetchers())
-                    dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, declaringType, (PluralAttribute) attribute, readQueryAuthorization);
+                    dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, declaringType, (PluralAttribute) attribute, queryAuthorization);
                 else
                     dataFetcher = new GraphQLJpaAlternateAttributeDataFetcher(entityManager, declaringType, (PluralAttribute) attribute,
-                            readQueryAuthorization);
+                            queryAuthorization);
             }
 
-            return GraphQLFieldDefinition.newFieldDefinition()
+            GraphQLFieldDefinition.Builder fieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition()
                     .name(attribute.getName())
                     .description(getSchemaDescription(attribute.getJavaMember()))
                     .type((GraphQLOutputType) type)
                     .dataFetcher(dataFetcher)
-                    .argument(arguments)
-                    .build();
+                    .argument(arguments);
+
+            List<GraphQLDirective> authDirectives = getAuthorizationDirectives(attribute);
+            if (authDirectives != null){
+                GraphQLDirective [] directives = new GraphQLDirective[authDirectives.size()];
+                fieldDefinitionBuilder.withDirectives(authDirectives.toArray(directives));
+            }
+
+            return fieldDefinitionBuilder.build();
         }
 
         throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Output Argument");
@@ -781,10 +796,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     @Override
-    public GraphQLSchemaBuilder readAuthorizationStrategy(IQueryAuthorizationStrategy instance) {
+    public GraphQLSchemaBuilder authorizationStrategy(IQueryAuthorizationStrategy instance) {
         Assert.assertNotNull(instance, "instance is null");
 
-        this.readQueryAuthorization = instance;
+        this.queryAuthorization = instance;
 
         return this;
     }

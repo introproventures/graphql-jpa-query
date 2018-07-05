@@ -41,7 +41,6 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
-import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.GraphQLException;
 import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
@@ -52,12 +51,7 @@ import graphql.language.EnumValue;
 import graphql.language.Field;
 import graphql.language.IntValue;
 import graphql.language.ObjectValue;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 
 /**
  * An alternate JPA Query DataFetcher for Eclipselink's BatchFetch support, used in conjunction with the alternate
@@ -67,15 +61,14 @@ import graphql.schema.GraphQLSchema;
  *
  * @author Ghada Obaid
  */
-class GraphQLJpaQueryAlternateDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaQueryAlternateDataFetcher extends GraphQLJpaBaseDataFetcher {
     public GraphQLJpaQueryAlternateDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy authorizationStrategy) {
         super(entityManager, entityType, authorizationStrategy);
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        if (authorization != null && !authorization.isAuthorized(entityType))
-            throw new AuthorizationException();
+        authorization.checkAuthorization(environment);
 
         Field field = environment.getFields().iterator().next();
         Map<String, Object> result = new LinkedHashMap<>();
@@ -119,7 +112,8 @@ class GraphQLJpaQueryAlternateDataFetcher extends QraphQLJpaBaseDataFetcher {
                                             environment.getFragmentsByName(),
                                             environment.getExecutionId(),
                                             environment.getSelectionSet(),
-                                            environment.getFieldTypeInfo()
+                                            environment.getFieldTypeInfo(),
+                                            environment.getExecutionContext()
                                     )).orElse(environment);
 
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());

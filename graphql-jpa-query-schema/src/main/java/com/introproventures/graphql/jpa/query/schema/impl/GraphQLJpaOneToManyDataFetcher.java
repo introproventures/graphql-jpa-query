@@ -40,6 +40,7 @@ import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.language.Selection;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLDirective;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes
@@ -60,8 +61,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        if (authorization != null && !authorization.isAuthorized(entityType))
-            throw new AuthorizationException();
+        authorization.checkAuthorization(environment);
 
         Field field = environment.getFields().iterator().next();
 
@@ -142,57 +142,10 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
                 predicates.toArray(new Predicate[predicates.size()])
         );
 
-        // optionally add default ordering 
+        // optionally add default ordering
         mayBeAddDefaultOrderBy(query, join, cb);
 
         return entityManager.createQuery(query.distinct(true));
 
     }
-
-    /**
-     * Fetches the value of the given SingularAttribute on the given
-     * entity.
-     *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
-     */
-    @SuppressWarnings("unchecked")
-    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
-        try {
-            Member member = field.getJavaMember();
-            if (member instanceof Method) {
-                // this should be a getter method:
-                return (FieldType) ((Method) member).invoke(entity);
-            } else if (member instanceof java.lang.reflect.Field) {
-                return (FieldType) ((java.lang.reflect.Field) member).get(entity);
-            } else {
-                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Fetches the value of the given SingularAttribute on the given
-     * entity.
-     *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
-     */
-    @SuppressWarnings("unchecked")
-    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
-        try {
-            Member member = field.getJavaMember();
-            if (member instanceof Method) {
-                // this should be a getter method:
-                return (FieldType) ((Method) member).invoke(entity);
-            } else if (member instanceof java.lang.reflect.Field) {
-                return (FieldType) ((java.lang.reflect.Field) member).get(entity);
-            } else {
-                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

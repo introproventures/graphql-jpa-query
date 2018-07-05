@@ -20,6 +20,8 @@ import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,37 +58,18 @@ import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy
 import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
-import graphql.language.Argument;
-import graphql.language.ArrayValue;
-import graphql.language.BooleanValue;
-import graphql.language.Comment;
-import graphql.language.EnumValue;
-import graphql.language.Field;
-import graphql.language.FloatValue;
-import graphql.language.IntValue;
-import graphql.language.Node;
-import graphql.language.ObjectField;
-import graphql.language.ObjectValue;
-import graphql.language.SelectionSet;
-import graphql.language.SourceLocation;
-import graphql.language.StringValue;
-import graphql.language.Value;
-import graphql.language.VariableReference;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import graphql.execution.batched.Batched;
+import graphql.language.*;
+import graphql.schema.*;
+import graphql.util.TraversalControl;
+import graphql.util.TraverserContext;
 
 /**
  * Provides base implemetation for GraphQL JPA Query Data Fetchers
  *
  * @author Igor Dianov
  */
-class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
+class GraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     // "__typename" is part of the graphql introspection spec and has to be ignored
     protected static final String TYPENAME = "__typename";
@@ -102,7 +85,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @param entityType
      * @param queryAuthorization
      */
-    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy queryAuthorization) {
+    public GraphQLJpaBaseDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy queryAuthorization) {
         this.entityManager = entityManager;
         this.entityType = entityType;
         this.authorization = queryAuthorization;
@@ -110,9 +93,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        if (authorization != null && !authorization.isAuthorized(entityType))
-            throw new AuthorizationException();
-
+        authorization.checkAuthorization(environment);
         return getQuery(environment, environment.getFields().iterator().next(), true).getResultList();
     }
 
@@ -330,7 +311,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         environment.getFragmentsByName(),
                         environment.getExecutionId(),
                         environment.getSelectionSet(),
-                        environment.getFieldTypeInfo()
+                        environment.getFieldTypeInfo(),
+                        environment.getExecutionContext()
                 ), new Argument(Logical.AND.name(), whereValue)
         );
     }
@@ -432,7 +414,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         environment.getFragmentsByName(),
                         environment.getExecutionId(),
                         environment.getSelectionSet(),
-                        environment.getFieldTypeInfo()
+                        environment.getFieldTypeInfo(),
+                        environment.getExecutionContext()
                 ),
                 new Argument(objectField.getName(), argument.getValue()), argument.getValue());
 
@@ -456,7 +439,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     environment.getFragmentsByName(),
                     environment.getExecutionId(),
                     environment.getSelectionSet(),
-                    environment.getFieldTypeInfo()
+                    environment.getFieldTypeInfo(),
+                    environment.getExecutionContext()
             );
         }
     }
@@ -477,7 +461,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     environment.getFragmentsByName(),
                     environment.getExecutionId(),
                     environment.getSelectionSet(),
-                    environment.getFieldTypeInfo()
+                    environment.getFieldTypeInfo(),
+                    environment.getExecutionContext()
             );
         }
     }
@@ -647,7 +632,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     private EntityType<?> getEntityType(GraphQLObjectType objectType) {
         return entityManager.getMetamodel()
                 .getEntities().stream()
-                .filter(it -> it.getName().equals(objectType.getName()))
+                .filter(it -> it.getName().equals(objectType.getName().substring(0, 1).toUpperCase() + objectType.getName().substring(1)))
                 .findFirst()
                 .get();
     }
@@ -833,7 +818,61 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         public boolean isEqualTo(Node node) {
             return node instanceof NullValue;
         }
+
+        @Override
+        public Value deepCopy() {
+            return new NullValue();
+        }
+
+        @Override
+        public TraversalControl accept(TraverserContext context, NodeVisitor visitor) {
+            return null;
+        }
     }
 
+    /**
+     * Fetches the value of the given SingularAttribute on the given
+     * entity.
+     *
+     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     */
+    @SuppressWarnings("unchecked")
+    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
+        try {
+            Member member = field.getJavaMember();
+            if (member instanceof Method) {
+                // this should be a getter method:
+                return (FieldType) ((Method) member).invoke(entity);
+            } else if (member instanceof java.lang.reflect.Field) {
+                return (FieldType) ((java.lang.reflect.Field) member).get(entity);
+            } else {
+                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    /**
+     * Fetches the value of the given SingularAttribute on the given
+     * entity.
+     *
+     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     */
+    @SuppressWarnings("unchecked")
+    public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
+        try {
+            Member member = field.getJavaMember();
+            if (member instanceof Method) {
+                // this should be a getter method:
+                return (FieldType) ((Method) member).invoke(entity);
+            } else if (member instanceof java.lang.reflect.Field) {
+                return (FieldType) ((java.lang.reflect.Field) member).get(entity);
+            } else {
+                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

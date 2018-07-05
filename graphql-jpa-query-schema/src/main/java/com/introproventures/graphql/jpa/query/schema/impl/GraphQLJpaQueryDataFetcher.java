@@ -33,7 +33,6 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
-import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
@@ -49,7 +48,7 @@ import graphql.schema.GraphQLObjectType;
  * @author Igor Dianov
  *
  */
-class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher {
 
     public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy authorizationStrategy) {
         super(entityManager, entityType, authorizationStrategy);
@@ -57,8 +56,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        if (authorization != null && !authorization.isAuthorized(entityType))
-            throw new AuthorizationException();
+        authorization.checkAuthorization(environment);
 
         Field field = environment.getFields().iterator().next();
         Map<String, Object> result = new LinkedHashMap<>();
@@ -98,7 +96,8 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                                             environment.getFragmentsByName(),
                                             environment.getExecutionId(),
                                             environment.getSelectionSet(),
-                                            environment.getFieldTypeInfo()
+                                            environment.getFieldTypeInfo(),
+                                            environment.getExecutionContext()
                                     )).orElse(environment);
 
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());

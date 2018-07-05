@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +22,14 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.introproventures.graphql.jpa.query.schema.security.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity(name = "Human")
 @Data
 @EqualsAndHashCode(callSuper=true)
+@Authorization(role = "user")
 public class Human extends Character {
 
     String homePlanet;
@@ -37,6 +40,6 @@ public class Human extends Character {
 
     @ManyToOne
     @JoinColumn(name = "gender_code_id")
+    @Authorization (role = "admin")
     CodeList gender;
-
 }

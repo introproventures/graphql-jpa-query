@@ -16,13 +16,16 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.PluralAttribute;
-
 import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
 import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLDirective;
+import graphql.schema.PropertyDataFetcher;
+
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.PluralAttribute;
 
 /**
  * Similar to PropertyDataFetcher, this uses getters to retrieve attribute data, allowing JPA to determine how to construct
@@ -33,19 +36,19 @@ import graphql.schema.DataFetchingEnvironment;
  *
  * @author Ghada Obaid
  */
-class GraphQLJpaAlternateAttributeDataFetcher extends GraphQLJpaOneToManyDataFetcher {
+class GraphQLJpaPropertyDataFetcher extends PropertyDataFetcher {
+    private final Attribute<?,?> attribute;
+    private final IQueryAuthorizationStrategy authorization;
 
-    public GraphQLJpaAlternateAttributeDataFetcher(EntityManager entityManager, EntityType<?> entityType, PluralAttribute<Object, Object, Object> attribute,
-                                                   IQueryAuthorizationStrategy authorizationStrategy) {
-        super(entityManager, entityType, attribute, authorizationStrategy);
+    public GraphQLJpaPropertyDataFetcher(Attribute<?,?> attribute, IQueryAuthorizationStrategy authorizationStrategy) {
+        super(attribute.getName());
+        this.attribute = attribute;
+        this.authorization = authorizationStrategy;
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
         authorization.checkAuthorization(environment);
-
-        Object source = environment.getSource();
-
-        return getAttributeValue(source, attribute);
+        return super.get(environment);
     }
 }

@@ -22,11 +22,10 @@ import javax.persistence.NoResultException;
 import javax.persistence.metamodel.EntityType;
 
 import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
-import com.introproventures.graphql.jpa.query.schema.exception.AuthorizationException;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 
-class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher {
 
     public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy authorizationStrategy) {
         super(entityManager, entityType, authorizationStrategy);
@@ -34,8 +33,7 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        if (authorization != null && !authorization.isAuthorized(entityType))
-            throw new AuthorizationException();
+        authorization.checkAuthorization(environment);
 
         Field field = environment.getFields().iterator().next();
 
