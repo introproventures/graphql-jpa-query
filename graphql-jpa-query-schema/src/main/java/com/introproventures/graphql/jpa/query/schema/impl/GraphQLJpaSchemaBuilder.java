@@ -428,16 +428,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         String embeddableTypeName = namingStrategy.singularize(namingStrategy.getName(embeddableType));
 
-        GraphQLObjectType objectType = GraphQLObjectType.newObject()
+        GraphQLObjectType.Builder objectTypeBuilder = GraphQLObjectType.newObject()
                 .name(embeddableTypeName)
                 .description(getSchemaDescription(embeddableType.getJavaType()))
                 .fields(embeddableType.getAttributes().stream()
                         .filter(this::isNotIgnored)
                         .map(this::getObjectField)
                         .collect(Collectors.toList())
-                )
-                .build();
+                );
 
+
+        List<GraphQLDirective> authDirectives = getAuthorizationDirectives(embeddableType);
+        if (authDirectives != null){
+            GraphQLDirective [] directives = new GraphQLDirective[authDirectives.size()];
+            objectTypeBuilder.withDirectives(authDirectives.toArray(directives));
+        }
+        GraphQLObjectType objectType = objectTypeBuilder.build();
         embeddableCache.putIfAbsent(embeddableType, objectType);
 
         return objectType;
