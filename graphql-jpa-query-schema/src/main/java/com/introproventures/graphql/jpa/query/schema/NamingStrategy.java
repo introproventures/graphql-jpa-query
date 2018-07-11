@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +17,36 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
+import javax.persistence.metamodel.EmbeddableType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
+
 import org.atteo.evo.inflector.English;
 
 public interface NamingStrategy {
     default String singularize(String word) {
         return English.plural(word, 1);
     };
-    
+
     default String pluralize(String word) {
         return English.plural(word);
     }; 
-    
+
+    default String getName(ManagedType<?> entityType) {
+        if (entityType instanceof EntityType)
+            return getName((EntityType<?>)entityType);
+
+        if (entityType instanceof EmbeddableType)
+            return getName((EmbeddableType<?>) entityType);
+
+        return entityType.getJavaType().getSimpleName();
+    }
+
+    default String getName(EntityType<?> entityType) {
+        return entityType.getName();
+    }
+
+    default String getName(EmbeddableType<?> embeddableType) {
+        return embeddableType.getJavaType().getSimpleName() + "EmbeddableType";
+    }
 }

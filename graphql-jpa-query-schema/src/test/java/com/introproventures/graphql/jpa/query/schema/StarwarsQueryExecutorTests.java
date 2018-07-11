@@ -52,8 +52,8 @@ public class StarwarsQueryExecutorTests {
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
 
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("Starwars")
-                .description("Starwars JPA test schema");
+                    .name("Starwars")
+                    .description("Starwars JPA test schema");
         }
 
     }
@@ -127,7 +127,7 @@ public class StarwarsQueryExecutorTests {
     }
 
     @SuppressWarnings("serial")
-	@Test
+    @Test
     public void queryManyToOneJoinByIdWithVariables() {
         //given:
         String query = "query($id: String!) { Humans { select { name, homePlanet, favoriteDroid(where: {id: {EQ: $id}}) { name} } } }";
@@ -138,7 +138,7 @@ public class StarwarsQueryExecutorTests {
         String expected = "{Humans={select=[{name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}]}}";
 
         //when:
-        Object result = executor.execute(query,variables).getData();
+        Object result = executor.execute(query, variables).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
@@ -151,8 +151,8 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, homePlanet=Tatooine, friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
-            + "]}}";
+                + "{name=Luke Skywalker, homePlanet=Tatooine, friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
+                + "]}}";
 
 
 
@@ -215,7 +215,7 @@ public class StarwarsQueryExecutorTests {
     public void queryAllowsUseFragmentToAvoidDuplicatingContent() {
         //given:
         String query = "query UseFragment { luke: Human(id: \"1000\") { ...HumanFragment } leia: Human(id: \"1003\") { ...HumanFragment } }"
-                      +"fragment HumanFragment on Human { name, homePlanet }";
+                + "fragment HumanFragment on Human { name, homePlanet }";
 
         String expected = "{luke={name=Luke Skywalker, homePlanet=Tatooine}, leia={name=Leia Organa, homePlanet=Alderaan}}";
 
@@ -233,9 +233,9 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Droid={name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}"
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=R2-D2}, {name=Luke Skywalker}]}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
             + "]}}";
 
         //when:
@@ -252,10 +252,10 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Droids(where: {id: {EQ: \"2001\"}}) { select { name, friends { name, appearsIn, friends { name } } }  }}";
 
         String expected = "{Droids={select=[{name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}]}"
-            + "]}}";
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}]}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -299,12 +299,12 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Humans { select {name(orderBy: DESC) homePlanet } } }";
 
         String expected = "{Humans={select=["
-            + "{name=Wilhuff Tarkin, homePlanet=null}, "
-            + "{name=Luke Skywalker, homePlanet=Tatooine}, "
-            + "{name=Leia Organa, homePlanet=Alderaan}, "
-            + "{name=Han Solo, homePlanet=null}, "
-            + "{name=Darth Vader, homePlanet=Tatooine}"
-            + "]}}";
+                + "{name=Wilhuff Tarkin, homePlanet=null}, "
+                + "{name=Luke Skywalker, homePlanet=Tatooine}, "
+                + "{name=Leia Organa, homePlanet=Alderaan}, "
+                + "{name=Han Solo, homePlanet=null}, "
+                + "{name=Darth Vader, homePlanet=Tatooine}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -319,15 +319,15 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Humans(where: {id: {EQ: \"1000\"}}) { select {name(orderBy: DESC) homePlanet friends { name(orderBy:DESC) } } } }";
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, homePlanet=Tatooine, "
-	            + "friends=["
-		            + "{name=R2-D2}, "
-		            + "{name=Leia Organa}, "
-		            + "{name=Han Solo}, "
-		            + "{name=C-3PO}"
-		        + "]"
-	        + "}"
-            + "]}}";
+                + "{name=Luke Skywalker, homePlanet=Tatooine, "
+                + "friends=["
+                + "{name=R2-D2}, "
+                + "{name=Leia Organa}, "
+                + "{name=Han Solo}, "
+                + "{name=C-3PO}"
+                + "]"
+                + "}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -342,12 +342,12 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Humans { select { id } } }";
 
         String expected = "{Humans={select=["
-	            + "{id=1000}, "
-	            + "{id=1001}, "
-	            + "{id=1002}, "
-	            + "{id=1003}, "
-	            + "{id=1004}"
-            + "]}}";
+                + "{id=1000}, "
+                + "{id=1001}, "
+                + "{id=1002}, "
+                + "{id=1003}, "
+                + "{id=1004}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -364,10 +364,45 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
-            + "]}}";
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithStringBetweenPredicate() {
+        //given:
+        String query = "query { Humans ( where: { id: {BETWEEN: [\"1001\", \"1003\"]}}) { select { id } } }";
+
+        String expected = "{Humans={select=["
+                + "{id=1001}, "
+                + "{id=1002}, "
+                + "{id=1003}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithStringNotBetweenPredicate() {
+        //given:
+        String query = "query { Humans ( where: { id: {NOT_BETWEEN: [\"1001\", \"1003\"]}}) { select { id } } }";
+
+        String expected = "{Humans={select=["
+                + "{id=1000}, "
+                + "{id=1004}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -382,11 +417,11 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Humans { select { name gender(where:{ code: {EQ: \"Male\"}}) { description } } } }";
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, gender={description=Male}}, "
-            + "{name=Darth Vader, gender={description=Male}}, "
-            + "{name=Han Solo, gender={description=Male}}, "
-            + "{name=Wilhuff Tarkin, gender={description=Male}}"
-            + "]}}";
+                + "{name=Luke Skywalker, gender={description=Male}}, "
+                + "{name=Darth Vader, gender={description=Male}}, "
+                + "{name=Han Solo, gender={description=Male}}, "
+                + "{name=Wilhuff Tarkin, gender={description=Male}}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -429,9 +464,9 @@ public class StarwarsQueryExecutorTests {
         String query = "query { CodeLists(where: { active: {EQ:true}}) { select {id description active type sequence } } }";
 
         String expected = "{CodeLists={select=["
-            + "{id=0, description=Male, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=1}, "
-            + "{id=1, description=Female, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=2}"
-            + "]}}";
+                + "{id=0, description=Male, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=1}, "
+                + "{id=1, description=Female, active=true, type=org.crygier.graphql.model.starwars.Gender, sequence=2}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -494,9 +529,9 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Droid={name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Han Solo, __typename=Character}], __typename=Character}"
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
+            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
+            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Han Solo, __typename=Character}], __typename=Character}"
             + "], __typename=Droid}}";
 
         //when:
@@ -505,7 +540,7 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithTypenameSimple() {
         //given:

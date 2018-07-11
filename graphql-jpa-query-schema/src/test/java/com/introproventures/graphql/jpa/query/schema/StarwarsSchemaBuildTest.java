@@ -38,7 +38,7 @@ import graphql.schema.GraphQLSchema;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
-    webEnvironment=WebEnvironment.NONE
+        webEnvironment = WebEnvironment.NONE
 )
 public class StarwarsSchemaBuildTest {
 
@@ -47,11 +47,11 @@ public class StarwarsSchemaBuildTest {
         @Bean
         public GraphQLJpaSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("Starwars")
-                .description("Starwars Universe Schema");
+                    .name("Starwars")
+                    .description("Starwars Universe Schema");
         }
     }
-    
+
     @Autowired
     private GraphQLJpaSchemaBuilder builder;
 
@@ -66,28 +66,28 @@ public class StarwarsSchemaBuildTest {
 
         // then
         assertThat(schema)
-            .describedAs("Ensure the result is returned")
-            .isNotNull();
+                .describedAs("Ensure the result is returned")
+                .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droid").getArgument("id"))
-            .describedAs( "Ensure that identity can be queried on")
-            .isNotNull();
-        
+                .describedAs("Ensure that identity can be queried on")
+                .isNotNull();
+
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("where"))
-            .describedAs( "Ensure that collections can be queried on")
-            .isNotNull();
+                .describedAs("Ensure that collections can be queried on")
+                .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("CodeLists").getArguments())
             .describedAs("Ensure Subobjects may be queried upon")
-            .hasSize(2);
-        
-        assertThat(((GraphQLInputObjectType)((GraphQLInputObjectType) schema.getQueryType()
-            .getFieldDefinition("CodeLists").getArgument("where").getType())
-            .getField("code").getType())
-            .getField("EQ").getType()
+            .hasSize(3);
+
+        assertThat(((GraphQLInputObjectType) ((GraphQLInputObjectType) schema.getQueryType()
+                .getFieldDefinition("CodeLists").getArgument("where").getType())
+                .getField("code").getType())
+                .getField("EQ").getType()
         ).isEqualTo(Scalars.GraphQLString);
     }
 
@@ -98,26 +98,26 @@ public class StarwarsSchemaBuildTest {
 
         // then
         assertThat(schema)
-            .describedAs("Ensure the schema is generated")
-            .isNotNull();
+                .describedAs("Ensure the schema is generated")
+                .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("page"))
-            .describedAs( "Ensure that query collection has page argument")
-            .isNotNull();
+                .describedAs("Ensure that query collection has page argument")
+                .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("where"))
-            .describedAs( "Ensure that query collection has where argument")
-            .isNotNull();
-        
+                .describedAs("Ensure that query collection has where argument")
+                .isNotNull();
+
         //then
         assertThat(schema.getQueryType()
             .getFieldDefinition("CodeLists").getArguments()
         )
-        .describedAs("Ensure query has two arguments")
-        .hasSize(2);
+        .describedAs("Ensure query has three arguments")
+        .hasSize(3);
         
     }
-    
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.introproventures.graphql.jpa.query.schema.security;
 
-package com.introproventures.graphql.jpa.query.schema.model.book;
+import java.lang.annotation.*;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
 
-import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.util.Date;
-
-@Data
-@Entity
-public class Book {
-	@Id
-	Long id;
-
-	String title;
-
-	@ManyToOne
-	Author author;
-
-	@Enumerated(EnumType.STRING)
-	Genre genre;
-
-	Date publicationDate;
+/**
+ * Very simple authorization annotation for testing
+ */
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = { ElementType.METHOD, FIELD, TYPE})
+public @interface Authorization {
+    String role();
 }

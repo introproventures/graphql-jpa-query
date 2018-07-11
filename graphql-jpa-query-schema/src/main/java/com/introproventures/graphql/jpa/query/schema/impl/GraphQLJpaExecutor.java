@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.transaction.Transactional;
@@ -50,7 +52,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     }
 
     /* (non-Javadoc)
-     * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String)
+     * @see org.activiti.services.query.qraphql.jpa.GraphQLExecutor#execute(java.lang.String)
      */
     @Override
     @Transactional(TxType.SUPPORTS)
@@ -59,7 +61,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     }
 
     /* (non-Javadoc)
-     * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String, java.util.Map)
+     * @see org.activiti.services.query.qraphql.jpa.GraphQLExecutor#execute(java.lang.String, java.util.Map)
      */
     @Override
     @Transactional(TxType.SUPPORTS)
@@ -81,4 +83,22 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
             return graphQL.execute(executionInput);
     }
 
+    @Override
+    @Transactional(TxType.SUPPORTS)
+    public ExecutionResult execute(String query, Map<String, Object> arguments, Object user) {
+
+        // Need to inject variables in context to support parameter bindings in reverse queries
+        Map<String, Object> context = new HashMap<>();
+        context.put("variables", arguments);
+        context.put("userContext", user);
+
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(query)
+                .variables(arguments)
+                .root(context)
+                .context(context)
+                .build();
+
+        return graphQL.execute(executionInput);
+    }
 }

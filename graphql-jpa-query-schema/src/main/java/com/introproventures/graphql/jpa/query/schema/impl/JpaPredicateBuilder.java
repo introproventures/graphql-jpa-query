@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 IntroPro Ventures Inc. and/or its affiliates.
+ * Copyright IBM Corporation 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -89,10 +91,10 @@ class JpaPredicateBuilder {
     protected Predicate getStringPredicate(Path<String> root, PredicateFilter filter) {
         Expression<String> fieldValue;
 
-        // list or arrays only for in and not in
+        // list or arrays only for in, not in, between and not between
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
 
-        if(arrayValuePredicate == null) {
+        if (arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
 
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
@@ -184,35 +186,61 @@ class JpaPredicateBuilder {
     }
 
     protected Predicate mayBeArrayValuePredicate(Path<?> path, PredicateFilter filter) {
-        // arrays only for in
+        // arrays only for in, between
         if (filter.getValue().getClass().isArray()) {
             if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 CriteriaBuilder.In<Object> in = cb.in(path);
-                for(Object n : (Object[]) filter.getValue()) {
+                for (Object n : (Object[]) filter.getValue()) {
                     in.value(n);
                 }
                 return in;
             } else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(path.in((Object[]) filter.getValue()));
+            } else if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values = (Object[]) filter.getValue();
+                if (values.length == 2) {
+                    Expression<String> name = path.get(filter.getField());
+                    Predicate between = cb.between(name, cb.literal((String) values[0]), cb.literal((String) values[1]));
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
             }
         } else if ((filter.getValue() instanceof Collection)) {
             if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN) &&
+                    !(filter.getCriterias().contains(Criteria.NOT_BETWEEN) || filter.getCriterias().contains(Criteria.BETWEEN))) {
                 CriteriaBuilder.In<Object> in = cb.in(path);
-                for(Object n : (Collection<?>) filter.getValue()) {
+                for (Object n : (Collection<?>) filter.getValue()) {
                     in.value(n);
                 }
                 return in;
             } else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(path.in((Collection<?>) filter.getValue()));
+            } else if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.NOT_BETWEEN) || filter.getCriterias().contains(Criteria.BETWEEN))) {
+                Expression name = (Expression) path;
+                Collection<?> collection = (Collection<?>) filter.getValue();
+                if (collection.size() == 2) {
+                    Object[] values = collection.toArray();
+                    Expression fromValue = cb.literal(values[0]);
+                    Expression toValue = cb.literal(values[1]);
+                    Predicate between = cb.between(name, fromValue, toValue);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN)) {
+                        return between;
+                    }
+
+                    return cb.not(between);
+                }
             }
         }
 
         return null;
-
     }
 
     protected Predicate getFloatingPointPredicate(Path<? extends Number> root, PredicateFilter filter) {
@@ -258,24 +286,47 @@ class JpaPredicateBuilder {
             }
             // LE or default
             return cb.lessThanOrEqualTo(root, (Date) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<Date> name = (Expression<Date>) root;
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Expression<Date> fromDate = cb.literal((Date) values[0]);
+                    Expression<Date> toDate = cb.literal((Date) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
         }
+
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
+    private Predicate getTypedPredicate(From<?, ?> from, Path<?> field, PredicateFilter filter) {
         Class<?> type = field.getJavaType();
         Object value = filter.getValue();
         Set<Criteria> criterias = filter.getCriterias();
 
-        if(value == null) {
+        if (value == null) {
             return cb.disjunction();
         }
 
-        if(criterias.contains(Criteria.IS_NULL)) {
+        if (criterias.contains(Criteria.IS_NULL)) {
             return (boolean) value ? cb.isNull(field) : cb.isNotNull(field);
         } else if (criterias.contains(Criteria.NOT_NULL)) {
-            return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
+            return (boolean) value ? cb.isNotNull(field) : cb.isNull(field);
         }
 
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
@@ -283,7 +334,7 @@ class JpaPredicateBuilder {
         if (type.isPrimitive())
             type = JpaQueryBuilder.PRIMITIVES_TO_WRAPPERS.get(type);
         if (type.equals(String.class)) {
-            return getStringPredicate((Path<String>)field, filter);
+            return getStringPredicate((Path<String>) field, filter);
         }
         else if (type.equals(Long.class)
                 || type.equals(BigInteger.class)
@@ -304,7 +355,7 @@ class JpaPredicateBuilder {
             return getBooleanPredicate(field, predicateFilter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
-            if(field.getModel() == null)
+            if (field.getModel() == null)
                 return from.join(filter.getField()).in(value);
         }
 
@@ -321,7 +372,7 @@ class JpaPredicateBuilder {
      * @return constructed predicate, returns null if value cannot be converted
      * to field type
      */
-    public Predicate getPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
+    public Predicate getPredicate(From<?, ?> from, Path<?> field, PredicateFilter filter) {
         return getTypedPredicate(from, field, filter);
     }
 }

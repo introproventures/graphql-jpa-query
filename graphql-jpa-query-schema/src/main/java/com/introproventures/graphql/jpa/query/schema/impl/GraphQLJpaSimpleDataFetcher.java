@@ -21,36 +21,39 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.metamodel.EntityType;
 
+import com.introproventures.graphql.jpa.query.schema.IQueryAuthorizationStrategy;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 
-class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher {
 
-    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, EntityType<?> entityType, IQueryAuthorizationStrategy authorizationStrategy) {
+        super(entityManager, entityType, authorizationStrategy);
     }
-    
+
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        authorization.checkAuthorization(environment);
 
         Field field = environment.getFields().iterator().next();
-        
-        if(!field.getArguments().isEmpty()) {
-            
+
+        if (!field.getArguments().isEmpty()) {
+
             try {
                 // Create entity graph from selection
                 EntityGraph<?> entityGraph = buildEntityGraph(field);
-                
-                return super.getQuery(environment, field, true)
-                    .setHint("javax.persistence.fetchgraph", entityGraph)
-                    .getSingleResult();
-                
+
+                //There should not be a need for select DISTINCT when fetching by ID - turning it off as it will fail for entities with byte arrays that hold blobs
+                return super.getQuery(environment, field, false)
+                        .setHint("javax.persistence.fetchgraph", entityGraph)
+                        .getSingleResult();
+
             } catch (NoResultException ignored) {
                 // do nothing
             }
-            
+
         }
 
         return null;
-    }    
+    }
 }
