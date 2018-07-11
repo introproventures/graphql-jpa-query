@@ -377,6 +377,41 @@ public class StarwarsQueryExecutorTests {
     }
 
     @Test
+    public void queryWithStringBetweenPredicate() {
+        //given:
+        String query = "query { Humans ( where: { id: {BETWEEN: [\"1001\", \"1003\"]}}) { select { id } } }";
+
+        String expected = "{Humans={select=["
+                + "{id=1001}, "
+                + "{id=1002}, "
+                + "{id=1003}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithStringNotBetweenPredicate() {
+        //given:
+        String query = "query { Humans ( where: { id: {NOT_BETWEEN: [\"1001\", \"1003\"]}}) { select { id } } }";
+
+        String expected = "{Humans={select=["
+                + "{id=1000}, "
+                + "{id=1004}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryByRestrictingSubObject() {
         //given:
         String query = "query { Humans { select { name gender(where:{ code: {EQ: \"Male\"}}) { description } } } }";

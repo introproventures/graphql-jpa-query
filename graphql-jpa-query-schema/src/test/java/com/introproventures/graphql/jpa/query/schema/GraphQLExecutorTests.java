@@ -196,7 +196,77 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
+    @Test
+    public void queryWithNumericBetweenPredicate() {
+        //given:
+        String query = "query { Books ( where: { id: {BETWEEN: [2, 5]}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}, " +
+                "{id=3, title=Anna Karenina}, " +
+                "{id=5, title=The Cherry Orchard}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithNumericNotBetweenPredicate() {
+        //given:
+        String query = "query { Books ( where: { id: {NOT_BETWEEN: [2, 5]}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=6, title=The Seagull}, " +
+                "{id=7, title=Three Sisters}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithDateBetweenPredicate() {
+        //given:
+        String query = "query { Books ( where: { publicationDate: {BETWEEN: [\"1869-01-01\", \"1896-01-01\"]}}) { select { id title publicationDate} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace, publicationDate=1869-01-01 00:00:00.0}, " +
+                "{id=3, title=Anna Karenina, publicationDate=1877-04-01 00:00:00.0}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithDateNotBetweenPredicate() {
+        //given:
+        String query = "query { Books ( where: { publicationDate: {NOT_BETWEEN: [\"1869-01-01\", \"1896-01-01\"]}}) { select { id title publicationDate} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=5, title=The Cherry Orchard, publicationDate=1904-01-17 00:00:00.0}, " +
+                "{id=6, title=The Seagull, publicationDate=1896-10-17 00:00:00.0}, " +
+                "{id=7, title=Three Sisters, publicationDate=1900-01-01 00:00:00.0}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
 //    // TODO
 //    @Test
 //    public void queryForEntityWithEmeddableTypeAndWhere() {
@@ -211,7 +281,7 @@ public class GraphQLExecutorTests {
 //        // then
 //        assertThat(result.toString()).isEqualTo(expected);
 //    }
-    
-    
+
+
 
 }

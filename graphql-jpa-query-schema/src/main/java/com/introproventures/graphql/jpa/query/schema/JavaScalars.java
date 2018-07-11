@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -221,7 +222,7 @@ public class JavaScalars {
 
         private Date parseStringToDate(String input) {
             try {
-                return DateFormat.getInstance().parse(input);
+                return new SimpleDateFormat("yyyy-MM-dd").parse(input);
             } catch (ParseException e) {
                 log.warn("Failed to parse Date from input: " + input, e);
                 return null;

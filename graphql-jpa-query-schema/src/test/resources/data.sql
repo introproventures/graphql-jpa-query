@@ -108,12 +108,12 @@ insert into thing (id, type) values
     
 -- Books
 insert into author (id, name) values (1, 'Leo Tolstoy');
-insert into book (id, title, author_id, genre) values (2, 'War and Peace', 1, 'NOVEL');
-insert into book (id, title, author_id, genre) values (3, 'Anna Karenina', 1, 'NOVEL');
+insert into book (id, title, author_id, genre, publication_date) values (2, 'War and Peace', 1, 'NOVEL', '1869-01-01');
+insert into book (id, title, author_id, genre, publication_date) values (3, 'Anna Karenina', 1, 'NOVEL', '1877-04-01');
 insert into author (id, name) values (4, 'Anton Chekhov');
-insert into book (id, title, author_id, genre) values (5, 'The Cherry Orchard', 4, 'PLAY');
-insert into book (id, title, author_id, genre) values (6, 'The Seagull', 4, 'PLAY');
-insert into book (id, title, author_id, genre) values (7, 'Three Sisters', 4, 'PLAY');
+insert into book (id, title, author_id, genre, publication_date) values (5, 'The Cherry Orchard', 4, 'PLAY', '1904-01-17');
+insert into book (id, title, author_id, genre, publication_date) values (6, 'The Seagull', 4, 'PLAY', '1896-10-17');
+insert into book (id, title, author_id, genre, publication_date) values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01');
 insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-1234', 1),
 	('1-123-5678', 1),

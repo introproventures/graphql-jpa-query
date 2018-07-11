@@ -212,7 +212,8 @@ class JpaPredicateBuilder {
             }
         } else if ((filter.getValue() instanceof Collection)) {
             if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                    && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN) &&
+                    !(filter.getCriterias().contains(Criteria.NOT_BETWEEN) || filter.getCriterias().contains(Criteria.BETWEEN))) {
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 for (Object n : (Collection<?>) filter.getValue()) {
                     in.value(n);
