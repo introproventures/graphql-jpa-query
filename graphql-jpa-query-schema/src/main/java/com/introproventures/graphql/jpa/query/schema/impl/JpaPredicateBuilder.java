@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.UUID;
+
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
@@ -30,6 +32,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 
 /**
  * Supported types to build predicates for
@@ -262,6 +265,19 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    private Predicate getUuidPredicate(Path<? extends UUID> field, PredicateFilter filter) {
+        if(filter.getValue() == null || !(filter.getValue() instanceof UUID)) {
+            return null;
+        }
+        if(filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            return cb.equal(field, filter.getValue());
+        }
+        if(filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            return cb.notEqual(field, filter.getValue());
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
         Class<?> type = field.getJavaType();
@@ -302,6 +318,9 @@ class JpaPredicateBuilder {
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
+        }
+        else if (type.equals(UUID.class)) {
+            return getUuidPredicate((Path<UUID>) field, predicateFilter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
             if(field.getModel() == null)
