@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
@@ -132,6 +133,21 @@ public class GraphQLExecutorTests {
 
         //when:
         Object result = executor.execute(query, new HashMap() {{put("id", null);}}).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked", "serial" } )
+    @Test
+    public void queryForThingByIdViaWhere() {
+        //given:
+
+        String query = "query { Things(where: {id: {EQ: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\"}}) { select { id }}}";
+        String expected = "{Things={select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
