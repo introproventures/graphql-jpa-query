@@ -152,7 +152,22 @@ public class GraphQLExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
+    @SuppressWarnings( { "rawtypes", "unchecked", "serial" } )
+    @Test
+    public void queryForThingByIdViaWhereIN() {
+        //given:
+
+        String query = "query { Things(where: {id: {IN: [\"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\", \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\" ]}}) { select { id }}}";
+        String expected = "{Things={select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @Test
     public void queryWithAlias() {
         //given:
