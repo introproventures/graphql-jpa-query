@@ -33,7 +33,6 @@ import javax.persistence.criteria.Predicate;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 
-
 /**
  * Supported types to build predicates for
  *
@@ -266,14 +265,24 @@ class JpaPredicateBuilder {
     }
 
     private Predicate getUuidPredicate(Path<? extends UUID> field, PredicateFilter filter) {
-        if(filter.getValue() == null || !(filter.getValue() instanceof UUID)) {
+        if (filter.getValue() == null) {
             return null;
         }
-        if(filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
-            return cb.equal(field, filter.getValue());
+        final Predicate arrayPredicate = mayBeArrayValuePredicate(field, filter);
+        if (arrayPredicate != null) {
+            return arrayPredicate;
         }
-        if(filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
-            return cb.notEqual(field, filter.getValue());
+        final UUID compareValue = (UUID) filter.getValue();
+
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            return cb.equal(field, compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
+            final CriteriaBuilder.In<Object> in = cb.in(field);
+            return in.value(compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            return cb.notEqual(field, compareValue);
         }
         return null;
     }
