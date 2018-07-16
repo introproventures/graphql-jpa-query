@@ -264,7 +264,7 @@ class JpaPredicateBuilder {
         return null;
     }
 
-    private Predicate getUuidPredicate(Path<? extends UUID> field, PredicateFilter filter) {
+    private Predicate getUuidPredicate(Path<UUID> field, PredicateFilter filter) {
         if (filter.getValue() == null) {
             return null;
         }
