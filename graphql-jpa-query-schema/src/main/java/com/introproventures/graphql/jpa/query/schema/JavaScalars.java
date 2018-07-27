@@ -40,15 +40,16 @@ import graphql.schema.GraphQLScalarType;
 
 /**
  * Provides Registry to resolve GraphQL Query Java Scalar Types
- * 
+ *
  * @author Igor Dianov
  *
  */
 public class JavaScalars {
+
     static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
 
     private static HashMap<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
-    
+
     static {
         scalarsRegistry.put(String.class, Scalars.GraphQLString);
 
@@ -66,19 +67,24 @@ public class JavaScalars {
 
         scalarsRegistry.put(Long.class, Scalars.GraphQLLong);
         scalarsRegistry.put(long.class, Scalars.GraphQLLong);
-            
+
         scalarsRegistry.put(Boolean.class, Scalars.GraphQLBoolean);
         scalarsRegistry.put(boolean.class, Scalars.GraphQLBoolean);
 
+        scalarsRegistry.put(BigInteger.class, Scalars.GraphQLBigInteger);
+
+        scalarsRegistry.put(char.class, Scalars.GraphQLChar);
+        scalarsRegistry.put(Character.class, Scalars.GraphQLChar);
+
         scalarsRegistry.put(BigDecimal.class, Scalars.GraphQLBigDecimal);
-            
+
         scalarsRegistry.put(LocalDateTime.class, new GraphQLScalarType("LocalDateTime", "LocalDateTime type", new GraphQLLocalDateTimeCoercing()));
         scalarsRegistry.put(LocalDate.class, new GraphQLScalarType("LocalDate", "LocalDate type", new GraphQLLocalDateCoercing()));
         scalarsRegistry.put(Date.class, new GraphQLScalarType("Date", "Date type", new GraphQLDateCoercing()));
         scalarsRegistry.put(UUID.class, new GraphQLScalarType("UUID", "UUID type", new GraphQLUUIDCoercing()));
         scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
     }
-    
+
     public static GraphQLScalarType of(Class<?> key) {
         return scalarsRegistry.get(key);
     }
@@ -86,13 +92,14 @@ public class JavaScalars {
     public JavaScalars register(Class<?> key, GraphQLScalarType value) {
         Assert.assertNotNull(key, "key parameter cannot be null.");
         Assert.assertNotNull(value, "value parameter cannot be null.");
-        
+
         scalarsRegistry.put(key, value);
-        
+
         return this;
     }
-    
+
     public static class GraphQLLocalDateTimeCoercing implements Coercing<Object, Object> {
+
         @Override
         public Object serialize(Object input) {
             if (input instanceof String) {
@@ -136,8 +143,9 @@ public class JavaScalars {
             }
         }
     };
-    
+
     public static class GraphQLLocalDateCoercing implements Coercing<Object, Object> {
+
         @Override
         public Object serialize(Object input) {
             if (input instanceof String) {
@@ -229,14 +237,14 @@ public class JavaScalars {
         @Override
         public Object serialize(Object input) {
             if (input instanceof UUID) {
-                return  input;
+                return input;
             }
             return null;
         }
 
         @Override
         public Object parseValue(Object input) {
-           if (input instanceof String) {
+            if (input instanceof String) {
                 return parseStringToUUID((String) input);
             }
             return null;
@@ -277,5 +285,5 @@ public class JavaScalars {
             return input;
         }
     };
-    
+
 }
