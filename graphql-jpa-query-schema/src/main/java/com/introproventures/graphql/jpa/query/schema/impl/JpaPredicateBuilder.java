@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.UUID;
+
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
@@ -262,6 +264,29 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    private Predicate getUuidPredicate(Path<UUID> field, PredicateFilter filter) {
+        if (filter.getValue() == null) {
+            return null;
+        }
+        final Predicate arrayPredicate = mayBeArrayValuePredicate(field, filter);
+        if (arrayPredicate != null) {
+            return arrayPredicate;
+        }
+        final UUID compareValue = (UUID) filter.getValue();
+
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            return cb.equal(field, compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
+            final CriteriaBuilder.In<Object> in = cb.in(field);
+            return in.value(compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            return cb.notEqual(field, compareValue);
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
         Class<?> type = field.getJavaType();
@@ -302,6 +327,9 @@ class JpaPredicateBuilder {
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
+        }
+        else if (type.equals(UUID.class)) {
+            return getUuidPredicate((Path<UUID>) field, predicateFilter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
             if(field.getModel() == null)
