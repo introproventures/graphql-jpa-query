@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.5
+## 0.3.6-SNAPSHOT
 * Fix generated CriteriaExpression not working with UUIDs (#42) [b75e740](null/commit/b75e740f0bb358f723eda06cbbae73340527fe21)
 * Include Java Char and BigInteger types support in JavaScalars (#43) [d431dd1](null/commit/d431dd1c51f1e1632cb00bc0b6dec99b22ce6795)
 * Support @MappedSuperclass and @Embedded jpa annotations (#35) [09807ac](null/commit/09807ac4988f986b669ad60307c868d4590bdd34)
