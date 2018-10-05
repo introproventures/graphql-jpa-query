@@ -76,6 +76,9 @@ public class JavaScalars {
         scalarsRegistry.put(char.class, Scalars.GraphQLChar);
         scalarsRegistry.put(Character.class, Scalars.GraphQLChar);
 
+        scalarsRegistry.put(Byte.class, Scalars.GraphQLByte);
+        scalarsRegistry.put(byte.class, Scalars.GraphQLByte);
+
         scalarsRegistry.put(BigDecimal.class, Scalars.GraphQLBigDecimal);
 
         scalarsRegistry.put(LocalDateTime.class, new GraphQLScalarType("LocalDateTime", "LocalDateTime type", new GraphQLLocalDateTimeCoercing()));
