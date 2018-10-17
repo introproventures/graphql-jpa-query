@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -194,6 +195,25 @@ public class JavaScalars {
     };
 
     public static class GraphQLDateCoercing implements Coercing<Object, Object> {
+        final DateFormat df;
+
+
+        /**
+         * Parse date strings matching DateFormat's locale-sensitive SHORT pattern,
+         * see: https://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html 
+         */
+        public GraphQLDateCoercing() {
+            df = DateFormat.getInstance();
+        }
+
+        /**
+         * Parse date strings according to the provided SimpleDateFormat pattern
+         * 
+         * @param dateFormatString e.g. "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" for "2001-07-04T12:08:56.235-07:00"
+         */
+        public GraphQLDateCoercing(String dateFormatString) {
+            df = new SimpleDateFormat(dateFormatString);
+        }
 
         @Override
         public Object serialize(Object input) {
@@ -227,7 +247,7 @@ public class JavaScalars {
 
         private Date parseStringToDate(String input) {
             try {
-                return DateFormat.getInstance().parse(input);
+                return df.parse(input);
             } catch (ParseException e) {
                 log.warn("Failed to parse Date from input: " + input, e);
                 return null;
