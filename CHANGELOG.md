@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.6
+## 0.3.7-SNAPSHOT
 * fix: Support Enum types in EQ, NE, IN, NIN criteria expressions (#50) [12dc200](null/commit/12dc200f3b4efe10e9f8d98b261a82605aad1727)
 * Add Byte to JavaScalars (#48) [6407149](null/commit/64071491e7f7ea940696ee091528ba839ca417ad)
 * Fix generated CriteriaExpression not working with UUIDs (#42) [b75e740](null/commit/b75e740f0bb358f723eda06cbbae73340527fe21)
