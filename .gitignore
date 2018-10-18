@@ -23,3 +23,11 @@ target/
 .springBeans
 
 
+
+graphql-jpa-query-schema/\.classpath
+
+graphql-jpa-query-annotations/\.classpath
+
+graphql-jpa-query-example/\.classpath
+
+graphql-jpa-query-boot-starter/\.classpath

@@ -24,7 +24,6 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
 
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
@@ -286,6 +285,34 @@ class JpaPredicateBuilder {
         }
         return null;
     }
+    
+    private Predicate getEnumPredicate(Path<? extends Enum> field, PredicateFilter filter) {
+        if (filter.getValue() == null) {
+            return null;
+        }
+        final Predicate arrayPredicate = mayBeArrayValuePredicate(field, filter);
+        
+        if (arrayPredicate != null) {
+            return arrayPredicate;
+        }
+        final Enum<?> compareValue = (Enum<?>) filter.getValue();
+
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            return cb.equal(field, compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
+            final CriteriaBuilder.In<Object> in = cb.in(field);
+            return in.value(compareValue);
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+            final CriteriaBuilder.In<Object> in = cb.in(field);
+            return cb.not(in.value(compareValue));
+        }
+        if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            return cb.notEqual(field, compareValue);
+        }
+        return null;
+    }    
 
     @SuppressWarnings("unchecked")
     private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
@@ -334,6 +361,8 @@ class JpaPredicateBuilder {
         else if(Collection.class.isAssignableFrom(type)) {
             if(field.getModel() == null)
                 return from.join(filter.getField()).in(value);
+        } else if(type.isEnum()) {
+        	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
         }
 
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());

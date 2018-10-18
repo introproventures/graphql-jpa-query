@@ -19,7 +19,6 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
@@ -57,10 +56,8 @@ public class GraphQLExecutorTests {
         
     }
     
-
     @Autowired
     private GraphQLExecutor executor;
-
     
     @Test
     public void contextLoads() {
@@ -222,6 +219,115 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void queryForEnumIn() {
+        //given
+        String query = "{ Books(where: {genre: {IN: PLAY}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+        		+ "{id=6, title=The Seagull, genre=PLAY}, "
+        		+ "{id=7, title=Three Sisters, genre=PLAY}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryForEnumInArray() {
+        //given
+        String query = "{ Books(where: {genre: {IN: [NOVEL, PLAY]}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace, genre=NOVEL}, "
+        		+ "{id=3, title=Anna Karenina, genre=NOVEL}, "
+        		+ "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+        		+ "{id=6, title=The Seagull, genre=PLAY}, "
+        		+ "{id=7, title=Three Sisters, genre=PLAY}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForEnumNinArray() {
+        //given
+        String query = "{ Books(where: {genre: {NIN: [NOVEL]}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+        		+ "{id=6, title=The Seagull, genre=PLAY}, "
+        		+ "{id=7, title=Three Sisters, genre=PLAY}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryForEnumEq() {
+        //given
+        String query = "{ Books(where: {genre: {EQ: NOVEL}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace, genre=NOVEL}, "
+        		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForEnumNe() {
+        //given
+        String query = "{ Books(where: {genre: {NE: PLAY}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace, genre=NOVEL}, "
+        		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryForEnumNin() {
+        //given
+        String query = "{ Books(where: {genre: {NIN: PLAY}}) { select { id title, genre } }}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace, genre=NOVEL}, "
+        		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+        
+    
+    
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
     public void queryForEntityWithMappedSuperclass() {
