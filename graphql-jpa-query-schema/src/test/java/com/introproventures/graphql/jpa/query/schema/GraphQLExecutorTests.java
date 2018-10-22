@@ -328,6 +328,22 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
         
+    @Test
+    public void queryForParentWithEnum() {
+        //given
+        String query = "{ Books { select { id title, author( where: { genre: { EQ: NOVEL } }) { name } } } }";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace, author={name=Leo Tolstoy}}, "
+        		+ "{id=3, title=Anna Karenina, author={name=Leo Tolstoy}}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
     
     // https://github.com/introproventures/graphql-jpa-query/issues/30

@@ -284,7 +284,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), variables)
                     .get("where");
 
-                return getWherePredicate(cb, from, join, new WherePredicateEnvironment(environment, arguments), where);
+                return getWherePredicate(cb, from, join, new WherePredicateEnvironment(environment, fieldDef, arguments), where);
             }
         }
     }
@@ -451,15 +451,15 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     class WherePredicateEnvironment extends DataFetchingEnvironmentImpl {
 
-        public WherePredicateEnvironment(DataFetchingEnvironment environment, Map<String, Object> arguments) {
+        public WherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
             super(
                 environment.getSource(),
                 arguments,
                 environment.getContext(),
                 environment.getRoot(),
-                environment.getFieldDefinition(),
+                fieldDefinition, 			//environment.getFieldDefinition(),
                 environment.getFields(),
-                environment.getFieldType(),
+                fieldDefinition.getType(), 	//	environment.getFieldType(),
                 environment.getParentType(),
                 environment.getGraphQLSchema(),
                 environment.getFragmentsByName(),

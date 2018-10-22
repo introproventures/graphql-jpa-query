@@ -24,6 +24,8 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -53,4 +55,6 @@ public class Author {
 	@Column(name = "phone_number")
 	private Set<String> phoneNumbers = new HashSet<>();	
 	
+	@Enumerated(EnumType.STRING)
+    Genre genre;	
 }
