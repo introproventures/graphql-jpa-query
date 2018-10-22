@@ -17,6 +17,7 @@
 package com.introproventures.graphql.jpa.query.schema.model.starwars;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -40,7 +41,7 @@ public class CodeList {
     boolean active;
     String description;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     CodeList parent;
 
