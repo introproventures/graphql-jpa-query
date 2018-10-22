@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.model.book;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
@@ -32,7 +33,7 @@ public class Book {
 
 	String title;
 
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	Author author;
 
 	@Enumerated(EnumType.STRING)
