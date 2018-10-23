@@ -33,6 +33,7 @@
 		<module>graphql-jpa-query-schema</module>
 		<module>graphql-jpa-query-boot-starter</module>
 		<module>graphql-jpa-query-example</module>
+        <module>graphql-jpa-query-dependencies</module>
 	</modules>
 
 	<distributionManagement>
@@ -58,36 +59,12 @@
 				<artifactId>platform-bom</artifactId>
 				<version>Brussels-SR6</version>
 				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+                <scope>import</scope>
+            </dependency>
 
-			<dependency>
-				<groupId>com.introproventures</groupId>
-				<artifactId>graphql-jpa-query-annotations</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+        </dependencies>
 
-			<dependency>
-				<groupId>com.introproventures</groupId>
-				<artifactId>graphql-jpa-query-schema</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.introproventures</groupId>
-				<artifactId>graphql-jpa-query-boot-starter</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.graphql-java</groupId>
-				<artifactId>graphql-java</artifactId>
-				<version>${graphql-java.version}</version>
-			</dependency>
-
-		</dependencies>
-
-	</dependencyManagement>
+    </dependencyManagement>
 
 	<dependencies>
 

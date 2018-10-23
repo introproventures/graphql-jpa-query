@@ -1,15 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <artifactId>graphql-jpa-query-schema</artifactId>
-  <name>graphql-jpa-query-schema</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>graphql-jpa-query-schema</artifactId>
+    <name>graphql-jpa-query-schema</name>
 
-  <parent>
-    <groupId>com.introproventures</groupId>
-    <artifactId>graphql-jpa-query</artifactId>
-    <version>0.3.8-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-  
-  <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.introproventures</groupId>
+        <artifactId>graphql-jpa-query-dependencies</artifactId>
+        <version>0.3.8-SNAPSHOT</version>
+        <relativePath>../graphql-jpa-query-dependencies</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
   
   <dependencies>
 
@@ -39,13 +41,12 @@
         <optional>true</optional>
     </dependency>                
 
-    <dependency>
-		  <groupId>org.hibernate.javax.persistence</groupId>
-		  <artifactId>hibernate-jpa-2.1-api</artifactId>
-      <version>1.0.0.Final</version>
-    </dependency>
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+        </dependency>
 
-    <dependency>
+        <dependency>
       <groupId>javax.transaction</groupId>
       <artifactId>javax.transaction-api</artifactId>
     </dependency>
