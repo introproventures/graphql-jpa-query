@@ -63,6 +63,7 @@ import graphql.language.Field;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.Node;
+import graphql.language.NodeVisitor;
 import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
 import graphql.language.SelectionSet;
@@ -78,6 +79,8 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import graphql.util.TraversalControl;
+import graphql.util.TraverserContext;
 
 /**
  * Provides base implemetation for GraphQL JPA Query Data Fetchers
@@ -318,7 +321,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo()
+                environment.getFieldTypeInfo(),
+                environment.getExecutionContext()
             ), new Argument(Logical.AND.name(), whereValue)
          );
     }
@@ -420,7 +424,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             environment.getFragmentsByName(),
             environment.getExecutionId(),
             environment.getSelectionSet(),
-            environment.getFieldTypeInfo()
+            environment.getFieldTypeInfo(),
+            environment.getExecutionContext()
         ),
             new Argument(objectField.getName(), argument.getValue()), argument.getValue() );
 
@@ -444,7 +449,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo()
+                environment.getFieldTypeInfo(),
+                environment.getExecutionContext()
             );
         }
     }
@@ -465,7 +471,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo()
+                environment.getFieldTypeInfo(),
+                environment.getExecutionContext()
             );
         }
     }
@@ -821,6 +828,18 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         public boolean isEqualTo(Node node) {
             return node instanceof NullValue;
         }
+
+		@Override
+		public TraversalControl accept(TraverserContext context, NodeVisitor visitor) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Value deepCopy() {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 
 
