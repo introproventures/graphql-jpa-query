@@ -1,6 +1,12 @@
 # Change Log
 
-## 0.3.7-SNAPSHOT
+## 0.3.7
+* fix: reverse query with where enum criteria [86a68aa](null/commit/86a68aa02f49289fbd893a821760d4ecca77869a)
+* fix: improve page argument handling  [dd7fe62](null/commit/dd7fe6272f94ef87cccd8056398f845334b863c8)
+* chore: skip deploy for graphql-jpa-query-example module [8950021](null/commit/8950021d7d0495ecc57b9726ec2b3c6b7e00bf0d)
+* feat: improve PropertyDataFetcher performance with caching [fa9f08e](null/commit/fa9f08e46ae03b16ab464eaf9f3856c53671fca7)
+* chore: refactor test entity models to use Lazy fetch by default [a2deb40](null/commit/a2deb40f2b5eef489eff306fa79e457ee3e85ff9)
+* feat: add more Java Scalars  [ad32245](null/commit/ad3224588e89378697bafb3f793aaf90b953acce)
 * fix: Support Enum types in EQ, NE, IN, NIN criteria expressions (#50) [12dc200](null/commit/12dc200f3b4efe10e9f8d98b261a82605aad1727)
 * Add Byte to JavaScalars (#48) [6407149](null/commit/64071491e7f7ea940696ee091528ba839ca417ad)
 * Fix generated CriteriaExpression not working with UUIDs (#42) [b75e740](null/commit/b75e740f0bb358f723eda06cbbae73340527fe21)
