@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.7
+## 0.3.8-SNAPSHOT
 * fix: reverse query with where enum criteria [86a68aa](null/commit/86a68aa02f49289fbd893a821760d4ecca77869a)
 * fix: improve page argument handling  [dd7fe62](null/commit/dd7fe6272f94ef87cccd8056398f845334b863c8)
 * chore: skip deploy for graphql-jpa-query-example module [8950021](null/commit/8950021d7d0495ecc57b9726ec2b3c6b7e00bf0d)
