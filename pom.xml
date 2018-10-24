@@ -35,6 +35,7 @@
         <module>graphql-jpa-query-boot-starter</module>
         <module>graphql-jpa-query-example</module>
         <module>graphql-jpa-query-dependencies</module>
+        <module>graphql-jpa-query-build</module>
     </modules>
 
     <distributionManagement>
@@ -52,42 +53,6 @@
         </repository>
     </distributionManagement>
 
-    <dependencyManagement>
-        <dependencies>
-
-            <dependency>
-                <groupId>io.spring.platform</groupId>
-                <artifactId>platform-bom</artifactId>
-                <version>Brussels-SR6</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-        </dependencies>
-
-    </dependencyManagement>
-
-    <dependencies>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
 
     <scm>
         <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
