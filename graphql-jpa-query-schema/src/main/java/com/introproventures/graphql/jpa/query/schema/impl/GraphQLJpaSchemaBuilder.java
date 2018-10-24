@@ -443,7 +443,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if (type instanceof GraphQLOutputType) {
             List<GraphQLArgument> arguments = new ArrayList<>();
-            DataFetcher dataFetcher = new PropertyDataFetcher<>(attribute.getName());
+            DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
 
             // Only add the orderBy argument for basic attribute types
             if (attribute instanceof SingularAttribute 
