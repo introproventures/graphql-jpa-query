@@ -375,21 +375,20 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-//    // TODO
-//    @Test
-//    public void queryForEntityWithEmeddableTypeAndWhere() {
-//        //given
-//        String query = "{ Boats { id engine(where: { identification: { EQ: \"12345\"}}) { identification } } }";
-//        
-//        String expected = "{Boats={select[id=1, engine={identification=12345}]}}";
-//
-//        //when
-//        Object result = executor.execute(query).getData();
-//
-//        // then
-//        assertThat(result.toString()).isEqualTo(expected);
-//    }
+
+    @Test
+    public void queryForEntityWithEmeddableTypeAndWhere() {
+        //given
+        String query = "{ Boats { select { id engine(where: { identification: { EQ: \"12345\"}}) { identification } } } }";
+
+        String expected = "{Boats={select=[{id=1, engine={identification=12345}}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
     
 
