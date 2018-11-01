@@ -112,11 +112,13 @@ class JpaPredicateBuilder {
                 compareValue = compareValue.toLowerCase();
             }
 
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(fieldValue, compareValue);
+            } 
+            else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
                 return cb.notEqual(fieldValue, compareValue);
             }
-
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.LIKE)) {
+            else if (filter.getCriterias().contains(PredicateFilter.Criteria.LIKE)) {
                 compareValue = "%" + compareValue + "%";
             }
             else if (filter.getCriterias().contains(PredicateFilter.Criteria.ENDS)) {
