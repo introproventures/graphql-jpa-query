@@ -324,7 +324,7 @@ Lazy loading of associations between entities is a well established best practic
 
 The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading. However, if there are composite foreign keys being used on `@ManyToOne` association declared in GraphQL query, Hibernate persistence provider will issue a separate SQL query to resolve the parent entity.
 
-To disable default `@ManyToOne` associations default behavior of eager fetch, make explicit use of FetchType.LAZY for all to-many associations in your entity model. It will delay the initialization of the relationship unless it is specified in the GraphQL query entity graph to improve performance when fetching many entities with to-one associations.
+To disable default `@ManyToOne` associations behavior with eager fetch, make explicit use of FetchType.LAZY for all associations in your entity model. It will delay the initialization of the relationship unless it is specified in the GraphQL query entity graph to improve performance when fetching many entities with their associations.
 
 GraphiQL Browser
 --------
