@@ -1,6 +1,10 @@
 # Change Log
 
-## 0.3.9-SNAPSHOT
+## 0.3.9
+* Merge pull request #55 from introproventures/fix-EQ-string-sql-predicate [db3c1ef](null/commit/db3c1efee917496115c2037da99dd0e75c385f3a)
+    * fix: add missing equal criteria expression for string type where arguments [aaadba1](null/commit/aaadba127d3b197438c66647280a7d561006571c)
+* Merge pull request #54 from ludovicmotte/embeddedWhere [95ad2ad](null/commit/95ad2ad07d7d3a3277fbf362b06aa606d56b47e3)
+    * query for entity with emeddableType and where argument [c1f2e48](null/commit/c1f2e4802b932b9ec67ff8d391a9b46e2556fd32)
 * fix: (version) update graphql-java to 9.4 (#52) [56cef8b](null/commit/56cef8b536db00905dce4c4a721833aa8aa6d47e)
 * fix: reverse query with where enum criteria [86a68aa](null/commit/86a68aa02f49289fbd893a821760d4ecca77869a)
 * fix: improve page argument handling  [dd7fe62](null/commit/dd7fe6272f94ef87cccd8056398f845334b863c8)
