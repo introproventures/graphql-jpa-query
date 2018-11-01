@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.9
+## 0.3.10-SNAPSHOT
 * Merge pull request #55 from introproventures/fix-EQ-string-sql-predicate [db3c1ef](null/commit/db3c1efee917496115c2037da99dd0e75c385f3a)
     * fix: add missing equal criteria expression for string type where arguments [aaadba1](null/commit/aaadba127d3b197438c66647280a7d561006571c)
 * Merge pull request #54 from ludovicmotte/embeddedWhere [95ad2ad](null/commit/95ad2ad07d7d3a3277fbf362b06aa606d56b47e3)
