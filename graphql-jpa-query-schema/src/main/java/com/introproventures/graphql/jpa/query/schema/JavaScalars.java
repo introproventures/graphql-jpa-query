@@ -199,11 +199,10 @@ public class JavaScalars {
 
 
         /**
-         * Parse date strings matching DateFormat's locale-sensitive SHORT pattern,
-         * see: https://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html 
+         * Default to pattern 'yyyy-MM-dd'
          */
         public GraphQLDateCoercing() {
-            df = DateFormat.getInstance();
+            df = new SimpleDateFormat("yyyy-MM-dd");
         }
 
         /**
