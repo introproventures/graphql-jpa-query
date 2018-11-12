@@ -35,7 +35,7 @@ public class Human extends Character {
     @JoinColumn(name = "favorite_droid_id")
     Droid favoriteDroid;
 
-    @ManyToOne
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name = "gender_code_id")
     CodeList gender;
 

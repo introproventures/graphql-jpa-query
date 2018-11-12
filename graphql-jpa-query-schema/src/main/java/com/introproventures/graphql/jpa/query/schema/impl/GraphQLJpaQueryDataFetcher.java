@@ -48,7 +48,7 @@ import graphql.schema.GraphQLObjectType;
  *
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
-
+	
     public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
         super(entityManager, entityType);
     }
@@ -63,6 +63,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         Optional<Field> totalSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME);
         Optional<Field> recordsSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME);
 
+        Optional<Argument> pageArgument = getPageArgument(field);
         Page page = extractPageArgument(environment, field);
         Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(true));
         
@@ -93,19 +94,34 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                             environment.getFragmentsByName(),
                             environment.getExecutionId(),
                             environment.getSelectionSet(),
-                            environment.getFieldTypeInfo()
+                            environment.getFieldTypeInfo(),
+                            environment.getExecutionContext()
                         )).orElse(environment);
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
-            TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct)
-                .setMaxResults(page.size)
-                .setFirstResult((page.page - 1) * page.size);
+            TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
-            // Create entity graph from selection
+            // Let's apply page only if present
+            if(pageArgument.isPresent()) {
+            	query
+            		.setMaxResults(page.size)
+                	.setFirstResult((page.page - 1) * page.size);
+            }
+            
+            // Let's create entity graph from selection
+            // When using fetchgraph all relationships are considered to be lazy regardless of annotation, 
+            // and only the elements of the provided graph are loaded. This particularly useful when running 
+            // reports on certain objects and you don't want a lot of the stuff that's normally flagged to 
+            // load via eager annotations.
             EntityGraph<?> graph = buildEntityGraph(queryField);
             query.setHint("javax.persistence.fetchgraph", graph);
 
+            // Let' try reduce overhead
+            query.setHint("org.hibernate.readOnly", true);
+            query.setHint("org.hibernate.fetchSize", 1000);
+            query.setHint("org.hibernate.cacheable", true);
+            
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
         }
         
@@ -159,11 +175,17 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         return entityManager.createQuery(query);
     }
 
+    
+    private Optional<Argument> getPageArgument(Field field) {
+	    return field.getArguments()
+		    .stream()
+		    .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
+		    .findFirst();
+	}
+
+    
     private Page extractPageArgument(DataFetchingEnvironment environment, Field field) {
-        Optional<Argument> paginationRequest = field.getArguments()
-            .stream()
-            .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
-            .findFirst();
+        Optional<Argument> paginationRequest = getPageArgument(field);
         
         if (paginationRequest.isPresent()) {
             field.getArguments()

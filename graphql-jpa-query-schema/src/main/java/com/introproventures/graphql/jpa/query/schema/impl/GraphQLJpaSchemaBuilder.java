@@ -32,6 +32,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
@@ -194,12 +195,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    private Map<EntityType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
-    
-    private GraphQLArgument getWhereArgument(EntityType<?> entityType) {
-        String type = namingStrategy.pluralize(entityType.getName())+"CriteriaExpression";
+    private Map<ManagedType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+
+    private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
+    	String typeName="";
+    	if (managedType instanceof EmbeddableType){
+			typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
+		} else if (managedType instanceof EntityType) {
+			typeName = ((EntityType)managedType).getName();
+		}
+
+		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
         
-        GraphQLArgument whereArgument = whereArgumentsMap.get(entityType);
+        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType);
         
         if(whereArgument != null)
             return whereArgument;
@@ -219,7 +227,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .type(new GraphQLTypeReference(type))
                 .build()
             )
-            .fields(entityType.getAttributes().stream()
+            .fields(managedType.getAttributes().stream()
                 .filter(this::isValidInput)
                 .filter(this::isNotIgnored)
                 .map(this::getWhereInputField)
@@ -233,7 +241,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .type(whereInputObject)
             .build();
         
-        whereArgumentsMap.put(entityType, whereArgument);
+        whereArgumentsMap.put(managedType, whereArgument);
         
         return whereArgument;
         
@@ -443,7 +451,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if (type instanceof GraphQLOutputType) {
             List<GraphQLArgument> arguments = new ArrayList<>();
-            DataFetcher dataFetcher = new PropertyDataFetcher<>(attribute.getName());
+            DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
 
             // Only add the orderBy argument for basic attribute types
             if (attribute instanceof SingularAttribute 
@@ -457,22 +465,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             }
             
             // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
-            if (attribute instanceof SingularAttribute  
-                && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC
-                && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED
-             ) {
-
-                EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
-                Stream<Attribute> attributes = findBasicAttributes(foreignType.getAttributes());
+            if (attribute instanceof SingularAttribute
+                && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
+                ManagedType foreignType = (ManagedType) ((SingularAttribute) attribute).getType();
 
                 // TODO fix page count query
                 arguments.add(getWhereArgument(foreignType));
 
-            } //  Get Sub-Objects fields queries via DataFetcher     
+            } //  Get Sub-Objects fields queries via DataFetcher
             else if (attribute instanceof PluralAttribute
                 && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
-                    || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)
-            ) {
+                    || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)) {
                 EntityType declaringType = (EntityType) ((PluralAttribute) attribute).getDeclaringType();
                 EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
 
@@ -498,9 +501,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     @SuppressWarnings( "rawtypes" )
     private GraphQLType getAttributeType(Attribute<?,?> attribute) {
-    	
+
         if (isBasic(attribute)) {
-        	return getGraphQLTypeFromJavaType(attribute.getJavaType());        	
+        	return getGraphQLTypeFromJavaType(attribute.getJavaType());
         } 
         else if (isEmbeddable(attribute)) {
         	EmbeddableType embeddableType = (EmbeddableType) ((SingularAttribute) attribute).getType();
@@ -518,7 +521,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
             
             if(foreignType.getPersistenceType() == Type.PersistenceType.BASIC) {
-            	return new GraphQLList(getGraphQLTypeFromJavaType(foreignType.getJavaType()));        	
+            	return new GraphQLList(getGraphQLTypeFromJavaType(foreignType.getJavaType()));
             }
         }
 
@@ -542,12 +545,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     protected final boolean isToMany(Attribute<?,?> attribute) {
-    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY 
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY;
     }
 
     protected final boolean isToOne(Attribute<?,?> attribute) {
-    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE 
+    	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE;
     }
     

@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.introproventures</groupId>
+        <artifactId>graphql-jpa-query</artifactId>
+        <version>0.3.10-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <artifactId>graphql-jpa-query-dependencies</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <graphql-java.version>9.4</graphql-java.version>
+        <hibernate-jpa-2.1-api.version>1.0.0.Final</hibernate-jpa-2.1-api.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>${hibernate-jpa-2.1-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-schema</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+</project>

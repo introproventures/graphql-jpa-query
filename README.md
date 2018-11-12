@@ -6,7 +6,7 @@ GraphQL Query for JPA Entity Model
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 [![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
-This library uses [graphql-java 6.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
+This library uses [graphql-java 9.4](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
 
 It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
 
@@ -320,7 +320,11 @@ of sorting by name for Human objects. The default sort order can be specified us
 
 Performance
 -----------
+Lazy loading of associations between entities is a well established best practice in JPA. Its main goal is to retrieve only the requested entities from the database and load the related entities only if needed. The use of FetchType.EAGER for associations mapping is one of the most common reasons for performance problems, because Hibernate loads eagerly fetched associations when it loads an entity. This is very inefficient and it gets even worse when you consider that Hibernate does that whether or not you will use the associated data.
+
 The JPA DataFetcher implementation will attempt to build dynamic fetch graph in order to optimize query performance and avoid N+1 lazy loading. However, if there are composite foreign keys being used on `@ManyToOne` association declared in GraphQL query, Hibernate persistence provider will issue a separate SQL query to resolve the parent entity.
+
+To disable default `@ManyToOne` associations behavior with eager fetch, make explicit use of FetchType.LAZY for all associations in your entity model. It will delay the initialization of the relationship unless it is specified in the GraphQL query entity graph to improve performance when fetching many entities with their associations.
 
 GraphiQL Browser
 --------

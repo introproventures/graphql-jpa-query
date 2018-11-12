@@ -24,6 +24,9 @@ import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -44,12 +47,14 @@ public class Author {
 
 	String name;
 
-	@OneToMany(mappedBy="author")
+	@OneToMany(mappedBy="author", fetch=FetchType.LAZY)
 	Collection<Book> books;
 	
-	@ElementCollection 
+	@ElementCollection(fetch=FetchType.LAZY) 
 	@CollectionTable(name = "author_phone_numbers", joinColumns = @JoinColumn(name = "author_id")) 
 	@Column(name = "phone_number")
 	private Set<String> phoneNumbers = new HashSet<>();	
 	
+	@Enumerated(EnumType.STRING)
+    Genre genre;	
 }

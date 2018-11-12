@@ -22,6 +22,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -51,14 +52,14 @@ public abstract class Character {
     String name;
 
     @GraphQLDescription("Who are the known friends to this character")
-    @ManyToMany
+    @ManyToMany(fetch=FetchType.LAZY)
     @JoinTable(name="character_friends",
             joinColumns=@JoinColumn(name="source_id", referencedColumnName="id"),
             inverseJoinColumns=@JoinColumn(name="friend_id", referencedColumnName="id"))
     Set<Character> friends; 
 
     @GraphQLDescription("What Star Wars episodes does this character appear in")
-    @ElementCollection(targetClass = Episode.class)
+    @ElementCollection(targetClass = Episode.class, fetch=FetchType.LAZY)
     @Enumerated(EnumType.ORDINAL)
     @OrderBy
     Set<Episode> appearsIn;

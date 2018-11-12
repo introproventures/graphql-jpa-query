@@ -17,6 +17,7 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,18 +25,31 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import graphql.Assert;
 import graphql.Scalars;
+import graphql.language.ArrayValue;
+import graphql.language.BooleanValue;
+import graphql.language.EnumValue;
+import graphql.language.FloatValue;
 import graphql.language.IntValue;
+import graphql.language.NullValue;
+import graphql.language.ObjectField;
+import graphql.language.ObjectValue;
 import graphql.language.StringValue;
+import graphql.language.Value;
 import graphql.schema.Coercing;
 import graphql.schema.GraphQLScalarType;
 
@@ -50,6 +64,8 @@ public class JavaScalars {
     static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
 
     private static HashMap<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
+    
+    private static JavaScalars instance = new JavaScalars();
 
     static {
         scalarsRegistry.put(String.class, Scalars.GraphQLString);
@@ -87,21 +103,24 @@ public class JavaScalars {
         scalarsRegistry.put(Date.class, new GraphQLScalarType("Date", "Date type", new GraphQLDateCoercing()));
         scalarsRegistry.put(UUID.class, new GraphQLScalarType("UUID", "UUID type", new GraphQLUUIDCoercing()));
         scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
+        scalarsRegistry.put(java.sql.Date.class, new GraphQLScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
+        scalarsRegistry.put(java.sql.Timestamp.class, new GraphQLScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
+        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));    
     }
 
     public static GraphQLScalarType of(Class<?> key) {
         return scalarsRegistry.get(key);
     }
 
-    public JavaScalars register(Class<?> key, GraphQLScalarType value) {
+    public static JavaScalars register(Class<?> key, GraphQLScalarType value) {
         Assert.assertNotNull(key, "key parameter cannot be null.");
         Assert.assertNotNull(value, "value parameter cannot be null.");
 
         scalarsRegistry.put(key, value);
 
-        return this;
+        return instance;
     }
-
+    
     public static class GraphQLLocalDateTimeCoercing implements Coercing<Object, Object> {
 
         @Override
@@ -290,7 +309,7 @@ public class JavaScalars {
         }
     };
 
-    public static class GraphQLObjectCoercing implements Coercing<Object, Object> {
+    public static class GraphQLRawObjectCoercing implements Coercing<Object, Object> {
 
         @Override
         public Object serialize(Object input) {
@@ -307,5 +326,178 @@ public class JavaScalars {
             return input;
         }
     };
+    
+    public static class GraphQLSqlDateCoercing implements Coercing<Object, Object> {
+        @Override
+       public Object serialize(Object input) {
+           if (input instanceof String) {
+               return parseStringToDate((String) input);
+           } else if (input instanceof Date) {
+               return new java.sql.Date(((Date) input).getTime());
+           } else if (input instanceof Long) {
+               return new java.sql.Date(((Long) input).longValue());
+           } else if (input instanceof Integer) {
+               return new java.sql.Date(((Integer) input).longValue());
+           }
+           return null;
+       }
+        @Override
+       public Object parseValue(Object input) {
+           return serialize(input);
+       }
+        @Override
+       public Object parseLiteral(Object input) {
+           if (input instanceof StringValue) {
+               return parseStringToDate(((StringValue) input).getValue());
+           } else if (input instanceof IntValue) {
+               BigInteger value = ((IntValue) input).getValue();
+               return new java.sql.Date(value.longValue());
+           }
+           return null;
+       }
+        private java.sql.Date parseStringToDate(String input) {
+           try {
+               return new java.sql.Date(DateFormat.getInstance().parse(input).getTime());
+           } catch (ParseException e) {
+               log.warn("Failed to parse SQL Date from input: " + input, e);
+               return null;
+           }
+       }
+   }
+    public static class GraphQLSqlTimestampCoercing implements Coercing<Object, Object> {
+        @Override
+       public Object serialize(Object input) {
+           if (input instanceof String) {
+               return parseStringToTimestamp((String) input);
+           } else if (input instanceof Date) {
+               return new java.sql.Timestamp(((Date) input).getTime());
+           } else if (input instanceof Long) {
+               return new java.sql.Timestamp(((Long) input).longValue());
+           } else if (input instanceof Integer) {
+               return new java.sql.Timestamp(((Integer) input).longValue());
+           }
+           return null;
+       }
+        @Override
+       public Object parseValue(Object input) {
+           return serialize(input);
+       }
+        @Override
+       public Object parseLiteral(Object input) {
+           if (input instanceof StringValue) {
+               return parseStringToTimestamp(((StringValue) input).getValue());
+           } else if (input instanceof IntValue) {
+               BigInteger value = ((IntValue) input).getValue();
+               return new java.sql.Date(value.longValue());
+           }
+           return null;
+       }
+        private java.sql.Timestamp parseStringToTimestamp(String input) {
+           try {
+               return new java.sql.Timestamp(DateFormat.getInstance().parse(input).getTime());
+           } catch (ParseException e) {
+               log.warn("Failed to parse Timestamp from input: " + input, e);
+               return null;
+           }
+       }
+   }
+    public static class GraphQLLOBCoercing implements Coercing<Object, Object> {
+        @Override
+       public Object serialize(Object input) {
+           if (input.getClass() == byte[].class) {
+               return input;
+           }
+           return null;
+       }
+        @Override
+       public Object parseValue(Object input) {
+           if (input instanceof String) {
+               return parseStringToByteArray((String) input);
+           }
+           return null;
+       }
+        @Override
+       public Object parseLiteral(Object input) {
+           if (input instanceof StringValue) {
+               return parseStringToByteArray(((StringValue) input).getValue());
+           }
+           return null;
+       }
+        private byte[] parseStringToByteArray(String input) {
+           try {
+               return input.getBytes(StandardCharsets.UTF_8);
+           } catch (IllegalArgumentException e) {
+               log.warn("Failed to parse byte[] from input: " + input, e);
+               return null;
+           }
+       }
+   }
+    
+    public static class GraphQLObjectCoercing implements Coercing<Object, Object> {
+
+        @Override
+        public Object serialize(Object dataFetcherResult) {
+            return dataFetcherResult;
+        }
+
+        @Override
+        public Object parseValue(Object input) {
+            return input;
+        }
+
+        @Override
+        public Object parseLiteral(Object input) {
+            return parseFieldValue((Value) input,  Collections.emptyMap());
+        }
+
+        //recursively parse the input into a Map
+        private Object parseFieldValue(Object value, Map<String, Object> variables) {
+            if (!(value instanceof Value)) {
+                throw new IllegalArgumentException(
+                        "Expected AST type 'StringValue' but was '" + value + "'."
+                );
+            }    	
+        	
+            if (value instanceof StringValue) {
+                return ((StringValue) value).getValue();
+            }
+            if (value instanceof IntValue) {
+                return ((IntValue) value).getValue();
+            }
+            if (value instanceof FloatValue) {
+                return ((FloatValue) value).getValue();
+            }
+            if (value instanceof BooleanValue) {
+                return ((BooleanValue) value).isValue();
+            }
+            if (value instanceof EnumValue) {
+                return ((EnumValue) value).getName();
+            }
+            if (value instanceof NullValue) {
+                return null;
+            }
+            if (value instanceof ArrayValue) {
+            	List<Value> values = ((ArrayValue) value).getValues();
+                return values.stream()
+                        .map(v -> parseFieldValue(v, variables))
+                        .collect(Collectors.toList());
+            }
+            if (value instanceof ObjectValue) {
+            	List<ObjectField> values = ((ObjectValue) value).getObjectFields();
+                Map<String, Object> parsedValues = new LinkedHashMap<>();
+                
+                values.forEach(field -> {
+                    Object parsedValue = parseFieldValue(field.getValue(), variables);
+                    parsedValues.put(field.getName(), parsedValue);
+                });
+                return parsedValues;
+            }
+            
+            //Should never happen, as it would mean the variable was not replaced by the parser
+            throw new IllegalArgumentException("Unsupported scalar value type: " + value.getClass().getName());
+        }
+
+    }
+    
 
 }

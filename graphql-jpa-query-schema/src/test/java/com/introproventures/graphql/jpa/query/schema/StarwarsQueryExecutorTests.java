@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
@@ -39,6 +40,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@TestPropertySource({"classpath:hibernate.properties"})
 public class StarwarsQueryExecutorTests {
 
     @SpringBootApplication
@@ -256,7 +258,7 @@ public class StarwarsQueryExecutorTests {
             + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
             + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}]}"
             + "]}}";
-
+        
         //when:
         Object result = executor.execute(query).getData();
 
@@ -264,6 +266,25 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void queryNestedDatabaseEnum() {
+        //given:
+        String query = "query { Humans { select { name, gender { id, code, parent { id } } } } }";
+
+        String expected = "{Humans={select=["
+        		+ "{name=Luke Skywalker, gender={id=0, code=Male, parent=null}}, "
+        		+ "{name=Darth Vader, gender={id=0, code=Male, parent=null}}, "
+        		+ "{name=Han Solo, gender={id=0, code=Male, parent=null}}, "
+        		+ "{name=Leia Organa, gender={id=1, code=Female, parent=null}}, "
+        		+ "{name=Wilhuff Tarkin, gender={id=0, code=Male, parent=null}}"
+        		+ "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 
     @Test
     public void queryWhereRoot() {
@@ -278,7 +299,7 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-
+    
     @Test
     public void queryPaginationWithoutRecords() {
         //given:

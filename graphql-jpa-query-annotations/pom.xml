@@ -5,9 +5,9 @@
 
   <parent>
     <groupId>com.introproventures</groupId>
-    <artifactId>graphql-jpa-query</artifactId>
-    <version>0.3.6-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <artifactId>graphql-jpa-query-dependencies</artifactId>
+    <version>0.3.10-SNAPSHOT</version>
+    <relativePath>../graphql-jpa-query-dependencies</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
