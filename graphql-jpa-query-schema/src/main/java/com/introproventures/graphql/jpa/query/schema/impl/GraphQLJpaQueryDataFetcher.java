@@ -94,7 +94,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                             environment.getFragmentsByName(),
                             environment.getExecutionId(),
                             environment.getSelectionSet(),
-                            environment.getFieldTypeInfo(),
+                            environment.getExecutionStepInfo(),
                             environment.getExecutionContext()
                         )).orElse(environment);
             
@@ -132,7 +132,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             final Long total = recordsSelection
                     .map(contentField -> getCountQuery(countQueryEnvironment, countQueryField).getSingleResult())
                     // if no "content" was selected an empty Field can be used
-                    .orElseGet(() -> getCountQuery(environment, new Field()).getSingleResult());
+                    .orElseGet(() -> getCountQuery(environment, new Field("count")).getSingleResult());
 
             result.put(GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME, total);
             result.put(GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME, ((Double) Math.ceil(total / (double) page.size)).longValue());
