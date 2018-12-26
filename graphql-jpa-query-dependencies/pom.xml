@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <graphql-java.version>9.4</graphql-java.version>
+        <graphql-java.version>11.0</graphql-java.version>
         <hibernate-jpa-2.1-api.version>1.0.0.Final</hibernate-jpa-2.1-api.version>
     </properties>
 

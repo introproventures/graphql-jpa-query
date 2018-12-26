@@ -321,7 +321,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo(),
+                environment.getExecutionStepInfo(),
                 environment.getExecutionContext()
             ), new Argument(Logical.AND.name(), whereValue)
          );
@@ -424,7 +424,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             environment.getFragmentsByName(),
             environment.getExecutionId(),
             environment.getSelectionSet(),
-            environment.getFieldTypeInfo(),
+            environment.getExecutionStepInfo(),
             environment.getExecutionContext()
         ),
             new Argument(objectField.getName(), argument.getValue()), argument.getValue() );
@@ -449,7 +449,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo(),
+                environment.getExecutionStepInfo(),
                 environment.getExecutionContext()
             );
         }
@@ -471,7 +471,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 environment.getFragmentsByName(),
                 environment.getExecutionId(),
                 environment.getSelectionSet(),
-                environment.getFieldTypeInfo(),
+                environment.getExecutionStepInfo(),
                 environment.getExecutionContext()
             );
         }
