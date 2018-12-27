@@ -1,6 +1,16 @@
 # Change Log
 
-## 0.3.10-SNAPSHOT
+## 0.3.10
+* Upgrade dependencies to Spring Boot 2.1.0.RELEASE (#61) [e93bb80](null/commit/e93bb80ab6e45d4b0a6edecf568a06c841e9bb18)
+* Update README.md [c8d30fb](null/commit/c8d30fbbf1d64a945e2782ec4f805ba9414882dc)
+* Merge pull request #59 from introproventures/upgrade-to-graphql-11 [c6f6d7f](null/commit/c6f6d7f912df97222691b134cd3fb8c426846c8f)
+    * fix(versions): update graphql-java to 11.0 [fbe3d48](null/commit/fbe3d48400061255113a8f99cd51d5e9a4960f08)
+* Merge pull request #58 from molexx/configurableDateFormat [356003d](null/commit/356003ddce2e35596cb13a5b64f77f6cbbba6eee)
+    * Merge branch &#39;master&#39; into configurableDateFormat [a3a7c55](null/commit/a3a7c55e64cb1f6a03f811ec7242b54027590019)
+    * use date format from #ad322458 [05a1245](null/commit/05a1245b8247e32bf209b18e8db7d9f880cab89f)
+    * GraphQLDateCoercing optionally takes a date format mask to use instead of DateFormat.getInstance()&#39;s default SHORT pattern [17e59d9](null/commit/17e59d91abf769104d9127be7b6e8a1339670266)
+* Update README.md [e92a875](null/commit/e92a8757d13dff00e3aec0f6e35ab25a1066a7c0)
+* Update README.md [912a8b9](null/commit/912a8b9ad79a8a1274c010d07a11807d7bff6456)
 * Merge pull request #55 from introproventures/fix-EQ-string-sql-predicate [db3c1ef](null/commit/db3c1efee917496115c2037da99dd0e75c385f3a)
     * fix: add missing equal criteria expression for string type where arguments [aaadba1](null/commit/aaadba127d3b197438c66647280a7d561006571c)
 * Merge pull request #54 from ludovicmotte/embeddedWhere [95ad2ad](null/commit/95ad2ad07d7d3a3277fbf362b06aa606d56b47e3)
