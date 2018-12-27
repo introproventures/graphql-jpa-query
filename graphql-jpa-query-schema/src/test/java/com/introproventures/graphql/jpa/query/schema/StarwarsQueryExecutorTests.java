@@ -26,6 +26,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +36,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -153,7 +152,7 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, homePlanet=Tatooine, friends=[{name=C-3PO}, {name=Leia Organa}, {name=R2-D2}, {name=Han Solo}]}"
+            + "{name=Luke Skywalker, homePlanet=Tatooine, friends=[{name=R2-D2}, {name=C-3PO}, {name=Han Solo}, {name=Leia Organa}]}"
             + "]}}";
 
 
@@ -233,13 +232,12 @@ public class StarwarsQueryExecutorTests {
         //given:
         String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name } } } }";
 
-
         String expected = "{Droid={name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}"
-            + "]}}";
-
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=C-3PO}, {name=Han Solo}, {name=Leia Organa}]}, "
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}]}"
+                + "]}}"; 
+                
         //when:
         Object result = executor.execute(query).getData();
 
@@ -254,10 +252,11 @@ public class StarwarsQueryExecutorTests {
         String query = "query { Droids(where: {id: {EQ: \"2001\"}}) { select { name, friends { name, appearsIn, friends { name } } }  }}";
 
         String expected = "{Droids={select=[{name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Han Solo}, {name=Luke Skywalker}]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=R2-D2}, {name=Leia Organa}, {name=Han Solo}]}]}"
-            + "]}}";
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=Leia Organa}, {name=Luke Skywalker}]}, "
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=C-3PO}, {name=Han Solo}, {name=Leia Organa}]}, "
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2}, {name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}]}"
+                + "]}"
+                + "]}}";
         
         //when:
         Object result = executor.execute(query).getData();
@@ -513,12 +512,12 @@ public class StarwarsQueryExecutorTests {
         //given:
         String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name __typename } __typename } __typename } }";
 
-
         String expected = "{Droid={name=R2-D2, friends=["
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=R2-D2, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=Han Solo, __typename=Character}], __typename=Character}"
-            + "], __typename=Droid}}";
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, "
+                + "{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}, "
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, {name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}], __typename=Character}, {name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=R2-D2, __typename=Character}, {name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}], __typename=Character}], "
+                + "__typename=Droid}}";
+        
 
         //when:
         Object result = executor.execute(query).getData();
