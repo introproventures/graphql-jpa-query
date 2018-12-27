@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.10
+## 0.3.11-SNAPSHOT
 * Upgrade dependencies to Spring Boot 2.1.0.RELEASE (#61) [e93bb80](null/commit/e93bb80ab6e45d4b0a6edecf568a06c841e9bb18)
 * Update README.md [c8d30fb](null/commit/c8d30fbbf1d64a945e2782ec4f805ba9414882dc)
 * Merge pull request #59 from introproventures/upgrade-to-graphql-11 [c6f6d7f](null/commit/c6f6d7f912df97222691b134cd3fb8c426846c8f)
