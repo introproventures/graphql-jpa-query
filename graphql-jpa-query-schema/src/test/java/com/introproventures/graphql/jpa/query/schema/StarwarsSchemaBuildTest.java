@@ -137,7 +137,6 @@ public class StarwarsSchemaBuildTest {
             .describedAs( "Ensure that Droid has the expected description")
             .isEqualTo("Represents an electromechanical robot in the Star Wars Universe");
         
-        
         //then
         assertThat(
                 ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
@@ -146,6 +145,42 @@ public class StarwarsSchemaBuildTest {
         )
             .describedAs( "Ensure that Droid.primaryFunction has the expected description")
             .isEqualTo("Documents the primary purpose this droid serves");
+
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
+                        .getFieldDefinition("id")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that Droid.id has the expected description, inherited from Character")
+                .isEqualTo("Primary Key for the Character Class");
+        
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
+                        .getFieldDefinition("name")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that Droid.name has the expected description, inherited from Character")
+                .isEqualTo("Name of the character");
+
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
+                        .getFieldDefinition("id")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that CodeList.id has the expected description")
+                .isEqualTo("Primary Key for the Code List Class");
+        
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
+                        .getFieldDefinition("parent")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that CodeList.parent has the expected description")
+                .isEqualTo("The CodeList's parent CodeList");
     }
     
 }
