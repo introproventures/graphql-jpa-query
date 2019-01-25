@@ -460,6 +460,18 @@ public class GraphQLExecutorTests {
     }    
     
 
+    @Test
+    public void queryForEntitiesWithEmeddableTypeAndWhereEmbeddableId() {
+        //given
+        String query = "{ Boats(where: {boatId: {EQ: {id: \"1\" country: \"EN\"}}}) { select { boatId {id country} engine { identification } } } }";
 
+        String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
 
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
 }
