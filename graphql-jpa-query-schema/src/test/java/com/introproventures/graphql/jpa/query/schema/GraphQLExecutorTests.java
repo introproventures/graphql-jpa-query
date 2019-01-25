@@ -22,6 +22,8 @@ import java.util.HashMap;
 
 import javax.persistence.EntityManager;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +34,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
-
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -390,6 +389,18 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void queryForEntitiesWithEmeddableTypeAndWhereEmbeddableId() {
+        //given
+        String query = "{ Boats(where: {boatId: {EQ: {id: \"1\" country: \"EN\"}}}) { select { boatId {id country} engine { identification } } } }";
 
+        String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
 
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
 }
