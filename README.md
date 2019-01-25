@@ -84,7 +84,7 @@ For GraphQL JPA Query Boot Starter use:
 
 Other Dependencies
 -----------------
-The core library module `graphql-jpa-query-schema` keeps dependencies to a minimum. The main dependecies for schema module are `graphql-java`, `evo-inflector`, `javax.transaction-api`, `hibernate-jpa-2.1-api`. The tests depend on Spring Boot 1.5 with Web and Hibernate for JPA starters as well as Project Lombok.  
+The core library module `graphql-jpa-query-schema` keeps dependencies to a minimum. The main dependecies for schema module are `graphql-java`, `evo-inflector`, `javax.transaction-api`, `hibernate-jpa-2.1-api`. The tests depend on Spring Boot 2.1 with Web and Hibernate for JPA starters as well as Project Lombok.  
 
 Schema Generation
 -----------------
