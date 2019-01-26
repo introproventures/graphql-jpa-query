@@ -295,6 +295,25 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryWhereRootPagedWithVariables() {
+        //given:
+        String query = "query($start: Int, $limit: Int) { Humans( page: { start: $start, limit: $limit }) { pages, total, select { name } } }";
+        Map<String, Object> variables = new HashMap<String, Object>() {{
+            put("start", 1);
+            put("limit", 2);
+        }};
+
+        
+        String expected = "{Humans={pages=3, total=5, select=[{name=Luke Skywalker}, {name=Darth Vader}]}}";
+
+        //when:
+        Object result = executor.execute(query,variables).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
     @Test
     public void queryPaginationWithoutRecords() {
