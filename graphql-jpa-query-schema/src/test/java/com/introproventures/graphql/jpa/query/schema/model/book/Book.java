@@ -16,6 +16,8 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -38,4 +40,6 @@ public class Book {
 
 	@Enumerated(EnumType.STRING)
 	Genre genre;
+	
+    Date publicationDate;	
 }

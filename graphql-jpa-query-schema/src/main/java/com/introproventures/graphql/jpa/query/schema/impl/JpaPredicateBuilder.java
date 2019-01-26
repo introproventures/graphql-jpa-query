@@ -90,7 +90,7 @@ class JpaPredicateBuilder {
     protected Predicate getStringPredicate(Path<String> root, PredicateFilter filter) {
         Expression<String> fieldValue;
 
-        // list or arrays only for in and not in
+        // list or arrays only for in and not in, between and not between
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
 
         if(arrayValuePredicate == null) {
@@ -199,10 +199,22 @@ class JpaPredicateBuilder {
             } else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)
                 || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(path.in((Object[]) filter.getValue()));
+            } else if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values = (Object[]) filter.getValue();
+                if (values.length == 2) {
+                    Expression<String> name = path.get(filter.getField());
+                    Predicate between = cb.between(name, cb.literal((String) values[0]), cb.literal((String) values[1]));
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
             }
         } else if ((filter.getValue() instanceof Collection)) {
             if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
-                && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                && !filter.getCriterias().contains(PredicateFilter.Criteria.NIN) &&
+                !(filter.getCriterias().contains(Criteria.NOT_BETWEEN) || filter.getCriterias().contains(Criteria.BETWEEN))) {
                 CriteriaBuilder.In<Object> in = cb.in(path);
                 for(Object n : (Collection<?>) filter.getValue()) {
                     in.value(n);
@@ -211,6 +223,21 @@ class JpaPredicateBuilder {
             } else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)
                 || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(path.in((Collection<?>) filter.getValue()));
+            } else if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.NOT_BETWEEN) || filter.getCriterias().contains(Criteria.BETWEEN))) {
+                Expression name = (Expression) path;
+                Collection<?> collection = (Collection<?>) filter.getValue();
+                if (collection.size() == 2) {
+                    Object[] values = collection.toArray();
+                    Expression fromValue = cb.literal(values[0]);
+                    Expression toValue = cb.literal(values[1]);
+                    Predicate between = cb.between(name, fromValue, toValue);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN)) {
+                        return between;
+                    }
+
+                    return cb.not(between);
+                }
             }
         }
 
@@ -261,6 +288,27 @@ class JpaPredicateBuilder {
             }
             // LE or default
             return cb.lessThanOrEqualTo(root, (Date) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<Date> name = (Expression<Date>) root;
+                    Expression<Date> fromDate = cb.literal((Date) values[0]);
+                    Expression<Date> toDate = cb.literal((Date) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
         }
         return null;
     }

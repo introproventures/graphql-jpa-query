@@ -95,6 +95,14 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          * Not In condition
          */
         NIN,
+        /**
+         * Between condition
+         */
+        BETWEEN,
+        /**
+         * Not Between condition
+         */
+        NOT_BETWEEN        
     }
 
     private final String field;
