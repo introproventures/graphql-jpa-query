@@ -82,9 +82,10 @@ public class GraphQLController {
     @PostMapping(value = PATH,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest) throws IOException
+    public Map<String, Object> postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest) throws IOException
     {
-        return graphQLExecutor.execute(queryRequest.getQuery(), queryRequest.getVariables());
+        return graphQLExecutor.execute(queryRequest.getQuery(), queryRequest.getVariables())
+                              .toSpecification();
     }
 
     /**
@@ -103,13 +104,14 @@ public class GraphQLController {
     @GetMapping(value = PATH,
             consumes = {APPLICATION_GRAPHQL_VALUE},
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult getQuery(
+    public  Map<String, Object> getQuery(
             @RequestParam(name="query") final String query,
             @RequestParam(name="variables", required = false) final  String variables) throws IOException
     {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
-        return graphQLExecutor.execute(query, variablesMap);
+        return graphQLExecutor.execute(query, variablesMap)
+                              .toSpecification();
     }
 
     /**
@@ -127,13 +129,14 @@ public class GraphQLController {
     @PostMapping(value = PATH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postForm(
+    public  Map<String, Object> postForm(
             @RequestParam(name="query") final String query,
             @RequestParam(name="variables", required = false) final String variables) throws IOException
     {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
-        return graphQLExecutor.execute(query, variablesMap);
+        return graphQLExecutor.execute(query, variablesMap)
+                              .toSpecification();
     }
 
     /**
@@ -148,10 +151,11 @@ public class GraphQLController {
     @PostMapping(value = PATH,
             consumes = APPLICATION_GRAPHQL_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public ExecutionResult postApplicationGraphQL(
+    public  Map<String, Object> postApplicationGraphQL(
             @RequestBody final String query) throws IOException
     {
-        return graphQLExecutor.execute(query, null);
+        return graphQLExecutor.execute(query, null)
+                              .toSpecification();
     }
 
     /**

@@ -20,6 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
+import lombok.Value;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,14 +38,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
-
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import lombok.Value;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -62,7 +60,7 @@ public class GraphQLControllerIT {
 
 		Result result = entity.getBody();
 		Assert.assertNotNull(result);
-		Assert.assertTrue(result.getErrors().toString(), result.getErrors().isEmpty());
+		Assert.assertNull(result.getErrors());
 		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
 	}
 
@@ -81,7 +79,7 @@ public class GraphQLControllerIT {
 
 		Result result = entity.getBody();
 		Assert.assertNotNull(result);
-		Assert.assertTrue(result.getErrors().toString(), result.getErrors().isEmpty());
+        Assert.assertNull(result.getErrors());
 		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
 	}
 }
