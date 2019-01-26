@@ -30,7 +30,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OrderBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,6 +55,7 @@ public abstract class Character {
     @JoinTable(name="character_friends",
             joinColumns=@JoinColumn(name="source_id", referencedColumnName="id"),
             inverseJoinColumns=@JoinColumn(name="friend_id", referencedColumnName="id"))
+    @OrderBy("name ASC")
     Set<Character> friends; 
 
     @GraphQLDescription("What Star Wars episodes does this character appear in")
