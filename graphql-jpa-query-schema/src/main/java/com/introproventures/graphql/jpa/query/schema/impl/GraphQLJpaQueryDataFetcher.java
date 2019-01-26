@@ -35,8 +35,6 @@ import javax.persistence.metamodel.SingularAttribute;
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
-import graphql.language.IntValue;
-import graphql.language.ObjectValue;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import graphql.schema.GraphQLObjectType;
@@ -191,21 +189,28 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             field.getArguments()
                 .remove(paginationRequest.get());
 
-            ObjectValue paginationValues = (ObjectValue) paginationRequest.get().getValue();
+            Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
             
-            IntValue page = (IntValue) paginationValues.getObjectFields().stream()
-                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME.equals(it.getName()))
-                .findFirst()
-                .get()
-                .getValue();
-            
-            IntValue size = (IntValue) paginationValues.getObjectFields().stream()
-                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME.equals(it.getName()))
-                .findFirst()
-                .get()
-                .getValue();
+            Integer start = pagex.get(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME);
+            Integer limit = pagex.get(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME);
 
-            return new Page(page.getValue().intValue(), size.getValue().intValue());
+            return new Page(start, limit);
+            
+//            ObjectValue paginationValues = (ObjectValue) paginationRequest.get().getValue();
+//            
+//            IntValue page = (IntValue) paginationValues.getObjectFields().stream()
+//                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME.equals(it.getName()))
+//                .findFirst()
+//                .get()
+//                .getValue();
+//            
+//            IntValue size = (IntValue) paginationValues.getObjectFields().stream()
+//                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME.equals(it.getName()))
+//                .findFirst()
+//                .get()
+//                .getValue();
+//
+//            return new Page(page.getValue().intValue(), size.getValue().intValue());
         }
 
         return new Page(1, Integer.MAX_VALUE);
