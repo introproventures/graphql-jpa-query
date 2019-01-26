@@ -195,22 +195,6 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             Integer limit = pagex.get(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME);
 
             return new Page(start, limit);
-            
-//            ObjectValue paginationValues = (ObjectValue) paginationRequest.get().getValue();
-//            
-//            IntValue page = (IntValue) paginationValues.getObjectFields().stream()
-//                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME.equals(it.getName()))
-//                .findFirst()
-//                .get()
-//                .getValue();
-//            
-//            IntValue size = (IntValue) paginationValues.getObjectFields().stream()
-//                .filter(it -> GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME.equals(it.getName()))
-//                .findFirst()
-//                .get()
-//                .getValue();
-//
-//            return new Page(page.getValue().intValue(), size.getValue().intValue());
         }
 
         return new Page(1, Integer.MAX_VALUE);
