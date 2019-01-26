@@ -17,6 +17,15 @@ package com.introproventures.graphql.jpa.query.boot.autoconfigure;
 
 import javax.persistence.EntityManager;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.web.GraphQLController;
+import graphql.GraphQL;
+import graphql.schema.GraphQLSchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -30,19 +39,27 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.web.GraphQLController;
-
-import graphql.GraphQL;
-
 @Configuration
 @PropertySource("classpath:/com/introproventures/graphql/jpa/query/boot/autoconfigure/default.properties")
 @ConditionalOnClass(GraphQL.class)
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=false)
 public class GraphQLJpaQueryAutoConfiguration {
+
+    @Configuration
+    public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
+
+        private final GraphQLSchemaBuilder graphQLSchemaBuilder;
+
+        public GraphQLJpaQuerySchemaConfigurer(GraphQLSchemaBuilder graphQLSchemaBuilder) {
+            this.graphQLSchemaBuilder = graphQLSchemaBuilder;
+        }
+
+        @Override
+        public void configure(GraphQLShemaRegistration registry) {
+
+            registry.register(graphQLSchemaBuilder.build());
+        }
+    }
     
     @Configuration
     @Import(GraphQLController.class)
@@ -54,8 +71,8 @@ public class GraphQLJpaQueryAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(GraphQLExecutor.class)
-        public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
-            return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
+        public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema) {
+            return new GraphQLJpaExecutor(graphQLSchema);
         }
 
         @Bean
