@@ -1,6 +1,13 @@
 # Change Log
 
-## 0.3.12-SNAPSHOT
+## 0.3.12
+* feat: GraphQL Schema Auto-configuration with merge (#70) [332bb02](null/commit/332bb02d1c26a23ecffdaafeb737c19466277fa2)
+* fix: change ExecutionResult to return Map type using toSpecification() (#71) [556afe6](null/commit/556afe6f3c3e2ebd1f06538c5342eeaf16d5f7e5)
+* feat:  BETWEEN and NOT_BETWEEN where criterias (#69) [007014b](null/commit/007014b959ddd5b122d60b1a36e3aed7b7fb9162)
+* Add Missing LocalTime Coercing  (#68) [d576bab](null/commit/d576bab21d583da5a838a18e3ac39b6d70878b8d)
+* Enable variable mapping to page arguments (#67) [3f313bd](null/commit/3f313bdc819705179f6fe3554b45295fb8c1e7f3)
+* Update README.md (#66) [518ad1d](null/commit/518ad1d1dda64e87bdfcee65118ad0781b31051a)
+* Add jdk configurations to Travis CI (#65) [d9992b4](null/commit/d9992b43b6208681e13c8427682a495897f1b1e3)
 * Upgrade dependencies to Spring Boot 2.1.0.RELEASE (#61) [e93bb80](null/commit/e93bb80ab6e45d4b0a6edecf568a06c841e9bb18)
 * Update README.md [c8d30fb](null/commit/c8d30fbbf1d64a945e2782ec4f805ba9414882dc)
 * Merge pull request #59 from introproventures/upgrade-to-graphql-11 [c6f6d7f](null/commit/c6f6d7f912df97222691b134cd3fb8c426846c8f)
