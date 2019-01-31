@@ -37,6 +37,7 @@
         <module>graphql-jpa-query-example</module>
         <module>graphql-jpa-query-dependencies</module>
         <module>graphql-jpa-query-build</module>
+        <module>graphql-jpa-query-autoconfigure</module>
     </modules>
 
     <distributionManagement>
