@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.12
+## 0.3.13-SNAPSHOT
 * feat: GraphQL Schema Auto-configuration with merge (#70) [332bb02](null/commit/332bb02d1c26a23ecffdaafeb737c19466277fa2)
 * fix: change ExecutionResult to return Map type using toSpecification() (#71) [556afe6](null/commit/556afe6f3c3e2ebd1f06538c5342eeaf16d5f7e5)
 * feat:  BETWEEN and NOT_BETWEEN where criterias (#69) [007014b](null/commit/007014b959ddd5b122d60b1a36e3aed7b7fb9162)
