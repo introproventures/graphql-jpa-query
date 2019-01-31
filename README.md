@@ -10,14 +10,21 @@ This library uses [graphql-java 11.0](https://github.com/andimarek/graphql-java)
 
 It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
 
+Tested using JDK Versions
+----------------------
+* Jdk 8
+* Jdk 11
+
 Modules
 -------
 The GraphQL-JPA-Query library consists of the following modules:
 
 1. `graphql-jpa-query-annotations` - Provides annotations for instrumenting your entity models with GraphQL Schema Descriptions
-2. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
-3. `graphql-jpa-query-boot-starter`- Provides Spring Boot auto-configuration support to enable GraphQL JPA Query in your project
-4. `graphql-jpa-query-example` - Provides example application for Starwars sample entity models
+2. `graphql-jpa-query-dependencies` - Provides dependency management for project and external modules versions
+3. `graphql-jpa-query-autoconfigure` - Provides autoconfiguration and merging of multiple GraphQL schemas in Spring Boot context
+4. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
+5. `graphql-jpa-query-boot-starter`- Provides Spring Boot starter support to enable GraphQL JPA Query in your project
+6. `graphql-jpa-query-example` - Provides example application for Starwars sample entity models
 
 Building with Maven Central [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 ------------------------
@@ -29,6 +36,16 @@ For GraphQL JPA Annotations use:
 	  <groupId>com.introproventures</groupId>
 	  <artifactId>graphql-jpa-query-annotations</artifactId>
 	  <version>tag</version>
+	</dependency>
+
+To import GraphQL JPA Dependencies into your dependencyManagement use:
+
+	<dependency>
+	  <groupId>com.introproventures</groupId>
+	  <artifactId>graphql-jpa-query-dependencies</artifactId>
+	  <version>tag</version>
+          <type>pom</type>
+	  <scope>import</scope>	
 	</dependency>
 
 For GraphQL JPA Schema Builder use:
