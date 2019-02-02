@@ -16,9 +16,14 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -572,7 +577,68 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private String getSchemaDescription(Member member) {
         if (member instanceof AnnotatedElement) {
-            return getSchemaDescription((AnnotatedElement) member);
+            String desc = getSchemaDescription((AnnotatedElement) member);
+            if (desc != null) {
+                return(desc);
+            }
+        }
+
+        //The given Member has no @GraphQLDescription set.
+        //If the Member is a Method it might be a getter/setter, see if the property it represents
+        //is annotated with @GraphQLDescription
+        //Alternatively if the Member is a Field its getter might be annotated, see if its getter
+        //is annotated with @GraphQLDescription
+        if (member instanceof Method) {
+            Field fieldMember = getFieldByAccessor((Method)member);
+            if (fieldMember != null) {
+                return(getSchemaDescription((AnnotatedElement) fieldMember));
+            }
+        } else if (member instanceof Field) {
+            Method fieldGetter = getGetterOfField((Field)member);
+            if (fieldGetter != null) {
+                return(getSchemaDescription((AnnotatedElement) fieldGetter));
+            }
+        }
+
+        return null;
+    }
+
+    private Method getGetterOfField(Field field) {
+        try {
+            Class<?> clazz = field.getDeclaringClass();
+            BeanInfo info = Introspector.getBeanInfo(clazz);
+            PropertyDescriptor[] props = info.getPropertyDescriptors();
+            for (PropertyDescriptor pd : props) { 
+                if (pd.getName().equals(field.getName())) {
+                    return(pd.getReadMethod());
+                }
+            }
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
+        }
+
+        return(null);
+    }
+
+    //from https://stackoverflow.com/questions/13192734/getting-a-property-field-name-using-getter-method-of-a-pojo-java-bean/13514566
+    private static Field getFieldByAccessor(Method method) {
+        try {
+            Class<?> clazz = method.getDeclaringClass();
+            BeanInfo info = Introspector.getBeanInfo(clazz);  
+            PropertyDescriptor[] props = info.getPropertyDescriptors();  
+            for (PropertyDescriptor pd : props) {  
+                if(method.equals(pd.getWriteMethod()) || method.equals(pd.getReadMethod())) {
+                    String fieldName = pd.getName();
+                    try {
+                        return(clazz.getDeclaredField(fieldName));
+                    } catch (Throwable t) {
+                        log.error("class '" + clazz.getName() + "' contains method '" + method.getName() + "' which is an accessor for a Field named '" + fieldName + "', error getting the field:", t);
+                        return(null);
+                    }
+                }
+            }
+        } catch (Throwable t)  {
+            log.error("error finding Field for accessor with name '" + method.getName() + "'", t);
         }
 
         return null;

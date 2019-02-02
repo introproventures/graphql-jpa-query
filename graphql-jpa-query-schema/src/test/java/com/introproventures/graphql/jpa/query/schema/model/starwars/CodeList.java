@@ -31,7 +31,6 @@ import lombok.Data;
 @Data
 public class CodeList {
 
-    @Id
     @GraphQLDescription("Primary Key for the Code List Class")
     Long id;
 
@@ -41,8 +40,18 @@ public class CodeList {
     boolean active;
     String description;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
     CodeList parent;
 
+    //JPA annotations moved to getters to test that @GraphQLDescription can be placed on the field when the JPA annotation is on the getter
+    @Id
+    public Long getId() {
+        return(id);
+    }
+    
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    @GraphQLDescription("The CodeList's parent CodeList")
+    public CodeList getParent() {
+        return(parent);
+    }
 }

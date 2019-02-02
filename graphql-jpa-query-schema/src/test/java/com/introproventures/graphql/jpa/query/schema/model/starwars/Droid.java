@@ -29,7 +29,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class Droid extends Character {
 
-    @GraphQLDescription("Documents the primary purpose this droid serves")
     String primaryFunction;
 
+    //description moved to getter to test it gets picked up
+    @GraphQLDescription("Documents the primary purpose this droid serves")
+    public String getPrimaryFunction() {
+        return(primaryFunction);
+    }
 }

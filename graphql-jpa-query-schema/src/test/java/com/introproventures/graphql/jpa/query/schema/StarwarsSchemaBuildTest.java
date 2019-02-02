@@ -35,6 +35,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 import graphql.Scalars;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLObjectType;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -118,6 +119,68 @@ public class StarwarsSchemaBuildTest {
         .describedAs("Ensure query has two arguments")
         .hasSize(2);
         
+    }
+    
+    
+    @Test
+    public void correctlyDerivesSchemaDescriptionsFromGivenEntities() {
+        //when
+        GraphQLSchema schema = builder.build();
+
+        // then
+        assertThat(schema)
+            .describedAs("Ensure the schema is generated")
+            .isNotNull();
+
+        //then
+        assertThat(schema.getQueryType().getFieldDefinition("Droid").getDescription())
+            .describedAs( "Ensure that Droid has the expected description")
+            .isEqualTo("Represents an electromechanical robot in the Star Wars Universe");
+        
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
+                .getFieldDefinition("primaryFunction")
+                .getDescription()
+        )
+            .describedAs( "Ensure that Droid.primaryFunction has the expected description")
+            .isEqualTo("Documents the primary purpose this droid serves");
+
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
+                        .getFieldDefinition("id")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that Droid.id has the expected description, inherited from Character")
+                .isEqualTo("Primary Key for the Character Class");
+        
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
+                        .getFieldDefinition("name")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that Droid.name has the expected description, inherited from Character")
+                .isEqualTo("Name of the character");
+
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
+                        .getFieldDefinition("id")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that CodeList.id has the expected description")
+                .isEqualTo("Primary Key for the Code List Class");
+        
+        //then
+        assertThat(
+                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
+                        .getFieldDefinition("parent")
+                        .getDescription()
+        )
+                .describedAs( "Ensure that CodeList.parent has the expected description")
+                .isEqualTo("The CodeList's parent CodeList");
     }
     
 }
