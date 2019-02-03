@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.13
+## 0.3.14-SNAPSHOT
 * Extract graphql-jpa-query-web module from starter (#74) [8d72bbe](https://github.com/introproventures/graphql-jpa-query/commit/8d72bbee8d6aeb568604e7070d90c10657a766e4)
 * fix: configure gitHub url  [b0839ca](https://github.com/introproventures/graphql-jpa-query/commit/b0839ca427b8a05efd5d4819a1ec2ac1f3b7ad2b)
 * fix: (version) update git-changelog-maven-plugin to 0.4.0 [7867ed4](https://github.com/introproventures/graphql-jpa-query/commit/7867ed417fb36f7d0d3e10b8f108397c1f816f53)
