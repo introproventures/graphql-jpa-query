@@ -138,21 +138,16 @@ Will return:
     
 Query Wrapper with Where Criteria Expressions
 -------------------------------------
-This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like OR, AND, EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL.
+This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like OR, AND, EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL, BETWEEN, NOT_BETWEEN.
 
 For Example: 
 
     query {
-      Humans(where: { 
-        OR: {
-          name: { LIKE: "Luke" }
-          OR: {
-            name: { LIKE: "Darth"}
-          }
+  	    Humans(where: { 
+            name: { IN: ["Luke Skywalker", "Darth Vader"] }
+        }) {
+            select { name }
         }
-      }) {
-        select { name }
-      }
     }
 
 Will return:
@@ -322,6 +317,8 @@ Will return:
       }
     
 The JPA DataFetcher implementation will execute an extra query to get the total elements only if you have requested 'pages' or 'total' fields. 
+
+Paging arguments support variable bindings.
 
 Sorting
 -------
