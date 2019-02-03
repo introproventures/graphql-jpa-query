@@ -362,7 +362,7 @@ public class GraphQLExecutorTests {
 
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
-    public void queryForEntityWithEmeddableType() {
+    public void queryForEntityWithEmbeddedIdAndEmbeddedField() {
         //given
         String query = "{ Boat(boatId: {id: \"1\" country: \"EN\"}) { boatId {id country} engine { identification } } }";
         
@@ -376,7 +376,7 @@ public class GraphQLExecutorTests {
     }
 
     @Test
-    public void queryForEntityWithEmeddableTypeAndWhere() {
+    public void queryForEntityWithEmbeddedFieldWithWhere() {
         //given
         String query = "{ Boats { select { boatId {id country} engine(where: { identification: { EQ: \"12345\"}}) { identification } } } }";
 
@@ -461,9 +461,9 @@ public class GraphQLExecutorTests {
     
 
     @Test
-    public void queryForEntitiesWithEmeddableTypeAndWhereEmbeddableId() {
+    public void queryForEntitiesWithWithEmbeddedIdWithWhere() {
         //given
-        String query = "{ Boats(where: {boatId: {EQ: {id: \"1\" country: \"EN\"}}}) { select { boatId {id country} engine { identification } } } }";
+        String query = "{ Boats { select { boatId(where: { AND: {id: { LIKE: \"1\"} country: { EQ: \"EN\"}}}) {id country} engine { identification } } } }";
 
         String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
 
@@ -473,5 +473,5 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
 }
