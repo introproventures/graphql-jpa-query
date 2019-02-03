@@ -22,15 +22,15 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.introproventures.graphql.jpa.query.boot.autoconfigure.GraphQLJpaQueryAutoConfiguration.DefaultGraphQLJpaQueryConfiguration;
+import com.introproventures.graphql.jpa.query.boot.autoconfigure.GraphQLJpaQueryAutoConfiguration.GraphQLJpaQuerySchemaConfigurer;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
-
-import com.introproventures.graphql.jpa.query.boot.autoconfigure.GraphQLJpaQueryAutoConfiguration.DefaultActivitiGraphQLJpaConfiguration;
 
 @Documented
 @Retention( RUNTIME )
 @Target( TYPE )
-@Import(DefaultActivitiGraphQLJpaConfiguration.class)
+@Import({DefaultGraphQLJpaQueryConfiguration.class, GraphQLJpaQuerySchemaConfigurer.class})
 @PropertySource("classpath:/com/introproventures/graphql/jpa/query/boot/autoconfigure/default.properties")
 public @interface EnableGraphQLJpaQuery {
     

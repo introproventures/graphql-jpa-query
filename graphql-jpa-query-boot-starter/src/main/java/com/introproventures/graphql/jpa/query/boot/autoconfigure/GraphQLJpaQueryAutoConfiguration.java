@@ -23,7 +23,6 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.web.GraphQLController;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.type.AnnotationMetadata;
@@ -62,9 +60,8 @@ public class GraphQLJpaQueryAutoConfiguration {
     }
     
     @Configuration
-    @Import(GraphQLController.class)
     @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
-    public static class DefaultActivitiGraphQLJpaConfiguration implements ImportAware {
+    public static class DefaultGraphQLJpaQueryConfiguration implements ImportAware {
         
         @Autowired
         GraphQLJpaQueryProperties properties;

@@ -26,8 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import graphql.ExecutionResult;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
-@ConditionalOnWebApplication
-@ConditionalOnClass(GraphQLExecutor.class)
 public class GraphQLController {
 
     private static final String PATH = "${spring.graphql.jpa.query.path:/graphql}";

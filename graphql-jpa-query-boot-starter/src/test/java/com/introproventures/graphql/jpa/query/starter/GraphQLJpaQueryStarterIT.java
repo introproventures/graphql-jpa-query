@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.web;
+package com.introproventures.graphql.jpa.query.starter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class GraphQLControllerIT {
+public class GraphQLJpaQueryStarterIT {
 	private static final String	WAR_AND_PEACE	= "War and Peace";
 
     @SpringBootApplication
