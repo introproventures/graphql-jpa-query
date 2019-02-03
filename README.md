@@ -22,9 +22,10 @@ The GraphQL-JPA-Query library consists of the following modules:
 1. `graphql-jpa-query-annotations` - Provides annotations for instrumenting your entity models with GraphQL Schema Descriptions
 2. `graphql-jpa-query-dependencies` - Provides dependency management for project and external modules versions
 3. `graphql-jpa-query-autoconfigure` - Provides autoconfiguration and merging of multiple GraphQL schemas in Spring Boot context
-4. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
-5. `graphql-jpa-query-boot-starter`- Provides Spring Boot starter support to enable GraphQL JPA Query in your project
-6. `graphql-jpa-query-example` - Provides example application for Starwars sample entity models
+4. `graphql-jpa-query-web` - Provides Graphql Web Controller with Spring Boot auto-configuration support
+5. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
+6. `graphql-jpa-query-boot-starter`- Provides Spring Boot starter support to enable GraphQL JPA Query in your project
+7. `graphql-jpa-query-example` - Provides example application for Starwars sample entity models
 
 Building with Maven Central [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 ------------------------
