@@ -97,6 +97,9 @@
                     <groupId>info.plichta.maven.plugins</groupId>
                     <artifactId>git-changelog-maven-plugin</artifactId>
                     <version>0.4.0</version>
+                    <configuration>
+                        <gitHubUrl>${project.scm.url}</gitHubUrl>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
