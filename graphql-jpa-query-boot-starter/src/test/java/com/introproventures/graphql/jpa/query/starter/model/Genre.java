@@ -14,24 +14,8 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.web.model;
+package com.introproventures.graphql.jpa.query.starter.model;
 
-import java.util.Collection;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
-import lombok.Data;
-
-@Data
-@Entity
-public class Author {
-	@Id
-	Long id;
-
-	String name;
-
-	@OneToMany(mappedBy="author")
-	Collection<Book> books;
+public enum Genre {
+	NOVEL, PLAY
 }

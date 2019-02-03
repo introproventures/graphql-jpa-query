@@ -38,6 +38,7 @@
         <module>graphql-jpa-query-dependencies</module>
         <module>graphql-jpa-query-build</module>
         <module>graphql-jpa-query-autoconfigure</module>
+        <module>graphql-jpa-query-web</module>
     </modules>
 
     <distributionManagement>

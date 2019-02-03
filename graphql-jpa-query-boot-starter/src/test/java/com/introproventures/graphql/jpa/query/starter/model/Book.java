@@ -14,8 +14,27 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.web.model;
+package com.introproventures.graphql.jpa.query.starter.model;
 
-public enum Genre {
-	NOVEL, PLAY
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+import lombok.Data;
+
+@Data
+@Entity
+public class Book {
+	@Id
+	Long id;
+
+	String title;
+
+	@ManyToOne
+	Author author;
+
+	@Enumerated(EnumType.STRING)
+	Genre genre;
 }
