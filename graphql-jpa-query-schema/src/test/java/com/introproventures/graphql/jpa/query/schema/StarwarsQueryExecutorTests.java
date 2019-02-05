@@ -793,7 +793,7 @@ public class StarwarsQueryExecutorTests {
 
         String expected = "{Humans={" +
                             "select=[" +
-                                "{" +
+                                /*"{" +
                                     "id=1000, " +
                                     "name=Luke Skywalker, " +
                                     "homePlanet=Tatooine, " +
@@ -803,7 +803,8 @@ public class StarwarsQueryExecutorTests {
                                             "function=Protocol" +
                                         "}" +
                                     "}" +
-                                /*"}, " +
+                                "}, " +
+                                */
                                 "{" +
                                     "id=1001, " +
                                     "name=Darth Vader, " +
@@ -814,7 +815,6 @@ public class StarwarsQueryExecutorTests {
                                             "function=Astromech" +
                                         "}" +
                                     "}" +
-                                */
                                 "}" +
                             "]" +
                         "}}";
