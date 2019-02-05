@@ -751,4 +751,79 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
     
+    
+    @Test
+    public void queryFilterManyToOne() {
+        //given:
+        String query = "query { Droids { select { name  primaryFunction(where: {function: {EQ:\"Astromech\"}}) { function }}}}";
+
+        String expected = "{Droids={" +
+                            "select=[{" +
+                              "name=R2-D2, " +
+                              "primaryFunction={function=Astromech}" +
+                            "}]" + 
+                          "}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    
+    @Test
+    public void queryFilterNestedManyToOne() {
+        //given:
+        String query = "query {" +
+                "    Humans {" +
+                "        select {" +
+                "            id" +
+                "            name" +
+                "            homePlanet" +
+                "            favoriteDroid {" +
+                "                name" +
+                "                primaryFunction(where:{function:{EQ:\"Astromech\"}}) {" +
+                "                      function" +
+                "                }" +
+                "            }" +
+                "        }" +
+                "    }" +
+                "}";
+
+        String expected = "{Humans={" +
+                            "select=[" +
+                                "{" +
+                                    "id=1000, " +
+                                    "name=Luke Skywalker, " +
+                                    "homePlanet=Tatooine, " +
+                                    "favoriteDroid={" +
+                                        "name=C-3PO, " +
+                                        "primaryFunction={" +
+                                            "function=Protocol" +
+                                        "}" +
+                                    "}" +
+                                /*"}, " +
+                                "{" +
+                                    "id=1001, " +
+                                    "name=Darth Vader, " +
+                                    "homePlanet=Tatooine, " +
+                                    "favoriteDroid={" +
+                                        "name=R2-D2, " +
+                                        "primaryFunction={" +
+                                            "function=Astromech" +
+                                        "}" +
+                                    "}" +
+                                */
+                                "}" +
+                            "]" +
+                        "}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
 }
