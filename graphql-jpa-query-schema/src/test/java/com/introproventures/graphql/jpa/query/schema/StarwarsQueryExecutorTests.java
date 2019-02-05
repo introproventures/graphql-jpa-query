@@ -102,9 +102,9 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void queryForDroidByName() {
         //given:
-        String query = "query { Droids( where: { name: { EQ: \"C-3PO\"}}) { select {name, primaryFunction } } }";
+        String query = "query { Droids( where: { name: { EQ: \"C-3PO\"}}) { select {name, primaryFunction {function} } } }";
 
-        String expected = "{Droids={select=[{name=C-3PO, primaryFunction=Protocol}]}}";
+        String expected = "{Droids={select=[{name=C-3PO, primaryFunction={function=Protocol}}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
