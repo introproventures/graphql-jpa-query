@@ -6,9 +6,17 @@ GraphQL Query for JPA Entity Model
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 [![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
-This library uses [graphql-java 11.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
+GraphQL is a query language for Web APIs implemented by GraphQL Java [graphql-java 11.0](https://github.com/andimarek/graphql-java) runtime for fulfilling those queries with your existing data. GraphQL provides a complete and understandable description of the data in your API, gives clients the power to ask for exactly what they need and nothing more, makes it easier to evolve APIs over time, and enables powerful developer tools.
 
-It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
+JPA 2.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
+
+GraphQL JPA Query library uses JPA 2.1 specification to derive and build GraphQL Apis with GraphQL Java for your from your Java entity classes. It implements a schema builder to generate GraphQL Schema using JPA EntityManager Api and instruments JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
+
+Your applications can now use GraphQL queries that smoothly follow references between JPA resources with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, where criteria expressions, select, order by etc. 
+
+While typical REST APIs require loading from multiple URLs, GraphQL APIs get all the data your app needs in a single request. Apps using GraphQL can be quick even on slow mobile network connections.
+
+GraphQL JPA Query creates a uniform query API across for your applications without being limited by a single data source. You can use it with multiple databases by instrumenting separate EntityManager for each DataSource and expose single GraphQL Shema via single GraphQL web api endpoint.
 
 Tested using JDK Versions
 ----------------------
