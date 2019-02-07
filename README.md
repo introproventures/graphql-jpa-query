@@ -110,7 +110,7 @@ The models are introspected using a JPA Entity Manager to auto-generate a GraphQ
 
 Schema Merging to Work with Multiple Databases 
 -----------------
-You can we use graphql-jpa-query with multiple databases, by instrumenting EntityManager with its own DataSource and using `GraphQLJpaSchemaBuilder` to build GraphQLSchema for it. Then, register each GraphQLSchema via 'GraphQLSchemaConfigurer.register` method implementation. The 'graphql-jpa-query-autoconfigure` module provides Spring Boot Auto Configuration mechanism merge schemas from many configurers defined in Spring App context into a single GraphQLSchema bean. See https://github.com/introproventures/graphql-jpa-query/tree/master/graphql-jpa-query-example-merge example for details.
+You can we use graphql-jpa-query with multiple databases, by instrumenting EntityManager with its own DataSource and using `GraphQLJpaSchemaBuilder` to build GraphQLSchema for it. Then, register each GraphQLSchema via `GraphQLSchemaConfigurer.register(Registry registry)` method implementation. The `graphql-jpa-query-autoconfigure` module provides Spring Boot Auto Configuration Factory Bean mechanism to merge schemas from many configurers defined in your Spring App context into a single GraphQLSchema bean. See https://github.com/introproventures/graphql-jpa-query/tree/master/graphql-jpa-query-example-merge example for details.
 
 Schema Documentation
 --------------------
