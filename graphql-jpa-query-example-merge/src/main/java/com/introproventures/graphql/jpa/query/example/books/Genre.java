@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.books;
 
-import javax.persistence.Entity;
-
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Entity
-@GraphQLDescription("Represents an electromechanical robot in the Star Wars Universe")
-@Data
-@EqualsAndHashCode(callSuper=true)
-public class Droid extends Character {
-
-    @GraphQLDescription("Documents the primary purpose this droid serves")
-    String primaryFunction;
-
+public enum Genre {
+	NOVEL, PLAY
 }

@@ -1,0 +1,34 @@
+spring:
+  jpa:
+    hibernate.ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console.enabled: true
+#  datasource:
+#    initialization-mode: always
+#    platform: h2 
+
+  graphql:
+    jpa:
+      query:
+        name: GraphQLJpaQueryStarwars
+        description: GraphQL Jpa Query Starwars Schema Example
+        enabled: true
+        
+starwars:
+  hikari:
+      minimum-idle: 1
+      maximum-pool-size: 20    
+  jdbcUrl: jdbc:h2:mem:starwars;DB_CLOSE_ON_EXIT=FALSE
+  username: sa
+  password: 
+  driverClassName: org.h2.Driver
+
+books:
+  hikari:
+      minimum-idle: 1
+      maximum-pool-size: 20    
+  jdbcUrl: jdbc:h2:mem:books;DB_CLOSE_ON_EXIT=FALSE
+  username: sa
+  password: 
+  driverClassName: org.h2.Driver

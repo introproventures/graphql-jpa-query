@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.starwars;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@Entity(name = "Human")
+@Entity
+@GraphQLDescription("Database driven enumeration")
 @Data
-@EqualsAndHashCode(callSuper=true)
-public class Human extends Character {
+public class CodeList {
 
-    String homePlanet;
+    @Id
+    @GraphQLDescription("Primary Key for the Code List Class")
+    Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "favorite_droid_id")
-    Droid favoriteDroid;
+    String type;
+    String code;
+    Integer sequence;
+    boolean active;
+    String description;
 
     @ManyToOne
-    @JoinColumn(name = "gender_code_id")
-    CodeList gender;
+    @JoinColumn(name = "parent_id")
+    CodeList parent;
 
 }

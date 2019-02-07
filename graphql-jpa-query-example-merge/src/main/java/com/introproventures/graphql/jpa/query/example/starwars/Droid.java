@@ -14,34 +14,22 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.starwars;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
-@GraphQLDescription("Database driven enumeration")
+@GraphQLDescription("Represents an electromechanical robot in the Star Wars Universe")
 @Data
-public class CodeList {
+@EqualsAndHashCode(callSuper=true)
+public class Droid extends Character {
 
-    @Id
-    @GraphQLDescription("Primary Key for the Code List Class")
-    Long id;
-
-    String type;
-    String code;
-    Integer sequence;
-    boolean active;
-    String description;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    CodeList parent;
+    @GraphQLDescription("Documents the primary purpose this droid serves")
+    String primaryFunction;
 
 }
