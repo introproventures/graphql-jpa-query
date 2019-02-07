@@ -1,12 +1,6 @@
 spring:
-  jpa:
-    hibernate.ddl-auto: create-drop
-    show-sql: true
   h2:
     console.enabled: true
-#  datasource:
-#    initialization-mode: always
-#    platform: h2 
 
   graphql:
     jpa:
