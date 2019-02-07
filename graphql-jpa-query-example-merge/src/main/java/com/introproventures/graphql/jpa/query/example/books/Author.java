@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.books;
 
-public enum Episode {
+import java.util.Collection;
 
-    PHANTOM_MENACE,
-    ATTACK_OF_THE_CLONES,
-    REVENGE_OF_THE_SITH,
-    A_NEW_HOPE,
-    EMPIRE_STRIKES_BACK,
-    RETURN_OF_THE_JEDI,
-    THE_FORCE_AWAKENS
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
+import lombok.Data;
+
+@Data
+@Entity
+public class Author {
+	@Id
+	Long id;
+
+	String name;
+
+	@OneToMany(mappedBy="author")
+	Collection<Book> books;
 }

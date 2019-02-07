@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.starwars;
 
 import java.util.Set;
 
@@ -29,7 +29,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OrderBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
