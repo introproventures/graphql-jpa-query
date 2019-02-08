@@ -10,7 +10,7 @@ GraphQL is a query language for Web APIs implemented by GraphQL Java [graphql-ja
 
 JPA 2.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
 
-GraphQL JPA Query library uses JPA 2.1 specification to derive and build GraphQL Apis using GraphQL Java from your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
+GraphQL JPA Query library uses JPA 2.1 specification to derive and build GraphQL Apis using GraphQL Java for your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
 
 Your applications can now use GraphQL queries that smoothly follow references between JPA resources with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, where criteria expressions, select, order by etc. 
 
