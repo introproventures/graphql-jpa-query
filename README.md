@@ -16,7 +16,7 @@ Your applications can now use GraphQL queries that smoothly follow references be
 
 While typical REST APIs require loading from multiple URLs, GraphQL APIs get all the data your app needs in a single request. Apps using GraphQL can be quick even on slow mobile network connections.
 
-GraphQL JPA Query creates a uniform query API across for your applications without being limited by a single data source. You can use it with multiple databases by instrumenting separate EntityManager for each DataSource and expose single GraphQL Query Apis for your Web application domain.
+GraphQL JPA Query creates a uniform query API across for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
 
 Tested using JDK Versions
 ----------------------
