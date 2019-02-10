@@ -392,7 +392,7 @@ public class GraphQLExecutorTests {
     @Test
     public void queryForEntitiesWithWithEmbeddedIdWithWhere() {
         //given
-        String query = "{ Boats { select { boatId(where: { AND: {id: { LIKE: \"1\"} country: { EQ: \"EN\"}}}) {id country} engine { identification } } } }";
+        String query = "{ Boats { select { boatId(where: { id: { LIKE: \"1\"} country: { EQ: \"EN\"}}) {id country} engine { identification } } } }";
 
         String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
 
