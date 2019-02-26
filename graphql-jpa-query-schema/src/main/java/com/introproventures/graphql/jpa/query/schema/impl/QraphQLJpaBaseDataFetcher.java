@@ -19,16 +19,7 @@ import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -146,7 +137,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 Field selectedField = (Field) selection;
 
                 // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(!TYPENAME.equals(selectedField.getName())) {
+                if(!TYPENAME.equals(selectedField.getName()) && !CashGraphQLCalcFields.isCalcField(from.getJavaType(), selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
 
@@ -728,7 +719,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
-                    if(!TYPENAME.equals(it.getName()))
+                    if(!TYPENAME.equals(it.getName()) && !CashGraphQLCalcFields.isCalcField(entityType.getJavaType(), it.getName()))
                         entityGraph.addAttributeNodes(it.getName());
                 }
             });

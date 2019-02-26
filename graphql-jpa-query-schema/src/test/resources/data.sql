@@ -133,4 +133,8 @@ insert into Boat (id, identification) values
 	(1, '12345'),
 	(2, '23456'),
 	(3, '34567');
-	
+
+
+insert into calc_entity (id, title, info) values
+	(1, 'title 1', 'inf 1'),
+	(2, 'title 2', 'inf 2'),
