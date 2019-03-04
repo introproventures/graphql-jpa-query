@@ -362,11 +362,11 @@ public class GraphQLExecutorTests {
 
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
-    public void queryForEntityWithEmeddableType() {
+    public void queryForEntityWithEmbeddedIdAndEmbeddedField() {
         //given
-        String query = "{ Boat(id: \"1\") { id engine { identification } } }";
+        String query = "{ Boat(boatId: {id: \"1\" country: \"EN\"}) { boatId {id country} engine { identification } } }";
         
-        String expected = "{Boat={id=1, engine={identification=12345}}}";
+        String expected = "{Boat={boatId={id=1, country=EN}, engine={identification=12345}}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -376,11 +376,11 @@ public class GraphQLExecutorTests {
     }
 
     @Test
-    public void queryForEntityWithEmeddableTypeAndWhere() {
+    public void queryForEntityWithEmbeddedFieldWithWhere() {
         //given
-        String query = "{ Boats { select { id engine(where: { identification: { EQ: \"12345\"}}) { identification } } } }";
+        String query = "{ Boats { select { boatId {id country} engine(where: { identification: { EQ: \"12345\"}}) { identification } } } }";
 
-        String expected = "{Boats={select=[{id=1, engine={identification=12345}}]}}";
+        String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -459,5 +459,19 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
     
+
+    @Test
+    public void queryForEntitiesWithWithEmbeddedIdWithWhere() {
+        //given
+        String query = "{ Boats { select { boatId(where: { id: { LIKE: \"1\"} country: { EQ: \"EN\"}}) {id country} engine { identification } } } }";
+
+        String expected = "{Boats={select=[{boatId={id=1, country=EN}, engine={identification=12345}}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 
 }
