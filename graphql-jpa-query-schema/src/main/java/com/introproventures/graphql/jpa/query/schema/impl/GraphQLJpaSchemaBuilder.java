@@ -42,12 +42,16 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.Assert;
 import graphql.Scalars;
 import graphql.schema.Coercing;
@@ -65,8 +69,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -386,13 +388,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
            .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.BETWEEN.name())
                 .description("Between criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
            )
            .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.NOT_BETWEEN.name())
                 .description("Not Between criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
            );
 
