@@ -51,10 +51,6 @@ public class CashGraphQLCalcFields {
             calcField = getGraphQLCalcMethod(cls, field, "is");
         }
 
-        if (!calcField.isPresent()) {
-            calcField = getGraphQLCalcMethod(cls, field, "");
-        }
-
         return calcField;
     }
 

@@ -20,6 +20,10 @@ public class CalcEntity {
 
     @Transient
     @GraphQLCalcField
+    boolean logic = true;
+
+    @Transient
+    @GraphQLCalcField
     @GraphQLDescription("i desc member")
     String fieldMem = "member";
 
@@ -30,4 +34,9 @@ public class CalcEntity {
         return title + " function";
     }
 
+    @Transient
+    @GraphQLCalcField
+    public boolean isCustomLogic() {
+        return false;
+    }
 }

@@ -48,9 +48,9 @@ public class CalcEntityTests {
     @Test
     public void getAllRecords() {
         //given
-        String query = "query GraphQLCalcFields { CalcEntities { select {id title fieldMem fieldFun} } }";
+        String query = "query GraphQLCalcFields { CalcEntities { select {id title fieldMem fieldFun logic customLogic } } }";
 
-        String expected = "{CalcEntities={select=[{id=1, title=title 1, fieldMem=member, fieldFun=title 1 function}, {id=2, title=title 2, fieldMem=member, fieldFun=title 2 function}]}}";
+        String expected = "{CalcEntities={select=[{id=1, title=title 1, fieldMem=member, fieldFun=title 1 function, logic=true, customLogic=false}, {id=2, title=title 2, fieldMem=member, fieldFun=title 2 function, logic=true, customLogic=false}]}}";
 
         //when
         Object result = executor.execute(query).getData();
