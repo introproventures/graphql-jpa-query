@@ -1,7 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.model.calc;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLCalcField;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -19,24 +19,28 @@ public class CalcEntity {
     String info;
 
     @Transient
-    @GraphQLCalcField
     boolean logic = true;
 
     @Transient
-    @GraphQLCalcField
     @GraphQLDescription("i desc member")
     String fieldMem = "member";
 
+    @Transient
+    @GraphQLIgnore
+    String hideField = "hideField";
 
-    @GraphQLCalcField
+    @Transient
     @GraphQLDescription("i desc function")
     public String getFieldFun() {
         return title + " function";
     }
 
     @Transient
-    @GraphQLCalcField
     public boolean isCustomLogic() {
         return false;
+    }
+
+    public String getHideFieldFunction() {
+        return "getHideFieldFunction";
     }
 }

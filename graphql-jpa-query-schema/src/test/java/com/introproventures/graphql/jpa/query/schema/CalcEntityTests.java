@@ -57,7 +57,19 @@ public class CalcEntityTests {
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
+    }
 
+    @Test
+    public void testIgnoreFields() {
+        String query = "query GraphQLCalcFields { CalcEntities { select {id title fieldMem fieldFun logic customLogic hideField hideFieldFunction } } }";
+
+        String expected = "[ValidationError{validationErrorType=FieldUndefined, queryPath=[CalcEntities, select, hideField], message=Validation error of type FieldUndefined: Field 'hideField' in type 'CalcEntity' is undefined @ 'CalcEntities/select/hideField', locations=[SourceLocation{line=1, column=95}], description='Field 'hideField' in type 'CalcEntity' is undefined'}, ValidationError{validationErrorType=FieldUndefined, queryPath=[CalcEntities, select, hideFieldFunction], message=Validation error of type FieldUndefined: Field 'hideFieldFunction' in type 'CalcEntity' is undefined @ 'CalcEntities/select/hideFieldFunction', locations=[SourceLocation{line=1, column=105}], description='Field 'hideFieldFunction' in type 'CalcEntity' is undefined'}]";
+
+        //when
+        Object result = executor.execute(query).getErrors();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
     }
 
 }

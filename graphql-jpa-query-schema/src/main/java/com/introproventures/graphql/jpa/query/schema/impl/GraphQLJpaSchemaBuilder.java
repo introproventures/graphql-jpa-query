@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -38,7 +39,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLCalcField;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
@@ -462,7 +463,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private List<GraphQLFieldDefinition> getObjectCalcFields(Class cls) {
         return
             Arrays.stream(cls.getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(GraphQLCalcField.class))
+                .filter(
+                        f ->
+                                f instanceof Member &&
+                                f.isAnnotationPresent(Transient.class) &&
+                                isNotIgnored((Member) f) &&
+                                isNotIgnored(f.getType())
+                )
                 .map(f -> getObjectCalcField(f))
                 .collect(Collectors.toList());
     }
@@ -470,7 +477,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private List<GraphQLFieldDefinition> getObjectCalcMethods(Class cls) {
         return
             Arrays.stream(cls.getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(GraphQLCalcField.class))
+                .filter(
+                        m ->
+                                m instanceof Member &&
+                                m.isAnnotationPresent(Transient.class) &&
+                                isNotIgnored((Member) m) &&
+                                isNotIgnored(m.getReturnType())
+                )
                 .map(m -> getObjectCalcMethtod(m))
                 .collect(Collectors.toList());
     }
