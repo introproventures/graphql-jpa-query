@@ -129,8 +129,8 @@ insert into Car (id, brand) values
 
 	
 -- Boat
-insert into Boat (id, identification) values
-	(1, '12345'),
-	(2, '23456'),
-	(3, '34567');
+insert into Boat (id, country, identification) values
+	(1, 'EN', '12345'),
+	(2, 'EN', '23456'),
+	(1, 'FR', '34567');
 	
