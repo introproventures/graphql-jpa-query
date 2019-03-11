@@ -24,16 +24,13 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -469,11 +466,75 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .map(this::getObjectField)
                     .collect(Collectors.toList())
                 )
+                .fields(getObjectCalcFields(entityType.getJavaType()))
+                .fields(getObjectCalcMethods(entityType.getJavaType()))
                 .build();
         
         entityCache.putIfAbsent(entityType, objectType);
         
         return objectType;
+    }
+
+    private List<GraphQLFieldDefinition> getObjectCalcFields(Class cls) {
+        return
+            Arrays.stream(cls.getDeclaredFields())
+                .filter(
+                        f ->
+                                f instanceof Member &&
+                                f.isAnnotationPresent(Transient.class) &&
+                                isNotIgnored((Member) f) &&
+                                isNotIgnored(f.getType())
+                )
+                .map(f -> getObjectCalcField(f))
+                .collect(Collectors.toList());
+    }
+
+    private List<GraphQLFieldDefinition> getObjectCalcMethods(Class cls) {
+        return
+            Arrays.stream(cls.getDeclaredMethods())
+                .filter(
+                        m ->
+                                m instanceof Member &&
+                                m.isAnnotationPresent(Transient.class) &&
+                                isNotIgnored((Member) m) &&
+                                isNotIgnored(m.getReturnType())
+                )
+                .map(m -> getObjectCalcMethtod(m))
+                .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    private GraphQLFieldDefinition getObjectCalcField(Field field) {
+        GraphQLType type = getGraphQLTypeFromJavaType(field.getType());
+        DataFetcher dataFetcher = PropertyDataFetcher.fetching(field.getName());
+
+        return GraphQLFieldDefinition.newFieldDefinition()
+                .name(field.getName())
+                .description(getSchemaDescription((AnnotatedElement) field))
+                .type((GraphQLOutputType) type)
+                .dataFetcher(dataFetcher)
+                .build();
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    private GraphQLFieldDefinition getObjectCalcMethtod(Method method) {
+        String nm = method.getName();
+        if (nm.startsWith("is")) {
+            nm = Introspector.decapitalize(nm.substring(2));
+        }
+        if (nm.startsWith("get")) {
+            nm = Introspector.decapitalize(nm.substring(3));
+        }
+
+        GraphQLType type = getGraphQLTypeFromJavaType(method.getReturnType());
+        DataFetcher dataFetcher = PropertyDataFetcher.fetching(nm);
+
+        return GraphQLFieldDefinition.newFieldDefinition()
+                .name(nm)
+                .description(getSchemaDescription((AnnotatedElement) method))
+                .type((GraphQLOutputType) type)
+                .dataFetcher(dataFetcher)
+                .build();
     }
 
     @SuppressWarnings( { "rawtypes", "unchecked" } )
