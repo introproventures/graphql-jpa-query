@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.util.CollectionUtils;
 
 import graphql.GraphQL;
@@ -17,6 +19,10 @@ import graphql.schema.GraphQLSchema;
 @Configuration
 @ConditionalOnClass(GraphQL.class)
 @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
+@PropertySources(value= {
+    @PropertySource("classpath:com/introproventures/graphql/jpa/query/boot/autoconfigure/default.properties"),
+    @PropertySource(value = "classpath:graphql-jpa-autoconfigure.properties", ignoreResourceNotFound = true)
+})
 public class GraphQLSchemaAutoConfiguration {
 
     private final List<GraphQLSchemaConfigurer> graphQLSchemaConfigurers = new ArrayList<>();
