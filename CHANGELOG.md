@@ -1,6 +1,25 @@
 # Change Log
 
-## 0.3.14-SNAPSHOT
+## 0.3.14
+* fix: Configuration properties are ignored when merging bug (#88) [f838056](https://github.com/introproventures/graphql-jpa-query/commit/f838056009ca884d45e451b96a7a28dd8f9ea5a1)
+* fix: upgrade to Spring Boot 2.1.3.RELEASE (#87) [ee0aa6c](https://github.com/introproventures/graphql-jpa-query/commit/ee0aa6c9ad5fead0f5a15e2133460fdebb9a0724)
+* Refactor SchemaBuilder using Introspection (#86) [493f65d](https://github.com/introproventures/graphql-jpa-query/commit/493f65daa0e95d50a2ee8787af4444bcb365c2ed)
+* support calcs fields and functions (#85) [1cbf29c](https://github.com/introproventures/graphql-jpa-query/commit/1cbf29c21d845d75c291ec4bafd5e13b7b27b21c)
+* feat: add JPA @EmbeddedId support (#84) [0def68d](https://github.com/introproventures/graphql-jpa-query/commit/0def68d42c817858a2d5248d10c4c1d13fcd8ad2)
+* Update README.md [ac75192](https://github.com/introproventures/graphql-jpa-query/commit/ac751922119f5f8159bcbf5d89069a584ade6a79)
+* Update README.md [4d783e2](https://github.com/introproventures/graphql-jpa-query/commit/4d783e25683b0847705b911dcad1289ebe1b47b8)
+* Update README.md [369e2b5](https://github.com/introproventures/graphql-jpa-query/commit/369e2b58964dbaa1d1dec4867f5524af6df948eb)
+* Update README.md [a553ca6](https://github.com/introproventures/graphql-jpa-query/commit/a553ca626b46c292cc1f4d6fa7947b5f8ad8e89c)
+* Update README.md [fe2b7ca](https://github.com/introproventures/graphql-jpa-query/commit/fe2b7ca8407f6421767e0c28ec7a40879c8f8fc7)
+* Update README.md [25b140e](https://github.com/introproventures/graphql-jpa-query/commit/25b140ecd2fd0185adf535bfeaa94592d65d298a)
+* Update README.md [8b16599](https://github.com/introproventures/graphql-jpa-query/commit/8b165996e872ee0872ed8c654461f2637332a7b1)
+* fix: Clean up application.yaml configurations [b672e43](https://github.com/introproventures/graphql-jpa-query/commit/b672e437d68435e08862dc97438f8ae198fc9b5e)
+* Update README.md [b83a22d](https://github.com/introproventures/graphql-jpa-query/commit/b83a22d3f82fd310f590364dc60a510e220094d8)
+* Update README.md [8111ee4](https://github.com/introproventures/graphql-jpa-query/commit/8111ee4e1fe130cf4f8a89677709d069fad1e36a)
+* Update README.md [f484e23](https://github.com/introproventures/graphql-jpa-query/commit/f484e2325cdf873cc5d65cd72a7d17053ddc2787)
+* feat: Created example to merge two JPA data sources into one schema (#79) [12caf3a](https://github.com/introproventures/graphql-jpa-query/commit/12caf3a8ad8cee64932d1cbc1fa955888ccd5e14)
+* Update README.md [ca18221](https://github.com/introproventures/graphql-jpa-query/commit/ca1822123c2e34fe7f50fe804a53f7367c841cda)
+* Update README.md [dfaa0ed](https://github.com/introproventures/graphql-jpa-query/commit/dfaa0ed4e26d92f469e3eba6fa3e3062e125313d)
 * Extract graphql-jpa-query-web module from starter (#74) [8d72bbe](https://github.com/introproventures/graphql-jpa-query/commit/8d72bbee8d6aeb568604e7070d90c10657a766e4)
 * fix: configure gitHub url  [b0839ca](https://github.com/introproventures/graphql-jpa-query/commit/b0839ca427b8a05efd5d4819a1ec2ac1f3b7ad2b)
 * fix: (version) update git-changelog-maven-plugin to 0.4.0 [7867ed4](https://github.com/introproventures/graphql-jpa-query/commit/7867ed417fb36f7d0d3e10b8f108397c1f816f53)
