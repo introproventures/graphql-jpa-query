@@ -146,7 +146,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 Field selectedField = (Field) selection;
 
                 // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(!TYPENAME.equals(selectedField.getName())) {
+                if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
 
@@ -728,7 +728,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
-                    if(!TYPENAME.equals(it.getName()))
+                    if(!TYPENAME.equals(it.getName()) && !IntrospectionUtils.isTransient(entityType.getJavaType(), it.getName()))
                         entityGraph.addAttributeNodes(it.getName());
                 }
             });

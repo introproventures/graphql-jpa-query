@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-build</artifactId>
-    <version>0.3.14-SNAPSHOT</version>
+    <version>0.3.15-SNAPSHOT</version>
     <relativePath>../graphql-jpa-query-build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-autoconfigure</artifactId>
@@ -19,7 +19,17 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>    
+    </dependency>
       
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <scope>test</scope>      
+    </dependency>
   </dependencies>
   
 </project>

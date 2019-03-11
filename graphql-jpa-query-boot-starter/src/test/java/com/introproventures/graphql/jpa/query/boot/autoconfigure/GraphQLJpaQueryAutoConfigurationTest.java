@@ -32,6 +32,9 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.starter.model.Author;
 
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryAutoConfigurationTest {
@@ -41,24 +44,26 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     static class Application {
     }
     
-    @Autowired
-    GraphQLJpaQueryProperties  graphQLJpaQueryProperties;
+    @Autowired(required=false)
+    private GraphQLExecutor graphQLExecutor;
+
+    @Autowired(required=false)
+    private GraphQLSchemaBuilder graphQLSchemaBuilder;
 
     @Autowired
-    GraphQLExecutor graphQLExecutor;
-
-    @Autowired
-    GraphQLSchemaBuilder graphQLSchemaBuilder;
+    private GraphQLSchema graphQLSchema;
     
     @Test
     public void contextIsAutoConfigured() {
-        assertThat(graphQLExecutor).isInstanceOf(GraphQLJpaExecutor.class);
-        assertThat(graphQLSchemaBuilder).isInstanceOf(GraphQLJpaSchemaBuilder.class);
+        assertThat(graphQLExecutor).isNotNull()
+                                   .isInstanceOf(GraphQLJpaExecutor.class);
         
-        assertThat(graphQLJpaQueryProperties.getName()).isEqualTo("GraphQLBooks");
-        assertThat(graphQLJpaQueryProperties.getDescription()).isEqualTo("GraphQL Books Schema Description");
-        assertThat(graphQLJpaQueryProperties.getPath()).isEqualTo("/graphql");
-        assertThat(graphQLJpaQueryProperties.isEnabled()).isEqualTo(true);
+        assertThat(graphQLSchemaBuilder).isNotNull()
+                                        .isInstanceOf(GraphQLJpaSchemaBuilder.class);
         
+        
+        assertThat(graphQLSchema.getQueryType())
+                                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+                                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
     }
 }
