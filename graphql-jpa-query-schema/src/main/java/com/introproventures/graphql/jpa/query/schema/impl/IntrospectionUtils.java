@@ -5,6 +5,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +46,10 @@ public class IntrospectionUtils {
     			             .collect(Collectors.toMap(CachedPropertyDescriptor::getName, it -> it));
     	}
     	
+    	public Collection<CachedPropertyDescriptor> getPropertyDescriptors() {
+    		return map.values();
+    	}
+    	
     	public Optional<CachedPropertyDescriptor> getPropertyDescriptor(String fieldName) {
     		return Optional.ofNullable(map.getOrDefault(fieldName, null));
     	}
@@ -71,7 +76,7 @@ public class IntrospectionUtils {
     		public String getName() {
     			return delegate.getName();
     		}
-
+    		
     	    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
     	        boolean answer;
     	        try {

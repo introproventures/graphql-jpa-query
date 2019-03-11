@@ -19,7 +19,7 @@ public class IntrospectionUtilsTest {
     }
 
     @Test
-    public void testIsTransientClasss() throws Exception {
+    public void testIsTransientClass() throws Exception {
         // then
         assertThat(IntrospectionUtils.isTransient(entity, "class")).isFalse();
     }
@@ -32,28 +32,22 @@ public class IntrospectionUtilsTest {
     }
 
     @Test
-    public void testIsTransientId() throws Exception {
-        // then
-        assertThat(IntrospectionUtils.isTransient(entity, "id")).isFalse();
-    }
-    
-    
-    @Test
     public void testIsTransientFields() throws Exception {
         // then
         assertThat(IntrospectionUtils.isTransient(entity, "fieldFun")).isTrue();
         assertThat(IntrospectionUtils.isTransient(entity, "fieldMem")).isTrue();
         assertThat(IntrospectionUtils.isTransient(entity, "hideField")).isTrue();
+        assertThat(IntrospectionUtils.isTransient(entity, "logic")).isTrue();
     }
 
     @Test
-    public void testIsTransientOther() throws Exception {
+    public void testNotTransientFields() throws Exception {
     	// given
         Class<CalculatedEntity> entity = CalculatedEntity.class;
         
         // then
+        assertThat(IntrospectionUtils.isTransient(entity, "id")).isFalse();
         assertThat(IntrospectionUtils.isTransient(entity, "info")).isFalse();
-        assertThat(IntrospectionUtils.isTransient(entity, "logic")).isTrue();
         assertThat(IntrospectionUtils.isTransient(entity, "title")).isFalse();
     }
     

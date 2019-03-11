@@ -24,7 +24,11 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,6 +51,7 @@ import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.CachedIntrospectionResult.CachedPropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 
 import graphql.Assert;
@@ -92,7 +97,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
     
-    private Map<Class<?>, GraphQLType> classCache = new HashMap<>();
+    private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
     private Map<EmbeddableType<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
     private Map<EmbeddableType<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
@@ -205,7 +210,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     	if (managedType instanceof EmbeddableType){
 			typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
 		} else if (managedType instanceof EntityType) {
-			typeName = ((EntityType)managedType).getName();
+			typeName = ((EntityType<?>)managedType).getName();
 		}
 
 		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
@@ -251,14 +256,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private GraphQLInputObjectField getWhereInputField(Attribute<?,?> attribute) {
-        GraphQLType type = getWhereAttributeType(attribute);
+        GraphQLInputType type = getWhereAttributeType(attribute);
         String description = getSchemaDescription(attribute.getJavaMember());
 
         if (type instanceof GraphQLInputType) {
             return GraphQLInputObjectField.newInputObjectField()
                 .name(attribute.getName())
                 .description(description)
-                .type((GraphQLInputType) type)
+                .type(type)
                 .build(); 
         }
 
@@ -409,7 +414,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         return GraphQLArgument.newArgument()
                 .name(attribute.getName())
-                .type((GraphQLInputType) type)
+                .type(type)
                 .description(description)
                 .build();
     }
@@ -454,89 +459,51 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
 
     private GraphQLObjectType getObjectType(EntityType<?> entityType) {
-        if (entityCache.containsKey(entityType))
-            return entityCache.get(entityType);        
-        
-        
-        GraphQLObjectType objectType = GraphQLObjectType.newObject()
-                .name(entityType.getName())
-                .description(getSchemaDescription( entityType.getJavaType()))
-                .fields(entityType.getAttributes().stream()
-                    .filter(this::isNotIgnored)
-                    .map(this::getObjectField)
-                    .collect(Collectors.toList())
-                )
-                .fields(getObjectCalcFields(entityType.getJavaType()))
-                .fields(getObjectCalcMethods(entityType.getJavaType()))
-                .build();
-        
-        entityCache.putIfAbsent(entityType, objectType);
-        
-        return objectType;
+        return entityCache.computeIfAbsent(entityType, this::computeObjectType);
+    }
+    
+    
+    private GraphQLObjectType computeObjectType(EntityType<?> entityType) {
+    	return GraphQLObjectType.newObject()
+				                .name(entityType.getName())
+				                .description(getSchemaDescription(entityType.getJavaType()))
+				                .fields(getEntityAttributesFields(entityType))
+				                .fields(getTransientFields(entityType.getJavaType()))
+				                .build();
     }
 
-    private List<GraphQLFieldDefinition> getObjectCalcFields(Class cls) {
-        return
-            Arrays.stream(cls.getDeclaredFields())
-                .filter(
-                        f ->
-                                f instanceof Member &&
-                                f.isAnnotationPresent(Transient.class) &&
-                                isNotIgnored((Member) f) &&
-                                isNotIgnored(f.getType())
-                )
-                .map(f -> getObjectCalcField(f))
-                .collect(Collectors.toList());
+    private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
+    	return entityType.getAttributes()
+    					 .stream()
+				         .filter(this::isNotIgnored)
+				         .map(this::getObjectField)
+				         .collect(Collectors.toList());    	
     }
 
-    private List<GraphQLFieldDefinition> getObjectCalcMethods(Class cls) {
-        return
-            Arrays.stream(cls.getDeclaredMethods())
-                .filter(
-                        m ->
-                                m instanceof Member &&
-                                m.isAnnotationPresent(Transient.class) &&
-                                isNotIgnored((Member) m) &&
-                                isNotIgnored(m.getReturnType())
-                )
-                .map(m -> getObjectCalcMethtod(m))
-                .collect(Collectors.toList());
+    
+    private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
+        return IntrospectionUtils.introspect(clazz)
+			 				     .getPropertyDescriptors().stream()
+			        			 .filter(it -> it.isAnnotationPresent(Transient.class))
+			        			 .map(CachedPropertyDescriptor::getDelegate)
+			        			 .filter(it -> isNotIgnored(it.getPropertyType()))
+			        			 .map(this::getJavaFieldDefinition)
+			        			 .collect(Collectors.toList());
     }
-
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    private GraphQLFieldDefinition getObjectCalcField(Field field) {
-        GraphQLType type = getGraphQLTypeFromJavaType(field.getType());
-        DataFetcher dataFetcher = PropertyDataFetcher.fetching(field.getName());
+    
+    @SuppressWarnings( { "rawtypes" } )
+    private GraphQLFieldDefinition getJavaFieldDefinition(PropertyDescriptor propertyDescriptor) {
+    	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
+        DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
 
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(field.getName())
-                .description(getSchemaDescription((AnnotatedElement) field))
-                .type((GraphQLOutputType) type)
+                .name(propertyDescriptor.getName())
+                .description(getSchemaDescription(propertyDescriptor.getPropertyType()))
+                .type(type)
                 .dataFetcher(dataFetcher)
                 .build();
     }
-
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    private GraphQLFieldDefinition getObjectCalcMethtod(Method method) {
-        String nm = method.getName();
-        if (nm.startsWith("is")) {
-            nm = Introspector.decapitalize(nm.substring(2));
-        }
-        if (nm.startsWith("get")) {
-            nm = Introspector.decapitalize(nm.substring(3));
-        }
-
-        GraphQLType type = getGraphQLTypeFromJavaType(method.getReturnType());
-        DataFetcher dataFetcher = PropertyDataFetcher.fetching(nm);
-
-        return GraphQLFieldDefinition.newFieldDefinition()
-                .name(nm)
-                .description(getSchemaDescription((AnnotatedElement) method))
-                .type((GraphQLOutputType) type)
-                .dataFetcher(dataFetcher)
-                .build();
-    }
-
+    
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     private GraphQLFieldDefinition getObjectField(Attribute attribute) {
         GraphQLOutputType type = getAttributeOutputType(attribute);
@@ -583,7 +550,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    @SuppressWarnings( { "rawtypes" } )
     private GraphQLInputObjectField getInputObjectField(Attribute attribute) {
         GraphQLInputType type = getAttributeInputType(attribute);
 
@@ -598,7 +565,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return attributes.stream().filter(it -> it.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC);
     }
 
-    @SuppressWarnings( "rawtypes" )
     private GraphQLInputType getAttributeInputType(Attribute<?,?> attribute) {
         try{
             return (GraphQLInputType) getAttributeType(attribute, true);
@@ -607,7 +573,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         }
     }
 
-    @SuppressWarnings( "rawtypes" )
     private GraphQLOutputType getAttributeOutputType(Attribute<?,?> attribute) {
         try {
             return (GraphQLOutputType) getAttributeType(attribute, false);
@@ -786,7 +751,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     @SuppressWarnings( "unchecked" )
-    private GraphQLType getGraphQLTypeFromJavaType(Class<?> clazz) {
+    private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
         if (clazz.isEnum()) {
             
             if (classCache.containsKey(clazz))
@@ -797,7 +762,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             for (Enum<?> enumValue : ((Class<Enum<?>>)clazz).getEnumConstants())
                 enumBuilder.value(enumValue.name(), ordinal++);
 
-            GraphQLType enumType = enumBuilder.build();
+            GraphQLEnumType enumType = enumBuilder.build();
             setNoOpCoercing(enumType);
 
             classCache.putIfAbsent(clazz, enumType);
