@@ -17,30 +17,25 @@ package com.introproventures.graphql.jpa.query.boot.autoconfigure;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportAware;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.util.Assert;
 
 @Configuration
-@PropertySource("classpath:/com/introproventures/graphql/jpa/query/boot/autoconfigure/default.properties")
 @ConditionalOnClass(GraphQL.class)
-@ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=false)
+@ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
 public class GraphQLJpaQueryAutoConfiguration {
 
     @Configuration
@@ -54,18 +49,13 @@ public class GraphQLJpaQueryAutoConfiguration {
 
         @Override
         public void configure(GraphQLShemaRegistration registry) {
-
             registry.register(graphQLSchemaBuilder.build());
         }
     }
     
     @Configuration
-    @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
-    public static class DefaultGraphQLJpaQueryConfiguration implements ImportAware {
+    public static class DefaultGraphQLJpaQueryConfiguration {
         
-        @Autowired
-        GraphQLJpaQueryProperties properties;
-
         @Bean
         @ConditionalOnMissingBean(GraphQLExecutor.class)
         public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema) {
@@ -75,17 +65,8 @@ public class GraphQLJpaQueryAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean(GraphQLSchemaBuilder.class)
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            Assert.notNull(properties.getName(), "GraphQL schema name cannot be null.");
-            Assert.notNull(properties.getDescription(), "GraphQL schema description cannot be null.");
-            
-            return new GraphQLJpaSchemaBuilder(entityManager)
-                .name(properties.getName())
-                .description(properties.getDescription());
+            return new GraphQLJpaSchemaBuilder(entityManager);
         }
 
-        @Override
-        public void setImportMetadata(AnnotationMetadata importMetadata) {
-            properties.setEnabled(true);
-        }
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
@@ -15,9 +16,13 @@ import graphql.schema.GraphQLSchema;
 
 @Configuration
 @ConditionalOnClass(GraphQL.class)
+@EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
 public class GraphQLSchemaAutoConfiguration {
 
     private final List<GraphQLSchemaConfigurer> graphQLSchemaConfigurers = new ArrayList<>();
+    
+    @Autowired
+    private GraphQLJpaQueryProperties properties;
 	
     @Autowired(required = true)
     public void setGraphQLSchemaConfigurers(List<GraphQLSchemaConfigurer> configurers) {
@@ -35,7 +40,10 @@ public class GraphQLSchemaAutoConfiguration {
             configurer.configure(graphQLShemaRegistration);
         }
         
-        return new GraphQLSchemaFactoryBean(graphQLShemaRegistration.getManagedGraphQLSchemas());
+        return new GraphQLSchemaFactoryBean(graphQLShemaRegistration.getManagedGraphQLSchemas())
+	        		.setName(properties.getName())
+	    			.setDescription(properties.getDescription());
+        
         
     };
     

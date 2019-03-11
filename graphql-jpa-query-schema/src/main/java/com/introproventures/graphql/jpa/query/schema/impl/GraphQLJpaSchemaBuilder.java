@@ -106,7 +106,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private EntityManager entityManager;
      
-    private String name = "GraphQL JPA Schema";
+    private String name = "GraphQLJPAQuery";
     
     private String description = "GraphQL Schema for all entities in this JPA application";
 

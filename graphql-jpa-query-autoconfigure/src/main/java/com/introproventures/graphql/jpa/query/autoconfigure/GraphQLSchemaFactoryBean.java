@@ -5,14 +5,21 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.config.AbstractFactoryBean;
+
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
 	
-	private final GraphQLSchema[] managedGraphQLSchemas;
+	private static final String QUERY_NAME = "Query";
+    private static final String QUERY_DESCRIPTION = "";
+
+    private final GraphQLSchema[] managedGraphQLSchemas;
+	
+	private String name = QUERY_NAME;
+	private String description = QUERY_DESCRIPTION;
 
 	public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
 		this.managedGraphQLSchemas = managedGraphQLSchemas;
@@ -49,7 +56,10 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 			schemaBuilder.mutation(GraphQLObjectType.newObject().name("Mutation").fields(mutations));
 
 		if(!queries.isEmpty())
-			schemaBuilder.query(GraphQLObjectType.newObject().name("Query").fields(queries));
+			schemaBuilder.query(GraphQLObjectType.newObject()
+					                             .name(this.name)
+					                             .description(this.description)
+					                             .fields(queries));
 
 		if(!subscriptions.isEmpty())
 			schemaBuilder.subscription(GraphQLObjectType.newObject().name("Subscription").fields(subscriptions));
@@ -60,6 +70,18 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 	@Override
 	public Class<?> getObjectType() {
 		return GraphQLSchema.class;
+	}
+
+	public GraphQLSchemaFactoryBean setName(String name) {
+		this.name = name;
+		
+		return this;
+	}
+
+	public GraphQLSchemaFactoryBean setDescription(String description) {
+		this.description = description;
+		
+		return this;
 	}
 
 }

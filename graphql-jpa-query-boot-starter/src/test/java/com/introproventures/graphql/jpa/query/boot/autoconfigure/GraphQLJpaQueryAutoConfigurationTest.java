@@ -41,24 +41,18 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     static class Application {
     }
     
-    @Autowired
-    GraphQLJpaQueryProperties  graphQLJpaQueryProperties;
-
-    @Autowired
+    @Autowired(required=false)
     GraphQLExecutor graphQLExecutor;
 
-    @Autowired
+    @Autowired(required=false)
     GraphQLSchemaBuilder graphQLSchemaBuilder;
     
     @Test
     public void contextIsAutoConfigured() {
-        assertThat(graphQLExecutor).isInstanceOf(GraphQLJpaExecutor.class);
-        assertThat(graphQLSchemaBuilder).isInstanceOf(GraphQLJpaSchemaBuilder.class);
+        assertThat(graphQLExecutor).isNotNull()
+                                   .isInstanceOf(GraphQLJpaExecutor.class);
         
-        assertThat(graphQLJpaQueryProperties.getName()).isEqualTo("GraphQLBooks");
-        assertThat(graphQLJpaQueryProperties.getDescription()).isEqualTo("GraphQL Books Schema Description");
-        assertThat(graphQLJpaQueryProperties.getPath()).isEqualTo("/graphql");
-        assertThat(graphQLJpaQueryProperties.isEnabled()).isEqualTo(true);
-        
+        assertThat(graphQLSchemaBuilder).isNotNull()
+                                        .isInstanceOf(GraphQLJpaSchemaBuilder.class);
     }
 }
