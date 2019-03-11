@@ -41,8 +41,8 @@ public class GraphQLSchemaAutoConfiguration {
         }
         
         return new GraphQLSchemaFactoryBean(graphQLShemaRegistration.getManagedGraphQLSchemas())
-	        		.setName(properties.getName())
-	    			.setDescription(properties.getDescription());
+	        		.setQueryName(properties.getName())
+	    			.setQueryDescription(properties.getDescription());
         
         
     };
