@@ -43,6 +43,8 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,10 +205,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType))
                 .argument(paginationArgument)
                 .argument(getWhereArgument(entityType))
+                .argument(distinctArgument(entityType))
                 .build();
     }
 
     private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+
+    private GraphQLArgument distinctArgument(EntityType<?> entityType) {
+        return GraphQLArgument.newArgument()
+                .name(SELECT_DISTINCT_PARAM_NAME)
+                .description("Distinct logical specification")
+                .type(Scalars.GraphQLBoolean)
+                .build();
+    }
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
     	String typeName="";
@@ -302,6 +313,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .fields(managedType.getAttributes().stream()
                 .filter(this::isValidInput)
                 .filter(this::isNotIgnored)
+                .filter(this::isNotIgnoredFilter)
                 .map(this::getWhereInputField)
                 .collect(Collectors.toList())
             )
@@ -568,7 +580,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         // Only add the orderBy argument for basic attribute types
         if (attribute instanceof SingularAttribute
-            && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
+            && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC
+            && isNotIgnoredOrder(attribute) ) {
             arguments.add(GraphQLArgument.newArgument()
                 .name(ORDER_BY_PARAM_NAME)
                 .description("Specifies field sort direction in the query results.")
@@ -816,6 +829,37 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         return false;
     }
+
+    protected boolean isNotIgnoredFilter(Attribute<?,?> attribute) {
+        return isNotIgnoredFilter(attribute.getJavaMember()) && isNotIgnoredFilter(attribute.getJavaType());
+    }
+
+    protected boolean isNotIgnoredFilter(EntityType<?> entityType) {
+        return isNotIgnoredFilter(entityType.getJavaType());
+    }
+
+    protected boolean isNotIgnoredFilter(Member member) {
+        return member instanceof AnnotatedElement && isNotIgnoredFilter((AnnotatedElement) member);
+    }
+
+    protected boolean isNotIgnoredFilter(AnnotatedElement annotatedElement) {
+        if (annotatedElement != null) {
+            GraphQLIgnoreFilter schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnoreFilter.class);
+            return schemaDocumentation == null;
+        }
+
+        return false;
+    }
+
+    protected boolean isNotIgnoredOrder(Attribute<?,?> attribute) {
+        AnnotatedElement annotatedElement = (AnnotatedElement)attribute.getJavaMember();
+        if (annotatedElement != null) {
+            GraphQLIgnoreOrder schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnoreOrder.class);
+            return schemaDocumentation == null;
+        }
+        return false;
+    }
+
     
     @SuppressWarnings( "unchecked" )
     private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {

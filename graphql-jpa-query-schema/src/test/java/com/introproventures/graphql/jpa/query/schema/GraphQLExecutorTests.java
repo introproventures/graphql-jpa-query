@@ -19,7 +19,12 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+<<<<<<< 18ec562204b4d8f4af196c131f3ab36397b50068
 import java.util.Map;
+=======
+import java.util.LinkedHashMap;
+import java.util.List;
+>>>>>>> change distinct and annotation filter and sort
 
 import javax.persistence.EntityManager;
 
@@ -671,5 +676,31 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
 
-    
+
+
+    @Test
+    public void distinctFalse() {
+        //given
+        String query = "{ Books(distinct: false) { select { genre } }}";
+
+        //when
+        LinkedHashMap select = (LinkedHashMap)((LinkedHashMap)executor.execute(query).getData()).get("Books");
+        List books = (List)select.get("select");
+
+        org.junit.Assert.assertTrue(books.size() > 2);
+    }
+
+    @Test
+    public void ignoreFilter() {
+        //given
+        String query = "{ Books(where: {title: {EQ: \"title\"}} ) { select { id title } }}";;
+
+        String expected = "[ValidationError{validationErrorType=WrongType, queryPath=[Books], message=Validation error of type WrongType: argument 'where' with value 'ObjectValue{objectFields=[ObjectField{name='title', value=ObjectValue{objectFields=[ObjectField{name='EQ', value=StringValue{value='title'}}]}}]}' contains a field not in 'BooksCriteriaExpression': 'title' @ 'Books', locations=[SourceLocation{line=1, column=9}], description='argument 'where' with value 'ObjectValue{objectFields=[ObjectField{name='title', value=ObjectValue{objectFields=[ObjectField{name='EQ', value=StringValue{value='title'}}]}}]}' contains a field not in 'BooksCriteriaExpression': 'title''}]";
+
+        //when
+        Object result = executor.execute(query).getErrors();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 }

@@ -11,6 +11,7 @@ spring:
         name: Query
         description: Combined GraphQL Jpa Query for Starwars and Books Example
         enabled: true
+        path: graphql
         
 starwars:
   hikari:

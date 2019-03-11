@@ -25,6 +25,8 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import lombok.Data;
 
 @Data
@@ -33,6 +35,8 @@ public class Book {
 	@Id
 	Long id;
 
+	@GraphQLIgnoreOrder
+	@GraphQLIgnoreFilter
 	String title;
 
 	@ManyToOne(fetch=FetchType.LAZY)
