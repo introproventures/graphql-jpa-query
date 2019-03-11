@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.boot.autoconfigure;
+package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix="spring.graphql.jpa.query")
+@PropertySources(value= {
+    @PropertySource("classpath:/com/introproventures/graphql/jpa/query/boot/autoconfigure/default.properties"),
+    @PropertySource(value = "classpath:graphql-jpa-autoconfigure.properties", ignoreResourceNotFound = true)
+})
 @Validated
 public class GraphQLJpaQueryProperties {
 

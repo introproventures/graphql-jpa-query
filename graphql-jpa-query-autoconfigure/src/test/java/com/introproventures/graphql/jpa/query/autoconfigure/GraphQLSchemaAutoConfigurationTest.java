@@ -4,11 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
-import graphql.GraphQL;
-import graphql.Scalars;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import graphql.GraphQL;
+import graphql.Scalars;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -87,6 +88,11 @@ public class GraphQLSchemaAutoConfigurationTest {
         // then
         assertThat(result.toString()).isEqualTo("{hello=world}");
         assertThat(result2.toString()).isEqualTo("{greet=hello world}");
+        
+        assertThat(graphQLSchema.getQueryType())
+                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
+        	
     }
     
 
