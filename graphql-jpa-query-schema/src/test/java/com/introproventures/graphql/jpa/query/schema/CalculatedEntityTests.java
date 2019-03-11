@@ -1,7 +1,12 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +17,17 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
-import javax.persistence.EntityManager;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import graphql.ErrorType;
+import graphql.GraphQLError;
+import graphql.validation.ValidationError;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
 @TestPropertySource({"classpath:hibernate.properties"})
-public class CalcEntityTests {
+public class CalculatedEntityTests {
     @SpringBootApplication
     static class Application {
         @Bean
@@ -48,9 +56,9 @@ public class CalcEntityTests {
     @Test
     public void getAllRecords() {
         //given
-        String query = "query GraphQLCalcFields { CalcEntities { select {id title fieldMem fieldFun logic customLogic } } }";
+        String query = "query GraphQLCalcFields { CalculatedEntities { select {id title fieldMem fieldFun logic customLogic } } }";
 
-        String expected = "{CalcEntities={select=[{id=1, title=title 1, fieldMem=member, fieldFun=title 1 function, logic=true, customLogic=false}, {id=2, title=title 2, fieldMem=member, fieldFun=title 2 function, logic=true, customLogic=false}]}}";
+        String expected = "{CalculatedEntities={select=[{id=1, title=title 1, fieldMem=member, fieldFun=title 1 function, logic=true, customLogic=false}, {id=2, title=title 2, fieldMem=member, fieldFun=title 2 function, logic=true, customLogic=false}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -61,15 +69,17 @@ public class CalcEntityTests {
 
     @Test
     public void testIgnoreFields() {
-        String query = "query GraphQLCalcFields { CalcEntities { select {id title fieldMem fieldFun logic customLogic hideField hideFieldFunction } } }";
-
-        String expected = "[ValidationError{validationErrorType=FieldUndefined, queryPath=[CalcEntities, select, hideField], message=Validation error of type FieldUndefined: Field 'hideField' in type 'CalcEntity' is undefined @ 'CalcEntities/select/hideField', locations=[SourceLocation{line=1, column=95}], description='Field 'hideField' in type 'CalcEntity' is undefined'}, ValidationError{validationErrorType=FieldUndefined, queryPath=[CalcEntities, select, hideFieldFunction], message=Validation error of type FieldUndefined: Field 'hideFieldFunction' in type 'CalcEntity' is undefined @ 'CalcEntities/select/hideFieldFunction', locations=[SourceLocation{line=1, column=105}], description='Field 'hideFieldFunction' in type 'CalcEntity' is undefined'}]";
+        String query = "query GraphQLCalcFields { CalculatedEntities { select {id title fieldMem fieldFun logic customLogic hideField hideFieldFunction } } }";
 
         //when
-        Object result = executor.execute(query).getErrors();
+        List<GraphQLError> result = executor.execute(query).getErrors();
 
         //then
-        assertThat(result.toString()).isEqualTo(expected);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
+        			             .extracting(ValidationError.class::cast)
+        			             .extracting("errorType", "queryPath")
+      				             .contains(ErrorType.ValidationError, Arrays.asList("CalculatedEntities", "select", "hideFieldFunction"));
     }
 
 }
