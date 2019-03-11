@@ -32,6 +32,9 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.starter.model.Author;
 
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryAutoConfigurationTest {
@@ -42,10 +45,13 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     }
     
     @Autowired(required=false)
-    GraphQLExecutor graphQLExecutor;
+    private GraphQLExecutor graphQLExecutor;
 
     @Autowired(required=false)
-    GraphQLSchemaBuilder graphQLSchemaBuilder;
+    private GraphQLSchemaBuilder graphQLSchemaBuilder;
+
+    @Autowired
+    private GraphQLSchema graphQLSchema;
     
     @Test
     public void contextIsAutoConfigured() {
@@ -54,5 +60,10 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         
         assertThat(graphQLSchemaBuilder).isNotNull()
                                         .isInstanceOf(GraphQLJpaSchemaBuilder.class);
+        
+        
+        assertThat(graphQLSchema.getQueryType())
+                                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+                                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
     }
 }
