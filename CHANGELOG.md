@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.14
+## 0.3.15-SNAPSHOT
 * fix: Configuration properties are ignored when merging bug (#88) [f838056](https://github.com/introproventures/graphql-jpa-query/commit/f838056009ca884d45e451b96a7a28dd8f9ea5a1)
 * fix: upgrade to Spring Boot 2.1.3.RELEASE (#87) [ee0aa6c](https://github.com/introproventures/graphql-jpa-query/commit/ee0aa6c9ad5fead0f5a15e2133460fdebb9a0724)
 * Refactor SchemaBuilder using Introspection (#86) [493f65d](https://github.com/introproventures/graphql-jpa-query/commit/493f65daa0e95d50a2ee8787af4444bcb365c2ed)
