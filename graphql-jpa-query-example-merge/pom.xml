@@ -13,6 +13,7 @@
   
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
+    <skipDocker>${maven.deploy.skip}</skipDocker>
   </properties>
   
   <dependencies>
@@ -113,13 +114,15 @@
                             <include>${project.build.finalName}.jar</include>
                         </resource>
                     </resources>
+
+                    <skipDocker>${skipDocker}</skipDocker>
                     
                     <!-- optionally overwrite tags every time image is built with docker:build -->
                     <forceTags>true</forceTags>
-						        <imageTags>
-						           <imageTag>${project.version}</imageTag>
-						           <imageTag>latest</imageTag>
-						        </imageTags>                    
+			        <imageTags>
+			           <imageTag>${project.version}</imageTag>
+			           <imageTag>latest</imageTag>
+			        </imageTags>                    
 
                 </configuration>
 
@@ -127,4 +130,5 @@
 
         </plugins>
     </build>
+    
 </project>

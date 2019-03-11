@@ -199,7 +199,7 @@
                     <tagNameFormat>@{version}</tagNameFormat>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<releaseProfiles>releases</releaseProfiles>
-                    <arguments>-DskipTests</arguments>
+                    <arguments>-DskipTests -DskipDocker</arguments>
 					<mavenExecutorId>forked-path</mavenExecutorId>
 					<preparationGoals>clean git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md	-Dmessage="[maven-release-plugin] Update CHANGELOG.md" verify</preparationGoals>
 					<completionGoals>git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md -Dmessage="[maven-release-plugin] Update CHANGELOG.md"</completionGoals>
