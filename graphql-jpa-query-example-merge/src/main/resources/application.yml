@@ -5,8 +5,8 @@ spring:
   graphql:
     jpa:
       query:
-        name: GraphQLJpaQueryStarwars
-        description: GraphQL Jpa Query Starwars Schema Example
+        name: Query
+        description: Combined GraphQL Jpa Query for Starwars and Books Example
         enabled: true
         
 starwars:
