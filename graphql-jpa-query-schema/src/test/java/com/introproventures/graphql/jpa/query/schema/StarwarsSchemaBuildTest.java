@@ -83,7 +83,7 @@ public class StarwarsSchemaBuildTest {
         //then
         assertThat(schema.getQueryType().getFieldDefinition("CodeLists").getArguments())
             .describedAs("Ensure Subobjects may be queried upon")
-            .hasSize(3);
+            .hasSize(2);
         
         assertThat(((GraphQLInputObjectType)((GraphQLInputObjectType) schema.getQueryType()
             .getFieldDefinition("CodeLists").getArgument("where").getType())
@@ -117,7 +117,7 @@ public class StarwarsSchemaBuildTest {
             .getFieldDefinition("CodeLists").getArguments()
         )
         .describedAs("Ensure query has two arguments")
-        .hasSize(3);
+        .hasSize(2);
         
     }
     

@@ -47,7 +47,7 @@ import graphql.schema.GraphQLObjectType;
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
-    private static boolean defaultDistinct = false;
+    private boolean defaultDistinct = false;
 	
     private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
@@ -59,12 +59,17 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         super(entityManager, entityType);
     }
 
-    public static boolean isDefaultDistinct() {
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean defaultDistinct) {
+        super(entityManager, entityType);
+        this.defaultDistinct = defaultDistinct;
+    }
+
+    public boolean isDefaultDistinct() {
         return defaultDistinct;
     }
 
-    public static void setDefaultDistinct(boolean defaultDistinct) {
-        GraphQLJpaQueryDataFetcher.defaultDistinct = defaultDistinct;
+    public void setDefaultDistinct(boolean defaultDistinct) {
+        this.defaultDistinct = defaultDistinct;
     }
 
     @Override

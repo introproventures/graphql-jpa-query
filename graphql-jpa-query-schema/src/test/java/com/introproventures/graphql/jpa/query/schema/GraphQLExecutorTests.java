@@ -18,16 +18,16 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import java.util.HashMap;
-<<<<<<< 18ec562204b4d8f4af196c131f3ab36397b50068
 import java.util.Map;
-=======
-import java.util.LinkedHashMap;
 import java.util.List;
->>>>>>> change distinct and annotation filter and sort
-
 import javax.persistence.EntityManager;
-
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import graphql.ErrorType;
+import graphql.GraphQLError;
+import graphql.validation.ValidationError;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +39,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -677,30 +675,35 @@ public class GraphQLExecutorTests {
     }    
 
 
-
-    @Test
-    public void distinctFalse() {
-        //given
-        String query = "{ Books(distinct: false) { select { genre } }}";
-
-        //when
-        LinkedHashMap select = (LinkedHashMap)((LinkedHashMap)executor.execute(query).getData()).get("Books");
-        List books = (List)select.get("select");
-
-        org.junit.Assert.assertTrue(books.size() > 2);
-    }
-
     @Test
     public void ignoreFilter() {
         //given
         String query = "{ Books(where: {title: {EQ: \"title\"}} ) { select { id title } }}";;
 
-        String expected = "[ValidationError{validationErrorType=WrongType, queryPath=[Books], message=Validation error of type WrongType: argument 'where' with value 'ObjectValue{objectFields=[ObjectField{name='title', value=ObjectValue{objectFields=[ObjectField{name='EQ', value=StringValue{value='title'}}]}}]}' contains a field not in 'BooksCriteriaExpression': 'title' @ 'Books', locations=[SourceLocation{line=1, column=9}], description='argument 'where' with value 'ObjectValue{objectFields=[ObjectField{name='title', value=ObjectValue{objectFields=[ObjectField{name='EQ', value=StringValue{value='title'}}]}}]}' contains a field not in 'BooksCriteriaExpression': 'title''}]";
+        List<GraphQLError> result = executor.execute(query).getErrors();
 
-        //when
-        Object result = executor.execute(query).getErrors();
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
+                .extracting(ValidationError.class::cast)
+                .extracting("errorType", "queryPath")
+                .contains(ErrorType.ValidationError, Arrays.asList("Books"));
 
-        // then
-        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void ignoreOrder() {
+        //given
+        String query = "{ Books{ select { id title(orderBy:ASC) } }}";;
+
+        List<GraphQLError> result = executor.execute(query).getErrors();
+
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
+                .extracting(ValidationError.class::cast)
+                .extracting("errorType", "queryPath")
+                .contains(ErrorType.ValidationError, Arrays.asList("Books", "select", "title"));
+
     }
 }

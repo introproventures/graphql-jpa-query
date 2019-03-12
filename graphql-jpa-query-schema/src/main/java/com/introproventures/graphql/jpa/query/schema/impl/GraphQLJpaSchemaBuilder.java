@@ -115,6 +115,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private String description = "GraphQL Schema for all entities in this JPA application";
 
+    private boolean distinctParameter = false;
+    private boolean distinctFetcher = false;
+
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -194,19 +197,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .build()
                 )
                 .build();
-        
-        return GraphQLFieldDefinition.newFieldDefinition()
+
+        GraphQLFieldDefinition.Builder fdBuilder =  GraphQLFieldDefinition.newFieldDefinition()
                 .name(namingStrategy.pluralize(entityType.getName()))
                 .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
                     + "Use query request arguments to specify query filter criterias. "
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType))
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType, distinctFetcher))
                 .argument(paginationArgument)
-                .argument(getWhereArgument(entityType))
-                .argument(distinctArgument(entityType))
-                .build();
+                .argument(getWhereArgument(entityType));
+        if (distinctParameter) {
+                fdBuilder.argument(distinctArgument(entityType));
+        }
+
+        return fdBuilder.build();
     }
 
     private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
@@ -974,6 +980,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     @Override
     public GraphQLJpaSchemaBuilder description(String description) {
         this.description = description;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder useDistinctParameter(boolean distinctArgument) {
+        this.distinctParameter = distinctArgument;
+
+        return this;
+    }
+
+    public boolean isDistinctParameter() {
+        return distinctParameter;
+    }
+
+    public boolean isDistinctFetcher() {
+        return distinctFetcher;
+    }
+
+    public GraphQLJpaSchemaBuilder setDistinctFetcher(boolean distinctFetcher) {
+        this.distinctFetcher = distinctFetcher;
 
         return this;
     }

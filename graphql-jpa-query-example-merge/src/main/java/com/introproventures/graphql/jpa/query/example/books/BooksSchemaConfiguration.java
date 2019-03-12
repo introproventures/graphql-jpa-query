@@ -7,11 +7,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -74,14 +76,22 @@ public class BooksSchemaConfiguration {
 
         private final EntityManager entityManager;
 
+        @Autowired
+        private GraphQLJpaQueryProperties properties;
+
         public GraphQLJpaQuerySchemaConfigurer(@Qualifier("bookEntityManager") EntityManagerFactory entityManager) {
             this.entityManager = entityManager.createEntityManager();
         }
 
         @Override
         public void configure(GraphQLShemaRegistration registry) {
-
-            registry.register(new GraphQLJpaSchemaBuilder(entityManager).name("GraphQLBooks").build());
+            registry.register(
+                    new GraphQLJpaSchemaBuilder(entityManager)
+                        .name("GraphQLBooks")
+                        .useDistinctParameter(properties.isUseDistinctParameter())
+                        .setDistinctFetcher(properties.isDistinctFetcher())
+                        .build()
+            );
         }
     }
     

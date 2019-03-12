@@ -10,6 +10,7 @@ spring:
       query:
         name: Query
         description: Combined GraphQL Jpa Query for Starwars and Books Example
+        useDistinctParameter: true
         enabled: true
         path: graphql
         
