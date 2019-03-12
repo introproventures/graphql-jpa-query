@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
 
@@ -102,7 +103,16 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
         /**
          * Not Between condition
          */
-        NOT_BETWEEN        
+        NOT_BETWEEN;
+        
+        private static Set<String> names = EnumSet.allOf(Criteria.class)
+                                                  .stream()
+                                                  .map(it -> it.name().toString())
+                                                  .collect(Collectors.toSet());
+        
+        public static Set<String> names() {
+            return names;
+        }
     }
 
     private final String field;

@@ -51,6 +51,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
+import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
@@ -365,7 +366,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     }
 
     private Predicate getFieldPredicate(String fieldName, CriteriaBuilder cb, From<?,?> path, ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
-        ObjectValue expressionValue = (ObjectValue) objectField.getValue();
+        ObjectValue expressionValue;
+        
+        if(objectField.getValue() instanceof ObjectValue)
+            expressionValue = (ObjectValue) objectField.getValue();
+        else 
+            expressionValue = new ObjectValue(Arrays.asList(objectField));
 
         if(expressionValue.getChildren().isEmpty())
             return cb.disjunction();
@@ -385,10 +391,36 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             )
             .forEach(predicates::add);
 
+        expressionValue.getObjectFields().stream()
+            .filter(it -> !Arrays.asList("AND","OR").contains(it.getName()) && !Criteria.names().contains(it.getName()))
+            .map(it -> getArgumentPredicate(cb, path.join(objectField.getName()), 
+                    new DataFetchingEnvironmentImpl(
+                            environment.getSource(),
+                            new LinkedHashMap<String,Object>() {{
+                                put(Logical.AND.name(), environment.getArguments());
+                            }},
+                            environment.getContext(),
+                            environment.getRoot(),
+                            environment.getFieldDefinition(),
+                            environment.getFields(),
+                            environment.getFieldType(),
+                            environment.getParentType(),
+                            environment.getGraphQLSchema(),
+                            environment.getFragmentsByName(),
+                            environment.getExecutionId(),
+                            environment.getSelectionSet(),
+                            environment.getExecutionStepInfo(),
+                            environment.getExecutionContext()
+                    ), 
+                    new Argument(Logical.AND.name(), expressionValue)
+               ) 
+            )
+            .forEach(predicates::add);
+        
         JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
 
         expressionValue.getObjectFields().stream()
-            .filter(it -> !Arrays.asList("AND","OR").contains(it.getName()))
+            .filter(it -> Criteria.names().contains(it.getName()))
             .map(it -> getPredicateFilter(new ObjectField(fieldName, it.getValue()),
                 new ArgumentEnvironment(environment, argument.getName()),
                 new Argument(it.getName(), it.getValue()))
@@ -408,7 +440,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         EnumSet<PredicateFilter.Criteria> options =
             EnumSet.of(PredicateFilter.Criteria.valueOf(argument.getName()));
-
+        
         Object filterValue = convertValue( new DataFetchingEnvironmentImpl(
             environment.getSource(),
             new LinkedHashMap<String,Object>() {{
