@@ -282,7 +282,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             typeName = ((EntityType<?>)managedType).getName();
         }
 
-        String type = namingStrategy.pluralize(typeName)+"Input";
+        String type = namingStrategy.pluralize(typeName)+"RelationCriteriaExpression";
         
         GraphQLInputObjectType whereInputObject = GraphQLInputObjectType.newInputObject()
             .name(type)
