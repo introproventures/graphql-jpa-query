@@ -182,7 +182,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             }
                         }
                     } else  {
-                    	// Do nothing
+                        // We must add plural attributes with explicit join to avoid Hibernate error: 
+                        // "query specified join fetching, but the owner of the fetched association was not present in the select list"
+                        if(selectedField.getSelectionSet() != null)
+                            from.join(selectedField.getName());
+                        else
+                            from.fetch(selectedField.getName());
                     }
                 }
             }
@@ -390,10 +395,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 new Argument(it.getName(), it.getValue()))
             )
             .forEach(predicates::add);
-
+        
         expressionValue.getObjectFields().stream()
             .filter(it -> !Arrays.asList("AND","OR").contains(it.getName()) && !Criteria.names().contains(it.getName()))
-            .map(it -> getArgumentPredicate(cb, path.join(objectField.getName()), 
+            .map(it -> {
+                GraphQLFieldDefinition fieldDef =  getFieldDef(
+                        environment.getGraphQLSchema(),
+                        this.getObjectType(environment, argument),
+                        new Field(objectField.getName())
+                    );
+                
+                return getArgumentPredicate(cb, path.join(objectField.getName()), 
                     new DataFetchingEnvironmentImpl(
                             environment.getSource(),
                             new LinkedHashMap<String,Object>() {{
@@ -401,9 +413,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             }},
                             environment.getContext(),
                             environment.getRoot(),
-                            environment.getFieldDefinition(),
+                            fieldDef, 
                             environment.getFields(),
-                            environment.getFieldType(),
+                            fieldDef.getType(),
                             environment.getParentType(),
                             environment.getGraphQLSchema(),
                             environment.getFragmentsByName(),
@@ -413,7 +425,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             environment.getExecutionContext()
                     ), 
                     new Argument(Logical.AND.name(), expressionValue)
-               ) 
+               );
+               }
             )
             .forEach(predicates::add);
         

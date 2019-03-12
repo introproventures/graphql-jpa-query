@@ -650,6 +650,77 @@ public class StarwarsQueryExecutorTests {
     }    
     
     @Test
+    public void queryWithWhereInsideOneToManyRelationsNotExisting() {
+        //given:
+        String query = "query {" + 
+                " Humans(where: {\n" + 
+                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}\n" + 
+                "  }) {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      favoriteDroid {\n" + 
+                "        name\n" + 
+                "        primaryFunction\n" + 
+                "        appearsIn\n" + 
+                "      }\n" + 
+                "      friends {\n" + 
+                "        id\n" + 
+                "        name\n" + 
+                "        appearsIn\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
+        //given:
+        String query = "query {" + 
+                "  Humans(where: {\n" + 
+                "    favoriteDroid: { id: {EQ: \"2000\"}}\n" + 
+                "    friends: {\n" + 
+                "      appearsIn: {IN: A_NEW_HOPE}\n" + 
+                "    }\n" + 
+                "  }) {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      favoriteDroid {\n" + 
+                "        id\n" + 
+                "        name\n" + 
+                "        primaryFunction\n" + 
+                "      }\n" + 
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {\n" + 
+                "        id\n" + 
+                "        name\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }  " + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={id=2000, name=C-3PO, primaryFunction=Protocol}, friends=[{id=1003, name=Leia Organa}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
+    
+    @Test
     public void queryWithWhereInsideOneToManyRelations() {
         //given:
         String query = "query { Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" + 
