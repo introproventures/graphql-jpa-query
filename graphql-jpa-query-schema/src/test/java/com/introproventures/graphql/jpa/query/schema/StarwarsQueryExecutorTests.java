@@ -596,18 +596,18 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideManyToOneRelations() {
         //given:
         String query = "query {" + 
-                "  Humans(where: {\n" + 
-                "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      favoriteDroid {\n" + 
-                "        name\n" + 
-                "        appearsIn\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -626,17 +626,17 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideManyToOneRelationsNotExisting() {
         //given:
         String query = "query {" + 
-                "  Humans(where: {\n" + 
-                "    favoriteDroid: {appearsIn: {IN: [PHANTOM_MENACE]}}\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      favoriteDroid {\n" + 
-                "        name\n" + 
-                "        appearsIn\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: {appearsIn: {IN: [PHANTOM_MENACE]}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
                 "  }" + 
                 "}";
 
@@ -653,23 +653,23 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideOneToManyRelationsNotExisting() {
         //given:
         String query = "query {" + 
-                " Humans(where: {\n" + 
-                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      favoriteDroid {\n" + 
-                "        name\n" + 
-                "        primaryFunction\n" + 
-                "        appearsIn\n" + 
-                "      }\n" + 
-                "      friends {\n" + 
-                "        id\n" + 
-                "        name\n" + 
-                "        appearsIn\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                " Humans(where: {" + 
+                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        primaryFunction" + 
+                "        appearsIn" + 
+                "      }" + 
+                "      friends {" + 
+                "        id" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
                 "  }" + 
                 "}";
 
@@ -686,25 +686,25 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
         //given:
         String query = "query {" + 
-                "  Humans(where: {\n" + 
-                "    favoriteDroid: { id: {EQ: \"2000\"}}\n" + 
-                "    friends: {\n" + 
-                "      appearsIn: {IN: A_NEW_HOPE}\n" + 
-                "    }\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      favoriteDroid {\n" + 
-                "        id\n" + 
-                "        name\n" + 
-                "        primaryFunction\n" + 
-                "      }\n" + 
-                "      friends(where: {name: {LIKE: \"Leia\"}}) {\n" + 
-                "        id\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: { id: {EQ: \"2000\"}}" + 
+                "    friends: {" + 
+                "      appearsIn: {IN: A_NEW_HOPE}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        id" + 
+                "        name" + 
+                "        primaryFunction" + 
+                "      }" + 
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
+                "        id" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
                 "  }  " + 
                 "}";
 
@@ -723,19 +723,20 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void queryWithWhereInsideOneToManyRelations() {
         //given:
-        String query = "query { Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" + 
-                "        select {" + 
-                "          id" + 
-                "          name" + 
-                "          favoriteDroid {" + 
-                "            name" + 
-                "          }" + 
-                "          friends {" + 
-                "            name" + 
-                "            appearsIn" + 
-                "          }" + 
-                "        }" + 
-                "      }" +
+        String query = "query { "
+                + " Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "      }" + 
+                "      friends {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -750,6 +751,39 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
     
+
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsTwoJoinsReused() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    books: {" + 
+                "      genre: {IN: NOVEL}" + 
+                "      title: {LIKE: \"War\"}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
     
         
     

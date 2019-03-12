@@ -405,7 +405,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         new Field(objectField.getName())
                     );
                 
-                return getArgumentPredicate(cb, path.join(objectField.getName()), 
+                return getArgumentPredicate(cb, reuseJoin(path, objectField.getName(), false),  
                     new DataFetchingEnvironmentImpl(
                             environment.getSource(),
                             new LinkedHashMap<String,Object>() {{
@@ -508,9 +508,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 arguments,
                 environment.getContext(),
                 environment.getRoot(),
-                fieldDefinition, 			//environment.getFieldDefinition(),
+                fieldDefinition, 			
                 environment.getFields(),
-                fieldDefinition.getType(), 	//	environment.getFieldType(),
+                fieldDefinition.getType(), 	
                 environment.getParentType(),
                 environment.getGraphQLSchema(),
                 environment.getFragmentsByName(),
@@ -581,7 +581,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         for (Join<?,?> join : path.getJoins()) {
             if (join.getAttribute().getName().equals(fieldName)) {
                 if ((join.getJoinType() == JoinType.LEFT) == outer) {
-                    //logger.debug("Reusing existing join for field " + fieldName);
                     return join;
                 }
             }
