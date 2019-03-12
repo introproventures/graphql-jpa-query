@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -503,6 +504,39 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }    
+    
+    @Test
+    public void queryForBooksWithWhereAuthorEqIdWithVariables() {
+        //given
+        String query = "query($authorId: Long ) { "
+                + "  Books(where: {" + 
+                "    author: {id: {EQ: $authorId}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "    }" + 
+                "  }"+
+                "}";
+        Map<String, Object> variables = new HashMap<String, Object>() {{
+            put("authorId", 1L);
+        }};
+
+
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query, variables).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+        
+    
     
     @Test
     public void queryForAuthorssWithWhereBooksGenreEquals() {

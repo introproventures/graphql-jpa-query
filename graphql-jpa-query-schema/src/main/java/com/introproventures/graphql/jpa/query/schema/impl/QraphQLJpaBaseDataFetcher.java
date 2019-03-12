@@ -409,7 +409,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     new DataFetchingEnvironmentImpl(
                             environment.getSource(),
                             new LinkedHashMap<String,Object>() {{
-                                put(Logical.AND.name(), environment.getArguments());
+                                put(Logical.AND.name(), environment.getArgument(fieldName));
                             }},
                             environment.getContext(),
                             environment.getRoot(),
