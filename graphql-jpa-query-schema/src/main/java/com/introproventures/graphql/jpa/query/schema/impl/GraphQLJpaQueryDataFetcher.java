@@ -119,6 +119,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             query.setHint("org.hibernate.readOnly", true);
             query.setHint("org.hibernate.fetchSize", 1000);
             query.setHint("org.hibernate.cacheable", true);
+            query.setHint("hibernate.query.passDistinctThrough", false);
             
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
         }
