@@ -185,7 +185,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         // We must add plural attributes with explicit join to avoid Hibernate error: 
                         // "query specified join fetching, but the owner of the fetched association was not present in the select list"
                         if(selectedField.getSelectionSet() != null)
-                            from.join(selectedField.getName());
+                            reuseJoin(from, selectedField.getName(), false);
                         else
                             from.fetch(selectedField.getName());
                     }
@@ -262,7 +262,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
             // If the argument is a list, let's assume we need to join and do an 'in' clause
             if (argumentEntityAttribute instanceof PluralAttribute) {
-                return from.join(argument.getName())
+                return reuseJoin(from, argument.getName(), false)
                     .in(convertValue(environment, argument, argument.getValue()));
             }
 
@@ -402,14 +402,14 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 GraphQLFieldDefinition fieldDef =  getFieldDef(
                         environment.getGraphQLSchema(),
                         this.getObjectType(environment, argument),
-                        new Field(objectField.getName())
+                        new Field(fieldName)
                     );
                 
-                return getArgumentPredicate(cb, reuseJoin(path, objectField.getName(), false),  
+                return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),   
                     new DataFetchingEnvironmentImpl(
                             environment.getSource(),
                             new LinkedHashMap<String,Object>() {{
-                                put(Logical.AND.name(), environment.getArgument(fieldName));
+                                put(logical.name(), environment.getArgument(fieldName));
                             }},
                             environment.getContext(),
                             environment.getRoot(),
@@ -424,7 +424,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             environment.getExecutionStepInfo(),
                             environment.getExecutionContext()
                     ), 
-                    new Argument(Logical.AND.name(), expressionValue)
+                    new Argument(logical.name(), expressionValue)
                );
                }
             )

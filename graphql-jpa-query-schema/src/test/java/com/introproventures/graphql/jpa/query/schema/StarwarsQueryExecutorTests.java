@@ -751,40 +751,4 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
     
-
-    @Test
-    public void queryWithWhereInsideOneToManyRelationsTwoJoinsReused() {
-        //given:
-        String query = "query { "
-                + "Authors(where: {" + 
-                "    books: {" + 
-                "      genre: {IN: NOVEL}" + 
-                "      title: {LIKE: \"War\"}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
-                "  }" +
-                "}";
-
-        String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
-                + "]}}";
-
-        //when:
-        Object result = executor.execute(query).getData();
-
-        //then:
-        assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
-        
-    
 }
