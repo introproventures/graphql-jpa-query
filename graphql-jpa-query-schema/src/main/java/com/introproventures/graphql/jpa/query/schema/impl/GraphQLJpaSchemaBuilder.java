@@ -35,13 +35,7 @@ import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Transient;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
+import javax.persistence.metamodel.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -553,7 +547,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     	return entityType.getAttributes()
     					 .stream()
 				         .filter(this::isNotIgnored)
-				         .map(this::getObjectField)
+				         .map(it -> getObjectField(it, entityType))
 				         .collect(Collectors.toList());    	
     }
 
@@ -580,9 +574,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .dataFetcher(dataFetcher)
                 .build();
     }
-    
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
+
     private GraphQLFieldDefinition getObjectField(Attribute attribute) {
+        return getObjectField(attribute, null);
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    private GraphQLFieldDefinition getObjectField(Attribute attribute, EntityType baseEntity) {
         GraphQLOutputType type = getAttributeOutputType(attribute);
 
         List<GraphQLArgument> arguments = new ArrayList<>();
@@ -612,11 +610,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         else if (attribute instanceof PluralAttribute
             && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)) {
-            EntityType declaringType = (EntityType) ((PluralAttribute) attribute).getDeclaringType();
+            Assert.assertNotNull(baseEntity, "For attribute "+attribute.getName() + " cannot find declaring type!");
+
             EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
 
             arguments.add(getWhereArgument(elementType));
-            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, declaringType, (PluralAttribute) attribute);
+            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, baseEntity, (PluralAttribute) attribute);
         }
 
         return GraphQLFieldDefinition.newFieldDefinition()
