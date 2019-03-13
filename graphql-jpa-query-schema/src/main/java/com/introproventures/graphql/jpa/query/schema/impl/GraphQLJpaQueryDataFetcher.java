@@ -98,6 +98,10 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
+            // Let's clear first level entity cache to avoid getting stale objects cached in the same session 
+            // between requests with different search criteria. This looks like a Hibernate bug... 
+            entityManager.clear();
+
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
@@ -115,10 +119,10 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             EntityGraph<?> graph = buildEntityGraph(queryField);
             query.setHint("javax.persistence.fetchgraph", graph);
 
-            // Let' try reduce overhead
+            // Let' try reduce overhead and disable all caching
             query.setHint("org.hibernate.readOnly", true);
             query.setHint("org.hibernate.fetchSize", 1000);
-            query.setHint("org.hibernate.cacheable", true);
+            query.setHint("org.hibernate.cacheable", false);
             query.setHint("hibernate.query.passDistinctThrough", false);
             
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
