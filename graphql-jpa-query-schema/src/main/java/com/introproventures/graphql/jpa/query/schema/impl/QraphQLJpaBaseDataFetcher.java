@@ -74,7 +74,7 @@ import graphql.language.Value;
 import graphql.language.VariableReference;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
+import graphql.schema.DataFetchingEnvironmentBuilder;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -293,7 +293,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), variables)
                     .get("where");
 
-                return getWherePredicate(cb, from, join, new WherePredicateEnvironment(environment, fieldDef, arguments), where);
+                return getWherePredicate(cb, from, join, wherePredicateEnvironment(environment, fieldDef, arguments), where);
             }
         }
     }
@@ -303,34 +303,23 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return (R) argument.getValue();
     }
 
-
-    @SuppressWarnings( "serial" )
     protected Predicate getWherePredicate(CriteriaBuilder cb, Root<?> root,  From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
         ObjectValue whereValue = getValue(argument);
 
         if(whereValue.getChildren().isEmpty())
             return cb.conjunction();
+        
+        Logical logical = extractLogical(argument);
+        
+        Map<String, Object> predicateArguments = new LinkedHashMap<>();
+        predicateArguments.put(logical.name(), environment.getArguments());
+        
+        DataFetchingEnvironment predicateDataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                                 .arguments(predicateArguments)
+                                                                                                 .build();
+        Argument predicateArgument = new Argument(logical.name(), whereValue);
 
-        return getArgumentPredicate(cb, (path != null) ? path : root,
-            new DataFetchingEnvironmentImpl(
-                environment.getSource(),
-                new LinkedHashMap<String,Object>() {{
-                    put(Logical.AND.name(), environment.getArguments());
-                }},
-                environment.getContext(),
-                environment.getRoot(),
-                environment.getFieldDefinition(),
-                environment.getFields(),
-                environment.getFieldType(),
-                environment.getParentType(),
-                environment.getGraphQLSchema(),
-                environment.getFragmentsByName(),
-                environment.getExecutionId(),
-                environment.getSelectionSet(),
-                environment.getExecutionStepInfo(),
-                environment.getExecutionContext()
-            ), new Argument(Logical.AND.name(), whereValue)
-         );
+        return getArgumentPredicate(cb, (path != null) ? path : root, predicateDataFetchingEnvironment, predicateArgument);
     }
 
     protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> path,
@@ -338,26 +327,23 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         ObjectValue whereValue = getValue(argument);
 
         if (whereValue.getChildren().isEmpty())
-            return cb.disjunction();
-
-        Logical logical = Optional.of(argument.getName())
-            .filter(it -> Arrays.asList("AND", "OR").contains(it))
-            .map(it -> Logical.valueOf(it))
-            .orElse(Logical.AND);
+            return cb.disjunction(); 
+        
+        Logical logical = extractLogical(argument);
 
         List<Predicate> predicates = new ArrayList<>();
 
         whereValue.getObjectFields().stream()
-            .filter(it -> Arrays.asList("AND", "OR").contains(it.getName()))
+            .filter(it -> Logical.names().contains(it.getName()))
             .map(it -> getArgumentPredicate(cb, path,
-                new ArgumentEnvironment(environment, argument.getName()),
+                argumentEnvironment(environment, argument.getName()),
                 new Argument(it.getName(), it.getValue())))
             .forEach(predicates::add);
 
         whereValue.getObjectFields().stream()
-            .filter(it -> !Arrays.asList("AND", "OR").contains(it.getName()))
+            .filter(it -> !Logical.names().contains(it.getName()))
             .map(it -> getFieldPredicate(it.getName(), cb, path, it,
-                new ArgumentEnvironment(environment, argument.getName()),
+                argumentEnvironment(environment, argument.getName()),
                 new Argument(it.getName(), it.getValue())))
             .filter(predicate -> predicate != null)
             .forEach(predicates::add);
@@ -368,6 +354,13 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return (logical == Logical.OR)
             ? cb.or(predicates.toArray(new Predicate[predicates.size()]))
             : cb.and(predicates.toArray(new Predicate[predicates.size()]));
+    }
+    
+    private Logical extractLogical(Argument argument) {
+        return Optional.of(argument.getName())
+                .filter(it -> Logical.names().contains(it))
+                .map(it -> Logical.valueOf(it))
+                .orElse(Logical.AND);
     }
 
     private Predicate getFieldPredicate(String fieldName, CriteriaBuilder cb, From<?,?> path, ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
@@ -381,61 +374,49 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         if(expressionValue.getChildren().isEmpty())
             return cb.disjunction();
 
-        Logical logical = Optional.of(argument.getName())
-            .filter(it -> Arrays.asList("AND","OR").contains(it))
-            .map(it -> Logical.valueOf(it))
-            .orElse(Logical.AND);
+        Logical logical = extractLogical(argument);
 
         List<Predicate> predicates = new ArrayList<>();
 
         expressionValue.getObjectFields().stream()
-            .filter(it -> Arrays.asList("AND","OR").contains(it.getName()))
+            .filter(it -> Logical.names().contains(it.getName()))
             .map(it -> getFieldPredicate(fieldName, cb, path, it,
-                new ArgumentEnvironment(environment, argument.getName()),
+                argumentEnvironment(environment, argument.getName()),
                 new Argument(it.getName(), it.getValue()))
             )
             .forEach(predicates::add);
         
+        // Let's parse relation criteria expressions if present
         expressionValue.getObjectFields().stream()
-            .filter(it -> !Arrays.asList("AND","OR").contains(it.getName()) && !Criteria.names().contains(it.getName()))
+            .filter(it -> !Logical.names().contains(it.getName()) && !Criteria.names().contains(it.getName()))
             .map(it -> {
-                GraphQLFieldDefinition fieldDef =  getFieldDef(
-                        environment.getGraphQLSchema(),
-                        this.getObjectType(environment, argument),
-                        new Field(fieldName)
-                    );
+                GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+                                                                     this.getObjectType(environment, argument),
+                                                                     new Field(fieldName));
+
+                Map<String, Object> arguments = new LinkedHashMap<>();
+
+                arguments.put(logical.name(), environment.getArgument(fieldName));
                 
-                return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),   
-                    new DataFetchingEnvironmentImpl(
-                            environment.getSource(),
-                            new LinkedHashMap<String,Object>() {{
-                                put(logical.name(), environment.getArgument(fieldName));
-                            }},
-                            environment.getContext(),
-                            environment.getRoot(),
-                            fieldDef, 
-                            environment.getFields(),
-                            fieldDef.getType(),
-                            environment.getParentType(),
-                            environment.getGraphQLSchema(),
-                            environment.getFragmentsByName(),
-                            environment.getExecutionId(),
-                            environment.getSelectionSet(),
-                            environment.getExecutionStepInfo(),
-                            environment.getExecutionContext()
-                    ), 
-                    new Argument(logical.name(), expressionValue)
-               );
+                return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),  
+                                            wherePredicateEnvironment(environment, fieldDefinition, arguments),
+                                            new Argument(logical.name(), expressionValue));
                }
             )
             .forEach(predicates::add);
+
+        Optional<Predicate> relationPredicate = predicates.stream().findFirst();
+        
+        // Let's check if relation criteria predicate exists, to avoid adding duplicate predicates in the query
+        if(relationPredicate.isPresent())
+            return relationPredicate.get();
         
         JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
 
         expressionValue.getObjectFields().stream()
             .filter(it -> Criteria.names().contains(it.getName()))
             .map(it -> getPredicateFilter(new ObjectField(fieldName, it.getValue()),
-                new ArgumentEnvironment(environment, argument.getName()),
+                argumentEnvironment(environment, argument.getName()),
                 new Argument(it.getName(), it.getValue()))
             )
             .sorted()
@@ -449,80 +430,38 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     }
 
-    @SuppressWarnings("serial")
 	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         EnumSet<PredicateFilter.Criteria> options =
             EnumSet.of(PredicateFilter.Criteria.valueOf(argument.getName()));
         
-        Object filterValue = convertValue( new DataFetchingEnvironmentImpl(
-            environment.getSource(),
-            new LinkedHashMap<String,Object>() {{
-                put(objectField.getName(), environment.getArgument(argument.getName()));
-            }},
-            environment.getContext(),
-            environment.getRoot(),
-            environment.getFieldDefinition(),
-            environment.getFields(),
-            environment.getFieldType(),
-            environment.getParentType(),
-            environment.getGraphQLSchema(),
-            environment.getFragmentsByName(),
-            environment.getExecutionId(),
-            environment.getSelectionSet(),
-            environment.getExecutionStepInfo(),
-            environment.getExecutionContext()
-        ),
-            new Argument(objectField.getName(), argument.getValue()), argument.getValue() );
+        Map<String, Object> valueArguments = new LinkedHashMap<String,Object>();
+        valueArguments.put(objectField.getName(), environment.getArgument(argument.getName()));
+        
+        DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                        .arguments(valueArguments)
+                                                                                        .build();
+        
+        Argument dataFetchingArgument = new Argument(objectField.getName(), argument.getValue());
+        
+        Object filterValue = convertValue( dataFetchingEnvironment, dataFetchingArgument, argument.getValue() );
 
         return new PredicateFilter(objectField.getName(), filterValue, options );
-
     }
 
-    class ArgumentEnvironment extends DataFetchingEnvironmentImpl {
-
-        public ArgumentEnvironment(DataFetchingEnvironment environment, String argumentName) {
-            super(
-                environment.getSource(),
-                environment.getArgument(argumentName),
-                environment.getContext(),
-                environment.getRoot(),
-                environment.getFieldDefinition(),
-                environment.getFields(),
-                environment.getFieldType(),
-                environment.getParentType(),
-                environment.getGraphQLSchema(),
-                environment.getFragmentsByName(),
-                environment.getExecutionId(),
-                environment.getSelectionSet(),
-                environment.getExecutionStepInfo(),
-                environment.getExecutionContext()
-            );
-        }
+    protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment, String argumentName) {
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                             .arguments(environment.getArgument(argumentName))
+                                             .build();
     }
 
-    class WherePredicateEnvironment extends DataFetchingEnvironmentImpl {
-
-        public WherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
-            super(
-                environment.getSource(),
-                arguments,
-                environment.getContext(),
-                environment.getRoot(),
-                fieldDefinition, 			
-                environment.getFields(),
-                fieldDefinition.getType(), 	
-                environment.getParentType(),
-                environment.getGraphQLSchema(),
-                environment.getFragmentsByName(),
-                environment.getExecutionId(),
-                environment.getSelectionSet(),
-                environment.getExecutionStepInfo(),
-                environment.getExecutionContext()
-            );
-        }
+    protected final DataFetchingEnvironment wherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                             .arguments(arguments)
+                                             .fieldDefinition(fieldDefinition)
+                                             .fieldType(fieldDefinition.getType())
+                                             .build();
     }
-
-
+    
     /**
      * @param fieldName
      * @return Path of compound field to the primitive type
@@ -685,10 +624,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      */
     private EntityType<?> getEntityType(GraphQLObjectType objectType) {
         return entityManager.getMetamodel()
-            .getEntities().stream()
-            .filter(it -> it.getName().equals(objectType.getName()))
-            .findFirst()
-            .get();
+                            .getEntities().stream()
+                                          .filter(it -> it.getName().equals(objectType.getName()))
+                                          .findFirst()
+                                          .get();
     }
 
     /**
@@ -711,16 +650,15 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     }
 
     protected Optional<Argument> extractArgument(DataFetchingEnvironment environment, Field field, String argumentName) {
-        return field.getArguments()
-            .stream()
-            .filter(it -> argumentName.equals(it.getName()))
-            .findFirst();
+        return field.getArguments().stream()
+                                   .filter(it -> argumentName.equals(it.getName()))
+                                   .findFirst();
     }
 
 
     protected Argument extractArgument(DataFetchingEnvironment environment, Field field, String argumentName, Value defaultValue) {
         return extractArgument(environment, field, argumentName)
-            .orElse(new Argument(argumentName, defaultValue));
+                    .orElse(new Argument(argumentName, defaultValue));
     }
 
     protected GraphQLFieldDefinition getFieldDef(GraphQLSchema schema, GraphQLObjectType parentType, Field field) {
@@ -804,10 +742,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             ? field.getSelectionSet()
             : new SelectionSet(Collections.emptyList());
 
-        return selectionSet.getSelections()
-            .stream()
-            .filter(it -> it instanceof Field)
-            .map(it -> (Field) it);
+        return selectionSet.getSelections().stream()
+                                           .filter(it -> it instanceof Field)
+                                           .map(it -> (Field) it);
     }
 
     protected final Stream<Field> flatten(Field field) {
@@ -817,19 +754,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         return Stream.concat(
             Stream.of(field),
-            selectionSet.getSelections()
-            .stream()
-            .filter(it -> it instanceof Field)
-            .flatMap(selection -> this.flatten((Field) selection))
+            selectionSet.getSelections().stream()
+                                        .filter(it -> it instanceof Field)
+                                        .flatMap(selection -> this.flatten((Field) selection))
         );
     }
 
 
     @SuppressWarnings( "unchecked" )
     protected final <R extends Value> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
-        return (R) getObjectField(objectValue, fieldName)
-            .map(it-> it.getValue())
-            .orElse(new NullValue());
+        return (R) getObjectField(objectValue, fieldName).map(it-> it.getValue())
+                                                         .orElse(new NullValue());
     }
 
     @SuppressWarnings( "unchecked" )
@@ -839,19 +774,22 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     protected final Optional<ObjectField> getObjectField(ObjectValue objectValue, String fieldName) {
         return objectValue.getObjectFields().stream()
-            .filter(it -> fieldName.equals(it.getName()))
-            .findFirst();
+                                            .filter(it -> fieldName.equals(it.getName()))
+                                            .findFirst();
     }
 
     protected final Optional<Field> getSelectionField(Field field, String fieldName) {
         return field.getSelectionSet().getSelections().stream()
-            .filter(it -> it instanceof Field)
-            .map(it -> (Field) it)
-            .filter(it -> fieldName.equals(it.getName()))
-            .findFirst();
+                                                      .filter(it -> it instanceof Field)
+                                                      .map(it -> (Field) it)
+                                                      .filter(it -> fieldName.equals(it.getName()))
+                                                      .findFirst();
     }
 
+    @SuppressWarnings("rawtypes")
     class NullValue implements Value {
+        
+        private static final long serialVersionUID = 1L;
 
         @Override
         public List<Node> getChildren() {
