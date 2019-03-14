@@ -1,6 +1,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.embedded;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 
 import lombok.Data;
@@ -12,5 +13,9 @@ import lombok.EqualsAndHashCode;
 public class Car extends Vehicle {
 
     String brand;
+    
+    // Shared between Car and Boat. Fixes https://github.com/introproventures/graphql-jpa-query/issues/91
+    @Embedded
+    Engine engine;    
 
 }

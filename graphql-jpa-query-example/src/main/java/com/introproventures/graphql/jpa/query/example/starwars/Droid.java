@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.example.books;
-
-import java.util.Collection;
+package com.introproventures.graphql.jpa.query.example.starwars;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Data
 @Entity
-public class Author {
-	@Id
-	Long id;
+@GraphQLDescription("Represents an electromechanical robot in the Star Wars Universe")
+@Data
+@EqualsAndHashCode(callSuper=true)
+public class Droid extends Character {
 
-	String name;
+    @GraphQLDescription("Documents the primary purpose this droid serves")
+    String primaryFunction;
 
-	@OneToMany(mappedBy="author", fetch=FetchType.LAZY)
-	Collection<Book> books;
 }

@@ -7,12 +7,13 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-build</artifactId>
-    <version>0.3.15-SNAPSHOT</version>
+    <version>0.3.17-SNAPSHOT</version>
     <relativePath>../graphql-jpa-query-build</relativePath>
   </parent>
   
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
+    <skipDocker>${maven.deploy.skip}</skipDocker>
   </properties>
   
   <dependencies>
@@ -25,11 +26,6 @@
     <dependency>
       <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-schema</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.introproventures</groupId>
-      <artifactId>graphql-jpa-query-autoconfigure</artifactId>
     </dependency>
 
     <dependency>
@@ -118,13 +114,15 @@
                             <include>${project.build.finalName}.jar</include>
                         </resource>
                     </resources>
+
+                    <skipDocker>${skipDocker}</skipDocker>
                     
                     <!-- optionally overwrite tags every time image is built with docker:build -->
                     <forceTags>true</forceTags>
-						        <imageTags>
-						           <imageTag>${project.version}</imageTag>
-						           <imageTag>latest</imageTag>
-						        </imageTags>                    
+			        <imageTags>
+			           <imageTag>${project.version}</imageTag>
+			           <imageTag>latest</imageTag>
+			        </imageTags>                    
 
                 </configuration>
 
@@ -132,4 +130,5 @@
 
         </plugins>
     </build>
+    
 </project>
