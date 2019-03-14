@@ -36,7 +36,7 @@ import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
+import graphql.schema.DataFetchingEnvironmentBuilder;
 import graphql.schema.GraphQLObjectType;
 
 /**
@@ -47,6 +47,12 @@ import graphql.schema.GraphQLObjectType;
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 	
+    private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
+    private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+    private static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
+    private static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
+    private static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+
     public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
         super(entityManager, entityType);
     }
@@ -78,30 +84,17 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                 Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType)environment.getParentType(), field))
                     .map(it -> (GraphQLObjectType) it.getType())
                     .map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
-                    .map(it -> (DataFetchingEnvironment) 
-                        new DataFetchingEnvironmentImpl(
-                            environment.getSource(),
-                            environment.getArguments(), 
-                            environment.getContext(), 
-                            environment.getRoot(),
-                            environment.getFieldDefinition(),
-                            environment.getFields(), 
-                            it.getType(),
-                            environment.getParentType(),
-                            environment.getGraphQLSchema(),
-                            environment.getFragmentsByName(),
-                            environment.getExecutionId(),
-                            environment.getSelectionSet(),
-                            environment.getExecutionStepInfo(),
-                            environment.getExecutionContext()
-                        )).orElse(environment);
+                    .map(it -> DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                             .fieldType(it.getType())
+                                                             .build()
+                    ).orElse(environment);
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
-            // Let's clear first level entity cache to avoid getting stale objects cached in the same session 
+            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
             // between requests with different search criteria. This looks like a Hibernate bug... 
             entityManager.clear();
-
+            
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
@@ -117,13 +110,13 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             // reports on certain objects and you don't want a lot of the stuff that's normally flagged to 
             // load via eager annotations.
             EntityGraph<?> graph = buildEntityGraph(queryField);
-            query.setHint("javax.persistence.fetchgraph", graph);
+            query.setHint(JAVAX_PERSISTENCE_FETCHGRAPH, graph);
 
             // Let' try reduce overhead and disable all caching
-            query.setHint("org.hibernate.readOnly", true);
-            query.setHint("org.hibernate.fetchSize", 1000);
-            query.setHint("org.hibernate.cacheable", false);
-            query.setHint("hibernate.query.passDistinctThrough", false);
+            query.setHint(ORG_HIBERNATE_READ_ONLY, true);
+            query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
+            query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
         }

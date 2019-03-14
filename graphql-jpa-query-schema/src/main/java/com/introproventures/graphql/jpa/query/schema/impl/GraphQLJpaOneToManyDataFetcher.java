@@ -66,6 +66,10 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
 
             //EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
             
+            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
+            // between requests with different search criteria. This looks like a Hibernate bug... 
+            entityManager.clear();
+            
             return getQuery(environment, field, true)
                 //.setHint("javax.persistence.fetchgraph", entityGraph) // TODO: fix runtime exception
                 .getResultList();
@@ -114,23 +118,21 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
-        //CriteriaQuery<Tuple> query = cb.createTupleQuery();
         Root<?> from = query.from(entityType);
         
         from.alias("owner");
         
         // Must use inner join in parent context
         Join join = from.join(attribute.getName())
-            .on(cb.in(from.get(parentIdAttribute.getName())).value(parentIdValue));
+                        .on(cb.in(from.get(parentIdAttribute.getName()))
+                              .value(parentIdValue));
         
         query.select(join.alias(attribute.getName()));
-        //query.multiselect(from.alias("owner"), join.alias(attribute.getName()));
         
         List<Predicate> predicates = getFieldArguments(field, query, cb, join).stream()
-            .map(it -> getPredicate(cb, from, join, environment, it))
-            .filter(it -> it != null)
-            .collect(Collectors.toList());
-        
+                                                                              .map(it -> getPredicate(cb, from, join, environment, it))
+                                                                              .filter(it -> it != null)
+                                                                              .collect(Collectors.toList());
         query.where(
             predicates.toArray(new Predicate[predicates.size()])
         );
