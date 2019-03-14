@@ -35,9 +35,11 @@ public class Book {
 	@Id
 	Long id;
 
+	String title;
+
 	@GraphQLIgnoreOrder
 	@GraphQLIgnoreFilter
-	String title;
+	String description;
 
 	@ManyToOne(fetch=FetchType.LAZY)
 	Author author;

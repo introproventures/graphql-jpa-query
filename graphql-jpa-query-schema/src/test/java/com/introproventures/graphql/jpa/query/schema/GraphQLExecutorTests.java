@@ -26,6 +26,7 @@ import javax.persistence.EntityManager;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.ErrorType;
+import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
 import org.junit.Test;
@@ -678,7 +679,10 @@ public class GraphQLExecutorTests {
     @Test
     public void ignoreFilter() {
         //given
-        String query = "{ Books(where: {title: {EQ: \"title\"}} ) { select { id title } }}";;
+        String query = "{ Books(where: {description: {LIKE: \"%Chekhov%\"}} ) { select { id title description} }}";
+
+        ExecutionResult res = executor.execute(query);
+
 
         List<GraphQLError> result = executor.execute(query).getErrors();
 
@@ -692,9 +696,28 @@ public class GraphQLExecutorTests {
     }
 
     @Test
-    public void ignoreOrder() {
+    public void ignoreSubFilter() {
         //given
-        String query = "{ Books{ select { id title(orderBy:ASC) } }}";;
+        String query = "query { "
+                + "Authors(where: {" +
+                "    books: {" +
+                "      OR: { "+
+                "        genre: {IN: NOVEL}" +
+                "        description: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
 
         List<GraphQLError> result = executor.execute(query).getErrors();
 
@@ -703,7 +726,41 @@ public class GraphQLExecutorTests {
         assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
                 .extracting(ValidationError.class::cast)
                 .extracting("errorType", "queryPath")
-                .contains(ErrorType.ValidationError, Arrays.asList("Books", "select", "title"));
+                .contains(ErrorType.ValidationError, Arrays.asList("Authors"));
 
+    }
+
+    @Test
+    public void ignoreOrder() {
+        //given
+        String query = "{ Books{ select { id description(orderBy:ASC) } }}";
+
+        List<GraphQLError> result = executor.execute(query).getErrors();
+
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
+                .extracting(ValidationError.class::cast)
+                .extracting("errorType", "queryPath")
+                .contains(ErrorType.ValidationError, Arrays.asList("Books", "select", "description"));
+
+    }
+
+    @Test
+    public void titleOrder() {
+        //given
+        String query = "{ Books{ select { id title(orderBy:ASC) description } }}";
+
+        String expected = "{Books={select=[" +
+                "{id=3, title=Anna Karenina, description=A complex novel in eight parts, with more than a dozen major characters, it is spread over more than 800 pages (depending on the translation), typically contained in two volumes.}, " +
+                "{id=5, title=The Cherry Orchard, description=The play concerns an aristocratic Russian landowner who returns to her family estate (which includes a large and well-known cherry orchard) just before it is auctioned to pay the mortgage.}, " +
+                "{id=6, title=The Seagull, description=It dramatises the romantic and artistic conflicts between four characters}, " +
+                "{id=7, title=Three Sisters, description=The play is sometimes included on the short list of Chekhov's outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]}, " +
+                "{id=2, title=War and Peace, description=The novel chronicles the history of the French invasion of Russia and the impact of the Napoleonic era on Tsarist society through the stories of five Russian aristocratic families.}]}}";
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
     }
 }
