@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-build</artifactId>
-    <version>0.3.16-SNAPSHOT</version>
+    <version>0.3.16</version>
     <relativePath>../graphql-jpa-query-build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-web</artifactId>
