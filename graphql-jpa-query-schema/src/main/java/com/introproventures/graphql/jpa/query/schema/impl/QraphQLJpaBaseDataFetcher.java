@@ -121,7 +121,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         from.alias(from.getModel().getName());
 
         // Build predicates from query arguments
-        List<Predicate> predicates =  getFieldArguments(field, query, cb, from)
+        List<Predicate> predicates =  getFieldArguments(field, query, cb, from, environment)
             .stream()
             .map(it -> getPredicate(cb, from, from, environment, it))
             .filter(it -> it != null)
@@ -137,7 +137,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return entityManager.createQuery(query.distinct(isDistinct));
     }
 
-    protected final List<Argument> getFieldArguments(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, From<?,?> from) {
+    protected final List<Argument> getFieldArguments(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
 
@@ -178,16 +178,14 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
                                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                             ) {
-                                from.fetch(selectedField.getName());
+                                reuseJoin(from, selectedField.getName(), false);
                             }
                         }
                     } else  {
                         // We must add plural attributes with explicit join to avoid Hibernate error: 
                         // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                        if(selectedField.getSelectionSet() != null)
-                            reuseJoin(from, selectedField.getName(), false);
-                        else
-                            from.fetch(selectedField.getName());
+                        // TODO Let's try detect many-to-many relation and reuse outer join
+                        reuseJoin(from, selectedField.getName(), false);
                     }
                 }
             }
@@ -408,8 +406,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         Optional<Predicate> relationPredicate = predicates.stream().findFirst();
         
         // Let's check if relation criteria predicate exists, to avoid adding duplicate predicates in the query
-        if(relationPredicate.isPresent())
+        if(relationPredicate.isPresent()) {
             return relationPredicate.get();
+        }
         
         JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
 

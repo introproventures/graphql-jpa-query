@@ -129,7 +129,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         
         query.select(join.alias(attribute.getName()));
         
-        List<Predicate> predicates = getFieldArguments(field, query, cb, join).stream()
+        List<Predicate> predicates = getFieldArguments(field, query, cb, join, environment).stream()
                                                                               .map(it -> getPredicate(cb, from, join, environment, it))
                                                                               .filter(it -> it != null)
                                                                               .collect(Collectors.toList());

@@ -693,6 +693,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY;
     }
 
+    protected final boolean isOneToMany(Attribute<?,?> attribute) {
+        return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY;
+    }
+    
     protected final boolean isToOne(Attribute<?,?> attribute) {
     	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE;
