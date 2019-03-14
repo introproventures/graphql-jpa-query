@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.example.books;
 import java.util.Collection;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -32,6 +33,6 @@ public class Author {
 
 	String name;
 
-	@OneToMany(mappedBy="author")
+	@OneToMany(mappedBy="author", fetch=FetchType.LAZY)
 	Collection<Book> books;
 }

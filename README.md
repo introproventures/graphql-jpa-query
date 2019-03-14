@@ -150,7 +150,7 @@ Will return:
     
 Query Wrapper with Where Criteria Expressions
 -------------------------------------
-This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like OR, AND, EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL, BETWEEN, NOT_BETWEEN.
+This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL, BETWEEN, NOT_BETWEEN. You can use logical AND/OR combinations in SQL criteria expressions to specify complex criterias to fetch your data from SQL database. If you omit, where argument, all entities will be returned.
 
 For Example: 
 
@@ -173,7 +173,200 @@ Will return:
         }
     }
 
-You can use familiar SQL criteria expressions to specify complex criterias to fetch your data from SQL database. If you omit, where argument, all entities will be returned.
+Relation Attributes in Where Criteria Expressions:
+----------------------------
+It is also possible to specify complex filters using many-to-one and one-to-many entity attributes in where criteria expressions with variable parameter bindings, i.e.
+
+Given the following query with many-to-one relation with variables `{"authorId": 1 }` :
+
+```
+query($authorId: Long) {  
+  Books(where: {
+    author: {id: {EQ: $authorId}}
+  }) {
+    select {
+      id
+      title
+      genre
+      author {
+        id
+        name
+      }
+    }
+  }
+}
+```
+
+will result in
+
+```
+{
+  "data": {
+    "Books": {
+      "select": [
+        {
+          "id": 2,
+          "title": "War and Peace",
+          "genre": "NOVEL",
+          "author": {
+            "id": 1,
+            "name": "Leo Tolstoy"
+          }
+        },
+        {
+          "id": 3,
+          "title": "Anna Karenina",
+          "genre": "NOVEL",
+          "author": {
+            "id": 1,
+            "name": "Leo Tolstoy"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+And given the following query with one-to-many relation:
+
+```
+query {
+  Authors(where: {
+    books: {genre: {IN: NOVEL}}
+  }) {
+    select {
+      id
+      name
+      books {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+will result in 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            },
+            {
+              "id": 3,
+              "title": "Anna Karenina",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+It is possible to use compound criterias in where search expressions given:
+
+```
+query {
+  Authors(where: {
+    books: {
+      genre: {IN: NOVEL}
+      title: {LIKE: "War"}
+    }
+  }) {
+    select {
+      id
+      name
+      books {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+Will return filtered inner collection result: 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+It is also possible to filter inner collections as follows:
+
+```
+query {
+  Authors(where: {
+    books: {genre: {IN: NOVEL}}
+  }) {
+    select {
+      id
+      name
+      books(where: {title: {LIKE: "War"}}) {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+will result in 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```    
 
 Collection Filtering
 --------------------

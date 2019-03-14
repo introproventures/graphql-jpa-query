@@ -19,11 +19,10 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -473,5 +475,201 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void queryForBooksWithWhereAuthorById() {
+        //given
+        String query = "query { "
+                + "Books(where: {author: {id: {EQ: 1}}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "      author {" + 
+                "        id" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
 
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL, author={id=1, name=Leo Tolstoy}}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL, author={id=1, name=Leo Tolstoy}}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryForBooksWithWhereAuthorEqIdWithVariables() {
+        //given
+        String query = "query($authorId: Long ) { "
+                + "  Books(where: {" + 
+                "    author: {id: {EQ: $authorId}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "    }" + 
+                "  }"+
+                "}";
+        Map<String, Object> variables = new HashMap<String, Object>() {{
+            put("authorId", 1L);
+        }};
+
+
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query, variables).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+        
+    
+    
+    @Test
+    public void queryForAuthorssWithWhereBooksGenreEquals() {
+        //given
+        String query = "query { "
+                + "Authors(where: {books: {genre: {EQ: NOVEL}}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}, {id=3, title=Anna Karenina, genre=NOVEL}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+    
+
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsImplicitAND() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    books: {" + 
+                "      genre: {IN: NOVEL}" + 
+                "      title: {LIKE: \"War\"}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsWithExplictAND() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    books: {" + 
+                "      AND: { "+
+                "        genre: {IN: NOVEL}" + 
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsWithExplictOR() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    books: {" + 
+                "      OR: { "+
+                "        genre: {IN: NOVEL}" + 
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    
 }
