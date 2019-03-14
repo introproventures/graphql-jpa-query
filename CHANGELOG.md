@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.16-SNAPSHOT
+## 0.3.16
+* fix: use embeddableType javaType to cache corresponding GraphQL type  (#98) [ce4f85a](https://github.com/introproventures/graphql-jpa-query/commit/ce4f85a462d9c746d62c56e3f69be5beebd9d28c)
+* feat: add where relation attributes criteria expressions (#96) [b296d8a](https://github.com/introproventures/graphql-jpa-query/commit/b296d8a2c9ad9d0a8b6b58d54f5cd6dcfded953f)
+* chore: skip Docker plugin on release  [2933500](https://github.com/introproventures/graphql-jpa-query/commit/2933500644bd6b781919a24c5583c6708f046a13)
 * fix: spring.graphql.jpa.query.path must be specified (#94) [3094a6d](https://github.com/introproventures/graphql-jpa-query/commit/3094a6d130ecb5247dcafc312a03e3c6902bfada)
 * fix: Configuration properties are ignored when merging bug (#88) [f838056](https://github.com/introproventures/graphql-jpa-query/commit/f838056009ca884d45e451b96a7a28dd8f9ea5a1)
 * fix: upgrade to Spring Boot 2.1.3.RELEASE (#87) [ee0aa6c](https://github.com/introproventures/graphql-jpa-query/commit/ee0aa6c9ad5fead0f5a15e2133460fdebb9a0724)
