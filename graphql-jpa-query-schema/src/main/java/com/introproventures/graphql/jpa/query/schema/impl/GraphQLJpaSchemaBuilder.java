@@ -102,8 +102,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
     private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
-    private Map<EmbeddableType<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
-    private Map<EmbeddableType<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
+    private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
+    private Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
     
     private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
@@ -206,7 +206,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    private Map<ManagedType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+    private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
     	String typeName="";
@@ -218,7 +218,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
 		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
         
-        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType);
+        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType.getJavaType());
         
         if(whereArgument != null)
             return whereArgument;
@@ -259,12 +259,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .build();
         
         whereArgument = GraphQLArgument.newArgument()
-            .name(QUERY_WHERE_PARAM_NAME)
-            .description("Where logical specification")
-            .type(whereInputObject)
-            .build();
+                                       .name(QUERY_WHERE_PARAM_NAME)
+                                       .description("Where logical specification")
+                                       .type(whereInputObject)
+                                       .build();
         
-        whereArgumentsMap.put(managedType, whereArgument);
+        whereArgumentsMap.put(managedType.getJavaType(), whereArgument);
         
         return whereArgument;
         
@@ -475,11 +475,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input) {
-        if (input && embeddableInputCache.containsKey(embeddableType))
-            return embeddableInputCache.get(embeddableType);
+        if (input && embeddableInputCache.containsKey(embeddableType.getJavaType()))
+            return embeddableInputCache.get(embeddableType.getJavaType());
 
-        if (!input && embeddableOutputCache.containsKey(embeddableType))
-            return embeddableOutputCache.get(embeddableType);
+        if (!input && embeddableOutputCache.containsKey(embeddableType.getJavaType()))
+            return embeddableOutputCache.get(embeddableType.getJavaType());
         String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+ (input ? "Input" : "") +"EmbeddableType";
         GraphQLType graphQLType=null;
         if (input) {
@@ -504,9 +504,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .build();
         }
         if (input) {
-            embeddableInputCache.putIfAbsent(embeddableType, (GraphQLInputObjectType) graphQLType);
+            embeddableInputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLInputObjectType) graphQLType);
         } else{
-            embeddableOutputCache.putIfAbsent(embeddableType, (GraphQLObjectType) graphQLType);
+            embeddableOutputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLObjectType) graphQLType);
         }
         
         return graphQLType;
