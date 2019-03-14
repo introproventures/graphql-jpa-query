@@ -206,7 +206,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    private Map<ManagedType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+    private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
     	String typeName="";
@@ -218,7 +218,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
 		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
         
-        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType);
+        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType.getJavaType());
         
         if(whereArgument != null)
             return whereArgument;
@@ -259,12 +259,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .build();
         
         whereArgument = GraphQLArgument.newArgument()
-            .name(QUERY_WHERE_PARAM_NAME)
-            .description("Where logical specification")
-            .type(whereInputObject)
-            .build();
+                                       .name(QUERY_WHERE_PARAM_NAME)
+                                       .description("Where logical specification")
+                                       .type(whereInputObject)
+                                       .build();
         
-        whereArgumentsMap.put(managedType, whereArgument);
+        whereArgumentsMap.put(managedType.getJavaType(), whereArgument);
         
         return whereArgument;
         
