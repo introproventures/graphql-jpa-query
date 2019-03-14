@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.16
+## 0.3.17-SNAPSHOT
 * fix: use embeddableType javaType to cache corresponding GraphQL type  (#98) [ce4f85a](https://github.com/introproventures/graphql-jpa-query/commit/ce4f85a462d9c746d62c56e3f69be5beebd9d28c)
 * feat: add where relation attributes criteria expressions (#96) [b296d8a](https://github.com/introproventures/graphql-jpa-query/commit/b296d8a2c9ad9d0a8b6b58d54f5cd6dcfded953f)
 * chore: skip Docker plugin on release  [2933500](https://github.com/introproventures/graphql-jpa-query/commit/2933500644bd6b781919a24c5583c6708f046a13)
