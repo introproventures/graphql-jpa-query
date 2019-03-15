@@ -661,7 +661,7 @@ public class StarwarsQueryExecutorTests {
                 "      name" + 
                 "      favoriteDroid {" + 
                 "        name" + 
-                "        primaryFunction" + 
+                "        primaryFunction { function }" + 
                 "        appearsIn" + 
                 "      }" + 
                 "      friends {" + 
@@ -698,7 +698,7 @@ public class StarwarsQueryExecutorTests {
                 "      favoriteDroid {" + 
                 "        id" + 
                 "        name" + 
-                "        primaryFunction" + 
+                "        primaryFunction { function }" + 
                 "      }" + 
                 "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
                 "        id" + 
@@ -709,7 +709,7 @@ public class StarwarsQueryExecutorTests {
                 "}";
 
         String expected = "{Humans={select=["
-                + "{id=1000, name=Luke Skywalker, favoriteDroid={id=2000, name=C-3PO, primaryFunction=Protocol}, friends=[{id=1003, name=Leia Organa}]}"
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={id=2000, name=C-3PO, primaryFunction={function=Protocol}}, friends=[{id=1003, name=Leia Organa}]}"
                 + "]}}";
 
         //when:
