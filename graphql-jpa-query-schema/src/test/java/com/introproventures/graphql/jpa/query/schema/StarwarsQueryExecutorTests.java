@@ -792,7 +792,7 @@ public class StarwarsQueryExecutorTests {
                 "}";
 
         String expected = "{Humans={" +
-                "select=[" +
+                "select=[" +/*
                                 "{" +
                                     "id=1000, " +
                                     "name=Luke Skywalker, " +
@@ -804,20 +804,20 @@ public class StarwarsQueryExecutorTests {
                                         "}" +
                                     "}" +
                                 "}, " +
-                                
-                "{" +
-                "id=1001, " +
-                "name=Darth Vader, " +
-                "homePlanet=Tatooine, " +
-                "favoriteDroid={" +
-                "name=R2-D2, " +
-                "primaryFunction={" +
-                "function=Astromech" +
-                "}" +
-                "}" +
-                "}" +
+                                */
+                    "{" +
+                        "id=1001, " +
+                        "name=Darth Vader, " +
+                        "homePlanet=Tatooine, " +
+                        "favoriteDroid={" +
+                            "name=R2-D2, " +
+                            "primaryFunction={" +
+                                "function=Astromech" +
+                            "}" +
+                        "}" +
+                    "}" +
                 "]" +
-                "}}";
+            "}}";
 
         //when:
         Object result = executor.execute(query).getData();
