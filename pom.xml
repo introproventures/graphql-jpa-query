@@ -5,7 +5,7 @@
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query</artifactId>
 
-    <version>0.3.14-SNAPSHOT</version>
+    <version>0.3.17-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -35,6 +35,7 @@
         <module>graphql-jpa-query-schema</module>
         <module>graphql-jpa-query-boot-starter</module>
         <module>graphql-jpa-query-example</module>
+        <module>graphql-jpa-query-example-merge</module>
         <module>graphql-jpa-query-dependencies</module>
         <module>graphql-jpa-query-build</module>
         <module>graphql-jpa-query-autoconfigure</module>
@@ -198,7 +199,7 @@
                     <tagNameFormat>@{version}</tagNameFormat>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<releaseProfiles>releases</releaseProfiles>
-                    <arguments>-DskipTests</arguments>
+                    <arguments>-DskipTests -DskipDocker</arguments>
 					<mavenExecutorId>forked-path</mavenExecutorId>
 					<preparationGoals>clean git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md	-Dmessage="[maven-release-plugin] Update CHANGELOG.md" verify</preparationGoals>
 					<completionGoals>git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md -Dmessage="[maven-release-plugin] Update CHANGELOG.md"</completionGoals>

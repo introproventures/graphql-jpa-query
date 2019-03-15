@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -42,12 +43,17 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.CachedIntrospectionResult.CachedPropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.Assert;
 import graphql.Scalars;
 import graphql.schema.Coercing;
@@ -65,8 +71,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -76,6 +80,8 @@ import org.slf4j.LoggerFactory;
  */
 public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
+    private static final String AND = "AND";
+    private static final String OR = "OR";
     public static final String PAGE_PARAM_NAME = "page";
     public static final String PAGE_TOTAL_PARAM_NAME = "total";
     public static final String PAGE_PAGES_PARAM_NAME = "pages";
@@ -93,15 +99,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
     
-    private Map<Class<?>, GraphQLType> classCache = new HashMap<>();
+    private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
-    private Map<EmbeddableType<?>, GraphQLObjectType> embeddableCache = new HashMap<>();
+    private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
+    private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
+    private Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
     
     private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
     private EntityManager entityManager;
      
-    private String name = "GraphQL JPA Schema";
+    private String name = "GraphQLJPAQuery";
     
     private String description = "GraphQL Schema for all entities in this JPA application";
 
@@ -198,19 +206,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    private Map<ManagedType<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+    private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
     	String typeName="";
     	if (managedType instanceof EmbeddableType){
 			typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
 		} else if (managedType instanceof EntityType) {
-			typeName = ((EntityType)managedType).getName();
+			typeName = ((EntityType<?>)managedType).getName();
 		}
 
 		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
         
-        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType);
+        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType.getJavaType());
         
         if(whereArgument != null)
             return whereArgument;
@@ -219,13 +227,74 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .name(type)
             .description("Where logical AND specification of the provided list of criteria expressions")
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name("OR")
+                                          .name(OR)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLTypeReference(type))
+                                          .build()
+            )
+            .field(GraphQLInputObjectField.newInputObjectField()
+                                          .name(AND)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLTypeReference(type))
+                                          .build()
+            )
+            .fields(managedType.getAttributes().stream()
+                                               .filter(this::isValidInput)
+                                               .filter(this::isNotIgnored)
+                                               .map(this::getWhereInputField)
+                                               .collect(Collectors.toList())
+            )
+            .fields(managedType.getAttributes().stream()
+                                               .filter(this::isToOne)
+                                               .filter(this::isNotIgnored)
+                                               .map(this::getInputObjectField)
+                                               .collect(Collectors.toList())
+            )
+            .fields(managedType.getAttributes().stream()
+                                                .filter(this::isToMany)
+                                                .filter(this::isNotIgnored)
+                                                .map(this::getInputObjectField)
+                                                .collect(Collectors.toList())
+            )
+            .build();
+        
+        whereArgument = GraphQLArgument.newArgument()
+                                       .name(QUERY_WHERE_PARAM_NAME)
+                                       .description("Where logical specification")
+                                       .type(whereInputObject)
+                                       .build();
+        
+        whereArgumentsMap.put(managedType.getJavaType(), whereArgument);
+        
+        return whereArgument;
+        
+    }
+
+    private GraphQLInputObjectType getWhereInputType(ManagedType<?> managedType) {
+        return inputObjectCache.computeIfAbsent(managedType, this::computeWhereInputType);
+    }
+    
+    private GraphQLInputObjectType computeWhereInputType(ManagedType<?> managedType) {
+        String typeName="";
+        if (managedType instanceof EmbeddableType){
+            typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
+        } else if (managedType instanceof EntityType) {
+            typeName = ((EntityType<?>)managedType).getName();
+        }
+
+        String type = namingStrategy.pluralize(typeName)+"RelationCriteriaExpression";
+        
+        GraphQLInputObjectType whereInputObject = GraphQLInputObjectType.newInputObject()
+            .name(type)
+            .description("Where logical AND specification of the provided list of criteria expressions")
+            .field(GraphQLInputObjectField.newInputObjectField()
+                .name(OR)
                 .description("Logical operation for expressions")
                 .type(new GraphQLTypeReference(type))
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name("AND")
+                .name(AND)
                 .description("Logical operation for expressions")
                 .type(new GraphQLTypeReference(type))
                 .build()
@@ -238,27 +307,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             )
             .build();
         
-        whereArgument = GraphQLArgument.newArgument()
-            .name(QUERY_WHERE_PARAM_NAME)
-            .description("Where logical specification")
-            .type(whereInputObject)
-            .build();
+        return whereInputObject;
         
-        whereArgumentsMap.put(managedType, whereArgument);
-        
-        return whereArgument;
-        
-    }
-    
+    }    
+
     private GraphQLInputObjectField getWhereInputField(Attribute<?,?> attribute) {
-        GraphQLType type = getWhereAttributeType(attribute);
+        GraphQLInputType type = getWhereAttributeType(attribute);
         String description = getSchemaDescription(attribute.getJavaMember());
 
         if (type instanceof GraphQLInputType) {
             return GraphQLInputObjectField.newInputObjectField()
                 .name(attribute.getName())
                 .description(description)
-                .type((GraphQLInputType) type)
+                .type(type)
                 .build(); 
         }
 
@@ -268,23 +329,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Map<String, GraphQLInputType> whereAttributesMap = new HashMap<>();
     
     private GraphQLInputType getWhereAttributeType(Attribute<?,?> attribute) {
-        //String type =  namingStrategy.singularize(attribute.getName())+((EntityType<?>)attribute.getDeclaringType()).getName()+"Criteria";
-    	String type =  namingStrategy.singularize(attribute.getName())+attribute.getDeclaringType().getJavaType().getSimpleName()+"Criteria";
+        String type =  namingStrategy.singularize(attribute.getName())+attribute.getDeclaringType().getJavaType().getSimpleName()+"Criteria";
 
-    	if(whereAttributesMap.containsKey(type))
+        if(whereAttributesMap.containsKey(type))
            return whereAttributesMap.get(type);
        
-    	GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject()
+        GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject()
             .name(type)
             .description("Criteria expression specification of "+namingStrategy.singularize(attribute.getName())+" attribute in entity " + attribute.getDeclaringType().getJavaType())
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name("OR")
+                .name(OR)
                 .description("Logical OR criteria expression")
                 .type(new GraphQLTypeReference(type))
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name("AND")
+                .name(AND)
                 .description("Logical AND criteria expression")
                 .type(new GraphQLTypeReference(type))
                 .build()
@@ -292,13 +352,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.EQ.name())
                 .description("Equals criteria")
-                .type((GraphQLInputType) getAttributeType(attribute))
+                .type(getAttributeInputType(attribute))
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.NE.name())
                 .description("Not Equals criteria")
-                .type((GraphQLInputType) getAttributeType(attribute))
+                .type(getAttributeInputType(attribute))
                 .build()
             );
        
@@ -307,25 +367,25 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     builder.field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.LE.name())
                         .description("Less then or Equals criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.GE.name())
                         .description("Greater or Equals criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.GT.name())
                         .description("Greater Then criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.LT.name())
                         .description("Less Then criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     );
                 }
@@ -334,25 +394,25 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     builder.field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.LIKE.name())
                         .description("Like criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.CASE.name())
                         .description("Case sensitive match criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.STARTS.name())
                         .description("Starts with criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     )
                     .field(GraphQLInputObjectField.newInputObjectField()
                         .name(Criteria.ENDS.name())
                         .description("Ends with criteria")
-                        .type((GraphQLInputType) getAttributeType(attribute))
+                        .type(getAttributeInputType(attribute))
                         .build()
                     );
                 }
@@ -373,25 +433,25 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.IN.name())
                 .description("In criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.NIN.name())
                 .description("Not In criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
             )
            .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.BETWEEN.name())
                 .description("Between criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
            )
            .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.NOT_BETWEEN.name())
                 .description("Not Between criteria")
-                .type(new GraphQLList(getAttributeType(attribute)))
+                .type(new GraphQLList(getAttributeInputType(attribute)))
                 .build()
            );
 
@@ -404,133 +464,202 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private GraphQLArgument getArgument(Attribute<?,?> attribute) {
-        GraphQLType type = getAttributeType(attribute);
+        GraphQLInputType type = getAttributeInputType(attribute);
         String description = getSchemaDescription(attribute.getJavaMember());
 
-        if (type instanceof GraphQLInputType) {
-            return GraphQLArgument.newArgument()
-                    .name(attribute.getName())
-                    .type((GraphQLInputType) type)
-                    .description(description)
-                    .build();
-        }
-
-        throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Input Argument");
+        return GraphQLArgument.newArgument()
+                .name(attribute.getName())
+                .type(type)
+                .description(description)
+                .build();
     }
     
-    private GraphQLObjectType getEmbeddableType(EmbeddableType<?> embeddableType) {
-        if (embeddableCache.containsKey(embeddableType))
-            return embeddableCache.get(embeddableType);        
+    private GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input) {
+        if (input && embeddableInputCache.containsKey(embeddableType.getJavaType()))
+            return embeddableInputCache.get(embeddableType.getJavaType());
 
-        String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+"EmbeddableType";
+        if (!input && embeddableOutputCache.containsKey(embeddableType.getJavaType()))
+            return embeddableOutputCache.get(embeddableType.getJavaType());
+        String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+ (input ? "Input" : "") +"EmbeddableType";
+        GraphQLType graphQLType=null;
+        if (input) {
+            graphQLType = GraphQLInputObjectType.newInputObject()
+                    .name(embeddableTypeName)
+                    .description(getSchemaDescription(embeddableType.getJavaType()))
+                    .fields(embeddableType.getAttributes().stream()
+                            .filter(this::isNotIgnored)
+                            .map(this::getInputObjectField)
+                            .collect(Collectors.toList())
+                    )
+                    .build();
+        } else {
+            graphQLType = GraphQLObjectType.newObject()
+                    .name(embeddableTypeName)
+                    .description(getSchemaDescription(embeddableType.getJavaType()))
+                    .fields(embeddableType.getAttributes().stream()
+                            .filter(this::isNotIgnored)
+                            .map(this::getObjectField)
+                            .collect(Collectors.toList())
+                    )
+                    .build();
+        }
+        if (input) {
+            embeddableInputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLInputObjectType) graphQLType);
+        } else{
+            embeddableOutputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLObjectType) graphQLType);
+        }
         
-        GraphQLObjectType objectType = GraphQLObjectType.newObject()
-                .name(embeddableTypeName)
-                .description(getSchemaDescription( embeddableType.getJavaType()))
-                .fields(embeddableType.getAttributes().stream()
-                    .filter(this::isNotIgnored)
-                    .map(this::getObjectField)
-                    .collect(Collectors.toList())
-                )
-                .build();
-        
-        embeddableCache.putIfAbsent(embeddableType, objectType);
-        
-        return objectType;
+        return graphQLType;
     }
     
 
     private GraphQLObjectType getObjectType(EntityType<?> entityType) {
-        if (entityCache.containsKey(entityType))
-            return entityCache.get(entityType);        
-        
-        
-        GraphQLObjectType objectType = GraphQLObjectType.newObject()
-                .name(entityType.getName())
-                .description(getSchemaDescription( entityType.getJavaType()))
-                .fields(entityType.getAttributes().stream()
-                    .filter(this::isNotIgnored)
-                    .map(this::getObjectField)
-                    .collect(Collectors.toList())
-                )
-                .build();
-        
-        entityCache.putIfAbsent(entityType, objectType);
-        
-        return objectType;
+        return entityCache.computeIfAbsent(entityType, this::computeObjectType);
+    }
+    
+    
+    private GraphQLObjectType computeObjectType(EntityType<?> entityType) {
+    	return GraphQLObjectType.newObject()
+				                .name(entityType.getName())
+				                .description(getSchemaDescription(entityType.getJavaType()))
+				                .fields(getEntityAttributesFields(entityType))
+				                .fields(getTransientFields(entityType.getJavaType()))
+				                .build();
     }
 
+    private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
+    	return entityType.getAttributes()
+    					 .stream()
+				         .filter(this::isNotIgnored)
+				         .map(this::getObjectField)
+				         .collect(Collectors.toList());    	
+    }
+
+    
+    private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
+        return IntrospectionUtils.introspect(clazz)
+			 				     .getPropertyDescriptors().stream()
+			        			 .filter(it -> it.isAnnotationPresent(Transient.class))
+			        			 .map(CachedPropertyDescriptor::getDelegate)
+			        			 .filter(it -> isNotIgnored(it.getPropertyType()))
+			        			 .map(this::getJavaFieldDefinition)
+			        			 .collect(Collectors.toList());
+    }
+    
+    @SuppressWarnings( { "rawtypes" } )
+    private GraphQLFieldDefinition getJavaFieldDefinition(PropertyDescriptor propertyDescriptor) {
+    	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
+        DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
+
+        return GraphQLFieldDefinition.newFieldDefinition()
+                .name(propertyDescriptor.getName())
+                .description(getSchemaDescription(propertyDescriptor.getPropertyType()))
+                .type(type)
+                .dataFetcher(dataFetcher)
+                .build();
+    }
+    
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     private GraphQLFieldDefinition getObjectField(Attribute attribute) {
-        GraphQLType type = getAttributeType(attribute);
+        GraphQLOutputType type = getAttributeOutputType(attribute);
 
-        if (type instanceof GraphQLOutputType) {
-            List<GraphQLArgument> arguments = new ArrayList<>();
-            DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
+        List<GraphQLArgument> arguments = new ArrayList<>();
+        DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
 
-            // Only add the orderBy argument for basic attribute types
-            if (attribute instanceof SingularAttribute 
-                && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
-                arguments.add(GraphQLArgument.newArgument()
-                    .name(ORDER_BY_PARAM_NAME)
-                    .description("Specifies field sort direction in the query results.")
-                    .type(orderByDirectionEnum)
-                    .build()
-                );            
-            }
-            
-            // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
-            if (attribute instanceof SingularAttribute
-                && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
-                ManagedType foreignType = (ManagedType) ((SingularAttribute) attribute).getType();
-
-                // TODO fix page count query
-                arguments.add(getWhereArgument(foreignType));
-
-            } //  Get Sub-Objects fields queries via DataFetcher
-            else if (attribute instanceof PluralAttribute
-                && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
-                    || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)) {
-                EntityType declaringType = (EntityType) ((PluralAttribute) attribute).getDeclaringType();
-                EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
-
-                arguments.add(getWhereArgument(elementType));
-                dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, declaringType, (PluralAttribute) attribute);
-            }
-
-            return GraphQLFieldDefinition.newFieldDefinition()
-                    .name(attribute.getName())
-                    .description(getSchemaDescription(attribute.getJavaMember()))
-                    .type((GraphQLOutputType) type)
-                    .dataFetcher(dataFetcher)
-                    .argument(arguments)
-                    .build();
+        // Only add the orderBy argument for basic attribute types
+        if (attribute instanceof SingularAttribute
+            && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
+            arguments.add(GraphQLArgument.newArgument()
+                .name(ORDER_BY_PARAM_NAME)
+                .description("Specifies field sort direction in the query results.")
+                .type(orderByDirectionEnum)
+                .build()
+            );
         }
 
-        throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Output Argument");
+        // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
+        if (attribute instanceof SingularAttribute
+            && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
+            ManagedType foreignType = getForeignType(attribute);
+
+            // TODO fix page count query
+            arguments.add(getWhereArgument(foreignType));
+
+        } //  Get Sub-Objects fields queries via DataFetcher
+        else if (attribute instanceof PluralAttribute
+            && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
+                || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)) {
+            EntityType declaringType = (EntityType) ((PluralAttribute) attribute).getDeclaringType();
+            EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
+
+            arguments.add(getWhereArgument(elementType));
+            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, declaringType, (PluralAttribute) attribute);
+        }
+
+        return GraphQLFieldDefinition.newFieldDefinition()
+                .name(attribute.getName())
+                .description(getSchemaDescription(attribute.getJavaMember()))
+                .type(type)
+                .dataFetcher(dataFetcher)
+                .argument(arguments)
+                .build();
+    }
+
+    protected ManagedType<?> getForeignType(Attribute<?,?> attribute) {
+        return (ManagedType<?>) ((SingularAttribute<?,?>) attribute).getType();
+    }
+    
+    @SuppressWarnings( { "rawtypes" } )
+    private GraphQLInputObjectField getInputObjectField(Attribute attribute) {
+        GraphQLInputType type = getAttributeInputType(attribute);
+
+        return GraphQLInputObjectField.newInputObjectField()
+                .name(attribute.getName())
+                .description(getSchemaDescription(attribute.getJavaMember()))
+                .type(type)
+                .build();
     }
 
     private Stream<Attribute<?,?>> findBasicAttributes(Collection<Attribute<?,?>> attributes) {
         return attributes.stream().filter(it -> it.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC);
     }
 
+    private GraphQLInputType getAttributeInputType(Attribute<?,?> attribute) {
+        
+        try {
+            return (GraphQLInputType) getAttributeType(attribute, true);
+        } catch (ClassCastException e){
+            throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Input Argument");
+        }
+    }
+
+    private GraphQLOutputType getAttributeOutputType(Attribute<?,?> attribute) {
+        try {
+            return (GraphQLOutputType) getAttributeType(attribute, false);
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Output Argument");
+        }
+    }
+
     @SuppressWarnings( "rawtypes" )
-    private GraphQLType getAttributeType(Attribute<?,?> attribute) {
+    private GraphQLType getAttributeType(Attribute<?,?> attribute, boolean input) {
 
         if (isBasic(attribute)) {
         	return getGraphQLTypeFromJavaType(attribute.getJavaType());
         } 
         else if (isEmbeddable(attribute)) {
         	EmbeddableType embeddableType = (EmbeddableType) ((SingularAttribute) attribute).getType();
-        	return getEmbeddableType(embeddableType);
+        	return getEmbeddableType(embeddableType, input);
         } 
         else if (isToMany(attribute)) {
             EntityType foreignType = (EntityType) ((PluralAttribute) attribute).getElementType();
-            return new GraphQLList(new GraphQLTypeReference(foreignType.getName()));
+            
+            return input ? getWhereInputType(foreignType) : new GraphQLList(new GraphQLTypeReference(foreignType.getName()));
         } 
         else if (isToOne(attribute)) {
             EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
-            return new GraphQLTypeReference(foreignType.getName());
+            
+            return input ? getWhereInputType(foreignType) : new GraphQLTypeReference(foreignType.getName());
         } 
         else if (isElementCollection(attribute)) {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
@@ -564,6 +693,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY;
     }
 
+    protected final boolean isOneToMany(Attribute<?,?> attribute) {
+        return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY;
+    }
+    
     protected final boolean isToOne(Attribute<?,?> attribute) {
     	return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
         		|| attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE;
@@ -572,9 +705,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     protected final boolean isValidInput(Attribute<?,?> attribute) {
         return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC ||
-                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
+                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION ||
+                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
     }
 
+    
     private String getSchemaDescription(Member member) {
         if (member instanceof AnnotatedElement) {
             String desc = getSchemaDescription((AnnotatedElement) member);
@@ -683,7 +818,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     @SuppressWarnings( "unchecked" )
-    private GraphQLType getGraphQLTypeFromJavaType(Class<?> clazz) {
+    private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
         if (clazz.isEnum()) {
             
             if (classCache.containsKey(clazz))
@@ -694,7 +829,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             for (Enum<?> enumValue : ((Class<Enum<?>>)clazz).getEnumConstants())
                 enumBuilder.value(enumValue.name(), ordinal++);
 
-            GraphQLType enumType = enumBuilder.build();
+            GraphQLEnumType enumType = enumBuilder.build();
             setNoOpCoercing(enumType);
 
             classCache.putIfAbsent(clazz, enumType);

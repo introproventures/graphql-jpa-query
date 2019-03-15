@@ -127,15 +127,19 @@ insert into author_phone_numbers(phone_number, author_id) values
 	('4-123-5678', 4);
 	
 -- Car
-insert into Car (id, brand) values
-	(1, 'Ford'),
-	(2, 'Cadillac'),
-	(3, 'Toyota');
+insert into Car (id, brand, identification) values
+	(1, 'Ford', 'xxxxx'),
+	(2, 'Cadillac', 'yyyyy'),
+	(3, 'Toyota', 'zzzzz');
 
 	
 -- Boat
-insert into Boat (id, identification) values
-	(1, '12345'),
-	(2, '23456'),
-	(3, '34567');
-	
+insert into Boat (id, country, identification) values
+	(1, 'EN', '12345'),
+	(2, 'EN', '23456'),
+	(1, 'FR', '34567');
+
+-- Calculate entity
+insert into calculated_entity (id, title, info) values
+	(1, 'title 1', 'inf 1'),
+	(2, 'title 2', 'inf 2');

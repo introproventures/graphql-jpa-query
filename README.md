@@ -1,4 +1,4 @@
-GraphQL Query for JPA Entity Model
+GraphQL Query Api for JPA Entity Models
 ===============
 
 [![Build Status](https://travis-ci.org/introproventures/graphql-jpa-query.svg?branch=master)](https://travis-ci.org/introproventures/graphql-jpa-query)
@@ -6,9 +6,17 @@ GraphQL Query for JPA Entity Model
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 [![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
 
-This library uses [graphql-java 11.0](https://github.com/andimarek/graphql-java) to derive and build the GraphQL schema from JPA Entity Schema provided by entity classes. 
+GraphQL is a query language for Web APIs implemented by GraphQL Java [graphql-java 11.0](https://github.com/andimarek/graphql-java) runtime for fulfilling those queries with your existing data. GraphQL provides a complete and understandable description of the data in your API, gives clients the power to ask for exactly what they need and nothing more, makes it easier to evolve APIs over time, and enables powerful developer tools.
 
-It implements a schema builder to generate GraphQL Schema using JPA EntityManager with JPA Query Data Fetchers that transform GraphQL queries into JPA queries with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, , where criteria expressions, select, order by etc.
+JPA 2.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
+
+GraphQL JPA Query library uses JPA 2.1 specification to derive and build GraphQL Apis using GraphQL Java for your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
+
+Your applications can now use GraphQL queries that smoothly follow references between JPA resources with flexible type safe criteria expressions and user-friendly SQL query syntax semantics i.e. query by page, where criteria expressions, select, order by etc. 
+
+While typical REST APIs require loading from multiple URLs, GraphQL APIs get all the data your app needs in a single request. Apps using GraphQL can be quick even on slow mobile network connections.
+
+GraphQL JPA Query creates a uniform query API across for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
 
 Tested using JDK Versions
 ----------------------
@@ -108,6 +116,10 @@ Schema Generation
 -----------------
 The models are introspected using a JPA Entity Manager to auto-generate a GraphQL Schema. After that, you can use GraphQL schema to execute GraphQL query against your data.
 
+Schema Merging to Work with Multiple Databases 
+-----------------
+You can use graphql-jpa-query with multiple databases by instrumenting EntityManager with its own DataSource and using `GraphQLJpaSchemaBuilder` to build GraphQLSchema for it. Then, you need to register each GraphQLSchema via `GraphQLSchemaConfigurer.register(Registry registry)` method implementation. The `graphql-jpa-query-autoconfigure` module provides Spring Boot Auto Configuration Factory Bean mechanism that merges schemas from many configurers defined in your Spring App context into a single GraphQLSchema bean. See https://github.com/introproventures/graphql-jpa-query/tree/master/graphql-jpa-query-example-merge example for details.
+
 Schema Documentation
 --------------------
 GraphQL provides a well documented schema for your domain entity model.  The Schema Builder produces
@@ -138,7 +150,7 @@ Will return:
     
 Query Wrapper with Where Criteria Expressions
 -------------------------------------
-This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like OR, AND, EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL, BETWEEN, NOT_BETWEEN.
+This library supports flexible type safe criteria expressions with user-friendly SQL query syntax semantics using `where` arguments and `select` field to specify the entity graph query with entiy attribute names as a combination of logical expressions like EQ, NE, GT, GE, LT, LR, IN, NIN, IS_NULL, NOT_NULL, BETWEEN, NOT_BETWEEN. You can use logical AND/OR combinations in SQL criteria expressions to specify complex criterias to fetch your data from SQL database. If you omit, where argument, all entities will be returned.
 
 For Example: 
 
@@ -161,7 +173,200 @@ Will return:
         }
     }
 
-You can use familiar SQL criteria expressions to specify complex criterias to fetch your data from SQL database. If you omit, where argument, all entities will be returned.
+Relation Attributes in Where Criteria Expressions:
+----------------------------
+It is also possible to specify complex filters using many-to-one and one-to-many entity attributes in where criteria expressions with variable parameter bindings, i.e.
+
+Given the following query with many-to-one relation with variables `{"authorId": 1 }` :
+
+```
+query($authorId: Long) {  
+  Books(where: {
+    author: {id: {EQ: $authorId}}
+  }) {
+    select {
+      id
+      title
+      genre
+      author {
+        id
+        name
+      }
+    }
+  }
+}
+```
+
+will result in
+
+```
+{
+  "data": {
+    "Books": {
+      "select": [
+        {
+          "id": 2,
+          "title": "War and Peace",
+          "genre": "NOVEL",
+          "author": {
+            "id": 1,
+            "name": "Leo Tolstoy"
+          }
+        },
+        {
+          "id": 3,
+          "title": "Anna Karenina",
+          "genre": "NOVEL",
+          "author": {
+            "id": 1,
+            "name": "Leo Tolstoy"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+And given the following query with one-to-many relation:
+
+```
+query {
+  Authors(where: {
+    books: {genre: {IN: NOVEL}}
+  }) {
+    select {
+      id
+      name
+      books {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+will result in 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            },
+            {
+              "id": 3,
+              "title": "Anna Karenina",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+It is possible to use compound criterias in where search expressions given:
+
+```
+query {
+  Authors(where: {
+    books: {
+      genre: {IN: NOVEL}
+      title: {LIKE: "War"}
+    }
+  }) {
+    select {
+      id
+      name
+      books {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+Will return filtered inner collection result: 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+It is also possible to filter inner collections as follows:
+
+```
+query {
+  Authors(where: {
+    books: {genre: {IN: NOVEL}}
+  }) {
+    select {
+      id
+      name
+      books(where: {title: {LIKE: "War"}}) {
+        id
+        title
+        genre
+      }
+    }
+  }
+}
+```
+
+will result in 
+
+```
+{
+  "data": {
+    "Authors": {
+      "select": [
+        {
+          "id": 1,
+          "name": "Leo Tolstoy",
+          "books": [
+            {
+              "id": 2,
+              "title": "War and Peace",
+              "genre": "NOVEL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```    
 
 Collection Filtering
 --------------------

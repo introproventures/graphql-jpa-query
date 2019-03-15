@@ -21,8 +21,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.metamodel.EntityType;
 
+import graphql.language.Argument;
 import graphql.language.Field;
+import graphql.language.ObjectValue;
 import graphql.schema.DataFetchingEnvironment;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
 
@@ -32,10 +38,12 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
     
     @Override
     public Object get(DataFetchingEnvironment environment) {
-
-        Field field = environment.getFields().iterator().next();
         
+        Field field = environment.getFields().iterator().next();
+
         if(!field.getArguments().isEmpty()) {
+            
+            flattenEmbeddedIdArguments(field);
             
             try {
                 // Create entity graph from selection
@@ -52,5 +60,24 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
         }
 
         return null;
-    }    
+    }
+
+	private void flattenEmbeddedIdArguments(Field field) {
+		// manage object arguments (EmbeddedId)
+		final List<Argument> argumentsWhereObjectsAreFlattened = field.getArguments()
+				.stream()
+				.flatMap(argument ->
+				{
+					if (!argument.getName().equals("where") && !argument.getName().equals("page") &&
+							argument.getValue() instanceof ObjectValue) {
+						return ((ObjectValue) argument.getValue()).getObjectFields()
+								.stream()
+								.map(objectField -> new Argument(argument.getName() + "." + objectField.getName(), objectField.getValue()));
+					} else {
+						return Stream.of(argument);
+					}
+				})
+				.collect(Collectors.toList());
+		field.setArguments(argumentsWhereObjectsAreFlattened);
+	}
 }

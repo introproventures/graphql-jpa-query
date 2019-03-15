@@ -16,7 +16,19 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 enum Logical {
-    AND,
-    OR
+    AND, OR;
+    
+    private static Set<String> names = EnumSet.allOf(Logical.class)
+                                              .stream()
+                                              .map(it -> it.name().toString())
+                                              .collect(Collectors.toSet());
+
+    public static Set<String> names() {
+        return names;
+    }    
 }

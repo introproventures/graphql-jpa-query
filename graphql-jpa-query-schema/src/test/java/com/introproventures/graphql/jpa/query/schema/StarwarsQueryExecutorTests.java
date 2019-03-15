@@ -26,8 +26,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +34,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -591,18 +592,157 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
 
+    @Test
+    public void queryWithWhereInsideManyToOneRelations() {
+        //given:
+        String query = "query {" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}, "
+                + "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void queryWithWhereInsideManyToOneRelationsNotExisting() {
+        //given:
+        String query = "query {" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: {appearsIn: {IN: [PHANTOM_MENACE]}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
     
     @Test
-    public void queryFilterManyToOne() {
+    public void queryWithWhereInsideOneToManyRelationsNotExisting() {
         //given:
-        String query = "query { Droids { select { name  primaryFunction(where: {function: {EQ:\"Astromech\"}}) { function }}}}";
+        String query = "query {" + 
+                " Humans(where: {" + 
+                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "        primaryFunction" + 
+                "        appearsIn" + 
+                "      }" + 
+                "      friends {" + 
+                "        id" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
 
-        String expected = "{Droids={" +
-                            "select=[{" +
-                              "name=R2-D2, " +
-                              "primaryFunction={function=Astromech}" +
-                            "}]" + 
-                          "}}";
+        String expected = "{Humans={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
+        //given:
+        String query = "query {" + 
+                "  Humans(where: {" + 
+                "    favoriteDroid: { id: {EQ: \"2000\"}}" + 
+                "    friends: {" + 
+                "      appearsIn: {IN: A_NEW_HOPE}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        id" + 
+                "        name" + 
+                "        primaryFunction" + 
+                "      }" + 
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
+                "        id" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }  " + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={id=2000, name=C-3PO, primaryFunction=Protocol}, friends=[{id=1003, name=Leia Organa}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyRelations() {
+        //given:
+        String query = "query { "
+                + " Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "      }" + 
+                "      friends {" + 
+                "        name" + 
+                "        appearsIn" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO}, friends=[{name=C-3PO, appearsIn=[A_NEW_HOPE]}, {name=Han Solo, appearsIn=[A_NEW_HOPE]}, {name=Leia Organa, appearsIn=[A_NEW_HOPE]}, {name=R2-D2, appearsIn=[A_NEW_HOPE]}]}, "
+                + "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2}, friends=[{name=Wilhuff Tarkin, appearsIn=[A_NEW_HOPE]}]}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -610,8 +750,28 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-    
+
+
+    @Test
+    public void queryFilterManyToOne() {
+        //given:
+        String query = "query { Droids { select { name  primaryFunction(where: {function: {EQ:\"Astromech\"}}) { function }}}}";
+
+        String expected = "{Droids={" +
+                "select=[{" +
+                "name=R2-D2, " +
+                "primaryFunction={function=Astromech}" +
+                "}]" +
+                "}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+
     @Test
     public void queryFilterNestedManyToOne() {
         //given:
@@ -632,7 +792,7 @@ public class StarwarsQueryExecutorTests {
                 "}";
 
         String expected = "{Humans={" +
-                            "select=[" +
+                "select=[" +
                                 /*"{" +
                                     "id=1000, " +
                                     "name=Luke Skywalker, " +
@@ -645,19 +805,19 @@ public class StarwarsQueryExecutorTests {
                                     "}" +
                                 "}, " +
                                 */
-                                "{" +
-                                    "id=1001, " +
-                                    "name=Darth Vader, " +
-                                    "homePlanet=Tatooine, " +
-                                    "favoriteDroid={" +
-                                        "name=R2-D2, " +
-                                        "primaryFunction={" +
-                                            "function=Astromech" +
-                                        "}" +
-                                    "}" +
-                                "}" +
-                            "]" +
-                        "}}";
+                "{" +
+                "id=1001, " +
+                "name=Darth Vader, " +
+                "homePlanet=Tatooine, " +
+                "favoriteDroid={" +
+                "name=R2-D2, " +
+                "primaryFunction={" +
+                "function=Astromech" +
+                "}" +
+                "}" +
+                "}" +
+                "]" +
+                "}}";
 
         //when:
         Object result = executor.execute(query).getData();
