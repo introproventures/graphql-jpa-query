@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.example.model;
+package com.introproventures.graphql.jpa.query.example.starwars;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import lombok.Data;
