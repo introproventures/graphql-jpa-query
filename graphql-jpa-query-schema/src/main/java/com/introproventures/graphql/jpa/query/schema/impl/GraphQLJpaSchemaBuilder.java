@@ -43,13 +43,13 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
@@ -115,8 +115,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private String description = "GraphQL Schema for all entities in this JPA application";
 
-    private boolean distinctParameter = false;
-    private boolean distinctFetcher = false;
+    private boolean isUseDistinctParameter = false;
+    private boolean isDefaultDistinct = false;
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -205,10 +205,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType, distinctFetcher))
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType, isDefaultDistinct))
                 .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
-        if (distinctParameter) {
+        if (isUseDistinctParameter) {
                 fdBuilder.argument(distinctArgument(entityType));
         }
 
@@ -222,6 +222,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .name(SELECT_DISTINCT_PARAM_NAME)
                 .description("Distinct logical specification")
                 .type(Scalars.GraphQLBoolean)
+                .defaultValue(isDefaultDistinct)
                 .build();
     }
 
@@ -258,7 +259,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .fields(managedType.getAttributes().stream()
                                                .filter(this::isValidInput)
                                                .filter(this::isNotIgnored)
-                                               .filter(this::isNotIgnoredFilter)
+                                               .filter(this::isNotIgnoredFilter) 
                                                .map(this::getWhereInputField)
                                                .collect(Collectors.toList())
             )
@@ -988,21 +989,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     public GraphQLJpaSchemaBuilder useDistinctParameter(boolean distinctArgument) {
-        this.distinctParameter = distinctArgument;
+        this.isUseDistinctParameter = distinctArgument;
 
         return this;
     }
 
     public boolean isDistinctParameter() {
-        return distinctParameter;
+        return isUseDistinctParameter;
     }
 
     public boolean isDistinctFetcher() {
-        return distinctFetcher;
+        return isDefaultDistinct;
     }
 
-    public GraphQLJpaSchemaBuilder setDistinctFetcher(boolean distinctFetcher) {
-        this.distinctFetcher = distinctFetcher;
+    public GraphQLJpaSchemaBuilder setDefaultDistinct(boolean distinctFetcher) {
+        this.isDefaultDistinct = distinctFetcher;
 
         return this;
     }

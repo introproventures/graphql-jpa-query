@@ -39,12 +39,12 @@ public class GraphQLJpaQueryProperties {
     /**
      * Enable or disable distinct parameter.
      */
-    private boolean useDistinctParameter;
+    private boolean isUseDistinctParameter = false;
 
     /**
      * Enable or disable distinct distinct sql query fetcher.
      */
-    private boolean distinctFetcher;
+    private boolean isDefaultDistinct = false;
 
     /**
      * Enable or disable QraphQL module services.
@@ -92,28 +92,28 @@ public class GraphQLJpaQueryProperties {
      * @return the useDistinctParameter
      */
     public boolean isUseDistinctParameter() {
-        return useDistinctParameter;
+        return isUseDistinctParameter;
     }
 
     /**
      * @param useDistinctParameter the useDistinctParameter to set
      */
     public void setUseDistinctParameter(boolean useDistinctParameter) {
-        this.useDistinctParameter = useDistinctParameter;
+        this.isUseDistinctParameter = useDistinctParameter;
     }
 
     /**
      * @return the distinctFetcher
      */
-    public boolean isDistinctFetcher() {
-        return distinctFetcher;
+    public boolean isDefautltDistinct() {
+        return isDefaultDistinct;
     }
 
     /**
-     * @param distinctFetcher the distinctFetcher to set
+     * @param isDefaultDistinct the distinctFetcher to set
      */
-    public void setDistinctFetcher(boolean distinctFetcher) {
-        this.distinctFetcher = distinctFetcher;
+    public void setDefaultDistinct(boolean isDefaultDistinct) {
+        this.isDefaultDistinct = isDefaultDistinct;
     }
 
     /**
