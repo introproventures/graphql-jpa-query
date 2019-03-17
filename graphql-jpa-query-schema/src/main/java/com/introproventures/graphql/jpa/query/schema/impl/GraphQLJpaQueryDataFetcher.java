@@ -46,6 +46,8 @@ import graphql.schema.GraphQLObjectType;
  *
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
+
+    private boolean defaultDistinct = false;
 	
     private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
@@ -55,6 +57,19 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
         super(entityManager, entityType);
+    }
+
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean defaultDistinct) {
+        super(entityManager, entityType);
+        this.defaultDistinct = defaultDistinct;
+    }
+
+    public boolean isDefaultDistinct() {
+        return defaultDistinct;
+    }
+
+    public void setDefaultDistinct(boolean defaultDistinct) {
+        this.defaultDistinct = defaultDistinct;
     }
 
     @Override
@@ -69,7 +84,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
         Optional<Argument> pageArgument = getPageArgument(field);
         Page page = extractPageArgument(environment, field);
-        Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(true));
+        Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(defaultDistinct));
         
         boolean isDistinct = ((BooleanValue) distinctArg.getValue()).isValue();
         

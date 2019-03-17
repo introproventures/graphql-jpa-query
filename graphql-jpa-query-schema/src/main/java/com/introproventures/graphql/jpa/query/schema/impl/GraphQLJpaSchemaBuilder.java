@@ -43,6 +43,8 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +114,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private String name = "GraphQLJPAQuery";
     
     private String description = "GraphQL Schema for all entities in this JPA application";
+
+    private boolean distinctParameter = false;
+    private boolean distinctFetcher = false;
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -192,21 +197,33 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .build()
                 )
                 .build();
-        
-        return GraphQLFieldDefinition.newFieldDefinition()
+
+        GraphQLFieldDefinition.Builder fdBuilder =  GraphQLFieldDefinition.newFieldDefinition()
                 .name(namingStrategy.pluralize(entityType.getName()))
                 .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
                     + "Use query request arguments to specify query filter criterias. "
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType))
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType, distinctFetcher))
                 .argument(paginationArgument)
-                .argument(getWhereArgument(entityType))
-                .build();
+                .argument(getWhereArgument(entityType));
+        if (distinctParameter) {
+                fdBuilder.argument(distinctArgument(entityType));
+        }
+
+        return fdBuilder.build();
     }
 
     private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
+
+    private GraphQLArgument distinctArgument(EntityType<?> entityType) {
+        return GraphQLArgument.newArgument()
+                .name(SELECT_DISTINCT_PARAM_NAME)
+                .description("Distinct logical specification")
+                .type(Scalars.GraphQLBoolean)
+                .build();
+    }
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
     	String typeName="";
@@ -241,18 +258,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .fields(managedType.getAttributes().stream()
                                                .filter(this::isValidInput)
                                                .filter(this::isNotIgnored)
+                                               .filter(this::isNotIgnoredFilter)
                                                .map(this::getWhereInputField)
                                                .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
                                                .filter(this::isToOne)
                                                .filter(this::isNotIgnored)
+                                               .filter(this::isNotIgnoredFilter)
                                                .map(this::getInputObjectField)
                                                .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
                                                 .filter(this::isToMany)
                                                 .filter(this::isNotIgnored)
+                                                .filter(this::isNotIgnoredFilter)
                                                 .map(this::getInputObjectField)
                                                 .collect(Collectors.toList())
             )
@@ -302,6 +322,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .fields(managedType.getAttributes().stream()
                 .filter(this::isValidInput)
                 .filter(this::isNotIgnored)
+                .filter(this::isNotIgnoredFilter)
                 .map(this::getWhereInputField)
                 .collect(Collectors.toList())
             )
@@ -568,7 +589,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         // Only add the orderBy argument for basic attribute types
         if (attribute instanceof SingularAttribute
-            && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
+            && attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC
+            && isNotIgnoredOrder(attribute) ) {
             arguments.add(GraphQLArgument.newArgument()
                 .name(ORDER_BY_PARAM_NAME)
                 .description("Specifies field sort direction in the query results.")
@@ -816,6 +838,37 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         return false;
     }
+
+    protected boolean isNotIgnoredFilter(Attribute<?,?> attribute) {
+        return isNotIgnoredFilter(attribute.getJavaMember()) && isNotIgnoredFilter(attribute.getJavaType());
+    }
+
+    protected boolean isNotIgnoredFilter(EntityType<?> entityType) {
+        return isNotIgnoredFilter(entityType.getJavaType());
+    }
+
+    protected boolean isNotIgnoredFilter(Member member) {
+        return member instanceof AnnotatedElement && isNotIgnoredFilter((AnnotatedElement) member);
+    }
+
+    protected boolean isNotIgnoredFilter(AnnotatedElement annotatedElement) {
+        if (annotatedElement != null) {
+            GraphQLIgnoreFilter schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnoreFilter.class);
+            return schemaDocumentation == null;
+        }
+
+        return false;
+    }
+
+    protected boolean isNotIgnoredOrder(Attribute<?,?> attribute) {
+        AnnotatedElement annotatedElement = (AnnotatedElement)attribute.getJavaMember();
+        if (annotatedElement != null) {
+            GraphQLIgnoreOrder schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnoreOrder.class);
+            return schemaDocumentation == null;
+        }
+        return false;
+    }
+
     
     @SuppressWarnings( "unchecked" )
     private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
@@ -930,6 +983,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     @Override
     public GraphQLJpaSchemaBuilder description(String description) {
         this.description = description;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder useDistinctParameter(boolean distinctArgument) {
+        this.distinctParameter = distinctArgument;
+
+        return this;
+    }
+
+    public boolean isDistinctParameter() {
+        return distinctParameter;
+    }
+
+    public boolean isDistinctFetcher() {
+        return distinctFetcher;
+    }
+
+    public GraphQLJpaSchemaBuilder setDistinctFetcher(boolean distinctFetcher) {
+        this.distinctFetcher = distinctFetcher;
 
         return this;
     }
