@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.17-SNAPSHOT
+## 0.3.17
+* chore: enable Docker build by default [ec3f1a6](https://github.com/introproventures/graphql-jpa-query/commit/ec3f1a6c5daa3390fd738e2d2cef4f7a58b24e2d)
+* fix: use bean naming convention for property names [6df3c30](https://github.com/introproventures/graphql-jpa-query/commit/6df3c30d1a16681da07d81d7ca64fed9d885ac57)
+* distinct sql and ignore field in filters and sorting (#95) [bde04d5](https://github.com/introproventures/graphql-jpa-query/commit/bde04d5702943cd7d5e70d071e8a49df4ef8ad9f)
 * fix: use embeddableType javaType to cache corresponding GraphQL type  (#98) [ce4f85a](https://github.com/introproventures/graphql-jpa-query/commit/ce4f85a462d9c746d62c56e3f69be5beebd9d28c)
 * feat: add where relation attributes criteria expressions (#96) [b296d8a](https://github.com/introproventures/graphql-jpa-query/commit/b296d8a2c9ad9d0a8b6b58d54f5cd6dcfded953f)
 * chore: skip Docker plugin on release  [2933500](https://github.com/introproventures/graphql-jpa-query/commit/2933500644bd6b781919a24c5583c6708f046a13)
