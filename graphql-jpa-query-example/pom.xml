@@ -13,7 +13,7 @@
   
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <skipDocker>${maven.deploy.skip}</skipDocker>    
+    <skipDocker>false</skipDocker>    
   </properties>
   
   <dependencies>
