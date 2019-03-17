@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.17
+## 0.3.18-SNAPSHOT
 * chore: enable Docker build by default [ec3f1a6](https://github.com/introproventures/graphql-jpa-query/commit/ec3f1a6c5daa3390fd738e2d2cef4f7a58b24e2d)
 * fix: use bean naming convention for property names [6df3c30](https://github.com/introproventures/graphql-jpa-query/commit/6df3c30d1a16681da07d81d7ca64fed9d885ac57)
 * distinct sql and ignore field in filters and sorting (#95) [bde04d5](https://github.com/introproventures/graphql-jpa-query/commit/bde04d5702943cd7d5e70d071e8a49df4ef8ad9f)
