@@ -84,6 +84,9 @@ public class IntrospectionUtils {
     	            					  .isAnnotationPresent(annotation);
 
     	        } catch (NoSuchFieldException e) {
+    	            if(delegate.getWriteMethod() == null || delegate.getReadMethod() == null){
+    	                return false;
+                    }
     				answer = delegate.getReadMethod()
     								  .isAnnotationPresent(annotation);
     	        }
