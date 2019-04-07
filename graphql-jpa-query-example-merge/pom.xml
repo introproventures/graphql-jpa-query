@@ -20,6 +20,16 @@
 
     <dependency>
       <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-model-books</artifactId>
+    </dependency>
+        
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-model-starwars</artifactId>
+    </dependency>
+                
+    <dependency>
+      <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-web</artifactId>
     </dependency>
 

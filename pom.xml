@@ -40,6 +40,8 @@
         <module>graphql-jpa-query-build</module>
         <module>graphql-jpa-query-autoconfigure</module>
         <module>graphql-jpa-query-web</module>
+        <module>graphql-jpa-query-model-starwars</module>
+        <module>graphql-jpa-query-model-books</module>
     </modules>
 
     <distributionManagement>

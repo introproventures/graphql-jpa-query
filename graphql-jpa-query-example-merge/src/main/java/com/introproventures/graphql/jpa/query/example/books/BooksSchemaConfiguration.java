@@ -11,6 +11,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryPrope
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;

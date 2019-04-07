@@ -19,9 +19,20 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-model-starwars</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-model-books</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
         </dependencies>
-
     </dependencyManagement>
 
     <dependencies>
