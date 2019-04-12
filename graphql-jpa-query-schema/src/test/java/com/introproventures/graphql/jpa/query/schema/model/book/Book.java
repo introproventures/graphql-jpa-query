@@ -47,9 +47,5 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
-    Date publicationDate;
-
-    public void setSth(int i){
-    	return;
-	}
+    Date publicationDate;	
 }

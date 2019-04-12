@@ -45,4 +45,6 @@ public class CalculatedEntity {
     public String getHideFieldFunction() {
         return "getHideFieldFunction";
     }
+
+    public void setSomething(int a){}
 }
