@@ -34,14 +34,14 @@
         <module>graphql-jpa-query-annotations</module>
         <module>graphql-jpa-query-schema</module>
         <module>graphql-jpa-query-boot-starter</module>
-        <module>graphql-jpa-query-example</module>
+        <module>graphql-jpa-query-example-simple</module>
         <module>graphql-jpa-query-example-merge</module>
         <module>graphql-jpa-query-dependencies</module>
         <module>graphql-jpa-query-build</module>
         <module>graphql-jpa-query-autoconfigure</module>
         <module>graphql-jpa-query-web</module>
-        <module>graphql-jpa-query-model-starwars</module>
-        <module>graphql-jpa-query-model-books</module>
+        <module>graphql-jpa-query-example-model-starwars</module>
+        <module>graphql-jpa-query-example-model-books</module>
     </modules>
 
     <distributionManagement>

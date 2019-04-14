@@ -6,7 +6,8 @@
     <version>0.3.19-SNAPSHOT</version>
     <relativePath>../graphql-jpa-query-build</relativePath>
   </parent>
-  <artifactId>graphql-jpa-query-model-books</artifactId>
+    
+  <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
 
   <dependencies>
     <dependency>
@@ -21,6 +22,6 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>
-    </dependency>
+    </dependency>        
   </dependencies>
 </project>
