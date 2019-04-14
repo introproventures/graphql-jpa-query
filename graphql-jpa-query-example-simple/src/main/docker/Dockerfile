@@ -5,7 +5,7 @@ VOLUME /tmp
 
 EXPOSE 8080
 
-ADD graphql-jpa-query-example.jar app.jar
+ADD graphql-jpa-query-example-simple.jar app.jar
 
 ENV JAVA_OPTS=""
 
