@@ -16,7 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,6 +29,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -48,7 +48,8 @@ public class Author {
 	String name;
 
 	@OneToMany(mappedBy="author", fetch=FetchType.LAZY)
-	Collection<Book> books;
+    @OrderBy("id ASC")
+	Set<Book> books;
 	
 	@ElementCollection(fetch=FetchType.LAZY) 
 	@CollectionTable(name = "author_phone_numbers", joinColumns = @JoinColumn(name = "author_id")) 

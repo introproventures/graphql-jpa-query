@@ -562,7 +562,10 @@ public class GraphQLExecutorTests {
                 "}";
 
         String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}, {id=3, title=Anna Karenina, genre=NOVEL}]}"
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}"
                 + "]}}";
 
         //when
@@ -715,6 +718,134 @@ public class GraphQLExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyNestedRelationsWithManyToOneAndOR() {
+        //given:
+        String query = "query { " +
+                "  Authors(where: {" + 
+                "    books: {" + 
+                "      author: {name: {LIKE:\"Leo\"}}" + 
+                "      OR: {" + 
+                "        title: {LIKE: \"War\"}" + 
+                "        title: {LIKE: \"Anna\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyNestedRelationsWithOneToManyDeepSelect() {
+        //given:
+        String query = "query { " +
+                "  Authors(where: {" + 
+                "    books: {" + 
+                "      author: {name: {LIKE:\"Leo\"}}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "        author {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=[{"
+                + "id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL, author={name=Leo Tolstoy}}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL, author={name=Leo Tolstoy}}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    
+    @Test
+    public void queryWithWhereInsideManyToOneNestedRelationsWithOnToManyCollectionFilter() {
+        //given:
+        String query = "query { " +
+                "  Books(where: {" + 
+                "    title:{LIKE: \"War\"}" + 
+                "    author: {" + 
+                "      name:{LIKE: \"Leo\"}" + 
+                "      books: {title: {LIKE: \"Anna\"}}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "      author {" + 
+                "        id" + 
+                "        name" + 
+                "        books {" + 
+                "          id" + 
+                "          title" + 
+                "          genre" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Books={select=[{"
+                + "id=2, "
+                + "title=War and Peace, "
+                + "genre=NOVEL, "
+                + "author={"
+                +   "id=1, "
+                +   "name=Leo Tolstoy, "
+                +   "books=["
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]"
+                + "}"
+                + "}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    
 
 
     @Test
