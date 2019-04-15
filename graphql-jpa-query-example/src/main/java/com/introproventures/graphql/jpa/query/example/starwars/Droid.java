@@ -17,9 +17,11 @@
 package com.introproventures.graphql.jpa.query.example.starwars;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,7 +31,13 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class Droid extends Character {
 
-    @GraphQLDescription("Documents the primary purpose this droid serves")
-    String primaryFunction;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primary_function")
+    DroidFunction primaryFunction;
 
+    //description moved to getter to test it gets picked up
+    @GraphQLDescription("Documents the primary purpose this droid serves")
+    public DroidFunction getPrimaryFunction() {
+        return(primaryFunction);
+    }
 }

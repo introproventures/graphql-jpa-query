@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
+
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.ErrorType;
@@ -570,6 +572,45 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }        
     
+    @Test
+    public void queryForAuthorssWithWhereBooksManyToOneRelationCriteria() {
+        //given
+        String query = "query { " +
+                "  Authors(where: {" + 
+                "    books: {" + 
+                "      author: {" + 
+                "        name: {LIKE: \"Leo\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "        author {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=[{"
+                +   "id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL, author={name=Leo Tolstoy}}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL, author={name=Leo Tolstoy}}"
+                + "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+        
 
     @Test
     public void queryWithWhereInsideOneToManyRelationsImplicitAND() {
