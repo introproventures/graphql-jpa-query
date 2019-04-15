@@ -602,9 +602,10 @@ public class GraphQLExecutorTests {
                 "}";
 
         String expected = "{Authors={select=[{"
-                +   "id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL, author={name=Leo Tolstoy}}, "
-                +   "{id=3, title=Anna Karenina, genre=NOVEL, author={name=Leo Tolstoy}}"
-                + "]}"
+                +   "id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL, author={name=Leo Tolstoy}}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL, author={name=Leo Tolstoy}}"
+                +   "]}"
                 + "]}}";
 
         //when
