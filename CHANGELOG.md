@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.19
+## 0.3.20-SNAPSHOT
 * feat: support enum variable bindings in queries (#109) [5dd999a](https://github.com/introproventures/graphql-jpa-query/commit/5dd999a1107899ce6bfe08aceb37ed2fb057aac6)
 * Update README to add PWD shortcut in the title [8e9d409](https://github.com/introproventures/graphql-jpa-query/commit/8e9d409b4a193dde823991a9945d29f0163234a8)
 * #102 fix NullPointerException when searching for Transient annotation (#106) [fb45d23](https://github.com/introproventures/graphql-jpa-query/commit/fb45d2329d8d02abc687e3db3cb2faafa4d91659)
