@@ -540,12 +540,27 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 return ((StringValue) value).getValue();
             }
         }
-        else if (value instanceof VariableReference)
-            // Get resolved variable in environment arguments
-            return environment.getArguments().get(argument.getName());
-        else if (value instanceof ArrayValue) {
+        else if (value instanceof VariableReference) {
+            Class javaType = getJavaType(environment, argument);
+            Object argumentValue = environment.getArguments().get(argument.getName());
+            if(javaType.isEnum()) {
+                if(argumentValue instanceof Collection) {
+                    List<Enum> values = new ArrayList<>();
+                    
+                    Collection.class.cast(argumentValue)
+                                    .forEach(it -> values.add(Enum.valueOf(javaType, it.toString()))); 
+                    return values;
+                } else {
+                    return Enum.valueOf(javaType, argumentValue.toString());
+                }
+            } 
+            else {    
+                // Get resolved variable in environment arguments
+                return argumentValue;
+            }
+        } else if (value instanceof ArrayValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
-            if (convertedValue != null) {
+            if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
                 // unwrap [[EnumValue{name='value'}]]
                 if(convertedValue instanceof Collection
                     && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
