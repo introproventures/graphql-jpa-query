@@ -1,6 +1,8 @@
 # Change Log
 
-## 0.3.19-SNAPSHOT
+## 0.3.19
+* feat: support enum variable bindings in queries (#109) [5dd999a](https://github.com/introproventures/graphql-jpa-query/commit/5dd999a1107899ce6bfe08aceb37ed2fb057aac6)
+* Update README to add PWD shortcut in the title [8e9d409](https://github.com/introproventures/graphql-jpa-query/commit/8e9d409b4a193dde823991a9945d29f0163234a8)
 * #102 fix NullPointerException when searching for Transient annotation (#106) [fb45d23](https://github.com/introproventures/graphql-jpa-query/commit/fb45d2329d8d02abc687e3db3cb2faafa4d91659)
 * chore: enable Docker build by default [ec3f1a6](https://github.com/introproventures/graphql-jpa-query/commit/ec3f1a6c5daa3390fd738e2d2cef4f7a58b24e2d)
 * fix: use bean naming convention for property names [6df3c30](https://github.com/introproventures/graphql-jpa-query/commit/6df3c30d1a16681da07d81d7ca64fed9d885ac57)
