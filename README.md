@@ -1,10 +1,10 @@
-GraphQL Query Api for JPA Entity Models
+GraphQL Query Api for JPA Entity Models [![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/master/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
 ===============
 
 [![Build Status](https://travis-ci.org/introproventures/graphql-jpa-query.svg?branch=master)](https://travis-ci.org/introproventures/graphql-jpa-query)
 [![codecov](https://codecov.io/gh/introproventures/graphql-jpa-query/branch/master/graph/badge.svg)](https://codecov.io/gh/introproventures/graphql-jpa-query)
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
-[![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
+[![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query) 
 
 GraphQL is a query language for Web APIs implemented by GraphQL Java [graphql-java 11.0](https://github.com/andimarek/graphql-java) runtime for fulfilling those queries with your existing data. GraphQL provides a complete and understandable description of the data in your API, gives clients the power to ask for exactly what they need and nothing more, makes it easier to evolve APIs over time, and enables powerful developer tools.
 

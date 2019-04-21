@@ -50,6 +50,13 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isTransient(entity, "info")).isFalse();
         assertThat(IntrospectionUtils.isTransient(entity, "title")).isFalse();
     }
-    
-    
+
+    @Test
+    public void testByPassSetMethod() throws Exception {
+        // given
+        Class<CalculatedEntity> entity = CalculatedEntity.class;
+
+        // then
+        assertThat(IntrospectionUtils.isTransient(entity,"something")).isFalse();
+    }
 }

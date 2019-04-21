@@ -182,5 +182,14 @@ public class StarwarsSchemaBuildTest {
                 .describedAs( "Ensure that CodeList.parent has the expected description")
                 .isEqualTo("The CodeList's parent CodeList");
     }
+
+    @Test
+    public void testBuildSchema(){
+        //given
+        GraphQLSchema schema = builder.build();
+
+        //then
+        assertThat(schema).isNotNull();
+    }
     
 }
