@@ -17,6 +17,9 @@
 package com.introproventures.graphql.jpa.query.schema.model.starwars;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 
@@ -29,11 +32,13 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class Droid extends Character {
 
-    String primaryFunction;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primary_function")
+    DroidFunction primaryFunction;
 
     //description moved to getter to test it gets picked up
     @GraphQLDescription("Documents the primary purpose this droid serves")
-    public String getPrimaryFunction() {
+    public DroidFunction getPrimaryFunction() {
         return(primaryFunction);
     }
 }

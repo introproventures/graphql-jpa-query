@@ -136,7 +136,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         // optionally add default ordering 
         mayBeAddDefaultOrderBy(query, join, cb);
         
-        return entityManager.createQuery(query.distinct(true));
+        return entityManager.createQuery(query.distinct(isDistinct));
         
     }
     
