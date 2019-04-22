@@ -42,6 +42,7 @@
         <module>graphql-jpa-query-web</module>
         <module>graphql-jpa-query-example-model-starwars</module>
         <module>graphql-jpa-query-example-model-books</module>
+        <module>graphql-jpa-query-graphiql</module>
     </modules>
 
     <distributionManagement>

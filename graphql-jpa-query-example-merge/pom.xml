@@ -24,6 +24,11 @@
     </dependency>
         
     <dependency>
+        <groupId>com.introproventures</groupId>
+        <artifactId>graphql-jpa-query-graphiql</artifactId>
+    </dependency>
+        
+    <dependency>
       <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
     </dependency>

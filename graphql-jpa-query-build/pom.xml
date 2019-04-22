@@ -32,6 +32,12 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-graphiql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
