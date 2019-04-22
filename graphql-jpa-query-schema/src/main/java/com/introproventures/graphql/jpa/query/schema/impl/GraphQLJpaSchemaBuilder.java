@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.persistence.Convert;
 import javax.persistence.EntityManager;
 import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
@@ -43,9 +44,6 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
@@ -55,7 +53,6 @@ import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.CachedIntrospectionResult.CachedPropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
-
 import graphql.Assert;
 import graphql.Scalars;
 import graphql.schema.Coercing;
@@ -73,6 +70,8 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -437,6 +436,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                         .type(getAttributeInputType(attribute))
                         .build()
                     );
+                } 
+                else if (attribute.getJavaMember().getClass().isAssignableFrom(Field.class) 
+                        && Field.class.cast(attribute.getJavaMember())
+                                      .isAnnotationPresent(Convert.class)) 
+                {
+                    builder.field(GraphQLInputObjectField.newInputObjectField()
+                                                         .name(Criteria.LOCATE.name())
+                                                         .description("Locate search criteria")
+                                                         .type(getAttributeInputType(attribute))
+                                                         .build());
                 }
             }
             

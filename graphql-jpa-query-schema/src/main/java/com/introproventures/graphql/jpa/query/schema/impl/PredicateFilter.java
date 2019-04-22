@@ -103,7 +103,12 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
         /**
          * Not Between condition
          */
-        NOT_BETWEEN;
+        NOT_BETWEEN,
+
+        /**
+         * JPA's LOCATE predicate for attributes annotated with @Convert
+         */
+        LOCATE;
         
         private static Set<String> names = EnumSet.allOf(Criteria.class)
                                                   .stream()
