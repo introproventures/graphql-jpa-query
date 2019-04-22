@@ -109,7 +109,7 @@ public class GraphQLJpaConverterTests {
         CriteriaQuery<JsonEntity> criteria = builder.createQuery(JsonEntity.class);
         Root<JsonEntity> json = criteria.from(JsonEntity.class);
 
-        JsonNode value = new ObjectMapper().valueToTree(Collections.singletonMap("value",
+        JsonNode value = new ObjectMapper().valueToTree(Collections.singletonMap("attr",
                                                                                  new String[] {"1","2","3","4","5"}));
         criteria.select(json)
                 .where(builder.equal(json.get("attributes"), value));
@@ -174,8 +174,8 @@ public class GraphQLJpaConverterTests {
                 "}";
         
         String expected = "{JsonEntities={select=["
-                + "{id=1, firstName=john, lastName=doe, attributes={\"value\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}, "
-                + "{id=2, firstName=joe, lastName=smith, attributes={\"value\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}"
+                + "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}, "
+                + "{id=2, firstName=joe, lastName=smith, attributes={\"attr\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}"
                 + "]}}";
 
         //when
@@ -202,7 +202,7 @@ public class GraphQLJpaConverterTests {
                 "}";
         
         String expected = "{JsonEntities={select=["
-                + "{id=1, firstName=john, lastName=doe, attributes={\"value\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}"
+                + "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}"
                 + "]}}";
 
         //when

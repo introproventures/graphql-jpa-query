@@ -1,7 +1,7 @@
 -- Json entity
 insert into json_entity (id, first_name, last_name, attributes) values
-	(1, 'john', 'doe', '{"value":{"key":["1","2","3","4","5"]}}'),
-	(2, 'joe', 'smith', '{"value":["1","2","3","4","5"]}');
+	(1, 'john', 'doe', '{"attr":{"key":["1","2","3","4","5"]}}'),
+	(2, 'joe', 'smith', '{"attr":["1","2","3","4","5"]}');
 
 insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value) values
   (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'document', 1, 'json', '{"value":{"key":["1","2","3","4","5"]}}');
