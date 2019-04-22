@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,7 +67,7 @@ public class StarwarsSchemaConfiguration {
         
         return builder
                 .dataSource(starWarsDataSource())
-                .packages(Character.class)
+                .packages(Droid.class)
                 .persistenceUnit("starwars")
                 .properties(properties)
                 .build();
