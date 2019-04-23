@@ -1,6 +1,11 @@
 # Change Log
 
-## 0.3.20-SNAPSHOT
+## 0.3.20
+* fix: change droid_function entity name to DroidFunction (#117) [ee39a1d](https://github.com/introproventures/graphql-jpa-query/commit/ee39a1d3cf42440ac2c054944c98bbac1ed3c4c4)
+* feat: extract GraphiQL into separate reusable module (#116) [123b471](https://github.com/introproventures/graphql-jpa-query/commit/123b4719593f21ef5af93e49a77292596ab5d129)
+* feat: extract example JPA models into separate resusable modules (#104) [9698743](https://github.com/introproventures/graphql-jpa-query/commit/9698743f3e9059ae1d2846e5e77ffae0a0a8b1f7)
+* feat: support nested relationships in where criteria expressions  (#108) [b05c246](https://github.com/introproventures/graphql-jpa-query/commit/b05c246d06fc5aca05a096ce8214975de986546b)
+* feat: add LOCATE predicate for JPA entity attributes annotated with @Convert (#115) [3f9704b](https://github.com/introproventures/graphql-jpa-query/commit/3f9704b48c768d1d64ba82e41bbd1efebab864d6)
 * feat: support enum variable bindings in queries (#109) [5dd999a](https://github.com/introproventures/graphql-jpa-query/commit/5dd999a1107899ce6bfe08aceb37ed2fb057aac6)
 * Update README to add PWD shortcut in the title [8e9d409](https://github.com/introproventures/graphql-jpa-query/commit/8e9d409b4a193dde823991a9945d29f0163234a8)
 * #102 fix NullPointerException when searching for Transient annotation (#106) [fb45d23](https://github.com/introproventures/graphql-jpa-query/commit/fb45d2329d8d02abc687e3db3cb2faafa4d91659)
