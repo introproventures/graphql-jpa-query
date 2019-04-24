@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.21-SNAPSHOT
+## 0.3.21
+* Fix  MappedSuperclass for JPA entity attributes (#120) [c67073a](https://github.com/introproventures/graphql-jpa-query/commit/c67073aed1f847b99ad4c99ccd457e323788f23e)
+* Update README.md [fc3c919](https://github.com/introproventures/graphql-jpa-query/commit/fc3c9199b0a6727203e165351893e25913e3afe5)
+* fix: update Play With Docker link [69ee033](https://github.com/introproventures/graphql-jpa-query/commit/69ee03319c23807a4d14ab0c84fb3bb3e8637908)
 * fix: change droid_function entity name to DroidFunction (#117) [ee39a1d](https://github.com/introproventures/graphql-jpa-query/commit/ee39a1d3cf42440ac2c054944c98bbac1ed3c4c4)
 * feat: extract GraphiQL into separate reusable module (#116) [123b471](https://github.com/introproventures/graphql-jpa-query/commit/123b4719593f21ef5af93e49a77292596ab5d129)
 * feat: extract example JPA models into separate resusable modules (#104) [9698743](https://github.com/introproventures/graphql-jpa-query/commit/9698743f3e9059ae1d2846e5e77ffae0a0a8b1f7)
