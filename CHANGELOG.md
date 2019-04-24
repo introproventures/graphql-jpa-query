@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.21
+## 0.3.22-SNAPSHOT
 * Fix  MappedSuperclass for JPA entity attributes (#120) [c67073a](https://github.com/introproventures/graphql-jpa-query/commit/c67073aed1f847b99ad4c99ccd457e323788f23e)
 * Update README.md [fc3c919](https://github.com/introproventures/graphql-jpa-query/commit/fc3c9199b0a6727203e165351893e25913e3afe5)
 * fix: update Play With Docker link [69ee033](https://github.com/introproventures/graphql-jpa-query/commit/69ee03319c23807a4d14ab0c84fb3bb3e8637908)
