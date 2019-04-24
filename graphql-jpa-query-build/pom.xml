@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-dependencies</artifactId>
-        <version>0.3.20-SNAPSHOT</version>
+        <version>0.3.21-SNAPSHOT</version>
         <relativePath>../graphql-jpa-query-dependencies</relativePath>
     </parent>
     <artifactId>graphql-jpa-query-build</artifactId>
@@ -19,9 +19,26 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-example-model-books</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-graphiql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
         </dependencies>
-
     </dependencyManagement>
 
     <dependencies>

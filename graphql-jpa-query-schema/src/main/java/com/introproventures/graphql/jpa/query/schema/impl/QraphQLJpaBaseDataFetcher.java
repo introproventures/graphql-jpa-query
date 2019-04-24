@@ -52,7 +52,6 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
-
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
@@ -182,9 +181,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             }
                         }
                     } else  {
-                        // We must add plural attributes with explicit join to avoid Hibernate error: 
+                        // We must add plural attributes with explicit fetch to avoid Hibernate error: 
                         // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                        // TODO Let's try detect many-to-many relation and reuse outer join
+                        // TODO Let's try detect optional relation and apply join type
                         reuseJoin(from, selectedField.getName(), false);
                     }
                 }
@@ -525,7 +524,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         return outer ? path.join(fieldName, JoinType.LEFT) : path.join(fieldName);
     }
-
+    
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
         if (value instanceof NullValue) {

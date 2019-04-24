@@ -66,10 +66,6 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
 
             //EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
             
-            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
-            // between requests with different search criteria. This looks like a Hibernate bug... 
-            entityManager.clear();
-            
             return getQuery(environment, field, true)
                 //.setHint("javax.persistence.fetchgraph", entityGraph) // TODO: fix runtime exception
                 .getResultList();
@@ -140,7 +136,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         // optionally add default ordering 
         mayBeAddDefaultOrderBy(query, join, cb);
         
-        return entityManager.createQuery(query.distinct(true));
+        return entityManager.createQuery(query.distinct(isDistinct));
         
     }
     

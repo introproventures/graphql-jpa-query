@@ -414,6 +414,9 @@ class JpaPredicateBuilder {
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
         }
+        else if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
+            return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
+        }
 
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());
     }

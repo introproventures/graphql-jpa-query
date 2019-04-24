@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-build</artifactId>
-        <version>0.3.20-SNAPSHOT</version>
+        <version>0.3.21-SNAPSHOT</version>
         <relativePath>../graphql-jpa-query-build</relativePath>
     </parent>
 
@@ -59,7 +59,25 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>com.introproventures</groupId>
+            <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
+            <scope>test</scope>
+        </dependency>
 
+        <dependency>
+            <groupId>com.introproventures</groupId>
+            <artifactId>graphql-jpa-query-example-model-books</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
     </dependencies>
 
 </project>
