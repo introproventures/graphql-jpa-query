@@ -36,7 +36,13 @@ import java.util.stream.Stream;
 import javax.persistence.Convert;
 import javax.persistence.EntityManager;
 import javax.persistence.Transient;
-import javax.persistence.metamodel.*;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EmbeddableType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
@@ -221,20 +227,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLArgument getWhereArgument(ManagedType<?> managedType) {
-    	String typeName="";
-    	if (managedType instanceof EmbeddableType){
-			typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
-		} else if (managedType instanceof EntityType) {
-			typeName = ((EntityType<?>)managedType).getName();
-		}
+        return whereArgumentsMap.computeIfAbsent(managedType.getJavaType(), (javaType) -> computeWhereArgument(managedType));
+    }
+    
+    private GraphQLArgument computeWhereArgument(ManagedType<?> managedType) {
+    	String type=resolveWhereArgumentTypeName(managedType);
 
-		String type = namingStrategy.pluralize(typeName)+"CriteriaExpression";
-        
-        GraphQLArgument whereArgument = whereArgumentsMap.get(managedType.getJavaType());
-        
-        if(whereArgument != null)
-            return whereArgument;
-        
         GraphQLInputObjectType whereInputObject = GraphQLInputObjectType.newInputObject()
             .name(type)
             .description("Where logical AND specification of the provided list of criteria expressions")
@@ -266,16 +264,30 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             )
             .build();
         
-        whereArgument = GraphQLArgument.newArgument()
-                                       .name(QUERY_WHERE_PARAM_NAME)
-                                       .description("Where logical specification")
-                                       .type(whereInputObject)
-                                       .build();
+        return GraphQLArgument.newArgument()
+                              .name(QUERY_WHERE_PARAM_NAME)
+                              .description("Where logical specification")
+                              .type(whereInputObject)
+                              .build();
         
-        whereArgumentsMap.put(managedType.getJavaType(), whereArgument);
+    }
+
+    private String resolveWhereArgumentTypeName(ManagedType<?> managedType) {
+        String typeName=resolveTypeName(managedType);
         
-        return whereArgument;
+        return namingStrategy.pluralize(typeName)+"CriteriaExpression";
+    }
+    
+    private String resolveTypeName(ManagedType<?> managedType) {
+        String typeName="";
         
+        if (managedType instanceof EmbeddableType){
+            typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
+        } else if (managedType instanceof EntityType) {
+            typeName = ((EntityType<?>)managedType).getName();
+        }
+        
+        return typeName;
     }
 
     private GraphQLInputObjectType getWhereInputType(ManagedType<?> managedType) {
@@ -283,12 +295,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private String resolveWhereInputTypeName(ManagedType<?> managedType) {
-        String typeName="";
-        if (managedType instanceof EmbeddableType){
-            typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
-        } else if (managedType instanceof EntityType) {
-            typeName = ((EntityType<?>)managedType).getName();
-        }
+        String typeName=resolveTypeName(managedType);
 
         return namingStrategy.pluralize(typeName)+"RelationCriteriaExpression";
         
