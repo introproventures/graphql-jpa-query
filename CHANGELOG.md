@@ -1,6 +1,8 @@
 # Change Log
 
-## 0.3.22-SNAPSHOT
+## 0.3.22
+* fix: update example docker-compose Docker image [74afefc](https://github.com/introproventures/graphql-jpa-query/commit/74afefc3cdb75efd214431f42cd0257a12f2a49c)
+* fix: compound nested relationship criteria expressions (#121) [af279d9](https://github.com/introproventures/graphql-jpa-query/commit/af279d913765df7220720e851b6e3fa9441069dc)
 * Fix  MappedSuperclass for JPA entity attributes (#120) [c67073a](https://github.com/introproventures/graphql-jpa-query/commit/c67073aed1f847b99ad4c99ccd457e323788f23e)
 * Update README.md [fc3c919](https://github.com/introproventures/graphql-jpa-query/commit/fc3c9199b0a6727203e165351893e25913e3afe5)
 * fix: update Play With Docker link [69ee033](https://github.com/introproventures/graphql-jpa-query/commit/69ee03319c23807a4d14ab0c84fb3bb3e8637908)
