@@ -726,11 +726,13 @@ public class GraphQLExecutorTests {
         String query = "query { " +
                 "  Authors(where: {" + 
                 "    books: {" + 
-                "      author: {name: {LIKE:\"Leo\"}}" + 
-                "      OR: {" + 
-                "        title: {LIKE: \"War\"}" + 
-                "        title: {LIKE: \"Anna\"}" + 
-                "      }" + 
+                "      author: {name: {LIKE:\"Leo\"}}" +
+//                "      AND: {" +
+                "        OR: {" + 
+                "          id: {EQ: 2}" + 
+                "          title: {LIKE: \"Anna\"}" + 
+                "        }" + 
+  //              "      }" +
                 "    }" + 
                 "  }) {" + 
                 "    select {" + 
