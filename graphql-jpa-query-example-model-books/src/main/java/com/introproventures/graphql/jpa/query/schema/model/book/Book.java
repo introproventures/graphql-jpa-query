@@ -43,7 +43,7 @@ public class Book {
 	@GraphQLIgnoreFilter
 	String description;
 
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(fetch=FetchType.LAZY, optional = false)
 	Author author;
 
 	@Enumerated(EnumType.STRING)
