@@ -727,12 +727,12 @@ public class GraphQLExecutorTests {
                 "  Authors(where: {" + 
                 "    books: {" + 
                 "      author: {name: {LIKE:\"Leo\"}}" +
-//                "      AND: {" +
+                "      AND: {" +
                 "        OR: {" + 
                 "          id: {EQ: 2}" + 
                 "          title: {LIKE: \"Anna\"}" + 
                 "        }" + 
-  //              "      }" +
+                "      }" +
                 "    }" + 
                 "  }) {" + 
                 "    select {" + 
