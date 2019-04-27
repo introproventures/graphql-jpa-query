@@ -640,6 +640,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             // TODO fix page count query
             arguments.add(getWhereArgument(foreignType));
+            
+            arguments.add(optionalArgument(SingularAttribute.class.cast(attribute)));
 
         } //  Get Sub-Objects fields queries via DataFetcher
         else if (attribute instanceof PluralAttribute
@@ -651,7 +653,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             arguments.add(getWhereArgument(elementType));
             dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, baseEntity, (PluralAttribute) attribute);
         }
-
+        
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(attribute.getName())
                 .description(getSchemaDescription(attribute.getJavaMember()))
@@ -660,6 +662,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .argument(arguments)
                 .build();
     }
+    
+    private GraphQLArgument optionalArgument(SingularAttribute<?,?> attribute) {
+        return GraphQLArgument.newArgument()
+                .name("optional")
+                .description("Optional association specification")
+                .type(Scalars.GraphQLBoolean)
+                .defaultValue(attribute.isOptional())
+                .build();
+    }    
 
     protected ManagedType<?> getForeignType(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute))

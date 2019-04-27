@@ -167,7 +167,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         // Process where arguments clauses.
                         arguments.addAll(selectedField.getArguments()
                             .stream()
-                            .filter(it -> !isOrderByArgument(it))
+                            .filter(it -> !isOrderByArgument(it) && !isOptional(it))
                             .map(it -> new Argument(selectedField.getName() + "." + it.getName(), it.getValue()))
                             .collect(Collectors.toList()));
 
@@ -178,14 +178,34 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                             ) {
                                // Apply left outer join to retrieve optional associations
-                               reuseJoin(from, selectedField.getName(), true);
+                                Optional<Argument> optional = selectedField.getArguments()
+                                                                           .stream()
+                                                                           .filter(it -> isOptional(it))
+                                                                           .findFirst();
+                               
+                               boolean isOptional = optional.map(it -> it.getValue())
+                                                            .map(BooleanValue.class::cast)
+                                                            .map(BooleanValue::isValue)
+                                                            .orElseGet(() -> attribute.isOptional());
+                               
+                               reuseJoin(from, selectedField.getName(), isOptional);
                             }
                         }
                     } else  {
                         // We must add plural attributes with explicit fetch to avoid Hibernate error: 
                         // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                        // Apply left outer join to retrieve optional associations
-                        reuseJoin(from, selectedField.getName(), true);
+
+                        // Apply left outer join to retrieve optional many-to-many associations
+                        PluralAttribute attribute = entityType.getPluralAttributes()
+                                                              .stream()
+                                                              .filter(it -> it.getName()
+                                                                              .equals(selectedField.getName()))
+                                                              .findFirst()
+                                                              .get();
+                        
+                        boolean isOptional = attribute.getPersistentAttributeType().equals(PersistentAttributeType.MANY_TO_MANY) ? true : false;
+                        
+                        reuseJoin(from, selectedField.getName(), isOptional);
                     }
                 }
             }
@@ -252,6 +272,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return GraphQLJpaSchemaBuilder.ORDER_BY_PARAM_NAME.equals(argument.getName());
     }
 
+    protected boolean isOptional(Argument argument) {
+        return "optional".equals(argument.getName());
+    }
+    
     @SuppressWarnings( "unchecked" )
     protected Predicate getPredicate(CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
 
@@ -396,7 +420,13 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             else
                 arguments.put(logical.name(), environment.getArgument(fieldName));
             
-            return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),  
+            boolean isOptional = Optional.of(argument)
+                                         .filter(it -> !Logical.names().contains(it.getName()))
+                                         .map(it -> getAttribute(environment, argument))
+                                         .map(this::isOptional)
+                                         .orElse(false);
+            
+            return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
                                         wherePredicateEnvironment(environment, fieldDefinition, arguments),
                                         new Argument(logical.name(), expressionValue));
         }
@@ -521,9 +551,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         for (Join<?,?> join : path.getJoins()) {
             if (join.getAttribute().getName().equals(fieldName)) {
-                if ((join.getJoinType() == JoinType.LEFT) == outer) {
-                    return join;
-                }
+                return join;
             }
         }
         return outer ? path.join(fieldName, JoinType.LEFT) : path.join(fieldName);
@@ -631,6 +659,14 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return entityType.getAttribute(argument.getName());
     }
 
+    private boolean isOptional(Attribute<?,?> attribute) {
+        if(SingularAttribute.class.isInstance(attribute)) {
+            return SingularAttribute.class.cast(attribute).isOptional();
+        }
+        
+        return false;
+    }
+    
     /**
      * Resolve JPA model entity type from GraphQL objectType
      *
