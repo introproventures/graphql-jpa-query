@@ -345,12 +345,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             .filter(predicate -> predicate != null)
             .forEach(predicates::add);
 
-        if (predicates.isEmpty())
-            predicates.add(cb.disjunction());
-
-        return (logical == Logical.OR)
-            ? cb.or(predicates.toArray(new Predicate[predicates.size()]))
-            : cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        return getCompoundPredicate(cb, predicates, logical);
     }
     
     private Logical extractLogical(Argument argument) {
@@ -375,6 +370,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         List<Predicate> predicates = new ArrayList<>();
 
+        // Let's parse logical expressions, i.e. AND, OR
         expressionValue.getObjectFields().stream()
             .filter(it -> Logical.names().contains(it.getName()))
             .map(it -> getFieldPredicate(fieldName, cb, path, it,
@@ -383,49 +379,55 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             )
             .forEach(predicates::add);
         
-        // Let's parse relation criteria expressions if present
-        expressionValue.getObjectFields().stream()
-            .filter(it -> !Logical.names().contains(it.getName()) && !Criteria.names().contains(it.getName()))
-            .map(it -> {
-                GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
-                                                                     this.getObjectType(environment, argument),
-                                                                     new Field(fieldName));
-
-                Map<String, Object> arguments = new LinkedHashMap<>();
-
+        // Let's parse relation criteria expressions if present, i.e. books, author, etc.
+        if(expressionValue.getObjectFields()
+                          .stream()
+                          .anyMatch(it -> !Logical.names().contains(it.getName()) && !Criteria.names().contains(it.getName())))
+        {
+            GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+                                                                 this.getObjectType(environment, argument),
+                                                                 new Field(fieldName));
+            Map<String, Object> arguments = new LinkedHashMap<>();
+            
+            if(Logical.names().contains(argument.getName()))
+                arguments.put(logical.name(), environment.getArgument(argument.getName()));
+            else
                 arguments.put(logical.name(), environment.getArgument(fieldName));
-                
-                return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),  
-                                            wherePredicateEnvironment(environment, fieldDefinition, arguments),
-                                            new Argument(logical.name(), expressionValue));
-               }
-            )
-            .forEach(predicates::add);
-
-        Optional<Predicate> relationPredicate = predicates.stream().findFirst();
-        
-        // Let's check if relation criteria predicate exists, to avoid adding duplicate predicates in the query
-        if(relationPredicate.isPresent()) {
-            return relationPredicate.get();
+            
+            return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),  
+                                        wherePredicateEnvironment(environment, fieldDefinition, arguments),
+                                        new Argument(logical.name(), expressionValue));
         }
         
+        // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc. 
         JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
 
-        expressionValue.getObjectFields().stream()
+        expressionValue.getObjectFields()
+            .stream()
             .filter(it -> Criteria.names().contains(it.getName()))
             .map(it -> getPredicateFilter(new ObjectField(fieldName, it.getValue()),
-                argumentEnvironment(environment, argument.getName()),
-                new Argument(it.getName(), it.getValue()))
-            )
+                            argumentEnvironment(environment, argument.getName()),
+                            new Argument(it.getName(), it.getValue())))
             .sorted()
             .map(it -> pb.getPredicate(path, path.get(it.getField()), it))
             .filter(predicate -> predicate != null)
             .forEach(predicates::add);
 
-        return  (logical == Logical.OR)
-            ? cb.or(predicates.toArray(new Predicate[predicates.size()]))
-            : cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        return getCompoundPredicate(cb, predicates, logical);
 
+    }
+    
+    private Predicate getCompoundPredicate(CriteriaBuilder cb, List<Predicate> predicates, Logical logical) {
+        if(predicates.isEmpty())
+            return cb.disjunction();
+        
+        if(predicates.size() == 1) {
+            return predicates.get(0);
+        }
+        
+        return  (logical == Logical.OR)
+                ? cb.or(predicates.toArray(new Predicate[predicates.size()]))
+                : cb.and(predicates.toArray(new Predicate[predicates.size()]));
     }
 
 	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
