@@ -18,6 +18,7 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -772,6 +773,94 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
     
+    @Test
+    public void queryHumansWithFavoriteDroidDefaultOptionalTrue() {
+        //given:
+        String query = "query { "
+                + "Humans {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      homePlanet" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, homePlanet=Tatooine, favoriteDroid={name=C-3PO}}, "
+                + "{id=1001, name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}, "
+                + "{id=1002, name=Han Solo, homePlanet=null, favoriteDroid=null}, "
+                + "{id=1003, name=Leia Organa, homePlanet=Alderaan, favoriteDroid=null}, "
+                + "{id=1004, name=Wilhuff Tarkin, homePlanet=null, favoriteDroid=null}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+        
+    @Test
+    public void queryHumansWittFavorideDroidExplicitOptionalFalse() {
+        //given:
+        String query = "query { "
+                + "Humans {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      homePlanet" + 
+                "      favoriteDroid(optional: false) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, homePlanet=Tatooine, favoriteDroid={name=C-3PO}}, "
+                + "{id=1001, name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryHumansWittFavorideDroidExplicitOptionalFalseParameterBinding() {
+        //given:
+        String query = "query($optional: Boolean) { "
+                + "Humans {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      homePlanet" + 
+                "      favoriteDroid(optional: $optional) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        Map<String, Object> variables = Collections.singletonMap("optional", false);
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, homePlanet=Tatooine, favoriteDroid={name=C-3PO}}, "
+                + "{id=1001, name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query, variables).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
     
     @Test
     public void queryFilterManyToOneEmbdeddedCriteria() {
