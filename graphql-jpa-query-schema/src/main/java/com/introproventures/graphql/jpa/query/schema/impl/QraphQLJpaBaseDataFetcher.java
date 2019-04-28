@@ -90,6 +90,8 @@ import graphql.util.TraverserContext;
  */
 class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
+    private static final String OPTIONAL = "optional";
+
     // "__typename" is part of the graphql introspection spec and has to be ignored
     private static final String TYPENAME = "__typename";
 
@@ -167,24 +169,35 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         // Process where arguments clauses.
                         arguments.addAll(selectedField.getArguments()
                             .stream()
-                            .filter(it -> !isOrderByArgument(it))
+                            .filter(it -> !isOrderByArgument(it) && !isOptionalArgument(it))
                             .map(it -> new Argument(selectedField.getName() + "." + it.getName(), it.getValue()))
                             .collect(Collectors.toList()));
 
-                        // Check if it's an object and the foreign side is One.  Then we can eagerly fetch causing an inner join instead of 2 queries
+                        // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
                         if (fieldPath.getModel() instanceof SingularAttribute) {
                             SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
                             if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
                                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                             ) {
-                                reuseJoin(from, selectedField.getName(), false);
+                               // Let's apply left outer join to retrieve optional associations
+                               Optional<Argument> optionalArgument = getArgument(selectedField, OPTIONAL);
+
+                               // Let's do fugly conversion 
+                               Boolean isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
+                                                                    .orElse(attribute.isOptional());
+                               
+                               reuseJoin(from, selectedField.getName(), isOptional);
                             }
                         }
-                    } else  {
-                        // We must add plural attributes with explicit fetch to avoid Hibernate error: 
+                    } else {
+                        // We must add plural attributes with explicit join to avoid Hibernate error: 
                         // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                        // TODO Let's try detect optional relation and apply join type
-                        reuseJoin(from, selectedField.getName(), false);
+                        PluralAttribute<?, ?, ?> attribute = getAttribute(selectedField.getName());
+                        
+                        // Let's apply left outer join to retrieve optional many-to-many associations
+                        boolean isOptional = (PersistentAttributeType.MANY_TO_MANY == attribute.getPersistentAttributeType());
+                        
+                        reuseJoin(from, selectedField.getName(), isOptional);
                     }
                 }
             }
@@ -251,6 +264,22 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return GraphQLJpaSchemaBuilder.ORDER_BY_PARAM_NAME.equals(argument.getName());
     }
 
+    protected boolean isOptionalArgument(Argument argument) {
+        return OPTIONAL.equals(argument.getName());
+    }
+    
+    protected Optional<Argument> getArgument(Field selectedField, String argumentName) {
+        return selectedField.getArguments()
+                             .stream()
+                             .filter(it -> it.getName()
+                                             .equals(argumentName))
+                             .findFirst();        
+    }
+    
+    protected <R extends Attribute<?,?>> R getAttribute(String attributeName) {
+        return (R) entityType.getAttribute(attributeName);
+    }
+ 
     @SuppressWarnings( "unchecked" )
     protected Predicate getPredicate(CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
 
@@ -259,6 +288,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
             // If the argument is a list, let's assume we need to join and do an 'in' clause
             if (argumentEntityAttribute instanceof PluralAttribute) {
+                // Apply left outer join to retrieve optional associations
                 return reuseJoin(from, argument.getName(), false)
                     .in(convertValue(environment, argument, argument.getValue()));
             }
@@ -272,7 +302,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             } else {
                 String fieldName = argument.getName().split("\\.")[0];
 
-                From<?,?> join = getCompoundJoin(path, argument.getName(), false);
+                From<?,?> join = getCompoundJoin(path, argument.getName(), true);
                 Argument where = new Argument("where",  argument.getValue());
                 Map<String, Object> variables = Optional.ofNullable(environment.getContext())
                 		.filter(it -> it instanceof Map)
@@ -388,13 +418,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                  this.getObjectType(environment, argument),
                                                                  new Field(fieldName));
             Map<String, Object> arguments = new LinkedHashMap<>();
+            boolean isOptional = false;
             
-            if(Logical.names().contains(argument.getName()))
+            if(Logical.names().contains(argument.getName())) {
                 arguments.put(logical.name(), environment.getArgument(argument.getName()));
-            else
+            } else {
                 arguments.put(logical.name(), environment.getArgument(fieldName));
+
+                isOptional = isOptionalAttribute(getAttribute(environment, argument));
+            }
             
-            return getArgumentPredicate(cb, reuseJoin(path, fieldName, false),  
+            return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
                                         wherePredicateEnvironment(environment, fieldDefinition, arguments),
                                         new Argument(logical.name(), expressionValue));
         }
@@ -519,9 +553,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         for (Join<?,?> join : path.getJoins()) {
             if (join.getAttribute().getName().equals(fieldName)) {
-                if ((join.getJoinType() == JoinType.LEFT) == outer) {
-                    return join;
-                }
+                return join;
             }
         }
         return outer ? path.join(fieldName, JoinType.LEFT) : path.join(fieldName);
@@ -629,6 +661,14 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return entityType.getAttribute(argument.getName());
     }
 
+    private boolean isOptionalAttribute(Attribute<?,?> attribute) {
+        if(SingularAttribute.class.isInstance(attribute)) {
+            return SingularAttribute.class.cast(attribute).isOptional();
+        }
+        
+        return false;
+    }
+    
     /**
      * Resolve JPA model entity type from GraphQL objectType
      *
@@ -777,14 +817,38 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
 
     @SuppressWarnings( "unchecked" )
-    protected final <R extends Value> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
+    protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
         return (R) getObjectField(objectValue, fieldName).map(it-> it.getValue())
                                                          .orElse(new NullValue());
     }
 
     @SuppressWarnings( "unchecked" )
-    protected final <R> R getArgumentValue(Argument argument) {
-        return (R) argument.getValue();
+    protected final <T> T getArgumentValue(DataFetchingEnvironment environment, Argument argument, Class<T> type) {
+        Value<?> value = argument.getValue();
+        
+        if(VariableReference.class.isInstance(value)) {
+            return (T)
+                environment.getExecutionContext()
+                           .getVariables()
+                           .get(VariableReference.class.cast(value).getName());
+        }
+        else if (BooleanValue.class.isInstance(value)) {
+            return (T) new Boolean(BooleanValue.class.cast(value).isValue());
+        }
+        else if (IntValue.class.isInstance(value)) {
+            return (T) IntValue.class.cast(value).getValue();
+        }
+        else if (StringValue.class.isInstance(value)) {
+            return (T) StringValue.class.cast(value).getValue();
+        }
+        else if (FloatValue.class.isInstance(value)) {
+            return (T) FloatValue.class.cast(value).getValue();
+        }
+        else if (NullValue.class.isInstance(value)) {
+            return (T) null;
+        }
+        
+        throw new IllegalArgumentException("Not supported");
     }
 
     protected final Optional<ObjectField> getObjectField(ObjectValue objectValue, String fieldName) {

@@ -19,10 +19,9 @@ package com.introproventures.graphql.jpa.query.schema.model.starwars;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -32,7 +31,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=true)
 public class Droid extends Character {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "primary_function")
     DroidFunction primaryFunction;
 
