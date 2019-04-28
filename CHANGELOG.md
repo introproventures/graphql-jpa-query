@@ -1,6 +1,7 @@
 # Change Log
 
-## 0.3.24-SNAPSHOT
+## 0.3.24
+* fix: Let&#39;s pass and apply distinct in query results if enabled (#124) [dcb037b](https://github.com/introproventures/graphql-jpa-query/commit/dcb037b02f6f7eef302fd43d435252c1ed1430f3)
 * fix: lets fetch element collection attributes (#123) [ca7f78e](https://github.com/introproventures/graphql-jpa-query/commit/ca7f78e650860ad3aac0e1639dc68f13fab76f74)
 * fix: Apply left outer join to retrieve optional associations [WIP] (#105) [7ff25ae](https://github.com/introproventures/graphql-jpa-query/commit/7ff25ae2a22ab9267a41c424ef683e309b55bd56)
 * fix: update example docker-compose Docker image [74afefc](https://github.com/introproventures/graphql-jpa-query/commit/74afefc3cdb75efd214431f42cd0257a12f2a49c)
