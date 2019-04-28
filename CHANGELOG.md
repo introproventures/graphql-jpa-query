@@ -1,6 +1,8 @@
 # Change Log
 
-## 0.3.23-SNAPSHOT
+## 0.3.23
+* fix: lets fetch element collection attributes (#123) [ca7f78e](https://github.com/introproventures/graphql-jpa-query/commit/ca7f78e650860ad3aac0e1639dc68f13fab76f74)
+* fix: Apply left outer join to retrieve optional associations [WIP] (#105) [7ff25ae](https://github.com/introproventures/graphql-jpa-query/commit/7ff25ae2a22ab9267a41c424ef683e309b55bd56)
 * fix: update example docker-compose Docker image [74afefc](https://github.com/introproventures/graphql-jpa-query/commit/74afefc3cdb75efd214431f42cd0257a12f2a49c)
 * fix: compound nested relationship criteria expressions (#121) [af279d9](https://github.com/introproventures/graphql-jpa-query/commit/af279d913765df7220720e851b6e3fa9441069dc)
 * Fix  MappedSuperclass for JPA entity attributes (#120) [c67073a](https://github.com/introproventures/graphql-jpa-query/commit/c67073aed1f847b99ad4c99ccd457e323788f23e)
