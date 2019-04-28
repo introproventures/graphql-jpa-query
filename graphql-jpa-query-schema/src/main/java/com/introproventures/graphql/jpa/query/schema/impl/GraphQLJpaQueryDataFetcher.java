@@ -131,7 +131,11 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
             query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
             query.setHint(ORG_HIBERNATE_CACHEABLE, false);
-            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+            
+            // Let's pass distinct if enabled
+            if(isDistinct) {
+                query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, true);
+            }
             
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
         }

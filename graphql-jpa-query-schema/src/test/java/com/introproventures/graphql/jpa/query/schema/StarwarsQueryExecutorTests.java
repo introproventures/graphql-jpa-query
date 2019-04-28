@@ -1208,5 +1208,34 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
      
+
+    @Test
+    public void queryShouldReturnDistictResultsByDefault() {
+        //given:
+        String query = "query { " +
+                "  Humans (where: { " + 
+                "    appearsIn: {IN: [A_NEW_HOPE, EMPIRE_STRIKES_BACK]}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker}, "
+                + "{id=1001, name=Darth Vader}, "
+                + "{id=1002, name=Han Solo}, "
+                + "{id=1003, name=Leia Organa}, "
+                + "{id=1004, name=Wilhuff Tarkin}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
 }
