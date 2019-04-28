@@ -1141,6 +1141,72 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryWithNestedWhereSearchCriteriaShouldFetchElementCollectionsAttributes() {
+        //given:
+        String query = "query { " +
+                "  Characters (where: {" + 
+                "    appearsIn :{IN: THE_FORCE_AWAKENS}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id, " + 
+                "      name," + 
+                "      appearsIn" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Characters={select=["
+                + "{id=1000, name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{id=1002, name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{id=1003, name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{id=2000, name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                + "{id=2001, name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
         
+    
+    @Test
+    public void queryWithNestedWhereCompoundSearchCriteriaShouldFetchElementCollectionsAttributes() {
+        //given:
+        String query = "query { " +
+                "  Humans(where:{" + 
+                "    favoriteDroid: {name: {EQ: \"C-3PO\"}} " + 
+                "    appearsIn: {IN: [THE_FORCE_AWAKENS]}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      homePlanet" + 
+                "      favoriteDroid {" + 
+                "        name" + 
+                "      }" + 
+                "      appearsIn" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Humans={select=[{"
+                +   "id=1000, "
+                +   "name=Luke Skywalker, "
+                +   "homePlanet=Tatooine, "
+                +   "favoriteDroid={name=C-3PO}, "
+                +   "appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]"
+                + "}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+     
     
 }

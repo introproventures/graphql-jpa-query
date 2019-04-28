@@ -198,6 +198,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         boolean isOptional = (PersistentAttributeType.MANY_TO_MANY == attribute.getPersistentAttributeType());
                         
                         reuseJoin(from, selectedField.getName(), isOptional);
+
+                        // Let's fetch element collections to avoid filtering their values used where search criteria
+                        if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
+                            from.fetch(selectedField.getName());
+                        }
                     }
                 }
             }
