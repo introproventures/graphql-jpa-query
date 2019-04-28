@@ -198,7 +198,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         boolean isOptional = (PersistentAttributeType.MANY_TO_MANY == attribute.getPersistentAttributeType());
                         
                         reuseJoin(from, selectedField.getName(), isOptional);
-                        }
                     }
                 }
             }
