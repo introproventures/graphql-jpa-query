@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.25
+## 0.3.26-SNAPSHOT
 * fix: Let&#39;s not pass DISTINCT in JPQL for better performance [4a75979](https://github.com/introproventures/graphql-jpa-query/commit/4a759791b5334a03ede3232d02018b3ed8f74c0a)
 * fix: Let&#39;s pass and apply distinct in query results if enabled (#124) [dcb037b](https://github.com/introproventures/graphql-jpa-query/commit/dcb037b02f6f7eef302fd43d435252c1ed1430f3)
 * fix: lets fetch element collection attributes (#123) [ca7f78e](https://github.com/introproventures/graphql-jpa-query/commit/ca7f78e650860ad3aac0e1639dc68f13fab76f74)
