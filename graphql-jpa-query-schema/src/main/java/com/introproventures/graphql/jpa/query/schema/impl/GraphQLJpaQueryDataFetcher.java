@@ -15,9 +15,7 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -138,12 +136,17 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             if(isDistinct) {
                 query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             }
-            
-            // Let's remove any duplicate references for root entities 
-            Collection<?> resultList = isDistinct ? 
-                            new LinkedHashSet<Object>(query.getResultList()) 
-                            : query.getResultList();
 
+            // Let's execute query 
+            List<?> resultList = query.getResultList(); 
+                            
+            // Let's remove any duplicate references for root entities 
+            if(isDistinct) {
+                resultList = resultList.stream()
+                                       .distinct()
+                                       .collect(Collectors.toList());
+            }
+                
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, resultList);
         }
         
