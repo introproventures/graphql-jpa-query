@@ -50,6 +50,7 @@ import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
+import graphql.language.VariableReference;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
@@ -511,11 +512,12 @@ public class JavaScalars {
 
         @Override
         public Object parseLiteral(Object input) {
-            return parseFieldValue((Value) input, Collections.emptyMap());
+            return parseLiteral((Value<?>) input, Collections.emptyMap());
         }
 
         //recursively parse the input into a Map
-        private Object parseFieldValue(Object value, Map<String, Object> variables) {
+        @Override
+        public Object parseLiteral(Object value, Map<String, Object> variables) {
             if (!(value instanceof Value)) {
                 throw new IllegalArgumentException(
                                                    "Expected AST type 'StringValue' but was '" + value + "'.");
@@ -539,10 +541,14 @@ public class JavaScalars {
             if (value instanceof NullValue) {
                 return null;
             }
+            if (value instanceof VariableReference) {
+                String varName = ((VariableReference) value).getName();
+                return variables.get(varName);
+            }
             if (value instanceof ArrayValue) {
                 List<Value> values = ((ArrayValue) value).getValues();
                 return values.stream()
-                             .map(v -> parseFieldValue(v, variables))
+                             .map(v -> parseLiteral(v, variables))
                              .collect(Collectors.toList());
             }
             if (value instanceof ObjectValue) {
@@ -550,7 +556,7 @@ public class JavaScalars {
                 Map<String, Object> parsedValues = new LinkedHashMap<>();
 
                 values.forEach(field -> {
-                    Object parsedValue = parseFieldValue(field.getValue(), variables);
+                    Object parsedValue = parseLiteral(field.getValue(), variables);
                     parsedValues.put(field.getName(), parsedValue);
                 });
                 return parsedValues;
