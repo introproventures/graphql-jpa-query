@@ -309,11 +309,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
                 From<?,?> join = getCompoundJoin(path, argument.getName(), true);
                 Argument where = new Argument("where",  argument.getValue());
-                Map<String, Object> variables = Optional.ofNullable(environment.getContext())
-                		.filter(it -> it instanceof Map)
-                		.map(it -> (Map<String, Object>) it)
-                		.map(it -> (Map<String, Object>) it.get("variables"))
-                		.orElse(Collections.emptyMap());
+                Map<String, Object> variables = environment.getExecutionContext().getVariables();
 
                 GraphQLFieldDefinition fieldDef = getFieldDef(
                     environment.getGraphQLSchema(),
@@ -580,7 +576,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         else if (value instanceof VariableReference) {
             Class javaType = getJavaType(environment, argument);
-            Object argumentValue = environment.getArguments().get(argument.getName());
+            Object argumentValue = environment.getExecutionContext()
+                                              .getVariables()
+                                              .get(VariableReference.class.cast(value).getName());
             if(javaType.isEnum()) {
                 if(argumentValue instanceof Collection) {
                     List<Enum> values = new ArrayList<>();
