@@ -313,7 +313,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
                 GraphQLFieldDefinition fieldDef = getFieldDef(
                     environment.getGraphQLSchema(),
-                    this.getObjectType(environment, argument),
+                    this.getObjectType(environment),
                     new Field(fieldName)
                 );
 
@@ -416,7 +416,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                           .anyMatch(it -> !Logical.names().contains(it.getName()) && !Criteria.names().contains(it.getName())))
         {
             GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
-                                                                 this.getObjectType(environment, argument),
+                                                                 this.getObjectType(environment),
                                                                  new Field(fieldName));
             Map<String, Object> arguments = new LinkedHashMap<>();
             boolean isOptional = false;
@@ -658,7 +658,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @return JPA model attribute
      */
     private Attribute<?,?> getAttribute(DataFetchingEnvironment environment, Argument argument) {
-        GraphQLObjectType objectType = getObjectType(environment, argument);
+        GraphQLObjectType objectType = getObjectType(environment);
         EntityType<?> entityType = getEntityType(objectType);
 
         return entityType.getAttribute(argument.getName());
@@ -695,7 +695,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @param argument
      * @return resolved GraphQL object type or null if no output type is provided
      */
-    private GraphQLObjectType getObjectType(DataFetchingEnvironment environment, Argument argument) {
+    private GraphQLObjectType getObjectType(DataFetchingEnvironment environment) {
         GraphQLType outputType = environment.getFieldType();
 
         if (outputType instanceof GraphQLList)
