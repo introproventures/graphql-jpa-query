@@ -260,7 +260,7 @@ public class GraphQLJpaConverterTests {
     @Test
     public void queryTaskVariablesWhereSearchCriteriaVariableBinding() {
         //given
-        String query = "query($value: Object!) {" + 
+        String query = "query($value: VariableValue!) {" + 
                 "  TaskVariables(where: {" 
                 +     "value: {LOCATE: $value }" 
                 + "}) {" + 
@@ -287,7 +287,7 @@ public class GraphQLJpaConverterTests {
     @Test
     public void queryProcessVariablesWhereSearchCriteriaVariableBindings() {
         //given
-        String query = "query($value: Object!)  {" + 
+        String query = "query($value: VariableValue!)  {" + 
                 " ProcessVariables(where: {" 
                 +     "value: {LOCATE: $value}" 
                 + "}) {" + 
