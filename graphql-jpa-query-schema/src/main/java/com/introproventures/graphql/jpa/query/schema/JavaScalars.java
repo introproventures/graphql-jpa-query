@@ -115,7 +115,7 @@ public class JavaScalars {
     }
 
     public static GraphQLScalarType of(Class<?> key) {
-        return scalarsRegistry.get(key);
+        return scalarsRegistry.getOrDefault(key, scalarsRegistry.get(Object.class));
     }
 
     public static JavaScalars register(Class<?> key, GraphQLScalarType value) {
