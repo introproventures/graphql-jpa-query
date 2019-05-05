@@ -90,7 +90,7 @@ public class BooksSchemaConfiguration {
                     new GraphQLJpaSchemaBuilder(entityManager)
                         .name("GraphQLBooks")
                         .useDistinctParameter(properties.isUseDistinctParameter())
-                        .setDefaultDistinct(properties.isDefautltDistinct())
+                        .setDefaultDistinct(properties.isDefaultDistinct())
                         .build()
             );
         }
