@@ -36,11 +36,8 @@ import com.introproventures.graphql.jpa.query.converter.model.TaskVariableEntity
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.schema.GraphQLScalarType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,12 +64,9 @@ public class GraphQLJpaConverterTests {
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            JavaScalars.register(JsonNode.class, new GraphQLScalarType("Json", "Json type", new GraphQLObjectCoercing()));    
-            JavaScalars.register(VariableValue.class, new GraphQLScalarType("VariableValue", "VariableValue Type", new GraphQLObjectCoercing()));    
-            
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("HashMapSchema")
-                .description("Json Entity test schema");
+                .name("CustomAttributeConverterSchema")
+                .description("Custom Attribute Converter Schema");
         }
         
     }
