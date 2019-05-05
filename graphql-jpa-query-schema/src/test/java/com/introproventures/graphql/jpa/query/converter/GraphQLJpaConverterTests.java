@@ -449,4 +449,109 @@ public class GraphQLJpaConverterTests {
     }    
     
     
+    @Test
+    public void queryProcessVariablesWhereWithINSingleValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {IN: 1.2345}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+        
+    @Test
+    public void queryProcessVariablesWhereWithINListValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {IN: [1.2345]}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+    
+    @Test
+    public void queryProcessVariablesWhereWithNINListValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {NIN: [null]}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=["
+                + "{name=variable1, value=data}, "
+                + "{name=variable2, value=true}, "
+                + "{name=variable4, value={key=data}}, "
+                + "{name=variable5, value=1.2345}, "
+                + "{name=variable6, value=12345}, "
+                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryProcessVariablesWhereWithNINSingleValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {NIN: null}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=["
+                + "{name=variable1, value=data}, "
+                + "{name=variable2, value=true}, "
+                + "{name=variable4, value={key=data}}, "
+                + "{name=variable5, value=1.2345}, "
+                + "{name=variable6, value=12345}, "
+                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }          
+     
+    
 }

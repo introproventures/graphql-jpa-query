@@ -19,9 +19,11 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -420,26 +422,66 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
                 return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
             }
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            else { 
                 Object object = value;
                 
-                try {
-                    Constructor<?> constructor = type.getConstructor(Object.class);
-                    if(constructor != null) {
-                        Object arg = NullValue.class.isInstance(value) ? null : value;
-                        object = constructor.newInstance(arg);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if(List.class.isInstance(value)) {
+                    object = getValues(object, type);
+                } else {
+                    object = getValue(object, type);
                 }
-                
-                return cb.equal(from.get(filter.getField()), object);
-            } 
+                    
+                if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                    return cb.equal(from.get(filter.getField()), object);
+                } 
+                else if (filter.getCriterias().contains(PredicateFilter.Criteria.IN) 
+                        || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)
+                ) {
+                    CriteriaBuilder.In<Object> in = cb.in(from.get(filter.getField()));
+                    
+                    if(List.class.isInstance(object)) {
+                        List.class.cast(object)
+                                  .forEach(in::value);
+                    } else {
+                        in.value(object);
+                    }
+                    
+                    if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                        return cb.not(in);
+                    }
+                    
+                    return in;
+                } 
+            }
         }
 
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());
     }
 
+    private Object getValue(Object object, Class<?> type) {
+        try {
+            Constructor<?> constructor = type.getConstructor(Object.class);
+            if(constructor != null) {
+                Object arg = NullValue.class.isInstance(object) ? null : object;
+                return constructor.newInstance(arg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return object;
+    }
+    
+    private Object getValues(Object object, Class<?> type) {
+        List<Object> objects = new ArrayList<>();
+
+        for (Object value : List.class.cast(object).toArray()) {
+            objects.add(getValue(value, type));
+        }
+
+        return objects;
+    }
+    
     /**
      * Makes predicate for field of primitive type
      *
