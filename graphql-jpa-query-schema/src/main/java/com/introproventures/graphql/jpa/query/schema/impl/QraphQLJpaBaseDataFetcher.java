@@ -384,10 +384,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                   .stream()
                   .filter(it -> !Logical.names().contains(it.getName()))
                   .map(it -> {
-                      Map<String, Object> arguments = getFieldArguments(environment, it, argument);
+                      Map<String, Object> args = getFieldArguments(environment, it, argument);
+                      Argument arg = new Argument(it.getName(), it.getValue());
 
                       if(isEntityType(environment)) {
-                          Attribute<?,?> attribute = getAttribute(environment, new Argument(it.getName(), it.getValue()));
+                          Attribute<?,?> attribute = getAttribute(environment, arg);
                           
                           if(attribute.isAssociation()) {
                               GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
@@ -396,8 +397,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                               boolean isOptional = false;
                               
                               return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
-                                                          wherePredicateEnvironment(environment, fieldDefinition, arguments),
-                                                          new Argument(it.getName(), it.getValue()));
+                                                          wherePredicateEnvironment(environment, fieldDefinition, args),
+                                                          arg);
                           }
                       }
 
@@ -405,8 +406,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                cb,
                                                path,
                                                it,
-                                               argumentEnvironment(environment, arguments),
-                                               new Argument(it.getName(), it.getValue()));
+                                               argumentEnvironment(environment, args),
+                                               arg);
                   })
                   .filter(predicate -> predicate != null)
                   .forEach(predicates::add);
@@ -445,11 +446,20 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                              .filter(it -> Logical.names().contains(it.getName()))
                              .map(it -> {
                                  Map<String, Object> args = e.getValue();
-
-                                 return getArrayArgumentPredicate(cb,
+                                 Argument arg = new Argument(it.getName(), it.getValue());
+                                 
+                                 if(ArrayValue.class.isInstance(it.getValue())) {
+                                     return getArrayArgumentPredicate(cb,
+                                                                 path,
+                                                                 argumentEnvironment(environment, args),
+                                                                 arg);
+                                 }
+                                 
+                                 return getArgumentPredicate(cb,
                                                              path,
                                                              argumentEnvironment(environment, args),
-                                                             new Argument(it.getName(), it.getValue()));
+                                                             arg);
+                                 
                              }))
               .forEach(predicates::add);
 
@@ -460,9 +470,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                              .filter(it -> !Logical.names().contains(it.getName()))
                              .map(it -> {
                                  Map<String, Object> args = e.getValue();
+                                 Argument arg = new Argument(it.getName(), it.getValue());
                                  
                                  if(isEntityType(environment)) {
-                                     Attribute<?,?> attribute = getAttribute(environment, new Argument(it.getName(), it.getValue()));
+                                     Attribute<?,?> attribute = getAttribute(environment, arg);
                                      
                                      if(attribute.isAssociation()) {
                                          GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
@@ -472,16 +483,16 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                          
                                          return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
                                                                      wherePredicateEnvironment(environment, fieldDefinition, args),
-                                                                     new Argument(it.getName(), it.getValue()));
+                                                                     arg);
                                      }
-                                 }                                 
+                                 }
                                  
                                  return getFieldPredicate(it.getName(),
                                                           cb,
                                                           path,
                                                           it,
                                                           argumentEnvironment(environment, args),
-                                                          new Argument(it.getName(), it.getValue()));
+                                                          arg);
                              }))
               .filter(predicate -> predicate != null)
               .forEach(predicates::add);
@@ -495,7 +506,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         if (environment.getArgument(argument.getName()) instanceof Collection) {
             Collection<Map<String,Object>> list = environment.getArgument(argument.getName());
 
-            arguments = list.stream().filter(args -> args.get(field.getName()) != null).findFirst()
+            arguments = list.stream()
+                            .filter(args -> args.get(field.getName()) != null)
+                            .findFirst()
                             .orElse(list.stream().findFirst().get());
         } else {
             arguments = environment.getArgument(argument.getName());
@@ -528,14 +541,15 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
              .map(ObjectValue.class::cast)
              .flatMap(it -> it.getObjectFields().stream())
              .map(it -> {
-                 Map<String, Object> arguments = getFieldArguments(environment, it, argument);
+                 Map<String, Object> args = getFieldArguments(environment, it, argument);
+                 Argument arg = new Argument(it.getName(), it.getValue());
                  
                  return getFieldPredicate(it.getName(),
                                           cb,
                                           path,
                                           it,
-                                          argumentEnvironment(environment, arguments),
-                                          new Argument(it.getName(), it.getValue()));
+                                          argumentEnvironment(environment, args),
+                                          arg);
              })
              .forEach(predicates::add);
 
@@ -561,18 +575,18 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         expressionValue.getObjectFields().stream()
             .filter(it -> Logical.names().contains(it.getName()))
             .map(it -> { 
-                Map<String, Object> arguments = getFieldArguments(environment, it, argument);
+                Map<String, Object> args = getFieldArguments(environment, it, argument);
+                Argument arg = new Argument(it.getName(), it.getValue());
                 
                 if(it.getValue() instanceof ArrayValue) {
                     return getArrayFieldPredicate(fieldName, cb, path, it,
-                                                argumentEnvironment(environment, arguments),
-                                                new Argument(it.getName(), it.getValue()));
+                                                  argumentEnvironment(environment, args),
+                                                  arg);
                 }
                 
-                
                 return getFieldPredicate(fieldName, cb, path, it,
-                                         argumentEnvironment(environment, arguments),
-                                         new Argument(it.getName(), it.getValue()));
+                                         argumentEnvironment(environment, args),
+                                         arg);
             })
             .forEach(predicates::add);
         
@@ -584,20 +598,21 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
                                                                  this.getObjectType(environment),
                                                                  new Field(fieldName));
-            Map<String, Object> arguments = new LinkedHashMap<>();
+            Map<String, Object> args = new LinkedHashMap<>();
+            Argument arg = new Argument(logical.name(), expressionValue);
             boolean isOptional = false;
             
             if(Logical.names().contains(argument.getName())) {
-                arguments.put(logical.name(), environment.getArgument(argument.getName()));
+                args.put(logical.name(), environment.getArgument(argument.getName()));
             } else {
-                arguments.put(logical.name(), environment.getArgument(fieldName));
+                args.put(logical.name(), environment.getArgument(fieldName));
 
                 isOptional = isOptionalAttribute(getAttribute(environment, argument));
             }
             
             return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
-                                        wherePredicateEnvironment(environment, fieldDefinition, arguments),
-                                        new Argument(logical.name(), expressionValue));
+                                        wherePredicateEnvironment(environment, fieldDefinition, args),
+                                        arg);
         }
         
         // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc. 
