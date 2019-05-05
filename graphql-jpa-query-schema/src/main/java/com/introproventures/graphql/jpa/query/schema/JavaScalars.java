@@ -115,7 +115,14 @@ public class JavaScalars {
     }
 
     public static GraphQLScalarType of(Class<?> key) {
-        return scalarsRegistry.getOrDefault(key, scalarsRegistry.get(Object.class));
+        return scalarsRegistry.computeIfAbsent(key, JavaScalars::computeGraphQLScalarType);
+    }
+    
+    protected static GraphQLScalarType computeGraphQLScalarType(Class<?> key) {
+        String typeName = key.getSimpleName();
+        String description = typeName+" Scalar Object Type";
+        
+        return new GraphQLScalarType(typeName, description, new GraphQLObjectCoercing());
     }
 
     public static JavaScalars register(Class<?> key, GraphQLScalarType value) {

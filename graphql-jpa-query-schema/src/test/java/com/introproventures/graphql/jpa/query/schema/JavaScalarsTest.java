@@ -24,12 +24,16 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
+import graphql.schema.GraphQLScalarType;
 import org.junit.Test;
 
 public class JavaScalarsTest {
@@ -174,11 +178,37 @@ public class JavaScalarsTest {
         Coercing<?,?> coercing = JavaScalars.of(LocalTime.class).getCoercing();
 
         //then
-        //then
         coercing.parseValue("");
         coercing.parseValue("not a time");
         coercing.parseValue(new Object());
         
         fail("Should throw CoercingParseValueException");
     }
+    
+    @Test
+    public void testNonExistingJavaScalarShouldDefaultToObjectCoercing() {
+        //given
+        GraphQLScalarType scalarType = JavaScalars.of(VariableValue.class);
+
+        //then
+        Coercing<?,?> coercing = scalarType.getCoercing();
+
+        assertThat(coercing).isInstanceOf(GraphQLObjectCoercing.class);
+        assertThat(scalarType.getName()).isEqualTo("VariableValue");
+    }
+    
+    @Test
+    public void testRegisterJavaScalarWithObjectCoercing() {
+        //given
+        JavaScalars.register(Map.class, new GraphQLScalarType("Map", "Map Object Type", new GraphQLObjectCoercing()));
+
+        //when
+        GraphQLScalarType scalarType = JavaScalars.of(Map.class);
+        
+        //then
+        Coercing<?,?> coercing = scalarType.getCoercing();
+
+        assertThat(coercing).isInstanceOf(GraphQLObjectCoercing.class);
+        assertThat(scalarType.getName()).isEqualTo("Map");
+    }    
 }
