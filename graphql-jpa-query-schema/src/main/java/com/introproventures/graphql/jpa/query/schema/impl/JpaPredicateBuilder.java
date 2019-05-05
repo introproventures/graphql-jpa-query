@@ -16,6 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+import graphql.language.NullValue;
 
 /**
  * Supported types to build predicates for
@@ -413,9 +415,26 @@ class JpaPredicateBuilder {
                 return from.join(filter.getField()).in(value);
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
-        }
-        else if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
-            return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
+        } // TODO need better detection mechanism
+        else if (Object.class.isAssignableFrom(type)) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
+                return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
+            }
+            else if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                Object object = value;
+                
+                try {
+                    Constructor<?> constructor = type.getConstructor(Object.class);
+                    if(constructor != null) {
+                        Object arg = NullValue.class.isInstance(value) ? null : value;
+                        object = constructor.newInstance(arg);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                return cb.equal(from.get(filter.getField()), object);
+            } 
         }
 
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());

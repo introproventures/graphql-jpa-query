@@ -32,14 +32,12 @@ import javax.transaction.Transactional;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.converter.model.JsonEntity;
+import com.introproventures.graphql.jpa.query.converter.model.TaskVariableEntity;
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.schema.GraphQLScalarType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,13 +64,9 @@ public class GraphQLJpaConverterTests {
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            
-            JavaScalars.register(JsonNode.class, new GraphQLScalarType("Json", "Json type", new GraphQLObjectCoercing()));    
-            JavaScalars.register(VariableValue.class, new GraphQLScalarType("VariableValue", "VariableValue Type", new GraphQLObjectCoercing()));    
-            
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("HashMapSchema")
-                .description("Json Entity test schema");
+                .name("CustomAttributeConverterSchema")
+                .description("Custom Attribute Converter Schema");
         }
         
     }
@@ -113,6 +107,27 @@ public class GraphQLJpaConverterTests {
                                                                                  new String[] {"1","2","3","4","5"}));
         criteria.select(json)
                 .where(builder.equal(json.get("attributes"), value));
+        
+        // when:
+        List<?> result = entityManager.createQuery(criteria).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @Transactional
+    public void criteriaTester2() {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TaskVariableEntity> criteria = builder.createQuery(TaskVariableEntity.class);
+        Root<TaskVariableEntity> taskVariable = criteria.from(TaskVariableEntity.class);
+        
+        Boolean object = new Boolean(true); 
+
+        VariableValue<Boolean> variableValue = new VariableValue<>(object);
+        criteria.select(taskVariable)
+                .where(builder.equal(taskVariable.get("value"), variableValue));
         
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
@@ -312,5 +327,126 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryProcessVariablesWhereWithEQStringSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable1\"}" 
+                +     "value: {EQ: \"data\"}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable1, value=data}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryProcessVariablesWhereWithEQBooleanSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable2\"}" 
+                +     "value: {EQ: true}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable2, value=true}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+ 
+    @Test
+    public void queryProcessVariablesWhereWithEQNullSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable3\"}" 
+                +     "value: {EQ: null}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable3, value=null}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void queryProcessVariablesWhereWithEQIntSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable6\"}" 
+                +     "value: {EQ: 12345}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable6, value=12345}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryProcessVariablesWhereWithEQDoubleSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable5\"}" 
+                +     "value: {EQ: 1.2345}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
     
 }
