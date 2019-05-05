@@ -415,12 +415,12 @@ class JpaPredicateBuilder {
                 return from.join(filter.getField()).in(value);
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
-        }
+        } // TODO need better detection mechanism
         else if (Object.class.isAssignableFrom(type)) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
                 return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
             }
-            else if (Object.class.isAssignableFrom(type) && filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            else if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
                 Object object = value;
                 
                 try {

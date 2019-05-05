@@ -339,6 +339,7 @@ public class GraphQLJpaConverterTests {
         //given
         String query = "query {" + 
                 " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable1\"}" 
                 +     "value: {EQ: \"data\"}" 
                 + "}) {" + 
                 "    select {" + 
@@ -362,6 +363,7 @@ public class GraphQLJpaConverterTests {
         //given
         String query = "query {" + 
                 " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable2\"}" 
                 +     "value: {EQ: true}" 
                 + "}) {" + 
                 "    select {" + 
@@ -385,6 +387,7 @@ public class GraphQLJpaConverterTests {
         //given
         String query = "query {" + 
                 " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable3\"}" 
                 +     "value: {EQ: null}" 
                 + "}) {" + 
                 "    select {" + 
@@ -408,6 +411,7 @@ public class GraphQLJpaConverterTests {
         //given
         String query = "query {" + 
                 " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable6\"}" 
                 +     "value: {EQ: 12345}" 
                 + "}) {" + 
                 "    select {" + 
@@ -431,6 +435,7 @@ public class GraphQLJpaConverterTests {
         //given
         String query = "query {" + 
                 " TaskVariables(where: {" 
+                +     "name: {EQ: \"variable5\"}" 
                 +     "value: {EQ: 1.2345}" 
                 + "}) {" + 
                 "    select {" + 
