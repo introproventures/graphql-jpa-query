@@ -402,10 +402,10 @@ public class StarwarsQueryExecutorTests {
 
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-            + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-            + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
-            + "]}}";
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -741,30 +741,39 @@ public class StarwarsQueryExecutorTests {
                 "}";
 
         String expected = "{Humans={select=["
-                + "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO}, friends=["
-                +   "{name=C-3PO, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=Han Solo, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=Leia Organa, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=R2-D2, appearsIn=[A_NEW_HOPE]}"
-                + "]}, "
-                + "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2}, friends=["
-                +   "{name=Wilhuff Tarkin, appearsIn=[A_NEW_HOPE]}"
-                + "]}, "
-                + "{id=1002, name=Han Solo, favoriteDroid=null, friends=["
-                +   "{name=Leia Organa, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=R2-D2, appearsIn=[A_NEW_HOPE]}"
-                + "]}, "
-                + "{id=1003, name=Leia Organa, favoriteDroid=null, friends=["
-                +   "{name=C-3PO, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=Han Solo, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE]}, "
-                +   "{name=R2-D2, appearsIn=[A_NEW_HOPE]}"
-                + "]}, "
-                + "{id=1004, name=Wilhuff Tarkin, favoriteDroid=null, friends=["
-                +   "{name=Darth Vader, appearsIn=[A_NEW_HOPE]}"
-                + "]}"
-                + "]}}";
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO}, "
+                +   "friends=["
+                +       "{name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                +   "]"
+                + "}, "
+                + "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2}, "
+                +   "friends=["
+                +       "{name=Wilhuff Tarkin, appearsIn=[A_NEW_HOPE]}"
+                +   "]"
+                + "}, "
+                + "{id=1002, name=Han Solo, favoriteDroid=null, "
+                +   "friends=["
+                +       "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                +   "]"
+                + "}, "
+                + "{id=1003, name=Leia Organa, favoriteDroid=null, "
+                +   "friends=["
+                +       "{name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                +   "]"
+                + "}, "
+                + "{id=1004, name=Wilhuff Tarkin, favoriteDroid=null, "
+                +   "friends=["
+                +       "{name=Darth Vader, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}"
+                +   "]"
+                + "}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -1030,9 +1039,9 @@ public class StarwarsQueryExecutorTests {
                 +   "}"
                 + "}, "
                 + "friends=["
+                +   "{name=Leia Organa}, "
                 +   "{name=C-3PO}, "
                 +   "{name=Han Solo}, "
-                +   "{name=Leia Organa}, "
                 +   "{name=R2-D2}"
                 + "]}"
                 + "]}}";
@@ -1067,14 +1076,16 @@ public class StarwarsQueryExecutorTests {
                 "  }" +
                 "}";
 
-        String expected = "{Humans={select=["
-                +   "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO}, friends=["
-                +     "{name=C-3PO, appearsIn=[A_NEW_HOPE]}, "
-                +     "{name=Han Solo, appearsIn=[A_NEW_HOPE]}, "
-                +     "{name=Leia Organa, appearsIn=[A_NEW_HOPE]}, "
-                +     "{name=R2-D2, appearsIn=[A_NEW_HOPE]}"
-                +   "]}"
-                + "]}}";
+        String expected = "{Humans={select=[{"
+                +   "id=1000, name=Luke Skywalker, "
+                +   "favoriteDroid={name=C-3PO}, "
+                +   "friends=["
+                +       "{name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
+                +       "{name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                +   "]"
+                + "}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -1158,11 +1169,11 @@ public class StarwarsQueryExecutorTests {
                 "}";
 
         String expected = "{Characters={select=["
-                + "{id=1000, name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-                + "{id=1002, name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-                + "{id=1003, name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-                + "{id=2000, name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}, "
-                + "{id=2001, name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}"
+                + "{id=1000, name=Luke Skywalker, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{id=1002, name=Han Solo, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{id=1003, name=Leia Organa, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{id=2000, name=C-3PO, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}, "
+                + "{id=2001, name=R2-D2, appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]}"
                 + "]}}";
 
         //when:
@@ -1198,7 +1209,7 @@ public class StarwarsQueryExecutorTests {
                 +   "name=Luke Skywalker, "
                 +   "homePlanet=Tatooine, "
                 +   "favoriteDroid={name=C-3PO}, "
-                +   "appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]"
+                +   "appearsIn=[A_NEW_HOPE, THE_FORCE_AWAKENS, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI]"
                 + "}]}}";
 
         //when:

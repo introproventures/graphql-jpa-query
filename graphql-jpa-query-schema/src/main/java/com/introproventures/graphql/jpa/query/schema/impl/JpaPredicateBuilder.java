@@ -29,7 +29,9 @@ import java.util.UUID;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
@@ -413,8 +415,27 @@ class JpaPredicateBuilder {
             return getUuidPredicate((Path<UUID>) field, predicateFilter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
-            if(field.getModel() == null)
-                return from.join(filter.getField()).in(value);
+            // collection join for plural attributes
+            // TODO need better detection
+            if(field.getModel() == null) {
+                Join<?,?> join = null;
+                
+                for(Fetch<?,?> fetch: from.getFetches()) {
+                    if(fetch.getAttribute().getName().equals(filter.getField()))
+                        join = (Join<?,?>) fetch;
+                }
+                
+                if(join == null) {
+                    join = (Join<?,?>) from.fetch(filter.getField());
+                }
+                
+                Predicate in = join.in(value);
+                
+                if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN))
+                   return cb.not(in);
+                        
+                return in;
+            }
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
         } // TODO need better detection mechanism

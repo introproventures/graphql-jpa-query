@@ -638,8 +638,13 @@ public class GraphQLExecutorTests {
                 "  }" +
                 "}";
 
-        String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
+        String expected = "{Authors={select=[{"
+                +   "id=1, "
+                +   "name=Leo Tolstoy, "
+                +   "books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
                 + "]}}";
 
         //when:
@@ -674,7 +679,9 @@ public class GraphQLExecutorTests {
                 "}";
 
         String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}]}"
                 + "]}}";
 
         //when:
@@ -830,15 +837,14 @@ public class GraphQLExecutorTests {
 
         String expected = "{Books={select=[{"
                 + "id=2, "
-                + "title=War and Peace, "
-                + "genre=NOVEL, "
+                + "title=War and Peace, genre=NOVEL, "
                 + "author={"
                 +   "id=1, "
                 +   "name=Leo Tolstoy, "
                 +   "books=["
-                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
-                +   "]"
-                + "}"
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}, "
+                +       "{id=2, title=War and Peace, genre=NOVEL}"
+                +   "]}"
                 + "}]}}";
 
         //when:

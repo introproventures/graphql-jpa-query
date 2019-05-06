@@ -40,6 +40,7 @@ import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -153,6 +154,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
+                    Join<?,?> join = null;
 
                     // Build predicate arguments for singular attributes only
                     if(fieldPath.getModel() instanceof SingularAttribute) {
@@ -187,24 +189,39 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                // Let's do fugly conversion 
                                Boolean isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
                                                                     .orElse(attribute.isOptional());
-                               
-                               reuseJoin(from, selectedField.getName(), isOptional);
+
+                               join = reuseJoin(from, selectedField.getName(), isOptional);
                             }
                         }
                     } else {
-                        // We must add plural attributes with explicit join to avoid Hibernate error: 
-                        // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                        PluralAttribute<?, ?, ?> attribute = getAttribute(selectedField.getName());
+                        // We must add plural attributes with explicit join 
+                        GraphQLObjectType objectType = getObjectType(environment);
+                        EntityType<?> entityType = getEntityType(objectType);
+
+                        PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
                         
                         // Let's apply left outer join to retrieve optional many-to-many associations
                         boolean isOptional = (PersistentAttributeType.MANY_TO_MANY == attribute.getPersistentAttributeType());
                         
-                        reuseJoin(from, selectedField.getName(), isOptional);
+                        join = reuseJoin(from, selectedField.getName(), isOptional);
 
                         // Let's fetch element collections to avoid filtering their values used where search criteria
-                        if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
-                            from.fetch(selectedField.getName());
-                        }
+                        from.fetch(selectedField.getName(), isOptional ? JoinType.LEFT : JoinType.INNER);
+
+                    }
+                    
+                    // Let's build join fetch graph to avoid Hibernate error: 
+                    // "query specified join fetching, but the owner of the fetched association was not present in the select list"
+                    if(join != null && selectedField.getSelectionSet() != null) {
+                        GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+                                                                             this.getObjectType(environment),
+                                                                             selectedField);  
+                        Map<String, Object> args = environment.getArguments();
+                        
+                        DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, fieldDefinition, args);
+                        
+                        
+                        getFieldArguments(selectedField, query, cb, join, fieldEnvironment);
                     }
                 }
             }
@@ -741,12 +758,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     // trying to find already existing joins to reuse
     private Join<?,?> reuseJoin(From<?, ?> path, String fieldName, boolean outer) {
 
-        for (Join<?,?> join : path.getJoins()) {
+        for (Fetch<?,?> join : path.getFetches()) {
             if (join.getAttribute().getName().equals(fieldName)) {
-                return join;
+                return (Join<?,?>) join;
             }
         }
-        return outer ? path.join(fieldName, JoinType.LEFT) : path.join(fieldName);
+        return outer ? (Join<?,?>) path.fetch(fieldName, JoinType.LEFT) : (Join<?,?>) path.fetch(fieldName);
     }
     
     @SuppressWarnings( { "unchecked", "rawtypes" } )

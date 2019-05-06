@@ -90,8 +90,10 @@ public class GraphQLExecutorListCriteriaTests {
                 "}";
 
         String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}]}"
-                + "]}}";
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}]"
+                + "}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
