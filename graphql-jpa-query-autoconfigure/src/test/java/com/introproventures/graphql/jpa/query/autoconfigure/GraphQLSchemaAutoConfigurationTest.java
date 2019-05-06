@@ -4,6 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
+import graphql.GraphQL;
+import graphql.Scalars;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,18 +18,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import graphql.GraphQL;
-import graphql.Scalars;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
 public class GraphQLSchemaAutoConfigurationTest {
     
     @Autowired
     private GraphQLSchema graphQLSchema;
+
+    @Autowired
+    private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
     
     @SpringBootApplication
     static class Application {
@@ -96,5 +98,12 @@ public class GraphQLSchemaAutoConfigurationTest {
     }
     
 
+    @Test
+    public void configurationProperties() {
+        // given
+        assertThat(graphQLJpaQueryProperties.isDefaultDistinct()).isTrue();
+        assertThat(graphQLJpaQueryProperties.isUseDistinctParameter()).isFalse();
+    }
+        
 
 }

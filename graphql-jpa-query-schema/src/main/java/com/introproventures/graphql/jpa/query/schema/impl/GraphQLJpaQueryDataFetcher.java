@@ -47,7 +47,7 @@ import graphql.schema.GraphQLObjectType;
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
-    private boolean defaultDistinct = false;
+    private boolean defaultDistinct = true;
 	
     private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";

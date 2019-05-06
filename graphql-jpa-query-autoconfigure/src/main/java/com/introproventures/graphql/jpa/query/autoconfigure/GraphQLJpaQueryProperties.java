@@ -44,7 +44,7 @@ public class GraphQLJpaQueryProperties {
     /**
      * Enable or disable distinct distinct sql query fetcher.
      */
-    private boolean isDefaultDistinct = false;
+    private boolean isDefaultDistinct = true;
 
     /**
      * Enable or disable QraphQL module services.
@@ -105,7 +105,7 @@ public class GraphQLJpaQueryProperties {
     /**
      * @return the distinctFetcher
      */
-    public boolean isDefautltDistinct() {
+    public boolean isDefaultDistinct() {
         return isDefaultDistinct;
     }
 
