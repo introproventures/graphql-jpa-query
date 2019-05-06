@@ -946,7 +946,7 @@ public class GraphQLExecutorTests {
     }
     
     @Test
-    public void queryForAuthorsWithDefaultOptionalBooksFalse() {
+    public void queryForAuthorsWithDefaultOptionalBooks() {
         //given
         String query = "query { "
                 + "Authors {" + 
@@ -971,7 +971,8 @@ public class GraphQLExecutorTests {
                 +   "{id=5, title=The Cherry Orchard, genre=PLAY}, "
                 +   "{id=6, title=The Seagull, genre=PLAY}, "
                 +   "{id=7, title=Three Sisters, genre=PLAY}"
-                + "]}"
+                + "]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //when

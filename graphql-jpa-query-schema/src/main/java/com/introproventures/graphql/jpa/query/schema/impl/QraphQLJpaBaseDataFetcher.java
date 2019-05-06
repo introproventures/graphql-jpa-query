@@ -100,6 +100,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
+    
+    private boolean toManyDefaultOptional = true;
 
     /**
      * Creates JPA entity DataFetcher instance
@@ -107,9 +109,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @param entityManager
      * @param entityType
      */
-    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
+    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, 
+                                     EntityType<?> entityType, 
+                                     boolean toManyDefaultOptional) {
         this.entityManager = entityManager;
         this.entityType = entityType;
+        this.toManyDefaultOptional = toManyDefaultOptional;
     }
 
     @Override
@@ -194,21 +199,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         }
                     } else {
                         // We must add plural attributes with explicit join 
-                        GraphQLObjectType objectType = getObjectType(environment);
-                        EntityType<?> entityType = getEntityType(objectType);
-
-                        PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
-
                         // Let's do fugly conversion 
+                        // the many end is a collection, and it is always optional by default (empty collection)
                         Boolean isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                             .orElse(PersistentAttributeType.MANY_TO_MANY==attribute.getPersistentAttributeType());
+                                                             .orElse(toManyDefaultOptional);
                         
-                        // Let's apply left outer join to retrieve optional associations
+                        // Let's apply join to retrieve associated collection
                         join = reuseJoin(from, selectedField.getName(), isOptional);
 
                         // TODO add fetch argument parameter
                         // Let's fetch element collections to avoid filtering their values used where search criteria
-                        from.fetch(selectedField.getName(), 
+                        /*join = (Join<?,?>)*/ from.fetch(selectedField.getName(), 
                                    isOptional ? JoinType.LEFT : JoinType.INNER);
                     }
                     

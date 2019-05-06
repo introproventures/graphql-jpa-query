@@ -49,18 +49,21 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     private boolean defaultDistinct = true;
 	
-    private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
-    private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
-    private static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
-    private static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
-    private static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+    protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
+    protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+    protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
+    protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
+    protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
+        super(entityManager, entityType, toManyDefaultOptional);
     }
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean defaultDistinct) {
-        super(entityManager, entityType);
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, 
+                                      EntityType<?> entityType, 
+                                      boolean defaultDistinct,
+                                      boolean toManyDefaultOptional) {
+        super(entityManager, entityType, toManyDefaultOptional);
         this.defaultDistinct = defaultDistinct;
     }
 
