@@ -651,6 +651,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
 
             arguments.add(getWhereArgument(elementType));
+            
+            arguments.add(optionalArgument(PluralAttribute.class.cast(attribute)));
+            
             dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, baseEntity, (PluralAttribute) attribute);
         }
         
@@ -670,7 +673,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .type(Scalars.GraphQLBoolean)
                 .defaultValue(attribute.isOptional())
                 .build();
+    }
+    
+    private GraphQLArgument optionalArgument(PluralAttribute<?,?,?> attribute) {
+        return GraphQLArgument.newArgument()
+                .name("optional")
+                .description("Optional association specification")
+                .type(Scalars.GraphQLBoolean)
+                .defaultValue(false)
+                .build();
     }    
+    
 
     protected ManagedType<?> getForeignType(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute))
