@@ -553,5 +553,33 @@ public class GraphQLJpaConverterTests {
         assertThat(result.toString()).isEqualTo(expected);
     }          
      
-    
+    @Test
+    public void queryProcessVariablesWhereWithINListTypedValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {IN: [null, true, \"data\", 12345, 1.2345]}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=["
+                + "{name=variable1, value=data}, "
+                + "{name=variable2, value=true}, "
+                + "{name=variable3, value=null}, "
+                + "{name=variable5, value=1.2345}, "
+                + "{name=variable6, value=12345}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }          
+         
 }
