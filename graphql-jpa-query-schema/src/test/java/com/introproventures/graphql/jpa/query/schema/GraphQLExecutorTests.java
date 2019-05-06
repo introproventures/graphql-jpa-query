@@ -944,4 +944,113 @@ public class GraphQLExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void queryForAuthorsWithDefaultOptionalBooksFalse() {
+        //given
+        String query = "query { "
+                + "Authors {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      books {\n" + 
+                "        id\n" + 
+                "        title\n" + 
+                "        genre\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}, "
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +   "{id=6, title=The Seagull, genre=PLAY}, "
+                +   "{id=7, title=Three Sisters, genre=PLAY}"
+                + "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryForAuthorsWithExlicitOptionalBooksFalse() {
+        //given
+        String query = "query { "
+                + "Authors {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      books(optional: false) {\n" + 
+                "        id\n" + 
+                "        title\n" + 
+                "        genre\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}, "
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +   "{id=6, title=The Seagull, genre=PLAY}, "
+                +   "{id=7, title=Three Sisters, genre=PLAY}"
+                + "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+ 
+    @Test
+    public void queryForAuthorsWithExlicitOptionalBooksTrue() {
+        //given
+        String query = "query { "
+                + "Authors {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      books(optional: true) {\n" + 
+                "        id\n" + 
+                "        title\n" + 
+                "        genre\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}, "
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +   "{id=6, title=The Seagull, genre=PLAY}, "
+                +   "{id=7, title=Three Sisters, genre=PLAY}"
+                + "]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
 }
