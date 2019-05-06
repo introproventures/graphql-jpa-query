@@ -47,6 +47,11 @@ public class GraphQLJpaQueryProperties {
     private boolean isDefaultDistinct = true;
 
     /**
+     * Set default value for optional argument for join fetch collections.
+     */
+    private boolean toManyDefaultOptional = true;
+    
+    /**
      * Enable or disable QraphQL module services.
      */
     private boolean enabled;
@@ -142,6 +147,16 @@ public class GraphQLJpaQueryProperties {
      */
     public void setPath(String path) {
         this.path = path;
+    }
+
+    
+    public boolean isToManyDefaultOptional() {
+        return toManyDefaultOptional;
+    }
+
+    
+    public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
+        this.toManyDefaultOptional = toManyDefaultOptional;
     }
     
 }
