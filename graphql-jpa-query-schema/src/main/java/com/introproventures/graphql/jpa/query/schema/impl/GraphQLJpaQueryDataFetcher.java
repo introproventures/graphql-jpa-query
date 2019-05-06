@@ -173,7 +173,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             return null;
         
         if(isWhereArgument(argument)) 
-            return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument.getName()), argument);
+            return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument), argument);
         
         return super.getPredicate(cb, root, path, environment, argument);
     }
