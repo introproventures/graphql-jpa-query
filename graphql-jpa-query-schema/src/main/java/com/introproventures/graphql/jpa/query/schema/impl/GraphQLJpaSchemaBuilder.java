@@ -641,7 +641,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // TODO fix page count query
             arguments.add(getWhereArgument(foreignType));
             
-            arguments.add(optionalArgument(SingularAttribute.class.cast(attribute)));
+            arguments.add(optionalArgument(SingularAttribute.class.cast(attribute).isOptional()));
 
         } //  Get Sub-Objects fields queries via DataFetcher
         else if (attribute instanceof PluralAttribute
@@ -652,7 +652,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             arguments.add(getWhereArgument(elementType));
             
-            arguments.add(optionalArgument(PluralAttribute.class.cast(attribute)));
+            // TODO make it configurable via builder api
+            arguments.add(optionalArgument(false));
             
             dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, baseEntity, (PluralAttribute) attribute);
         }
@@ -666,25 +667,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
     
-    private GraphQLArgument optionalArgument(SingularAttribute<?,?> attribute) {
+    private GraphQLArgument optionalArgument(Boolean defaultValue) {
         return GraphQLArgument.newArgument()
                 .name("optional")
                 .description("Optional association specification")
                 .type(Scalars.GraphQLBoolean)
-                .defaultValue(attribute.isOptional())
+                .defaultValue(defaultValue)
                 .build();
     }
     
-    private GraphQLArgument optionalArgument(PluralAttribute<?,?,?> attribute) {
-        return GraphQLArgument.newArgument()
-                .name("optional")
-                .description("Optional association specification")
-                .type(Scalars.GraphQLBoolean)
-                .defaultValue(false)
-                .build();
-    }    
-    
-
     protected ManagedType<?> getForeignType(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute))
             return (ManagedType<?>) ((SingularAttribute<?,?>) attribute).getType();
