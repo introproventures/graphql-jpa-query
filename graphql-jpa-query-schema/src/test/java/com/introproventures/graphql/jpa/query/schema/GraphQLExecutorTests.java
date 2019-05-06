@@ -949,16 +949,16 @@ public class GraphQLExecutorTests {
     public void queryForAuthorsWithDefaultOptionalBooksFalse() {
         //given
         String query = "query { "
-                + "Authors {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      books {\n" + 
-                "        id\n" + 
-                "        title\n" + 
-                "        genre\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                + "Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
                 "  }"+
                 "}";
 
@@ -985,16 +985,16 @@ public class GraphQLExecutorTests {
     public void queryForAuthorsWithExlicitOptionalBooksFalse() {
         //given
         String query = "query { "
-                + "Authors {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      books(optional: false) {\n" + 
-                "        id\n" + 
-                "        title\n" + 
-                "        genre\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                + "Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(optional: false) {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
                 "  }"+
                 "}";
 
@@ -1021,16 +1021,16 @@ public class GraphQLExecutorTests {
     public void queryForAuthorsWithExlicitOptionalBooksTrue() {
         //given
         String query = "query { "
-                + "Authors {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      books(optional: true) {\n" + 
-                "        id\n" + 
-                "        title\n" + 
-                "        genre\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                + "Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(optional: true) {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
                 "  }"+
                 "}";
 
