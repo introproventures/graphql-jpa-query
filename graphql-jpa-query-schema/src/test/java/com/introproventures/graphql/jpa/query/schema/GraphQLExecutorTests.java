@@ -352,6 +352,42 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
     
+    @Test
+    public void queryAuthorBooksWithExplictOptional() {
+        //given
+        String query = "query { "
+                + "Authors(\n" + 
+                "    where: {\n" + 
+                "      books: {\n" + 
+                "        title: {LIKE: \"War\"}\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  ) {\n" + 
+                "    select {\n" + 
+                "      id\n" + 
+                "      name\n" + 
+                "      books(optional: true) {\n" + 
+                "        id\n" + 
+                "        title(orderBy: ASC)\n" + 
+                "        genre\n" + 
+                "      }\n" + 
+                "    }\n" + 
+                "  }"
+                + "}";
+        
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=3, title=Anna Karenina, genre=NOVEL}, "
+                + "{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+        
+    
     
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test

@@ -209,7 +209,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
                         // TODO add fetch argument parameter
                         // Let's fetch element collections to avoid filtering their values used where search criteria
-                        /*join = (Join<?,?>)*/ from.fetch(selectedField.getName(), 
+                        from.fetch(selectedField.getName(), 
                                    isOptional ? JoinType.LEFT : JoinType.INNER);
                     }
                     
