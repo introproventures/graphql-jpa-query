@@ -1,6 +1,10 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import javax.persistence.EntityManager;
+
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
@@ -12,10 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
-
-import javax.persistence.EntityManager;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
@@ -54,7 +54,8 @@ public class GraphQLExecutorSuperClassTests {
 
         String expected = "{SuperAuthors={select=[" +
                 "{id=1, name=Leo Tolstoy, genre=NOVEL}, " +
-                "{id=4, name=Anton Chekhov, genre=PLAY}" +
+                "{id=4, name=Anton Chekhov, genre=PLAY}, " +
+                "{id=8, name=Igor Dianov, genre=JAVA}" +
                 "]}}";
 
         //when

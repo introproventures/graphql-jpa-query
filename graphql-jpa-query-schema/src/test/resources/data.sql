@@ -124,6 +124,7 @@ insert into book (id, title, author_id, genre, publication_date, description)
 values (6, 'The Seagull', 4, 'PLAY', '1896-10-17', 'It dramatises the romantic and artistic conflicts between four characters');
 insert into book (id, title, author_id, genre, publication_date, description)
 values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01', 'The play is sometimes included on the short list of Chekhov''s outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]');
+insert into author (id, name, genre) values (8, 'Igor Dianov', 'JAVA');
 
 insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-1234', 1),

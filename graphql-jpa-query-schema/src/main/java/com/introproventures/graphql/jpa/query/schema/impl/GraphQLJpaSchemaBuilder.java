@@ -117,6 +117,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private boolean isUseDistinctParameter = false;
     private boolean isDefaultDistinct = true;
+    // the many end is a collection, and it is always optional by default (empty collection)
+    private boolean toManyDefaultOptional = true; 
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -162,7 +164,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .name(entityType.getName())
                 .description(getSchemaDescription( entityType.getJavaType()))
                 .type(getObjectType(entityType))
-                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType))
+                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType, toManyDefaultOptional))
                 .argument(entityType.getAttributes().stream()
                     .filter(this::isValidInput)
                     .filter(this::isNotIgnored)
@@ -205,7 +207,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, entityType, isDefaultDistinct))
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, 
+                                                            entityType, 
+                                                            isDefaultDistinct, 
+                                                            toManyDefaultOptional))
                 .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
         if (isUseDistinctParameter) {
@@ -637,11 +642,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         if (attribute instanceof SingularAttribute 
             && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
             ManagedType foreignType = getForeignType(attribute);
+            SingularAttribute<?,?> singularAttribute = SingularAttribute.class.cast(attribute);
 
             // TODO fix page count query
             arguments.add(getWhereArgument(foreignType));
             
-            arguments.add(optionalArgument(SingularAttribute.class.cast(attribute)));
+            // to-one end could be optional  
+            arguments.add(optionalArgument(singularAttribute.isOptional()));
 
         } //  Get Sub-Objects fields queries via DataFetcher
         else if (attribute instanceof PluralAttribute
@@ -651,7 +658,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
 
             arguments.add(getWhereArgument(elementType));
-            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, baseEntity, (PluralAttribute) attribute);
+            
+            // make it configurable via builder api
+            arguments.add(optionalArgument(toManyDefaultOptional));
+            
+            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, 
+                                                             baseEntity,
+                                                             toManyDefaultOptional,
+                                                             isDefaultDistinct,
+                                                             (PluralAttribute) attribute);
         }
         
         return GraphQLFieldDefinition.newFieldDefinition()
@@ -663,15 +678,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
     
-    private GraphQLArgument optionalArgument(SingularAttribute<?,?> attribute) {
+    private GraphQLArgument optionalArgument(Boolean defaultValue) {
         return GraphQLArgument.newArgument()
                 .name("optional")
                 .description("Optional association specification")
                 .type(Scalars.GraphQLBoolean)
-                .defaultValue(attribute.isOptional())
+                .defaultValue(defaultValue)
                 .build();
-    }    
-
+    }
+    
     protected ManagedType<?> getForeignType(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute))
             return (ManagedType<?>) ((SingularAttribute<?,?>) attribute).getType();
@@ -1101,6 +1116,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         this.namingStrategy = instance;
         
         return this;
+    }
+
+    
+    public boolean isToManyDefaultOptional() {
+        return toManyDefaultOptional;
+    }
+
+    
+    public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
+        this.toManyDefaultOptional = toManyDefaultOptional;
     }
     
 }

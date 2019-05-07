@@ -100,6 +100,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
+    
+    private boolean toManyDefaultOptional = true;
 
     /**
      * Creates JPA entity DataFetcher instance
@@ -107,9 +109,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @param entityManager
      * @param entityType
      */
-    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
+    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, 
+                                     EntityType<?> entityType, 
+                                     boolean toManyDefaultOptional) {
         this.entityManager = entityManager;
         this.entityType = entityType;
+        this.toManyDefaultOptional = toManyDefaultOptional;
     }
 
     @Override
@@ -155,6 +160,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
                     Join<?,?> join = null;
+                    Optional<Argument> optionalArgument = getArgument(selectedField, OPTIONAL);
 
                     // Build predicate arguments for singular attributes only
                     if(fieldPath.getModel() instanceof SingularAttribute) {
@@ -183,31 +189,28 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                             if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
                                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                             ) {
-                               // Let's apply left outer join to retrieve optional associations
-                               Optional<Argument> optionalArgument = getArgument(selectedField, OPTIONAL);
-
                                // Let's do fugly conversion 
                                Boolean isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
                                                                     .orElse(attribute.isOptional());
 
+                               // Let's apply left outer join to retrieve optional associations
                                join = reuseJoin(from, selectedField.getName(), isOptional);
                             }
                         }
                     } else {
                         // We must add plural attributes with explicit join 
-                        GraphQLObjectType objectType = getObjectType(environment);
-                        EntityType<?> entityType = getEntityType(objectType);
-
-                        PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
+                        // Let's do fugly conversion 
+                        // the many end is a collection, and it is always optional by default (empty collection)
+                        Boolean isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
+                                                             .orElse(toManyDefaultOptional);
                         
-                        // Let's apply left outer join to retrieve optional many-to-many associations
-                        boolean isOptional = (PersistentAttributeType.MANY_TO_MANY == attribute.getPersistentAttributeType());
-                        
+                        // Let's apply join to retrieve associated collection
                         join = reuseJoin(from, selectedField.getName(), isOptional);
 
+                        // TODO add fetch argument parameter
                         // Let's fetch element collections to avoid filtering their values used where search criteria
-                        from.fetch(selectedField.getName(), isOptional ? JoinType.LEFT : JoinType.INNER);
-
+                        from.fetch(selectedField.getName(), 
+                                   isOptional ? JoinType.LEFT : JoinType.INNER);
                     }
                     
                     // Let's build join fetch graph to avoid Hibernate error: 
@@ -218,9 +221,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                              selectedField);  
                         Map<String, Object> args = environment.getArguments();
                         
-                        DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, fieldDefinition, args);
-                        
-                        
+                        DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, 
+                                                                                             fieldDefinition, 
+                                                                                             args);
+                        // TODO nested where criteria expressions
                         getFieldArguments(selectedField, query, cb, join, fieldEnvironment);
                     }
                 }

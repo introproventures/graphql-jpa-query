@@ -99,10 +99,11 @@ public class GraphQLSchemaAutoConfigurationTest {
     
 
     @Test
-    public void configurationProperties() {
+    public void defaultConfigurationProperties() {
         // given
         assertThat(graphQLJpaQueryProperties.isDefaultDistinct()).isTrue();
         assertThat(graphQLJpaQueryProperties.isUseDistinctParameter()).isFalse();
+        assertThat(graphQLJpaQueryProperties.isToManyDefaultOptional()).isTrue();
     }
         
 

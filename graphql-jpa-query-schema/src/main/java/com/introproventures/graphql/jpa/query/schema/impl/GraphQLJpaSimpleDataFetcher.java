@@ -16,6 +16,10 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -26,14 +30,12 @@ import graphql.language.Field;
 import graphql.language.ObjectValue;
 import graphql.schema.DataFetchingEnvironment;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
 
-    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, 
+                                       EntityType<?> entityType,
+                                       boolean toManyDefaultOptional) {
+        super(entityManager, entityType, toManyDefaultOptional);
     }
     
     @Override
