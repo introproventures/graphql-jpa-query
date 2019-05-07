@@ -551,7 +551,36 @@ public class GraphQLJpaConverterTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }          
+    }
+    
+    @Test
+    public void queryProcessVariablesWhereWithNEValueSearchCriteria() {
+        //given
+        String query = "query {" + 
+                " TaskVariables(where: {" 
+                +     "value: {NE: null}" 
+                + "}) {" + 
+                "    select {" + 
+                "      name" + 
+                "      value" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{TaskVariables={select=["
+                + "{name=variable1, value=data}, "
+                + "{name=variable2, value=true}, "
+                + "{name=variable4, value={key=data}}, "
+                + "{name=variable5, value=1.2345}, "
+                + "{name=variable6, value=12345}, "
+                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
      
     @Test
     public void queryProcessVariablesWhereWithINListTypedValueSearchCriteria() {
