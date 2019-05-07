@@ -356,22 +356,22 @@ public class GraphQLExecutorTests {
     public void queryAuthorBooksWithExplictOptional() {
         //given
         String query = "query { "
-                + "Authors(\n" + 
-                "    where: {\n" + 
-                "      books: {\n" + 
-                "        title: {LIKE: \"War\"}\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  ) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      books(optional: true) {\n" + 
-                "        id\n" + 
-                "        title(orderBy: ASC)\n" + 
-                "        genre\n" + 
-                "      }\n" + 
-                "    }\n" + 
+                + "Authors(" + 
+                "    where: {" + 
+                "      books: {" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  ) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(optional: true) {" + 
+                "        id" + 
+                "        title(orderBy: ASC)" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
                 "  }"
                 + "}";
         
@@ -387,6 +387,37 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }
         
+    @Test
+    public void queryAuthorBooksWithIsNullId() {
+        //given
+        String query = "query { "
+                + "Authors(" + 
+                "    where: {" + 
+                "      books: {" + 
+                "        id: {IS_NULL: true}" + 
+                "      }" + 
+                "    }" + 
+                "  ) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }"
+                + "}";
+        
+        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
     
     // https://github.com/introproventures/graphql-jpa-query/issues/30
