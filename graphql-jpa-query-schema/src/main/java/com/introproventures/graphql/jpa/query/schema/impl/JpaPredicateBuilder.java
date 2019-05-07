@@ -452,8 +452,16 @@ class JpaPredicateBuilder {
                     object = getValue(object, type);
                 }
                     
-                if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
-                    return cb.equal(from.get(filter.getField()), object);
+                if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)
+                        || filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                    
+                    Predicate equal = cb.equal(from.get(filter.getField()), object);
+                    
+                    if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                        return cb.not(equal);
+                    }
+                    
+                    return equal;
                 } 
                 else if (filter.getCriterias().contains(PredicateFilter.Criteria.IN) 
                         || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)
