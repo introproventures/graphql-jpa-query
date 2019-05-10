@@ -159,7 +159,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
-                    Join<?,?> join = null;
+                    From<?,?> fetch = null;
                     Optional<Argument> optionalArgument = getArgument(selectedField, OPTIONAL);
 
                     // Build predicate arguments for singular attributes only
@@ -194,7 +194,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                     .orElse(attribute.isOptional());
 
                                // Let's apply left outer join to retrieve optional associations
-                               join = reuseJoin(from, selectedField.getName(), isOptional);
+                               fetch = reuseFetch(from, selectedField.getName(), isOptional);
                             }
                         }
                     } else {
@@ -205,7 +205,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                              .orElse(toManyDefaultOptional);
                         
                         // Let's apply join to retrieve associated collection
-                        join = reuseJoin(from, selectedField.getName(), isOptional);
+                        fetch = reuseFetch(from, selectedField.getName(), isOptional);
 
                         // TODO add fetch argument parameter
                         // Let's fetch element collections to avoid filtering their values used where search criteria
@@ -215,7 +215,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     
                     // Let's build join fetch graph to avoid Hibernate error: 
                     // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                    if(join != null && selectedField.getSelectionSet() != null) {
+                    if(fetch != null && selectedField.getSelectionSet() != null) {
                         GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
                                                                              this.getObjectType(environment),
                                                                              selectedField);  
@@ -225,7 +225,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                              fieldDefinition, 
                                                                                              args);
                         // TODO nested where criteria expressions
-                        getFieldArguments(selectedField, query, cb, join, fieldEnvironment);
+                        getFieldArguments(selectedField, query, cb, fetch, fieldEnvironment);
                     }
                 }
             }
@@ -317,7 +317,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             // If the argument is a list, let's assume we need to join and do an 'in' clause
             if (argumentEntityAttribute instanceof PluralAttribute) {
                 // Apply left outer join to retrieve optional associations
-                return reuseJoin(from, argument.getName(), false)
+                return reuseFetch(from, argument.getName(), false)
                     .in(convertValue(environment, argument, argument.getValue()));
             }
 
@@ -373,7 +373,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return getArgumentPredicate(cb, (path != null) ? path : root, predicateDataFetchingEnvironment, predicateArgument);
     }
 
-    protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> path,
+    protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> from,
         DataFetchingEnvironment environment, Argument argument) {
         ObjectValue whereValue = getValue(argument);
 
@@ -390,12 +390,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 Map<String, Object> arguments = getFieldArguments(environment, it, argument);
                 
                 if(it.getValue() instanceof ArrayValue) {
-                    return getArrayArgumentPredicate(cb, path,
+                    return getArgumentsPredicate(cb, from,
                                                 argumentEnvironment(environment, arguments),
                                                 new Argument(it.getName(), it.getValue()));
                 }
                 
-                return getArgumentPredicate(cb, path,
+                return getArgumentPredicate(cb, from,
                                             argumentEnvironment(environment, arguments),
                                             new Argument(it.getName(), it.getValue()));
             })
@@ -417,15 +417,15 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                    new Field(it.getName()));
                               boolean isOptional = false;
                               
-                              return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
+                              return getArgumentPredicate(cb, reuseFetch(from, it.getName(), isOptional),  
                                                           wherePredicateEnvironment(environment, fieldDefinition, args),
                                                           arg);
                           }
                       }
 
-                      return getFieldPredicate(it.getName(),
+                      return getLogicalPredicate(it.getName(),
                                                cb,
-                                               path,
+                                               from,
                                                it,
                                                argumentEnvironment(environment, args),
                                                arg);
@@ -436,7 +436,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return getCompoundPredicate(cb, predicates, logical);
     }
 
-    protected Predicate getArrayArgumentPredicate(CriteriaBuilder cb,
+    protected Predicate getArgumentsPredicate(CriteriaBuilder cb,
                                                   From<?, ?> path,
                                                   DataFetchingEnvironment environment,
                                                   Argument argument) {
@@ -470,7 +470,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                  Argument arg = new Argument(it.getName(), it.getValue());
                                  
                                  if(ArrayValue.class.isInstance(it.getValue())) {
-                                     return getArrayArgumentPredicate(cb,
+                                     return getArgumentsPredicate(cb,
                                                                  path,
                                                                  argumentEnvironment(environment, args),
                                                                  arg);
@@ -502,13 +502,13 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                               new Field(it.getName()));
                                          boolean isOptional = false;
                                          
-                                         return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
+                                         return getArgumentPredicate(cb, reuseFetch(path, it.getName(), isOptional),  
                                                                      wherePredicateEnvironment(environment, fieldDefinition, args),
                                                                      arg);
                                      }
                                  }
                                  
-                                 return getFieldPredicate(it.getName(),
+                                 return getLogicalPredicate(it.getName(),
                                                           cb,
                                                           path,
                                                           it,
@@ -545,7 +545,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 .orElse(Logical.AND);
     }
 
-    private Predicate getArrayFieldPredicate(String fieldName,
+    private Predicate getLogicalPredicates(String fieldName,
                                              CriteriaBuilder cb,
                                              From<?, ?> path,
                                              ObjectField objectField,
@@ -565,7 +565,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                  Map<String, Object> args = getFieldArguments(environment, it, argument);
                  Argument arg = new Argument(it.getName(), it.getValue());
                  
-                 return getFieldPredicate(it.getName(),
+                 return getLogicalPredicate(it.getName(),
                                           cb,
                                           path,
                                           it,
@@ -577,7 +577,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return getCompoundPredicate(cb, predicates, logical);
     }    
     
-    private Predicate getFieldPredicate(String fieldName, CriteriaBuilder cb, From<?,?> path, ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
+    private Predicate getLogicalPredicate(String fieldName, CriteriaBuilder cb, From<?,?> path, ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         ObjectValue expressionValue;
         
         if(objectField.getValue() instanceof ObjectValue)
@@ -600,12 +600,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 Argument arg = new Argument(it.getName(), it.getValue());
                 
                 if(it.getValue() instanceof ArrayValue) {
-                    return getArrayFieldPredicate(fieldName, cb, path, it,
+                    return getLogicalPredicates(fieldName, cb, path, it,
                                                   argumentEnvironment(environment, args),
                                                   arg);
                 }
                 
-                return getFieldPredicate(fieldName, cb, path, it,
+                return getLogicalPredicate(fieldName, cb, path, it,
                                          argumentEnvironment(environment, args),
                                          arg);
             })
@@ -631,7 +631,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 isOptional = isOptionalAttribute(getAttribute(environment, argument));
             }
             
-            return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
+            return getArgumentPredicate(cb, reuseFetch(path, fieldName, isOptional),  
                                         wherePredicateEnvironment(environment, fieldDefinition, args),
                                         arg);
         }
@@ -760,15 +760,26 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     }
 
     // trying to find already existing joins to reuse
-    private Join<?,?> reuseJoin(From<?, ?> path, String fieldName, boolean outer) {
+    private Join<?,?> reuseJoin(From<?, ?> from, String fieldName, boolean outer) {
 
-        for (Fetch<?,?> join : path.getFetches()) {
+        for (Join<?,?> join : from.getJoins()) {
             if (join.getAttribute().getName().equals(fieldName)) {
-                return (Join<?,?>) join;
+                return join;
             }
         }
-        return outer ? (Join<?,?>) path.fetch(fieldName, JoinType.LEFT) : (Join<?,?>) path.fetch(fieldName);
+        return outer ? from.join(fieldName, JoinType.LEFT) : from.join(fieldName);
     }
+    
+    // trying to find already existing fetch joins to reuse
+    private From<?,?> reuseFetch(From<?, ?> from, String fieldName, boolean outer) {
+
+        for (Fetch<?,?> fetch : from.getFetches()) {
+            if (fetch.getAttribute().getName().equals(fieldName)) {
+                return (From<?,?>) fetch;
+            }
+        }
+        return outer ? (From<?,?>) from.fetch(fieldName, JoinType.LEFT) : (From<?,?>) from.fetch(fieldName);
+    }    
     
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
