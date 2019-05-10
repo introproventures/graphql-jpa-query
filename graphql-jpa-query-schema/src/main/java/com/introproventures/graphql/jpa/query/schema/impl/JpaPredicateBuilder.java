@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,9 +30,10 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.PluralAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import graphql.language.NullValue;
@@ -416,17 +416,17 @@ class JpaPredicateBuilder {
         }
         else if(Collection.class.isAssignableFrom(type)) {
             // collection join for plural attributes
-            // TODO need better detection
-            if(field.getModel() == null) {
-                Join<?,?> join = null;
+            if(PluralAttribute.class.isInstance(from.getModel()) 
+                    || EntityType.class.isInstance(from.getModel())) {
+                From<?,?> join = null;
                 
                 for(Fetch<?,?> fetch: from.getFetches()) {
                     if(fetch.getAttribute().getName().equals(filter.getField()))
-                        join = (Join<?,?>) fetch;
+                        join = (From<?,?>) fetch;
                 }
                 
                 if(join == null) {
-                    join = (Join<?,?>) from.fetch(filter.getField());
+                    join = (From<?,?>) from.fetch(filter.getField());
                 }
                 
                 Predicate in = join.in(value);
@@ -446,7 +446,7 @@ class JpaPredicateBuilder {
             else { 
                 Object object = value;
                 
-                if(List.class.isInstance(value)) {
+                if(Collection.class.isInstance(value)) {
                     object = getValues(object, type);
                 } else {
                     object = getValue(object, type);
@@ -468,8 +468,8 @@ class JpaPredicateBuilder {
                 ) {
                     CriteriaBuilder.In<Object> in = cb.in(from.get(filter.getField()));
                     
-                    if(List.class.isInstance(object)) {
-                        List.class.cast(object)
+                    if(Collection.class.isInstance(object)) {
+                        Collection.class.cast(object)
                                   .forEach(in::value);
                     } else {
                         in.value(object);
@@ -502,9 +502,9 @@ class JpaPredicateBuilder {
     }
     
     private Object getValues(Object object, Class<?> type) {
-        List<Object> objects = new ArrayList<>();
+        Collection<Object> objects = new ArrayList<>();
 
-        for (Object value : List.class.cast(object).toArray()) {
+        for (Object value : Collection.class.cast(object).toArray()) {
             objects.add(getValue(value, type));
         }
 
