@@ -29,7 +29,6 @@ import javax.transaction.Transactional;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -352,7 +351,6 @@ public class StarwarsQueryExecutorTests {
     }
 
     @Test
-    @Ignore
     public void queryOrderByFieldsNested() {
         //given:
         String query = "query { Humans(where: {id: {EQ: \"1000\"}}) { select {name(orderBy: DESC) homePlanet friends { name(orderBy:DESC) } } } }";
