@@ -1,6 +1,21 @@
 # Change Log
 
-## 0.3.26-SNAPSHOT
+## 0.3.26
+* fix: correct element collection fetch sort order (#149) [5327a22](https://github.com/introproventures/graphql-jpa-query/commit/5327a226b6e86418612fbaeaf6fedc7cd3c51576)
+* fix: add support for nested where criteria expressions (#148) [2065101](https://github.com/introproventures/graphql-jpa-query/commit/206510146783dde2446e21f9a2c06cf61dcedf69)
+* fix: separate reuse fetch and join methods with better apis [fcf9f12](https://github.com/introproventures/graphql-jpa-query/commit/fcf9f126a3b8c2515eff3fa0b2108dcc669a6ab8)
+* fix: TODO plural predicate fetch join detection [3aa3347](https://github.com/introproventures/graphql-jpa-query/commit/3aa3347ead70767624e8f3aece1a933faf46069b)
+* feat: add NE predicate for custom attributes criteria expressions (#140) [4862ad0](https://github.com/introproventures/graphql-jpa-query/commit/4862ad06e942029e1581241e658f9482f6107fc7)
+* feat: add optional argument for plural attributes  (#138) [e2ddd4d](https://github.com/introproventures/graphql-jpa-query/commit/e2ddd4d92cbf95a76ba13e3d051c53c02421730e)
+* fix: build fetch joins from selection graph (#137) [d452620](https://github.com/introproventures/graphql-jpa-query/commit/d452620269ce227bf1d6b33d74cf7df807384d49)
+* feat: add AND/OR logical criteria list in schema and query  (#134) [764c439](https://github.com/introproventures/graphql-jpa-query/commit/764c43938842fef5a2e4a7ac9519375afc2ef2a0)
+* feat: add IN | NIN predicate for custom attribute types (#136) [ac7bda6](https://github.com/introproventures/graphql-jpa-query/commit/ac7bda6000b5a1c851d7b4981dae54baf3292bcc)
+* fix: enable default distinct  configuration property (#135) [6359449](https://github.com/introproventures/graphql-jpa-query/commit/63594496e32bef9d7d6d839d55b649343b2536c8)
+* feat: add equals criteria support for custom attributes types (#133) [a18a6ce](https://github.com/introproventures/graphql-jpa-query/commit/a18a6ceb194d544f1edc7aedec018ab5f8aba8e2)
+* feat: Provide default GraphQLObjectCoercing fallback for non-existing Java classes (#130) [1a27eee](https://github.com/introproventures/graphql-jpa-query/commit/1a27eeed49c8248def731e7aeb1b6287a4b1aedc)
+* fix: use GrpaphQL execution context to resolve variable references (#129) [5f9da5f](https://github.com/introproventures/graphql-jpa-query/commit/5f9da5f1c91fc8d9c42928519942815d7790f1ff)
+* fix: use stream().distinct() to remove duplicates from root entities (#128) [d0758e7](https://github.com/introproventures/graphql-jpa-query/commit/d0758e78f0419db17757af97805b3223e601b967)
+* fix: resolve variable references in GraphQLObjectCoercing (#127) [fc2ab23](https://github.com/introproventures/graphql-jpa-query/commit/fc2ab230c80bf907fb43a0887b8bd11ff64ad883)
 * fix: Let&#39;s not pass DISTINCT in JPQL for better performance [4a75979](https://github.com/introproventures/graphql-jpa-query/commit/4a759791b5334a03ede3232d02018b3ed8f74c0a)
 * fix: Let&#39;s pass and apply distinct in query results if enabled (#124) [dcb037b](https://github.com/introproventures/graphql-jpa-query/commit/dcb037b02f6f7eef302fd43d435252c1ed1430f3)
 * fix: lets fetch element collection attributes (#123) [ca7f78e](https://github.com/introproventures/graphql-jpa-query/commit/ca7f78e650860ad3aac0e1639dc68f13fab76f74)
