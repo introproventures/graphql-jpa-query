@@ -28,8 +28,8 @@ import java.util.UUID;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.metamodel.EntityType;
@@ -420,14 +420,15 @@ class JpaPredicateBuilder {
                     || EntityType.class.isInstance(from.getModel())) {
                 From<?,?> join = null;
                 
-                for(Fetch<?,?> fetch: from.getFetches()) {
+                for(Join<?,?> fetch: from.getJoins()) {
                     if(fetch.getAttribute().getName().equals(filter.getField()))
                         join = (From<?,?>) fetch;
                 }
                 
                 if(join == null) {
-                    join = (From<?,?>) from.fetch(filter.getField());
+                    join = (From<?,?>) from.join(filter.getField());
                 }
+                
                 
                 Predicate in = join.in(value);
                 
