@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.26
+## 0.3.27-SNAPSHOT
 * fix: correct element collection fetch sort order (#149) [5327a22](https://github.com/introproventures/graphql-jpa-query/commit/5327a226b6e86418612fbaeaf6fedc7cd3c51576)
 * fix: add support for nested where criteria expressions (#148) [2065101](https://github.com/introproventures/graphql-jpa-query/commit/206510146783dde2446e21f9a2c06cf61dcedf69)
 * fix: separate reuse fetch and join methods with better apis [fcf9f12](https://github.com/introproventures/graphql-jpa-query/commit/fcf9f126a3b8c2515eff3fa0b2108dcc669a6ab8)
