@@ -46,7 +46,6 @@ import graphql.schema.DataFetchingEnvironment;
  */
 class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
     
-    protected static final String OPTIONAL = "optional";
     private final PluralAttribute<Object,Object,Object> attribute;
 
     public GraphQLJpaOneToManyDataFetcher(EntityManager entityManager, 
@@ -141,11 +140,8 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         
         query.select(join.alias(attribute.getName()));
         
-        List<Predicate> predicates = getFieldArguments(field, query, cb, join, environment).stream()
-                                                                              .filter(it -> !OPTIONAL.equals(it.getName()))  
-                                                                              .map(it -> getPredicate(cb, from, join, environment, it))
-                                                                              .filter(it -> it != null)
-                                                                              .collect(Collectors.toList());
+        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, environment);
+
         query.where(
             predicates.toArray(new Predicate[predicates.size()])
         );

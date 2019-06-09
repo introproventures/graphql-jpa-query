@@ -661,12 +661,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
-            
-            dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager, 
-                                                             baseEntity,
-                                                             toManyDefaultOptional,
-                                                             isDefaultDistinct,
-                                                             (PluralAttribute) attribute);
+
+            if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY) {
+                dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager,
+                                                                 baseEntity,
+                                                                 toManyDefaultOptional,
+                                                                 isDefaultDistinct,
+                                                                 (PluralAttribute) attribute);
+            }
         }
         
         return GraphQLFieldDefinition.newFieldDefinition()
