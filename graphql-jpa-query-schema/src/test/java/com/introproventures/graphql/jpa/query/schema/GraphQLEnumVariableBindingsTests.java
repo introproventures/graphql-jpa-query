@@ -195,9 +195,7 @@ public class GraphQLEnumVariableBindingsTests {
                 +   "{id=1, name=Leo Tolstoy, books=["
                 +       "{id=2, title=War and Peace, genre=NOVEL}, "
                 +       "{id=3, title=Anna Karenina, genre=NOVEL}"
-                +   "]}, "
-                +   "{id=4, name=Anton Chekhov, books=[]}, "
-                +   "{id=8, name=Igor Dianov, books=[]}"
+                +   "]}"
                 + "]}}";
 
         //when

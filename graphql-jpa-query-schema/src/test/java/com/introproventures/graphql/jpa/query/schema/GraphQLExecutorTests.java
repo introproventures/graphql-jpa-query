@@ -410,7 +410,7 @@ public class GraphQLExecutorTests {
                 "  }"
                 + "}";
         
-        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+        String expected = "{Authors={select=[]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -909,8 +909,8 @@ public class GraphQLExecutorTests {
                 +   "id=1, "
                 +   "name=Leo Tolstoy, "
                 +   "books=["
-                +       "{id=3, title=Anna Karenina, genre=NOVEL}, "
-                +       "{id=2, title=War and Peace, genre=NOVEL}"
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
                 +   "]}"
                 + "}]}}";
 
@@ -921,9 +921,85 @@ public class GraphQLExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }    
     
+    @Test
+    public void queryWithOneToManyNestedRelationsWithManyToOneOptionalTrue() {
+        //given:
+        String query = "query { " +
+                "  Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "        author(optional: true) {" + 
+                "          id" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL, author={id=1}}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL, author={id=1}}"
+                + "]}, "
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard, genre=PLAY, author={id=4}}, "
+                +   "{id=6, title=The Seagull, genre=PLAY, author={id=4}}, "
+                +   "{id=7, title=Three Sisters, genre=PLAY, author={id=4}}"
+                + "]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void queryWithOneToManyNestedRelationsWithManyToOneOptionalFalse() {
+        //given:
+        String query = "query { " +
+                "  Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "        author(optional: false) {" + 
+                "          id" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL, author={id=1}}, "
+                +   "{id=3, title=Anna Karenina, genre=NOVEL, author={id=1}}"
+                + "]}, "
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard, genre=PLAY, author={id=4}}, "
+                +   "{id=6, title=The Seagull, genre=PLAY, author={id=4}}, "
+                +   "{id=7, title=Three Sisters, genre=PLAY, author={id=4}}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
     
-
-
     @Test
     public void ignoreFilter() {
         //given

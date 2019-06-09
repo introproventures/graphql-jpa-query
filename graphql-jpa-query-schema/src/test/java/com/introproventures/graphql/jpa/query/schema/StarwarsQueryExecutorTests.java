@@ -29,7 +29,6 @@ import javax.transaction.Transactional;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -919,7 +918,6 @@ public class StarwarsQueryExecutorTests {
     }
     
     @Test
-    @Ignore // TODO
     public void queryFilterNestedManyToOneToDo() {
         //given:
         String query = "query {" +
@@ -1039,9 +1037,9 @@ public class StarwarsQueryExecutorTests {
                 +   "}"
                 + "}, "
                 + "friends=["
-                +   "{name=Leia Organa}, "
                 +   "{name=C-3PO}, "
                 +   "{name=Han Solo}, "
+                +   "{name=Leia Organa}, "
                 +   "{name=R2-D2}"
                 + "]}"
                 + "]}}";
