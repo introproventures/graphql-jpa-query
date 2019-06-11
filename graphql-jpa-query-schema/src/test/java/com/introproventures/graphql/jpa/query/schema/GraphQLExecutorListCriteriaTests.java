@@ -407,4 +407,91 @@ public class GraphQLExecutorListCriteriaTests {
         assertThat(result.toString()).isEqualTo(expected);
     }       
     
+    @Test
+    public void queryWithWhereANDListEXISTSMixedCriteria() {
+        //given:
+        String query = "query { " +
+                "  Authors(where: {" + 
+                "    books: {" + 
+                "      AND: [{" + 
+                "        EXISTS: {" + 
+                "          author: {" + 
+                "            name: {LIKE: \"Leo\"}" + 
+                "          }" + 
+                "        }" + 
+                "      }, {" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }]" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  } " +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace}, "
+                +   "{id=3, title=Anna Karenina}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+    
+    @Test
+    public void queryWithWhereANDListEXISTSCriteria() {
+        //given:
+        String query = "query { " +
+                "  Authors(where: {" + 
+                "    AND: [{ " + 
+                "      EXISTS: {" + 
+                "        books: {" + 
+                "          title: {LIKE: \"War\"}" + 
+                "          id: {EQ: 2}" + 
+                "        }" + 
+                "      }" + 
+                "    }, { " + 
+                "      EXISTS: {" + 
+                "        books: {" + 
+                "          title: {LIKE: \"Anna\"}" + 
+                "          id: {EQ: 3}" + 
+                "        }" + 
+                "      }" + 
+                "    }]" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace}, "
+                +   "{id=3, title=Anna Karenina}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+    
+    
 }

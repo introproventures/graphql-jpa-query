@@ -401,6 +401,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return getArgumentPredicate(cb, (path != null) ? path : root, predicateDataFetchingEnvironment, predicateArgument);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> from,
         DataFetchingEnvironment environment, Argument argument) {
         ObjectValue whereValue = getValue(argument);
@@ -443,12 +444,15 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                               GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
                                                                                    this.getObjectType(environment),
                                                                                    new Field(it.getName()));
+                              
+                              Boolean isOptional = false;
+                              
                               if(Logical.EXISTS == logical) {
                                   AbstractQuery<?> query = environment.getRoot();
                                   Subquery<?> subquery = query.subquery(attribute.getJavaType());
                                   From<?,?> correlation = Root.class.isInstance(from) 
-                                                                  ? subquery.correlate((Root<?>) from)
-                                                                  : subquery.correlate((Join<?,?>) from);
+                                                          ? subquery.correlate((Root<?>) from)
+                                                          : subquery.correlate((Join<?,?>) from);
                                   
                                   Join<?,?> correlationJoin = correlation.join(it.getName());
                                   
@@ -462,12 +466,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                arg);
                                   
                                   return cb.exists(subquery.select((Join) correlationJoin).where(restriction));
-                                  
-                              } else {
-                                  return getArgumentPredicate(cb, reuseJoin(from, it.getName(), false),  
-                                                              wherePredicateEnvironment(environment, fieldDefinition, args),
-                                                              arg);
                               }
+                                  
+                              return getArgumentPredicate(cb, reuseJoin(from, it.getName(), isOptional),  
+                                                          wherePredicateEnvironment(environment, fieldDefinition, args),
+                                                          arg);
                           }
                       }
 
@@ -545,11 +548,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                      Attribute<?,?> attribute = getAttribute(environment, arg);
                                      
                                      if(attribute.isAssociation()) {
+                                         
                                          GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
                                                                                               this.getObjectType(environment),
                                                                                               new Field(it.getName()));
                                          boolean isOptional = false;
-                                         
+
                                          return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
                                                                      wherePredicateEnvironment(environment, fieldDefinition, args),
                                                                      arg);
