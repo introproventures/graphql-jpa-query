@@ -222,8 +222,10 @@ public class GraphQLJpaConverterTests {
                                 cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
         
         tasksQuery.select(task)
-                  .where(cb.not(cb.and(cb.exists(subquery.select(taskVariables).where(var1)),
-                                cb.exists(subquery.select(taskVariables).where(var2)))));
+                  .where(cb.and(cb.not(cb.exists(subquery.select(taskVariables).where(var1))),
+                                cb.not(cb.exists(subquery.select(taskVariables).where(var2)))
+                                )
+                         );
         // when:
         List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
 
@@ -231,6 +233,38 @@ public class GraphQLJpaConverterTests {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(4);
     }    
+    
+    @Test
+    @Transactional
+    public void criteriaTester6() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+        
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
+        
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+        
+        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+
+        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
+        
+        tasksQuery.select(task)
+                  .where(cb.not(cb.or(cb.exists(subquery.select(taskVariables).where(var1)),
+                                      cb.exists(subquery.select(taskVariables).where(var2)))
+                                )
+                         );
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(4);
+    }       
     
     @Test // Problem with generating cast() in the where expression
     @Transactional

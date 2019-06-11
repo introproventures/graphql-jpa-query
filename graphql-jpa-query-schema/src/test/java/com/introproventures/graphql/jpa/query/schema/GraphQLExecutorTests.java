@@ -608,8 +608,151 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }    
-        
+
+    @Test
+    public void queryForAuthorsWithWhereEXISTSBooksLIKETitle() {
+        //given
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    EXISTS: {" + 
+                "      books: {" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace}, "
+                +       "{id=3, title=Anna Karenina}"
+                +   "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
     
+    @Test
+    public void queryForAuthorsWithWhereEXISTSBooksLIKETitleANDAuthorLIKEName() {
+        //given
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    EXISTS: {" + 
+                "      books: {" + 
+                "        author: {name: {LIKE: \"Leo\"}}" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace}, "
+                +       "{id=3, title=Anna Karenina}"
+                +   "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
+
+    
+    @Test
+    public void queryForAuthorsWithWhereEXISTSBooksLIKETitleANDEXISTSAuthorLIKEName() {
+        //given
+        String query = "query { "
+                + "  Authors(where: {" + 
+                "    EXISTS: {" + 
+                "      books: {" + 
+                "        EXISTS: {" + 
+                "            author: {name: {LIKE: \"Leo\"}}  " + 
+                "        }" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace}, "
+                +       "{id=3, title=Anna Karenina}"
+                +   "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }  
+    
+    @Test
+    public void queryForAuthorsWithWhereEXISTSBooksLIKETitleEmpty() {
+        //given
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    EXISTS: {" + 
+                "      books: {" + 
+                "        author: {name: {LIKE: \"Anton\"}}" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "      }" + 
+                "    }" + 
+                "  }"+
+                "}";
+
+        String expected = "{Authors={select=[]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
     
     @Test
     public void queryForAuthorssWithWhereBooksGenreEquals() {

@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 enum Logical {
-    AND, OR;
+    AND, OR, EXISTS;
     
     private static Set<String> names = EnumSet.allOf(Logical.class)
                                               .stream()
