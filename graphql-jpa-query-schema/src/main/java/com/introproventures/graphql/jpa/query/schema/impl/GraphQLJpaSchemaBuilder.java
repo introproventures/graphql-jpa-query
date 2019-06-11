@@ -104,6 +104,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
     private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
+    private Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
     private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
     private Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
     
@@ -256,13 +257,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .field(GraphQLInputObjectField.newInputObjectField()
                                           .name("EXISTS")
                                           .description("Logical EXISTS subquery expression")
-                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .type(new GraphQLList(getSubqueryInputType(managedType)))
                                           .build()            
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                                           .name("NOT_EXISTS")
                                           .description("Logical NOT EXISTS subquery expression")
-                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .type(new GraphQLList(getSubqueryInputType(managedType)))
                                           .build()            
             )
             .fields(managedType.getAttributes().stream()
@@ -295,6 +296,58 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return namingStrategy.pluralize(typeName)+"CriteriaExpression";
     }
     
+    private String resolveSubqueryArgumentTypeName(ManagedType<?> managedType) {
+        String typeName=resolveTypeName(managedType);
+        
+        return namingStrategy.pluralize(typeName)+"SubqueryCriteriaExpression";
+    }
+
+    private GraphQLInputObjectType getSubqueryInputType(ManagedType<?> managedType) {
+        return subqueryInputObjectCache.computeIfAbsent(managedType, this::computeSubqueryInputType);
+    }
+    
+    private GraphQLInputObjectType computeSubqueryInputType(ManagedType<?> managedType) {
+        String type=resolveSubqueryArgumentTypeName(managedType);
+        
+         Builder whereInputObject = GraphQLInputObjectType.newInputObject()
+            .name(type)
+            .description("Where logical AND specification of the provided list of criteria expressions")
+            .field(GraphQLInputObjectField.newInputObjectField()
+                                          .name(OR)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()
+            )
+            .field(GraphQLInputObjectField.newInputObjectField()
+                                          .name(AND)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()
+            )
+            .field(GraphQLInputObjectField.newInputObjectField()
+                                          .name("EXISTS")
+                                          .description("Logical EXISTS subquery expression")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()            
+            )
+            .field(GraphQLInputObjectField.newInputObjectField()
+                                          .name("NOT_EXISTS")
+                                          .description("Logical NOT EXISTS subquery expression")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()            
+            )
+            .fields(managedType.getAttributes().stream()
+                                               .filter(this::isValidAssociation)    
+                                               .filter(this::isNotIgnored)
+                                               .filter(this::isNotIgnoredFilter)
+                                               .map(this::getWhereInputRelationField)
+                                               .collect(Collectors.toList())
+            );
+        
+        return whereInputObject.build();
+        
+    }     
+        
     private String resolveTypeName(ManagedType<?> managedType) {
         String typeName="";
         
@@ -325,43 +378,44 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .name(type)
             .description("Where logical AND specification of the provided list of criteria expressions")
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name(OR)
-                .description("Logical operation for expressions")
-                .type(new GraphQLList(new GraphQLTypeReference(type)))
-                .build()
+                                          .name(OR)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
-                .name(AND)
-                .description("Logical operation for expressions")
-                .type(new GraphQLList(new GraphQLTypeReference(type)))
-                .build()
+                                          .name(AND)
+                                          .description("Logical operation for expressions")
+                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                                           .name("EXISTS")
                                           .description("Logical EXISTS subquery expression")
-                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .type(new GraphQLList(getSubqueryInputType(managedType)))
                                           .build()            
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                                           .name("NOT_EXISTS")
                                           .description("Logical NOT EXISTS subquery expression")
-                                          .type(new GraphQLList(new GraphQLTypeReference(type)))
+                                          .type(new GraphQLList(getSubqueryInputType(managedType)))
                                           .build()            
             )
             .fields(managedType.getAttributes().stream()
-                .filter(this::isValidInput)
-                .filter(this::isNotIgnored)
-                .filter(this::isNotIgnoredFilter)
-                .map(this::getWhereInputField)
-                .collect(Collectors.toList())
+                                               .filter(this::isValidInput)
+                                               .filter(this::isNotIgnored)
+                                               .filter(this::isNotIgnoredFilter)
+                                               .map(this::getWhereInputField)
+                                               .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
-                .filter(this::isValidAssociation)    
-                .filter(this::isNotIgnored)
-                .filter(this::isNotIgnoredFilter)
-                .map(this::getWhereInputRelationField)
-                .collect(Collectors.toList())
+                                               .filter(this::isValidAssociation)    
+                                               .filter(this::isNotIgnored)
+                                               .filter(this::isNotIgnoredFilter)
+                                               .map(this::getWhereInputRelationField)
+                                               .collect(Collectors.toList())
             );
+         
         
         return whereInputObject.build();
         
@@ -374,23 +428,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         String description = getSchemaDescription(attribute.getJavaMember());
 
         return GraphQLInputObjectField.newInputObjectField()
-            .name(attribute.getName())
-            .description(description)
-            .type(new GraphQLTypeReference(type))
-            .build(); 
+                                      .name(attribute.getName())
+                                      .description(description)
+                                      .type(new GraphQLTypeReference(type))
+                                      .build(); 
     }
     
-
     private GraphQLInputObjectField getWhereInputField(Attribute<?,?> attribute) {
         GraphQLInputType type = getWhereAttributeType(attribute);
         String description = getSchemaDescription(attribute.getJavaMember());
 
         if (type instanceof GraphQLInputType) {
             return GraphQLInputObjectField.newInputObjectField()
-                .name(attribute.getName())
-                .description(description)
-                .type(type)
-                .build(); 
+                                          .name(attribute.getName())
+                                          .description(description)
+                                          .type(type)
+                                          .build(); 
         }
 
         throw new IllegalArgumentException("Attribute " + attribute.getName() + " cannot be mapped as an Input Argument");
