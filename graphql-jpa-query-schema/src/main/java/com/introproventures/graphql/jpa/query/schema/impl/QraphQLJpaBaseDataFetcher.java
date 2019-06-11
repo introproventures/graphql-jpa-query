@@ -556,6 +556,31 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                               this.getObjectType(environment),
                                                                                               new Field(it.getName()));
                                          boolean isOptional = false;
+                                         
+                                         if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
+                                             AbstractQuery<?> query = environment.getRoot();
+                                             Subquery<?> subquery = query.subquery(attribute.getJavaType());
+                                             From<?,?> correlation = Root.class.isInstance(path) ? subquery.correlate((Root<?>) path)
+                                                                                                 : subquery.correlate((Join<?,?>) path);
+                                             
+                                             Join<?,?> correlationJoin = correlation.join(it.getName());
+                                             
+                                             DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                                                       .root(subquery)
+                                                                                                                       .build();                                                                                                  
+                                             
+                                             Predicate restriction = getArgumentPredicate(cb,
+                                                                                          correlationJoin,
+                                                                                          wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
+                                                                                          arg);
+                                             
+                                             
+                                             Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
+                                                                                  .where(restriction));
+                                             
+                                             return logical == Logical.EXISTS ? exists : cb.not(exists);
+                                         }
+                                         
 
                                          return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
                                                                      wherePredicateEnvironment(environment, fieldDefinition, args),
