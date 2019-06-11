@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.27
+## 0.3.28-SNAPSHOT
 * feat: add EXISTS/NOT_EXISTS subquery logical where criteria expressions (#151) [85d2f3a](https://github.com/introproventures/graphql-jpa-query/commit/85d2f3a7b64db6d54300f6979f872b38d1738364)
 * fix: correct element collection fetch sort order (#149) [5327a22](https://github.com/introproventures/graphql-jpa-query/commit/5327a226b6e86418612fbaeaf6fedc7cd3c51576)
 * fix: add support for nested where criteria expressions (#148) [2065101](https://github.com/introproventures/graphql-jpa-query/commit/206510146783dde2446e21f9a2c06cf61dcedf69)
