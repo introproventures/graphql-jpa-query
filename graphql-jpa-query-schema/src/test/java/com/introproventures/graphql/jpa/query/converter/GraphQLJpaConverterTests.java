@@ -26,12 +26,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.transaction.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.converter.model.JsonEntity;
+import com.introproventures.graphql.jpa.query.converter.model.TaskEntity;
 import com.introproventures.graphql.jpa.query.converter.model.TaskVariableEntity;
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
@@ -119,16 +123,17 @@ public class GraphQLJpaConverterTests {
     @Test
     @Transactional
     public void criteriaTester2() {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<TaskVariableEntity> criteria = builder.createQuery(TaskVariableEntity.class);
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TaskVariableEntity> criteria = cb.createQuery(TaskVariableEntity.class);
         Root<TaskVariableEntity> taskVariable = criteria.from(TaskVariableEntity.class);
         
         Boolean object = new Boolean(true); 
 
         VariableValue<Boolean> variableValue = new VariableValue<>(object);
         criteria.select(taskVariable)
-                .where(builder.equal(taskVariable.get("value"), variableValue));
-        
+                .where(cb.and(cb.equal(cb.lower(taskVariable.get("name")), "variable2")),
+                              cb.in(taskVariable.get("value")).value(variableValue));
+
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
 
@@ -136,6 +141,130 @@ public class GraphQLJpaConverterTests {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
     }
+
+    @Test
+    @Transactional
+    public void criteriaTester3() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+        
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskVariableEntity> taskVariables = subquery.from(TaskVariableEntity.class);
+        
+        Predicate isOwner = cb.in(taskVariables.get("task")).value(task);
+
+        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+
+        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
+        
+        tasksQuery.select(task)
+                  .where(cb.and(cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var1))),
+                                cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var2)))));
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }    
+    
+    @Test
+    @Transactional
+    public void criteriaTester4() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+        
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
+        
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+        
+        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+
+        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
+        
+        tasksQuery.select(task)
+                  .where(cb.and(cb.exists(subquery.select(taskVariables).where(var1)),
+                                cb.exists(subquery.select(taskVariables).where(var2))));
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }
+    
+    @Test
+    @Transactional
+    public void criteriaTester5() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+        
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
+        
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+        
+        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+
+        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
+        
+        tasksQuery.select(task)
+                  .where(cb.and(cb.not(cb.exists(subquery.select(taskVariables).where(var1))),
+                                cb.not(cb.exists(subquery.select(taskVariables).where(var2)))
+                                )
+                         );
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(4);
+    }    
+    
+    @Test
+    @Transactional
+    public void criteriaTester6() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+        
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
+        
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+        
+        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+
+        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
+        
+        tasksQuery.select(task)
+                  .where(cb.not(cb.or(cb.exists(subquery.select(taskVariables).where(var1)),
+                                      cb.exists(subquery.select(taskVariables).where(var2)))
+                                )
+                         );
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(4);
+    }       
     
     @Test // Problem with generating cast() in the where expression
     @Transactional
@@ -609,6 +738,97 @@ public class GraphQLJpaConverterTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }          
+    }     
+    
+    
+    @Test
+    public void queryTasksVariablesWhereWithExplicitANDEXISTSByNameAndValueCriteria() {
+        //given
+        String query = "query {" + 
+                "  Tasks(where: {" + 
+                "    status: {EQ: COMPLETED}" + 
+                "    AND: [{" + 
+                "      EXISTS: {" + 
+                "        variables: {" + 
+                "          name: {EQ: \"variable1\"}" + 
+                "          value: {EQ: \"data\"}" + 
+                "        }" + 
+                "      }" + 
+                "    } {" + 
+                "      EXISTS: {" + 
+                "        variables: {" + 
+                "          name: {EQ: \"variable2\"}" + 
+                "          value: {EQ: true}" + 
+                "        }" + 
+                "      }" + 
+                "    }]" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      status" + 
+                "      variables {" + 
+                "        name" + 
+                "        value" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{Tasks={select=["
+                + "{id=1, status=COMPLETED, variables=["
+                +   "{name=variable2, value=true}, "
+                +   "{name=variable1, value=data}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
+
+    @Test
+    public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
+        //given
+        String query = "query {" + 
+                "  Tasks(where: {" + 
+                "    status: {EQ: COMPLETED}" + 
+                "    EXISTS: [{" + 
+                "      variables: {" + 
+                "        name: {EQ: \"variable1\"}" + 
+                "        value: {EQ: \"data\"}" + 
+                "      }" + 
+                "    } {" + 
+                "      variables: {" + 
+                "        name: {EQ: \"variable2\"}" + 
+                "        value: {EQ: true}" + 
+                "      }" + 
+                "    }]" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      status" + 
+                "      variables {" + 
+                "        name" + 
+                "        value" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{Tasks={select=["
+                + "{id=1, status=COMPLETED, variables=["
+                +   "{name=variable2, value=true}, "
+                +   "{name=variable1, value=data}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
          
 }
