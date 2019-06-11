@@ -1,6 +1,7 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -135,5 +136,25 @@ public abstract class AbstractVariableEntity extends ActivitiEntityMetadata {
     
     public void setProcessInstanceId(String processInstanceId) {
         this.processInstanceId = processInstanceId;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Objects.hash(id);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        AbstractVariableEntity other = (AbstractVariableEntity) obj;
+        return Objects.equals(id, other.id);
     }
  }

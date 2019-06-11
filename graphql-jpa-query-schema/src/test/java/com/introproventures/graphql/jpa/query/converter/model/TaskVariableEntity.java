@@ -1,6 +1,7 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
@@ -73,6 +74,26 @@ public class TaskVariableEntity extends AbstractVariableEntity {
 
     public void setTask(TaskEntity taskEntity) {
         this.task = taskEntity;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Objects.hash(taskId);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TaskVariableEntity other = (TaskVariableEntity) obj;
+        return Objects.equals(taskId, other.taskId);
     }
     
     
