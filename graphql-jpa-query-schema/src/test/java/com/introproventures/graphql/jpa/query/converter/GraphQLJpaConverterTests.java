@@ -742,7 +742,7 @@ public class GraphQLJpaConverterTests {
     
     
     @Test
-    public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
+    public void queryTasksVariablesWhereWithExplicitANDEXISTSByNameAndValueCriteria() {
         //given
         String query = "query {" + 
                 "  Tasks(where: {" + 
@@ -786,5 +786,49 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }       
+    
+
+    @Test
+    public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
+        //given
+        String query = "query {" + 
+                "  Tasks(where: {" + 
+                "    status: {EQ: COMPLETED}" + 
+                "    EXISTS: [{" + 
+                "      variables: {" + 
+                "        name: {EQ: \"variable1\"}" + 
+                "        value: {EQ: \"data\"}" + 
+                "      }" + 
+                "    } {" + 
+                "      variables: {" + 
+                "        name: {EQ: \"variable2\"}" + 
+                "        value: {EQ: true}" + 
+                "      }" + 
+                "    }]" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      status" + 
+                "      variables {" + 
+                "        name" + 
+                "        value" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String expected = "{Tasks={select=["
+                + "{id=1, status=COMPLETED, variables=["
+                +   "{name=variable2, value=true}, "
+                +   "{name=variable1, value=data}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
          
 }
