@@ -447,12 +447,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                               
                               Boolean isOptional = false;
                               
-                              if(Logical.EXISTS == logical) {
+                              if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
                                   AbstractQuery<?> query = environment.getRoot();
                                   Subquery<?> subquery = query.subquery(attribute.getJavaType());
-                                  From<?,?> correlation = Root.class.isInstance(from) 
-                                                          ? subquery.correlate((Root<?>) from)
-                                                          : subquery.correlate((Join<?,?>) from);
+                                  From<?,?> correlation = Root.class.isInstance(from) ? subquery.correlate((Root<?>) from)
+                                                                                      : subquery.correlate((Join<?,?>) from);
                                   
                                   Join<?,?> correlationJoin = correlation.join(it.getName());
                                   
@@ -465,7 +464,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                                                wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
                                                                                arg);
                                   
-                                  return cb.exists(subquery.select((Join) correlationJoin).where(restriction));
+                                  
+                                  Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
+                                                                       .where(restriction));
+                                  
+                                  return logical == Logical.EXISTS ? exists : cb.not(exists);
                               }
                                   
                               return getArgumentPredicate(cb, reuseJoin(from, it.getName(), isOptional),  
