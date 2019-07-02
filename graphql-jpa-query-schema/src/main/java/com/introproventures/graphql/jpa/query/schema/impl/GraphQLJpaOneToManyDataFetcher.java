@@ -48,8 +48,12 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
     
     private final PluralAttribute<Object,Object,Object> attribute;
 
-    public GraphQLJpaOneToManyDataFetcher(EntityManager entityManager, EntityType<?> entityType, PluralAttribute<Object,Object,Object> attribute) {
-        super(entityManager, entityType);
+    public GraphQLJpaOneToManyDataFetcher(EntityManager entityManager, 
+                                          EntityType<?> entityType,
+                                          boolean toManyDefaultOptional,
+                                          boolean defaultDistinct,
+                                          PluralAttribute<Object,Object,Object> attribute) {
+        super(entityManager, entityType, defaultDistinct, toManyDefaultOptional);
         
         this.attribute = attribute;
     }
@@ -63,16 +67,23 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         
         // Resolve collection query if where argument is present or any field in selection has orderBy argument
         if(whereArg.isPresent() || hasSelectionAnyOrderBy(field)) {
+            TypedQuery<?> query = getQuery(environment, field, isDefaultDistinct());
 
-            //EntityGraph<?> entityGraph = buildEntityGraph(new Field("select", new SelectionSet(Arrays.asList(field))));
+            // Let's not pass distinct if enabled to have better performance
+            if(isDefaultDistinct()) {
+                query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+            }
             
-            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
-            // between requests with different search criteria. This looks like a Hibernate bug... 
-            entityManager.clear();
+            List<?> resultList = query.getResultList();
+
+            // Let's remove any duplicate references for root entities 
+            if(isDefaultDistinct()) {
+                resultList = resultList.stream()
+                                       .distinct()
+                                       .collect(Collectors.toList());
+            }
             
-            return getQuery(environment, field, true)
-                //.setHint("javax.persistence.fetchgraph", entityGraph) // TODO: fix runtime exception
-                .getResultList();
+            return resultList;
         }
 
         // Let hibernate resolve collection query
@@ -129,10 +140,8 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         
         query.select(join.alias(attribute.getName()));
         
-        List<Predicate> predicates = getFieldArguments(field, query, cb, join, environment).stream()
-                                                                              .map(it -> getPredicate(cb, from, join, environment, it))
-                                                                              .filter(it -> it != null)
-                                                                              .collect(Collectors.toList());
+        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, environment);
+
         query.where(
             predicates.toArray(new Predicate[predicates.size()])
         );
@@ -140,7 +149,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
         // optionally add default ordering 
         mayBeAddDefaultOrderBy(query, join, cb);
         
-        return entityManager.createQuery(query.distinct(true));
+        return entityManager.createQuery(query.distinct(isDistinct));
         
     }
     

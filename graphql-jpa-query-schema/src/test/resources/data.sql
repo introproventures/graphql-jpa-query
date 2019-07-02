@@ -3,10 +3,15 @@ insert into code_list (id, type, code, description, sequence, active, parent_id)
   (0, 'org.crygier.graphql.model.starwars.Gender', 'Male', 'Male', 1, true, null),
   (1, 'org.crygier.graphql.model.starwars.Gender', 'Female', 'Female', 2, true, null);
 
+-- Insert Droid Functions
+insert into droid_function(id, function) values
+( '1000', 'Protocol'),
+( '1001', 'Astromech');
+
 -- Insert Droids
 insert into character (id, name, primary_function, dtype) values
-    ('2000', 'C-3PO', 'Protocol', 'Droid'),
-    ('2001', 'R2-D2', 'Astromech', 'Droid');
+    ('2000', 'C-3PO', '1000', 'Droid'),
+    ('2001', 'R2-D2', '1001', 'Droid');
 
 -- Insert Humans
 insert into character (id, name, home_planet, favorite_droid_id, dtype, gender_code_id) values
@@ -119,6 +124,7 @@ insert into book (id, title, author_id, genre, publication_date, description)
 values (6, 'The Seagull', 4, 'PLAY', '1896-10-17', 'It dramatises the romantic and artistic conflicts between four characters');
 insert into book (id, title, author_id, genre, publication_date, description)
 values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01', 'The play is sometimes included on the short list of Chekhov''s outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]');
+insert into author (id, name, genre) values (8, 'Igor Dianov', 'JAVA');
 
 insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-1234', 1),

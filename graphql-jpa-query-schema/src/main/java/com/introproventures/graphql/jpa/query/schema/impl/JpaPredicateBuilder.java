@@ -16,8 +16,10 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -27,10 +29,14 @@ import java.util.UUID;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.PluralAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+import graphql.language.NullValue;
 
 /**
  * Supported types to build predicates for
@@ -409,15 +415,103 @@ class JpaPredicateBuilder {
             return getUuidPredicate((Path<UUID>) field, predicateFilter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
-            if(field.getModel() == null)
-                return from.join(filter.getField()).in(value);
+            // collection join for plural attributes
+            if(PluralAttribute.class.isInstance(from.getModel()) 
+                    || EntityType.class.isInstance(from.getModel())) {
+                From<?,?> join = null;
+                
+                for(Join<?,?> fetch: from.getJoins()) {
+                    if(fetch.getAttribute().getName().equals(filter.getField()))
+                        join = (From<?,?>) fetch;
+                }
+                
+                if(join == null) {
+                    join = (From<?,?>) from.join(filter.getField());
+                }
+                
+                
+                Predicate in = join.in(value);
+                
+                if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN))
+                   return cb.not(in);
+                        
+                return in;
+            }
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
+        } // TODO need better detection mechanism
+        else if (Object.class.isAssignableFrom(type)) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
+                return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0); 
+            }
+            else { 
+                Object object = value;
+                
+                if(Collection.class.isInstance(value)) {
+                    object = getValues(object, type);
+                } else {
+                    object = getValue(object, type);
+                }
+                    
+                if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)
+                        || filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                    
+                    Predicate equal = cb.equal(from.get(filter.getField()), object);
+                    
+                    if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                        return cb.not(equal);
+                    }
+                    
+                    return equal;
+                } 
+                else if (filter.getCriterias().contains(PredicateFilter.Criteria.IN) 
+                        || filter.getCriterias().contains(PredicateFilter.Criteria.NIN)
+                ) {
+                    CriteriaBuilder.In<Object> in = cb.in(from.get(filter.getField()));
+                    
+                    if(Collection.class.isInstance(object)) {
+                        Collection.class.cast(object)
+                                  .forEach(in::value);
+                    } else {
+                        in.value(object);
+                    }
+                    
+                    if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                        return cb.not(in);
+                    }
+                    
+                    return in;
+                } 
+            }
         }
 
         throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());
     }
 
+    private Object getValue(Object object, Class<?> type) {
+        try {
+            Constructor<?> constructor = type.getConstructor(Object.class);
+            if(constructor != null) {
+                Object arg = NullValue.class.isInstance(object) ? null : object;
+                return constructor.newInstance(arg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return object;
+    }
+    
+    private Object getValues(Object object, Class<?> type) {
+        Collection<Object> objects = new ArrayList<>();
+
+        for (Object value : Collection.class.cast(object).toArray()) {
+            objects.add(getValue(value, type));
+        }
+
+        return objects;
+    }
+    
     /**
      * Makes predicate for field of primitive type
      *

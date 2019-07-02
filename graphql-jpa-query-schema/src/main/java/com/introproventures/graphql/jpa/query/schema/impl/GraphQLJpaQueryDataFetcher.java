@@ -47,20 +47,23 @@ import graphql.schema.GraphQLObjectType;
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
-    private boolean defaultDistinct = false;
+    private boolean defaultDistinct = true;
 	
-    private static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
-    private static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
-    private static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
-    private static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
-    private static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+    protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
+    protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+    protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
+    protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
+    protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType) {
-        super(entityManager, entityType);
+    private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
+        super(entityManager, entityType, toManyDefaultOptional);
     }
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean defaultDistinct) {
-        super(entityManager, entityType);
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, 
+                                      EntityType<?> entityType, 
+                                      boolean defaultDistinct,
+                                      boolean toManyDefaultOptional) {
+        super(entityManager, entityType, toManyDefaultOptional);
         this.defaultDistinct = defaultDistinct;
     }
 
@@ -131,9 +134,23 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
             query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
             query.setHint(ORG_HIBERNATE_CACHEABLE, false);
-            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             
-            result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, query.getResultList());
+            // Let's not pass distinct if enabled to have better performance
+            if(isDistinct) {
+                query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+            }
+
+            // Let's execute query 
+            List<?> resultList = query.getResultList(); 
+                            
+            // Let's remove any duplicate references for root entities 
+            if(isDistinct) {
+                resultList = resultList.stream()
+                                       .distinct()
+                                       .collect(Collectors.toList());
+            }
+                
+            result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, resultList);
         }
         
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
@@ -159,7 +176,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             return null;
         
         if(isWhereArgument(argument)) 
-            return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument.getName()), argument);
+            return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument), argument);
         
         return super.getPredicate(cb, root, path, environment, argument);
     }

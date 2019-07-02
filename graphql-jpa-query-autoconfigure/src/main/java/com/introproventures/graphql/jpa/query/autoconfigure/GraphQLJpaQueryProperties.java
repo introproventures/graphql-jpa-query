@@ -44,8 +44,13 @@ public class GraphQLJpaQueryProperties {
     /**
      * Enable or disable distinct distinct sql query fetcher.
      */
-    private boolean isDefaultDistinct = false;
+    private boolean isDefaultDistinct = true;
 
+    /**
+     * Set default value for optional argument for join fetch collections.
+     */
+    private boolean toManyDefaultOptional = true;
+    
     /**
      * Enable or disable QraphQL module services.
      */
@@ -105,7 +110,7 @@ public class GraphQLJpaQueryProperties {
     /**
      * @return the distinctFetcher
      */
-    public boolean isDefautltDistinct() {
+    public boolean isDefaultDistinct() {
         return isDefaultDistinct;
     }
 
@@ -142,6 +147,16 @@ public class GraphQLJpaQueryProperties {
      */
     public void setPath(String path) {
         this.path = path;
+    }
+
+    
+    public boolean isToManyDefaultOptional() {
+        return toManyDefaultOptional;
+    }
+
+    
+    public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
+        this.toManyDefaultOptional = toManyDefaultOptional;
     }
     
 }

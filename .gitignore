@@ -21,3 +21,6 @@ target/
 .project
 .springBeans
 .classpath
+
+.externalToolBuilders
+
