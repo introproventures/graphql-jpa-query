@@ -1414,5 +1414,74 @@ public class GraphQLExecutorTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
+
+    @Test
+    public void queryAuthorWithDateOfBirth() {
+        //given
+        String query = "query{\n" +
+                "Authors\n" +
+                "  (where:{\n" +
+                "    dateOfBirth:{\n" +
+                "      GE:\"1945-01-01\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "  {\n" +
+                "  select{\n" +
+                "    name\n" +
+                "    genre\n" +
+                "    dateOfBirth\n" +
+                "  }\n" +
+                "}\n" +
+                "}";
+
+        String expected = "{Authors= {select= [{name= James Gosling, genre= JAVA, dateOfBirth= 1955-03-19}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBookWithReleaseDate() {
+        //given
+        String query = "query{\n" +
+                "  Books\n" +
+                "  (\n" +
+                "    where:\n" +
+                "    {\n" +
+                "      releaseDate:\n" +
+                "      {\n" +
+                "        GT:\"2015-01-01T07:00:00\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  )\n" +
+                "  {\n" +
+                "    select\n" +
+                "    {\n" +
+                "      title\n" +
+                "      genre\n" +
+                "      releaseDate\n" +
+                "      author\n" +
+                "      {\n" +
+                "        name\n" +
+                "        dateOfBirth\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{Books={select=[" +
+                "        {title= The Java Programming Language , genre= JAVA, releaseDate= 2015-08-17T11:00:00," +
+                "           author= {name=James Gosling, dateOfBirth=1955-03-19}}]}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 }

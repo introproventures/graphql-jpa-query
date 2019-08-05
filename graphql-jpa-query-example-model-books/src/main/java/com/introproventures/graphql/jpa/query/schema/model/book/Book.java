@@ -16,6 +16,9 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -49,5 +52,7 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
-    Date publicationDate;	
+    Date publicationDate;
+
+    LocalDateTime releaseDate;
 }
