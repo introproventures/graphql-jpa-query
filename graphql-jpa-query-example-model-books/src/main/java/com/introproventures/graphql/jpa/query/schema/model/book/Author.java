@@ -58,7 +58,7 @@ public class Author {
 	private Set<String> phoneNumbers = new HashSet<>();	
 	
 	@Enumerated(EnumType.STRING)
-    Genre genre;
+    Genre genre;	
 
 	LocalDate dateOfBirth;
 }
