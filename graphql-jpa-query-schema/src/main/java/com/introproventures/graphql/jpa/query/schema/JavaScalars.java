@@ -107,7 +107,7 @@ public class JavaScalars {
         scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
         scalarsRegistry.put(java.sql.Date.class, new GraphQLScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
         scalarsRegistry.put(java.sql.Timestamp.class, new GraphQLScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
-        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));    
+        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
         scalarsRegistry.put(Instant.class, new GraphQLScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
     }
 
@@ -351,9 +351,6 @@ public class JavaScalars {
         public Object parseLiteral(Object input) {
             if (input instanceof StringValue) {
                 return parseStringToInstant(((StringValue) input).getValue());
-            } else if (input instanceof IntValue) {
-                BigInteger value = ((IntValue) input).getValue();
-                return parseStringToInstant(value.toString());
             }
             return null;
         }
