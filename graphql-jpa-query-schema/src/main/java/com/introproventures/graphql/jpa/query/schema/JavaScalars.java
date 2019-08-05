@@ -107,8 +107,9 @@ public class JavaScalars {
         scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
         scalarsRegistry.put(java.sql.Date.class, new GraphQLScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
         scalarsRegistry.put(java.sql.Timestamp.class, new GraphQLScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
-        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));    
+        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
         scalarsRegistry.put(Instant.class, new GraphQLScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
+        scalarsRegistry.put(ZonedDateTime.class, new GraphQLScalarType("ZonedDateTime", "ZonedDateTime type", new GraphQLZonedDateTimeCoercing()));
     }
 
     public static GraphQLScalarType of(Class<?> key) {
@@ -358,6 +359,51 @@ public class JavaScalars {
         private Instant parseStringToInstant(String input) {
             try {
                 return Instant.parse(input);
+            } catch (DateTimeParseException e) {
+                log.warn("Failed to parse Date from input: " + input, e);
+                return null;
+            }
+        }
+    };
+
+    public static class GraphQLZonedDateTimeCoercing implements Coercing<Object, Object> {
+
+        @Override
+        public Object serialize(Object input) {
+            if (input instanceof String) {
+                return parseStringToZonedDateTime((String) input);
+            } else if (input instanceof ZonedDateTime) {
+                return input;
+            } else if (input instanceof LocalDate) {
+                return input;
+            } else if (input instanceof Long) {
+                return parseLongToZonedDateTime((Long) input);
+            } else if (input instanceof Integer) {
+                return parseLongToZonedDateTime((Integer) input);
+            }
+            return null;
+        }
+
+        @Override
+        public Object parseValue(Object input) {
+            return serialize(input);
+        }
+
+        @Override
+        public Object parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                return parseStringToZonedDateTime(((StringValue) input).getValue());
+            }
+            return null;
+        }
+
+        private ZonedDateTime parseLongToZonedDateTime(long input) {
+            return ZonedDateTime.ofInstant(Instant.ofEpochSecond(input), TimeZone.getDefault().toZoneId());
+        }
+
+        private ZonedDateTime parseStringToZonedDateTime(String input) {
+            try {
+                return ZonedDateTime.parse(input);
             } catch (DateTimeParseException e) {
                 log.warn("Failed to parse Date from input: " + input, e);
                 return null;

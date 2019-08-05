@@ -19,10 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -503,6 +500,50 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    protected Predicate getZonedDateTimePredicate(Path<? extends ZonedDateTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof ZonedDateTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (ZonedDateTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<ZonedDateTime> name = (Expression<ZonedDateTime>) root;
+                    Expression<ZonedDateTime> fromDateTime = cb.literal((ZonedDateTime) values[0]);
+                    Expression<ZonedDateTime> toDateTime = cb.literal((ZonedDateTime) values[1]);
+                    Predicate between = cb.between(name, fromDateTime, toDateTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
     private Predicate getUuidPredicate(Path<UUID> field, PredicateFilter filter) {
         if (filter.getValue() == null) {
             return null;
@@ -603,6 +644,9 @@ class JpaPredicateBuilder {
         }
         else if(type.equals(LocalTime.class)){
             return getLocalTimePredicate((Path<LocalTime>) field, predicateFilter);
+        }
+        else if(type.equals(ZonedDateTime.class)){
+            return getZonedDateTimePredicate((Path<ZonedDateTime>) field, predicateFilter);
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
