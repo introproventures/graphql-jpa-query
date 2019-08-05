@@ -52,7 +52,7 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
-    Date publicationDate;
+    Date publicationDate;	
 
     LocalDateTime releaseDate;
 }
