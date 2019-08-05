@@ -544,6 +544,51 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    protected Predicate getOffsetDateTimePredicate(Path<? extends OffsetDateTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof OffsetDateTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (OffsetDateTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<OffsetDateTime> name = (Expression<OffsetDateTime>) root;
+                    Expression<OffsetDateTime> fromDateTime = cb.literal((OffsetDateTime) values[0]);
+                    Expression<OffsetDateTime> toDateTime = cb.literal((OffsetDateTime) values[1]);
+                    Predicate between = cb.between(name, fromDateTime, toDateTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+
     private Predicate getUuidPredicate(Path<UUID> field, PredicateFilter filter) {
         if (filter.getValue() == null) {
             return null;
@@ -647,6 +692,9 @@ class JpaPredicateBuilder {
         }
         else if(type.equals(ZonedDateTime.class)){
             return getZonedDateTimePredicate((Path<ZonedDateTime>) field, predicateFilter);
+        }
+        else if(type.equals(OffsetDateTime.class)){
+            return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, predicateFilter);
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
