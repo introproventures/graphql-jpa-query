@@ -7,5 +7,3 @@ insert into book (id, title, author_id, genre) values (5, 'The Cherry Orchard', 
 insert into book (id, title, author_id, genre) values (6, 'The Seagull', 4, 'PLAY');
 insert into book (id, title, author_id, genre) values (7, 'Three Sisters', 4, 'PLAY');
 insert into author (id, name, genre) values (8, 'Igor Dianov', 'JAVA');
-insert into author (id, name, genre, dateOfBirth) values (9, 'James Gosling', 'JAVA','1955-03-19');
-insert into book (id, title, author_id, genre, releaseDate) values(8, 'The Java Programming Language', 9, 'JAVA', '2015-08-17 11:00:00');
