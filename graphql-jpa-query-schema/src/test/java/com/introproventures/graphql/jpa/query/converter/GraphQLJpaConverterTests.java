@@ -1369,7 +1369,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    offsetDateTime:{\n" +
-                "      LT:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "      LT:\"2019-08-07T10:58:07.915991+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
@@ -1397,7 +1397,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    offsetDateTime:{\n" +
-                "      LE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "      LE:\"2019-08-07T10:58:07.915991+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
@@ -1509,7 +1509,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    zonedDateTime:{\n" +
-                "      LE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "      LE:\"2019-08-07T10:58:07.915991+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
@@ -1537,7 +1537,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    zonedDateTime:{\n" +
-                "      LT:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "      LT:\"2019-08-07T10:58:07.915991+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
@@ -1649,7 +1649,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    zonedDateTime:{\n" +
-                "      EQ:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "      EQ:\"2019-08-06T10:58:07.915991+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
