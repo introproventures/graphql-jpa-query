@@ -1649,7 +1649,7 @@ public class GraphQLJpaConverterTests {
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    zonedDateTime:{\n" +
-                "      EQ:\"2019-08-06T10:58:07.915991+07:00\"\n" +
+                "      EQ:\"2019-08-06T10:58:08.153992+07:00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
