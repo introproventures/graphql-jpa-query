@@ -16,7 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -58,5 +57,5 @@ public class Author {
 	private Set<String> phoneNumbers = new HashSet<>();	
 	
 	@Enumerated(EnumType.STRING)
-    Genre genre;
+    Genre genre;	
 }
