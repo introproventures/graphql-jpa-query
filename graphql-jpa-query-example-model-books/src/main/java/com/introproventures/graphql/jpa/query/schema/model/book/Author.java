@@ -59,6 +59,4 @@ public class Author {
 	
 	@Enumerated(EnumType.STRING)
     Genre genre;
-
-	LocalDate dateOfBirth;
 }
