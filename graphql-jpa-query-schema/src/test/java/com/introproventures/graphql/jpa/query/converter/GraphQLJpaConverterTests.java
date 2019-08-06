@@ -786,7 +786,7 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }       
-    
+
 
     @Test
     public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
@@ -887,7 +887,7 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
-    public void queryLocalDateWithGreaterEqualTest() {
+    public void queryLocalDateWithGreaterThanOrEqualTest() {
         //given
         String query = "query{\n" +
                 "  localDates\n" +
@@ -943,6 +943,118 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
+    public void queryLocalDateWithNotBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDate:{\n" +
+                "      NOT_BETWEEN:[\"2019-08-04\",\"2019-08-05\"]\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "\t\t\tlocalDate\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDate=2019-08-06, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateWithNotEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDate:{\n" +
+                "      NE:\"2019-08-04\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "\t\t\tlocalDate\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDate=2019-08-06, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateWithLessThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDate:{\n" +
+                "      LE:\"2019-08-06\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "\t\t\tlocalDate\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDate=2019-08-06, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateWithLessThanTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDate:{\n" +
+                "      LT:\"2019-08-07\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "\t\t\tlocalDate\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDate=2019-08-06, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryLocalDateTimeWithGreaterThanTest() {
         //given
         String query = "query{\n" +
@@ -950,6 +1062,34 @@ public class GraphQLJpaConverterTests {
                 "  (where:{\n" +
                 "    localDateTime:{\n" +
                 "      GT:\"2019-08-06T07:00:00.00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      localDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateTimeWithLessThanTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDateTime:{\n" +
+                "      LT:\"2019-08-07T07:00:00.00\"\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
@@ -1027,7 +1167,91 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
-    public void queryOffsetDateTimeWithGreaterEqualTest() {
+    public void queryLocalDateTimeWithLessThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDateTime:{\n" +
+                "      LE:\"2019-08-07T07:00:00.00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      localDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateTimeWithNotBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDateTime:{\n" +
+                "      NOT_BETWEEN:[\"2019-08-04T10:58:08.389991\",\"2019-08-05T13:58:08.389991\"]\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      localDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryLocalDateTimeWithNotEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    localDateTime:{\n" +
+                "      NE:\"2019-08-05T10:58:08.389991\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      localDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryOffsetDateTimeWithGreaterOrEqualTest() {
         //given
         String query = "query{\n" +
                 "  localDates\n" +
@@ -1111,6 +1335,118 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
+    public void queryOffsetDateTimeWithNotBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    offsetDateTime:{\n" +
+                "      NOT_BETWEEN:[\"2019-08-05T10:58:07.915991+07:00\",\"2019-08-05T15:58:07.915991+07:00\"]\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      offsetDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryOffsetDateTimeWithLessThanTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    offsetDateTime:{\n" +
+                "      LT:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      offsetDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryOffsetDateTimeWithLessThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    offsetDateTime:{\n" +
+                "      LE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      offsetDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryOffsetDateTimeWithNotEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    offsetDateTime:{\n" +
+                "      NE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      offsetDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryZonedDateTimeWithGreaterThanTest() {
         //given
         String query = "query{\n" +
@@ -1167,6 +1503,174 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
+    public void queryZonedDateTimeWithLessThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      LE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryZonedDateTimeWithLessThanTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      LT:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryZonedDateTimeWithBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      BETWEEN:[\"2019-08-05T10:58:07.915991+07:00\",\"2019-08-06T15:58:07.915991+07:00\"]\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryZonedDateTimeWithNotBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      NOT_BETWEEN:[\"2019-08-05T10:58:07.915991+07:00\",\"2019-08-05T15:58:07.915991+07:00\"]\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryZonedDateTimeWithNotEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      NE:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryZonedDateTimeWithEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    zonedDateTime:{\n" +
+                "      EQ:\"2019-08-05T10:58:07.915991+07:00\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      zonedDateTime\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryInstantWithGreaterThanTest() {
         //given
         String query = "query{\n" +
@@ -1174,6 +1678,118 @@ public class GraphQLJpaConverterTests {
                 "  (where:{\n" +
                 "    instant:{\n" +
                 "      GT:\"2019-08-05T03:58:08.842270Z\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      instant\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryInstantWithGreaterThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    instant:{\n" +
+                "      GE:\"2019-08-05T03:58:08.842270Z\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      instant\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryInstantWithLessThanOrEqualTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    instant:{\n" +
+                "      LE:\"2019-08-07T03:58:08.842270Z\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      instant\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryInstantWithLessThanTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    instant:{\n" +
+                "      LT:\"2019-08-07T03:58:08.842270Z\"\n" +
+                "    }\n" +
+                "  })\n" +
+                "\t{\n" +
+                "    select{\n" +
+                "      id\n" +
+                "      instant\n" +
+                "      description\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        String expected = "{localDates={select=[{id=1, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryInstantWithBetweenTest() {
+        //given
+        String query = "query{\n" +
+                "  localDates\n" +
+                "  (where:{\n" +
+                "    instant:{\n" +
+                "      BETWEEN:[\"2019-08-06T03:58:08.842270Z\",\"2019-08-07T03:58:08.842270Z\"]\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
