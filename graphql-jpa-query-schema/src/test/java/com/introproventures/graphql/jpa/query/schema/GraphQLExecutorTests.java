@@ -1414,5 +1414,5 @@ public class GraphQLExecutorTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }	
 }
