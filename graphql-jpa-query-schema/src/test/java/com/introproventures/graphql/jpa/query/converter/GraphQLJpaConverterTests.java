@@ -999,13 +999,13 @@ public class GraphQLJpaConverterTests {
     }
 
     @Test
-    public void queryLocalDateTimeWithGreaterThanTest() {
+    public void queryLocalDateTimeWithBetweenTest() {
         //given
         String query = "query{\n" +
                 "  localDates\n" +
                 "  (where:{\n" +
                 "    localDateTime:{\n" +
-                "      GT:\"2019-08-05T10:58:08.389991\"\n" +
+                "      BETWEEN:[\"2019-08-05T10:58:08.389991\",\"2019-08-06T13:58:08.389991\"]\n" +
                 "    }\n" +
                 "  })\n" +
                 "\t{\n" +
