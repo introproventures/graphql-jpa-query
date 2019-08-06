@@ -905,7 +905,7 @@ public class GraphQLJpaConverterTests {
                 "  }\n" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -933,7 +933,7 @@ public class GraphQLJpaConverterTests {
                 "  }\n" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T10:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -961,7 +961,7 @@ public class GraphQLJpaConverterTests {
                 "  }\n" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T10:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-06T10:58:08153992+07:00[Asia/Bangkok], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
