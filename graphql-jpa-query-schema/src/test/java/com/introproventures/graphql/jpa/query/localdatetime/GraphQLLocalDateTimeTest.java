@@ -912,7 +912,7 @@ public class GraphQLLocalDateTimeTest {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      NE:\"2019-08-05T10:58:07.915991+07:00\"" +
+                "      NE:\"2019-08-05T03:58:08.153992Z[UTC]\"" +
                 "    }" +
                 "  })" +
                 "{" +
