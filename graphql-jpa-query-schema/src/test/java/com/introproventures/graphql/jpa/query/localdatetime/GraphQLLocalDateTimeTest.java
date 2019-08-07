@@ -113,9 +113,9 @@ public class GraphQLLocalDateTimeTest {
                 "  })" +
                 "{" +
                 "    select{" +
-                "      id" +
-                "localDate" +
-                "      description" +
+                "       id" +
+                "       localDate" +
+                "       description" +
                 "    }" +
                 "  }" +
                 "}";

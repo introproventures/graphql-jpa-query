@@ -829,6 +829,6 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }       
-		
+
 
 }
