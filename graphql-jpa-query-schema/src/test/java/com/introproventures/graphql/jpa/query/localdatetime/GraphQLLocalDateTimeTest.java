@@ -91,7 +91,7 @@ public class GraphQLLocalDateTimeTest {
                 "  }" +
                 "}";
 
-        String expected = "{{localDates={select=[" +
+        String expected = "{localDates={select=[" +
                 "{id=5, localDate=2019-08-05, description=Add test for LocalDate.}, " +
                 "{id=6, localDate=2019-08-06, description=Add test for LocalDate.}]}}";
 
@@ -720,13 +720,13 @@ public class GraphQLLocalDateTimeTest {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=2, offsetDateTime=2019-08-02T02:58:07.915991Z, description=Add test for LocalDate.}, " +
+                "{id=2, offsetDateTime=2019-08-02T03:58:07.915991Z, description=Add test for LocalDate.}, " +
                 "{id=3, offsetDateTime=2019-08-03T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=4, offsetDateTime=2019-08-04T04:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=5, offsetDateTime=2019-08-05T05:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=6, offsetDateTime=2019-08-06T06:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=7, offsetDateTime=2019-08-07T07:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=8, offsetDateTime=2019-08-08T08:58:07.915991Z, description=Add test for LocalDate.}]}}";
+                "{id=4, offsetDateTime=2019-08-04T03:58:07.915991Z, description=Add test for LocalDate.}, " +
+                "{id=5, offsetDateTime=2019-08-05T03:58:07.915991Z, description=Add test for LocalDate.}, " +
+                "{id=6, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}, " +
+                "{id=7, offsetDateTime=2019-08-07T03:58:07.915991Z, description=Add test for LocalDate.}, " +
+                "{id=8, offsetDateTime=2019-08-08T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -742,7 +742,7 @@ public class GraphQLLocalDateTimeTest {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      GT:\"2019-08-07T10:58:07.915991+07:00\"" +
+                "      GT:\"2019-08-07T19:58:07.915991+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -867,7 +867,7 @@ public class GraphQLLocalDateTimeTest {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=5, zonedDateTime=2019-08-05T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
+                "{id=5, zonedDateTime=2019-08-05T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
                 "{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
@@ -926,11 +926,11 @@ public class GraphQLLocalDateTimeTest {
 
         String expected = "{localDates={select=[" +
                 "{id=1, zonedDateTime=2019-08-01T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
-                "{id=2, zonedDateTime=2019-08-02T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
-                "{id=3, zonedDateTime=2019-08-03T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
-                "{id=4, zonedDateTime=2019-08-04T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
-                "{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
-                "{id=7, zonedDateTime=2019-08-07T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}, " +
+                "{id=2, zonedDateTime=2019-08-02T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=3, zonedDateTime=2019-08-03T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=4, zonedDateTime=2019-08-04T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=7, zonedDateTime=2019-08-07T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
                 "{id=8, zonedDateTime=2019-08-08T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
@@ -987,7 +987,7 @@ public class GraphQLLocalDateTimeTest {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=7, instant=2019-08-07T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, instant=2019-08-08T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1115,7 +1115,7 @@ public class GraphQLLocalDateTimeTest {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      BETWEEN:[\"2019-08-02T03:58:08.842270Z\",\"2019-08-08T03:58:08.842270Z\"]" +
+                "      NOT_BETWEEN:[\"2019-08-02T03:58:08.842270Z\",\"2019-08-08T03:58:08.842270Z\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1155,14 +1155,14 @@ public class GraphQLLocalDateTimeTest {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{" +
+        String expected = "{localDates={select=[" +
                 "{id=1, instant=2019-08-01T03:58:08.842270Z, description=Add test for LocalDate.}, " +
                 "{id=2, instant=2019-08-02T03:58:08.842270Z, description=Add test for LocalDate.}, " +
                 "{id=3, instant=2019-08-03T03:58:08.842270Z, description=Add test for LocalDate.}, " +
                 "{id=4, instant=2019-08-04T03:58:08.842270Z, description=Add test for LocalDate.}, " +
                 "{id=5, instant=2019-08-05T03:58:08.842270Z, description=Add test for LocalDate.}, " +
                 "{id=6, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=7, instant=2019-08-07T03:58:08.842270Z, description=Add test for LocalDate.}}]}}";
+                "{id=7, instant=2019-08-07T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1178,7 +1178,7 @@ public class GraphQLLocalDateTimeTest {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      NE:\"2019-08-06T10:58:08.842270Z\"" +
+                "      EQ:\"2019-08-06T10:58:08.842270Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
