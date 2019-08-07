@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.converter.model;
+package com.introproventures.graphql.jpa.query.localdatetime.model;
 
 import lombok.Getter;
 

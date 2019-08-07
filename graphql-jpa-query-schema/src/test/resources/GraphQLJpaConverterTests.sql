@@ -20,7 +20,4 @@ insert into TASK_VARIABLE (create_time, execution_id, last_updated_time, name, p
   (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'variable4', 0, '2', 'json', '{"value":{"key":"data"}}'),
   (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'variable5', 1, '4', 'double', '{"value":1.2345}'),
   (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'variable6', 1, '4', 'int', '{"value":12345}'),
-  (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'variable7', 1, '4', 'json', '{"value":[1,2,3,4,5]}');
-
-insert into LOCAL_DATE(id, LOCALDATETIME, OFFSETDATETIME, ZONEDDATETIME, INSTANT, LOCALDATE, description) values
-('1', '2019-08-06 10:58:08.389991200', '2019-08-06 10:58:07.915990500+07:00','2019-08-06 10:58:08.153991700+07:00[Asia/Bangkok]', '2019-08-06 03:58:08.842270400Z', '2019-08-06', 'Add test for LocalDate.');
+  (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'variable7', 1, '4', 'json', '{"value":[1,2,3,4,5]}');   
