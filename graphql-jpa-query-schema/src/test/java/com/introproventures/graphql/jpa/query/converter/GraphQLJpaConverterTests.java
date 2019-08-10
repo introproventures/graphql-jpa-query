@@ -786,7 +786,7 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }       
-    
+
 
     @Test
     public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
@@ -829,6 +829,6 @@ public class GraphQLJpaConverterTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }       
-    
-         
+
+
 }

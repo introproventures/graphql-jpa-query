@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -54,6 +55,10 @@ import graphql.language.NullValue;
  * <li> java.math.BigDecimal </li>
  * <li> java.lang.String </li>
  * <li> java.util.Date </li>
+ * <li> java.time.LocalDate </li>
+ * <li> java.time.LocalDateTime </>
+ * <li> java.time.Instant </li>
+ * <li> java.time.LocalTime </li>
  * <li> java.util.Calendar </li>
  * <li> java.sql.Date </li>
  * <li> java.sql.Time </li>
@@ -319,6 +324,271 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    protected Predicate getLocalDatePredicate(Path<? extends LocalDate> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof LocalDate) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (LocalDate) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (LocalDate) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (LocalDate) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (LocalDate) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<LocalDate> name = (Expression<LocalDate>) root;
+                    Expression<LocalDate> fromDate = cb.literal((LocalDate) values[0]);
+                    Expression<LocalDate> toDate = cb.literal((LocalDate) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Predicate getLocalDateTimePredicate(Path<? extends LocalDateTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof LocalDateTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (LocalDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (LocalDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (LocalDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (LocalDateTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<LocalDateTime> name = (Expression<LocalDateTime>) root;
+                    Expression<LocalDateTime> fromDateTime = cb.literal((LocalDateTime) values[0]);
+                    Expression<LocalDateTime> toDateTime = cb.literal((LocalDateTime) values[1]);
+                    Predicate between = cb.between(name, fromDateTime, toDateTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Predicate getInstantPredicate(Path<? extends Instant> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof Instant) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (Instant) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (Instant) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (Instant) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (Instant) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<Instant> name = (Expression<Instant>) root;
+                    Expression<Instant> fromDate = cb.literal((Instant) values[0]);
+                    Expression<Instant> toDate = cb.literal((Instant) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Predicate getLocalTimePredicate(Path<? extends LocalTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof LocalTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (LocalTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (LocalTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (LocalTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (LocalTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<LocalTime> name = (Expression<LocalTime>) root;
+                    Expression<LocalTime> fromTime = cb.literal((LocalTime) values[0]);
+                    Expression<LocalTime> toTime = cb.literal((LocalTime) values[1]);
+                    Predicate between = cb.between(name, fromTime, toTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Predicate getZonedDateTimePredicate(Path<? extends ZonedDateTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof ZonedDateTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (ZonedDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (ZonedDateTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<ZonedDateTime> name = (Expression<ZonedDateTime>) root;
+                    Expression<ZonedDateTime> fromDateTime = cb.literal((ZonedDateTime) values[0]);
+                    Expression<ZonedDateTime> toDateTime = cb.literal((ZonedDateTime) values[1]);
+                    Predicate between = cb.between(name, fromDateTime, toDateTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Predicate getOffsetDateTimePredicate(Path<? extends OffsetDateTime> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof OffsetDateTime) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (OffsetDateTime) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (OffsetDateTime) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<OffsetDateTime> name = (Expression<OffsetDateTime>) root;
+                    Expression<OffsetDateTime> fromDateTime = cb.literal((OffsetDateTime) values[0]);
+                    Expression<OffsetDateTime> toDateTime = cb.literal((OffsetDateTime) values[1]);
+                    Predicate between = cb.between(name, fromDateTime, toDateTime);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
+
     private Predicate getUuidPredicate(Path<UUID> field, PredicateFilter filter) {
         if (filter.getValue() == null) {
             return null;
@@ -407,6 +677,24 @@ class JpaPredicateBuilder {
         }
         else if (type.equals(java.util.Date.class)) {
             return getDatePredicate((Path<Date>) field, predicateFilter);
+        }
+        else if(type.equals(java.time.LocalDate.class)){
+            return getLocalDatePredicate((Path<LocalDate>) field, predicateFilter);
+        }
+        else if(type.equals(LocalDateTime.class)){
+            return getLocalDateTimePredicate((Path<LocalDateTime>) field, predicateFilter);
+        }
+        else if(type.equals(Instant.class)){
+            return getInstantPredicate((Path<Instant>) field, predicateFilter);
+        }
+        else if(type.equals(LocalTime.class)){
+            return getLocalTimePredicate((Path<LocalTime>) field, predicateFilter);
+        }
+        else if(type.equals(ZonedDateTime.class)){
+            return getZonedDateTimePredicate((Path<ZonedDateTime>) field, predicateFilter);
+        }
+        else if(type.equals(OffsetDateTime.class)){
+            return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, predicateFilter);
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);

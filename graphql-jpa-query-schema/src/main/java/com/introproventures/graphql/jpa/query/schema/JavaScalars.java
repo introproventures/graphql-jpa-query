@@ -21,11 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
@@ -111,7 +107,10 @@ public class JavaScalars {
         scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
         scalarsRegistry.put(java.sql.Date.class, new GraphQLScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
         scalarsRegistry.put(java.sql.Timestamp.class, new GraphQLScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
-        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));    
+        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
+        scalarsRegistry.put(Instant.class, new GraphQLScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
+        scalarsRegistry.put(ZonedDateTime.class, new GraphQLScalarType("ZonedDateTime", "ZonedDateTime type", new GraphQLZonedDateTimeCoercing()));
+        scalarsRegistry.put(OffsetDateTime.class, new GraphQLScalarType("OffsetDateTime", "OffsetDateTime type", new GraphQLOffsetDateTimeCoercing()));
     }
 
     public static GraphQLScalarType of(Class<?> key) {
@@ -141,6 +140,8 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToLocalDateTime((String) input);
             } else if (input instanceof LocalDateTime) {
+                return input;
+            }else if (input instanceof LocalDate) {
                 return input;
             } else if (input instanceof Long) {
                 return parseLongToLocalDateTime((Long) input);
@@ -325,6 +326,131 @@ public class JavaScalars {
             try {
                 return df.parse(input);
             } catch (ParseException e) {
+                log.warn("Failed to parse Date from input: " + input, e);
+                return null;
+            }
+        }
+    };
+
+    public static class GraphQLInstantCoercing implements Coercing<Object, Object> {
+
+        @Override
+        public Object serialize(Object input) {
+            if (input instanceof String) {
+                return parseStringToInstant((String) input);
+            } else if (input instanceof Instant) {
+                return input;
+            }
+            return null;
+        }
+
+        @Override
+        public Object parseValue(Object input) {
+            return serialize(input);
+        }
+
+        @Override
+        public Object parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                return parseStringToInstant(((StringValue) input).getValue());
+            }
+            return null;
+        }
+
+        private Instant parseStringToInstant(String input) {
+            try {
+                return Instant.parse(input);
+            } catch (DateTimeParseException e) {
+                log.warn("Failed to parse Date from input: " + input, e);
+                return null;
+            }
+        }
+    };
+
+    public static class GraphQLZonedDateTimeCoercing implements Coercing<Object, Object> {
+
+        @Override
+        public Object serialize(Object input) {
+            if (input instanceof String) {
+                return parseStringToZonedDateTime((String) input);
+            } else if (input instanceof ZonedDateTime) {
+                return input;
+            } else if (input instanceof LocalDate) {
+                return input;
+            } else if (input instanceof Long) {
+                return parseLongToZonedDateTime((Long) input);
+            } else if (input instanceof Integer) {
+                return parseLongToZonedDateTime((Integer) input);
+            }
+            return null;
+        }
+
+        @Override
+        public Object parseValue(Object input) {
+            return serialize(input);
+        }
+
+        @Override
+        public Object parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                return parseStringToZonedDateTime(((StringValue) input).getValue());
+            }
+            return null;
+        }
+
+        private ZonedDateTime parseLongToZonedDateTime(long input) {
+            return ZonedDateTime.ofInstant(Instant.ofEpochSecond(input), TimeZone.getDefault().toZoneId());
+        }
+
+        private ZonedDateTime parseStringToZonedDateTime(String input) {
+            try {
+                return ZonedDateTime.parse(input);
+            } catch (DateTimeParseException e) {
+                log.warn("Failed to parse Date from input: " + input, e);
+                return null;
+            }
+        }
+    };
+
+    public static class GraphQLOffsetDateTimeCoercing implements Coercing<Object, Object> {
+
+        @Override
+        public Object serialize(Object input) {
+            if (input instanceof String) {
+                return parseStringToOffsetDateTime((String) input);
+            } else if (input instanceof OffsetDateTime) {
+                return input;
+            } else if (input instanceof LocalDate) {
+                return input;
+            } else if (input instanceof Long) {
+                return parseLongToOffsetDateTime((Long) input);
+            } else if (input instanceof Integer) {
+                return parseLongToOffsetDateTime((Integer) input);
+            }
+            return null;
+        }
+
+        @Override
+        public Object parseValue(Object input) {
+            return serialize(input);
+        }
+
+        @Override
+        public Object parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                return parseStringToOffsetDateTime(((StringValue) input).getValue());
+            }
+            return null;
+        }
+
+        private OffsetDateTime parseLongToOffsetDateTime(long input) {
+            return OffsetDateTime.ofInstant(Instant.ofEpochSecond(input), TimeZone.getDefault().toZoneId());
+        }
+
+        private OffsetDateTime parseStringToOffsetDateTime(String input) {
+            try {
+                return OffsetDateTime.parse(input);
+            } catch (DateTimeParseException e) {
                 log.warn("Failed to parse Date from input: " + input, e);
                 return null;
             }
