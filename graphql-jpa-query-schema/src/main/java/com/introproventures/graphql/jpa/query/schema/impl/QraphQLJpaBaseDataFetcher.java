@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,10 +58,12 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
 import graphql.language.ArrayValue;
+import graphql.language.AstValueHelper;
 import graphql.language.BooleanValue;
 import graphql.language.Comment;
 import graphql.language.EnumValue;
@@ -79,6 +82,7 @@ import graphql.language.VariableReference;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentBuilder;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -378,12 +382,29 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     
 
     @SuppressWarnings( "unchecked" )
-    private <R extends Value> R getValue(Argument argument) {
-        return (R) argument.getValue();
+    private <R extends Value<?>> R getValue(Argument argument, DataFetchingEnvironment environment) {
+        Value<?> value = argument.getValue();
+        
+        if(VariableReference.class.isInstance(value)) {
+            String variableName = VariableReference.class.cast(value)
+                                                         .getName();
+            
+            Object variableValue = environment.getExecutionContext()
+                                              .getVariables()
+                                              .get(variableName);
+            
+            GraphQLArgument graphQLArgument = environment.getExecutionStepInfo()
+                                                .getFieldDefinition()
+                                                .getArgument(variableName);
+            
+            return (R) AstValueHelper.astFromValue(variableValue, graphQLArgument.getType());
+        }
+        
+        return (R) value;
     }
 
     protected Predicate getWherePredicate(CriteriaBuilder cb, Root<?> root,  From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-        ObjectValue whereValue = getValue(argument);
+        ObjectValue whereValue = getValue(argument, environment);
 
         if(whereValue.getChildren().isEmpty())
             return cb.conjunction();
@@ -404,7 +425,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> from,
         DataFetchingEnvironment environment, Argument argument) {
-        ObjectValue whereValue = getValue(argument);
+        ObjectValue whereValue = getValue(argument, environment);
 
         if (whereValue.getChildren().isEmpty())
             return cb.disjunction(); 
@@ -494,7 +515,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                   From<?, ?> path,
                                                   DataFetchingEnvironment environment,
                                                   Argument argument) {
-        ArrayValue whereValue = getValue(argument);
+        ArrayValue whereValue = getValue(argument, environment);
 
         if (whereValue.getValues().isEmpty())
             return cb.disjunction();
@@ -897,7 +918,29 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             }
         } else if (value instanceof ArrayValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
-            if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
+            
+            if (convertedValue != null && getJavaType(environment, argument).isEnum()) {
+                
+                Function<Object, Value> f = (obj) -> Value.class.isInstance(obj)
+                                                        ? Value.class.cast(obj)  
+                                                        : new EnumValue(obj.toString());
+                
+                // unwrap [[EnumValue{name='value'}]]
+                if(convertedValue instanceof Collection
+                    && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
+                    convertedValue = ((Collection) convertedValue).iterator().next();
+                }
+                
+                if(convertedValue instanceof Collection) {
+                    return ((Collection) convertedValue).stream()
+                        .map((it) -> convertValue(environment, argument, f.apply(it)))
+                        .collect(Collectors.toList());
+                 }
+                    // Return real typed resolved array value
+                return convertValue(environment, argument, f.apply(convertedValue));
+            }
+            else 
+              if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
                 // unwrap [[EnumValue{name='value'}]]
                 if(convertedValue instanceof Collection
                     && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
