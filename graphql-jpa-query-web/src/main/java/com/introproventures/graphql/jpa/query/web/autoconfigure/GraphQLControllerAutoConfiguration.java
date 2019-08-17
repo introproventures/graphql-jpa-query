@@ -12,7 +12,7 @@ import com.introproventures.graphql.jpa.query.web.GraphQLController;
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnClass(GraphQLExecutor.class)
-@ConditionalOnProperty(name= "spring.graphql.jpa.query.web.enabled", havingValue="true", matchIfMissing=true)
+@ConditionalOnProperty(prefix = "spring.graphql.jpa.query", name = {"enabled", "web.enabled"}, havingValue="true", matchIfMissing=true)
 public class GraphQLControllerAutoConfiguration {
     
     @Import(GraphQLController.class)

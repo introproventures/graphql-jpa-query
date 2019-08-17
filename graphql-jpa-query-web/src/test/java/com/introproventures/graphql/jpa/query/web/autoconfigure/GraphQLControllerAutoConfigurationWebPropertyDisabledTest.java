@@ -16,8 +16,9 @@ import com.introproventures.graphql.jpa.query.web.GraphQLController;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT,
-                properties = "spring.graphql.jpa.query.enabled=false")
-public class GraphQLControllerAutoConfigurationPropertyDisabledTest {
+                properties = {"spring.graphql.jpa.query.enabled=true",
+                              "spring.graphql.jpa.query.web.enabled=false"})
+public class GraphQLControllerAutoConfigurationWebPropertyDisabledTest {
     
     @MockBean
     private GraphQLExecutor graphQLExecutor;
