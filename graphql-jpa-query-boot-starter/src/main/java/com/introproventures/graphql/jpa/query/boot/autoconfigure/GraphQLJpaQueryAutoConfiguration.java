@@ -29,6 +29,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigu
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.GraphQL;
@@ -58,10 +59,18 @@ public class GraphQLJpaQueryAutoConfiguration {
     @Configuration
     public static class DefaultGraphQLJpaQueryConfiguration {
         
+        @Bean 
+        @ConditionalOnMissingBean(GraphQLJpaExecutorContextFactory.class)
+        public GraphQLJpaExecutorContextFactory graphQLExecutorContextFactory() {
+            return new GraphQLJpaExecutorContextFactory() { };
+        }
+
         @Bean
         @ConditionalOnMissingBean(GraphQLExecutor.class)
-        public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema) {
-            return new GraphQLJpaExecutor(graphQLSchema);
+        public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema,
+                                               GraphQLJpaExecutorContextFactory graphQLExecutorContextFactory) {
+            return new GraphQLJpaExecutor(graphQLSchema,
+                                          graphQLExecutorContextFactory);
         }
 
         @Bean
