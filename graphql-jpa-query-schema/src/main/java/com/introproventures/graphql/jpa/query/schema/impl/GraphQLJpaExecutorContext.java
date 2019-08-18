@@ -3,14 +3,12 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.util.Optional;
 
 import graphql.execution.instrumentation.Instrumentation;
-import graphql.execution.instrumentation.SimpleInstrumentation;
-import graphql.schema.visibility.DefaultGraphqlFieldVisibility;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 
 public interface GraphQLJpaExecutorContext {
     
-    default GraphqlFieldVisibility graphQLFieldVisibility() {
-        return new DefaultGraphqlFieldVisibility();
+    default Optional<GraphqlFieldVisibility> graphQLFieldVisibility() {
+        return Optional.empty();
     };
     
     default Optional<Object> getExecutionContext() {
@@ -21,8 +19,8 @@ public interface GraphQLJpaExecutorContext {
         return Optional.empty();
     }
     
-    default Instrumentation getInstrumentation() {
-        return new SimpleInstrumentation();
+    default Optional<Instrumentation> getInstrumentation() {
+        return Optional.empty();
     }
     
 }

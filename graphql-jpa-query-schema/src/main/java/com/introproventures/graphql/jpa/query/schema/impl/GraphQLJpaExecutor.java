@@ -83,12 +83,16 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
 
         GraphQLJpaExecutorContext executorContext = contextFactory.create();
 
-        GraphQLSchema schema = graphQLSchema.transform(builder -> 
-                                                       builder.fieldVisibility(executorContext.graphQLFieldVisibility()));
+        GraphQLSchema schema = executorContext.graphQLFieldVisibility()
+                                              .map(graphQLFieldVisibility -> 
+                                                   graphQLSchema.transform(builder -> 
+                                                                           builder.fieldVisibility(graphQLFieldVisibility)))
+                                              .orElse(graphQLSchema);
         
-        GraphQL graphQL = GraphQL.newGraphQL(schema)
-                                 .instrumentation(executorContext.getInstrumentation())
-                                 .build();
+        GraphQL.Builder graphQL = GraphQL.newGraphQL(schema);
+        
+        executorContext.getInstrumentation()
+                       .ifPresent(graphQL::instrumentation);
         
         ExecutionInput.Builder executionInput = ExecutionInput.newExecutionInput()
                                                               .query(query)
@@ -99,7 +103,8 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
         executorContext.getExecutionRoot()
                        .ifPresent(executionInput::root);
         
-        return graphQL.execute(executionInput);
+        return graphQL.build()
+                      .execute(executionInput);
     }
 
 }
