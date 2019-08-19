@@ -395,7 +395,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             
             GraphQLArgument graphQLArgument = environment.getExecutionStepInfo()
                                                 .getFieldDefinition()
-                                                .getArgument(variableName);
+                                                .getArgument(argument.getName());
             
             return (R) AstValueHelper.astFromValue(variableValue, graphQLArgument.getType());
         }
@@ -918,19 +918,19 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             }
         } else if (value instanceof ArrayValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
-            
+
             if (convertedValue != null && getJavaType(environment, argument).isEnum()) {
-                
+
                 Function<Object, Value> f = (obj) -> Value.class.isInstance(obj)
-                                                        ? Value.class.cast(obj)  
+                                                        ? Value.class.cast(obj)
                                                         : new EnumValue(obj.toString());
-                
+
                 // unwrap [[EnumValue{name='value'}]]
                 if(convertedValue instanceof Collection
                     && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
                     convertedValue = ((Collection) convertedValue).iterator().next();
                 }
-                
+
                 if(convertedValue instanceof Collection) {
                     return ((Collection) convertedValue).stream()
                         .map((it) -> convertValue(environment, argument, f.apply(it)))
@@ -939,7 +939,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     // Return real typed resolved array value
                 return convertValue(environment, argument, f.apply(convertedValue));
             }
-            else 
+            else
               if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
                 // unwrap [[EnumValue{name='value'}]]
                 if(convertedValue instanceof Collection
