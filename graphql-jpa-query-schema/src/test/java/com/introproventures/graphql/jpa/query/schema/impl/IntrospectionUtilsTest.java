@@ -4,14 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 
 public class IntrospectionUtilsTest {
 
 	// given
-    Class<CalculatedEntity> entity = CalculatedEntity.class;
+    private final Class<CalculatedEntity> entity = CalculatedEntity.class;
 
-    
     @Test(expected=RuntimeException.class)
     public void testIsTransientNonExisting() throws Exception {
         // then
@@ -42,10 +42,7 @@ public class IntrospectionUtilsTest {
 
     @Test
     public void testNotTransientFields() throws Exception {
-    	// given
-        Class<CalculatedEntity> entity = CalculatedEntity.class;
-        
-        // then
+    	// then
         assertThat(IntrospectionUtils.isTransient(entity, "id")).isFalse();
         assertThat(IntrospectionUtils.isTransient(entity, "info")).isFalse();
         assertThat(IntrospectionUtils.isTransient(entity, "title")).isFalse();
@@ -53,10 +50,25 @@ public class IntrospectionUtilsTest {
 
     @Test
     public void testByPassSetMethod() throws Exception {
-        // given
-        Class<CalculatedEntity> entity = CalculatedEntity.class;
-
         // then
         assertThat(IntrospectionUtils.isTransient(entity,"something")).isFalse();
     }
+
+	@Test
+	public void shouldIgnoreMethodsThatAreAnnotatedWithGraphQLIgnore() {
+		//when
+		boolean propertyIgnoredOnGetter = isIgnored("propertyIgnoredOnGetter");
+		boolean ignoredTransientValue = isIgnored("ignoredTransientValue");
+
+		//then
+		assertThat(propertyIgnoredOnGetter).isTrue();
+		assertThat(ignoredTransientValue).isTrue();
+	}
+
+	private boolean isIgnored(String property) {
+		return IntrospectionUtils.introspect(entity)
+				.getPropertyDescriptor(property)
+				.map(cachedPropertyDescriptor -> cachedPropertyDescriptor.isAnnotationPresent(GraphQLIgnore.class))
+				.orElse(false);
+	}
 }

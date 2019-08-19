@@ -76,21 +76,23 @@ public class IntrospectionUtils {
     		public String getName() {
     			return delegate.getName();
     		}
-    		
-    	    public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
-    	        boolean answer;
-    	        try {
-    	            answer = entity.getDeclaredField(delegate.getName())
-    	            					  .isAnnotationPresent(annotation);
 
-    	        } catch (NoSuchFieldException e) {
-    	        	if(delegate.getReadMethod() == null) return false;
-    				answer = delegate.getReadMethod()
-    								  .isAnnotationPresent(annotation);
-    	        }
-    	        return answer;
-    	    }
-    	
-    	}
+			public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
+				return isAnnotationPresentOnField(annotation) || isAnnotationPresentOnReadMethod(annotation);
+			}
+
+			private boolean isAnnotationPresentOnField(Class<? extends Annotation> annotation) {
+				try {
+					return entity.getDeclaredField(delegate.getName()).isAnnotationPresent(annotation);
+				} catch (NoSuchFieldException e) {
+					return false;
+				}
+			}
+
+			private boolean isAnnotationPresentOnReadMethod(Class<? extends Annotation> annotation) {
+				return delegate.getReadMethod() != null && delegate.getReadMethod().isAnnotationPresent(annotation);
+			}
+
+		}
     }
 }
