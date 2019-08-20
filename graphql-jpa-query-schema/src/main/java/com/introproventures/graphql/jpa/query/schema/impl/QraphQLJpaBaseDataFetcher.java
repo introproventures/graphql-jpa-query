@@ -917,44 +917,41 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 return argumentValue;
             }
         } else if (value instanceof ArrayValue) {
-            Object convertedValue =  environment.getArgument(argument.getName());
+            Collection arrayValue =  environment.getArgument(argument.getName());
 
-            if (convertedValue != null && getJavaType(environment, argument).isEnum()) {
-
-                Function<Object, Value> f = (obj) -> Value.class.isInstance(obj)
-                                                        ? Value.class.cast(obj)
-                                                        : new EnumValue(obj.toString());
-
-                // unwrap [[EnumValue{name='value'}]]
-                if(convertedValue instanceof Collection
-                    && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
-                    convertedValue = ((Collection) convertedValue).iterator().next();
+            if (arrayValue != null) {
+                // Let's unwrap array of array values
+                if(arrayValue.stream()
+                             .allMatch(it->it instanceof Collection)) {
+                    arrayValue = Collection.class.cast(arrayValue.iterator()
+                                                                 .next());
                 }
-
-                if(convertedValue instanceof Collection) {
-                    return ((Collection) convertedValue).stream()
-                        .map((it) -> convertValue(environment, argument, f.apply(it)))
-                        .collect(Collectors.toList());
-                 }
-                    // Return real typed resolved array value
-                return convertValue(environment, argument, f.apply(convertedValue));
-            }
-            else
-              if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
-                // unwrap [[EnumValue{name='value'}]]
-                if(convertedValue instanceof Collection
-                    && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
-                    convertedValue = ((Collection) convertedValue).iterator().next();
+                
+                // Let's convert enum types, i.e. array of strings or EnumValue into Java type
+                if(getJavaType(environment, argument).isEnum()) {
+                    Function<Object, Value> objectValue = (obj) -> Value.class.isInstance(obj)
+                                                                              ? Value.class.cast(obj)
+                                                                              : new EnumValue(obj.toString());
+                    // Return real typed resolved array values converted into Java enums 
+                    return arrayValue.stream()
+                                     .map((it) -> convertValue(environment, 
+                                                               argument, 
+                                                               objectValue.apply(it)))
+                                     .collect(Collectors.toList());
+                } 
+                // Let's try handle Ast Value types 
+                else if(arrayValue.stream()
+                                  .anyMatch(it->it instanceof Value)) {
+                        return arrayValue.stream()
+                                         .map(it -> convertValue(environment, 
+                                                                 argument, 
+                                                                 Value.class.cast(it)))
+                                         .collect(Collectors.toList());
+                } 
+                // Return real typed resolved array value, i.e. Date, UUID, Long
+                else {
+                    return arrayValue;
                 }
-
-                if(convertedValue instanceof Collection
-                    && ((Collection) convertedValue).stream().anyMatch(it->it instanceof Value)) {
-                    return ((Collection) convertedValue).stream()
-                        .map((it) -> convertValue(environment, argument, (Value) it))
-                        .collect(Collectors.toList());
-                }
-                // Return real typed resolved array value
-                return convertedValue;
             } else {
                 // Wrap converted values in ArrayList
                 return ((ArrayValue) value).getValues().stream()
