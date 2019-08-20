@@ -18,15 +18,10 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -1421,110 +1416,6 @@ public class GraphQLExecutorTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }
-    
-    @Test
-    public void queryBooksWithWhereVariableCriteriaExpression() {
-        //given
-        String query = "query($where: BooksCriteriaExpression) {" + 
-                "  Books (where: $where) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        Map<String, Object> variables = map(entry("where",
-                                                  map(entry("title",
-                                                            map(entry("LIKE",
-                                                                      "War"))))));
-        String expected = "{Books={select=["
-                + "{id=2, title=War and Peace, genre=NOVEL}"
-                + "]}}";
-
-        //when
-        Object result = executor.execute(query, variables).getData();
-
-        // then
-        assertThat(result.toString()).isEqualTo(expected);
-    }
-    
-    @Test
-    public void queryBooksWithWhereVariableCriteriaEnumListExpression() {
-        //given
-        String query = "query($where: BooksCriteriaExpression) {" + 
-                "  Books (where: $where) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        Map<String, Object> variables = map(entry("where",
-                                                  map(entry("genre",
-                                                            map(entry("IN",
-                                                                      Arrays.asList("NOVEL")))))));
-
-        String expected = "{Books={select=["
-                + "{id=2, title=War and Peace, genre=NOVEL}, "
-                + "{id=3, title=Anna Karenina, genre=NOVEL}"
-                + "]}}";
-
-        //when
-        Object result = executor.execute(query, variables).getData();
-
-        // then
-        assertThat(result.toString()).isEqualTo(expected);
-    }       
-    
-    @Test
-    public void queryBooksWithWhereVariableCriteriaEnumExpression() {
-        //given
-        String query = "query($where: BooksCriteriaExpression) {" + 
-                "  Books (where: $where) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        Map<String, Object> variables = map(entry("where",
-                                                  map(entry("genre",
-                                                            map(entry("IN",
-                                                                      "NOVEL"))))));
-        String expected = "{Books={select=["
-                + "{id=2, title=War and Peace, genre=NOVEL}, "
-                + "{id=3, title=Anna Karenina, genre=NOVEL}"
-                + "]}}";
-
-        //when
-        Object result = executor.execute(query, variables).getData();
-
-        // then
-        assertThat(result.toString()).isEqualTo(expected);
-    }
-    
-    
-    @SafeVarargs
-    static <K, V> Map<K, V> map(Entry<? extends K, ? extends V>... entries) {
-        if (entries.length == 0) { // implicit null check of entries array
-            return Collections.emptyMap();
-        } else if (entries.length == 1) {
-            return Collections.singletonMap(entries[0].getKey(), entries[0].getValue());
-        } else {
-            return Stream.of(entries)
-                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        }
-    }
-    
-    static <K, V> Entry<K, V> entry(K k, V v) {
-        return new AbstractMap.SimpleImmutableEntry<>(k, v);
     }
     
 }

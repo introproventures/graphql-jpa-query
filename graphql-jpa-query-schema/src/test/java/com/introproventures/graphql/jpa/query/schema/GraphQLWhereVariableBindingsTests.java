@@ -1,10 +1,10 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.BDDAssertions.then;
-
 import static com.introproventures.graphql.jpa.query.schema.model.book.Genre.NOVEL;
 import static com.introproventures.graphql.jpa.query.schema.model.book.Genre.PLAY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
 
 import java.io.IOException;
 import java.util.Map;
@@ -287,7 +287,106 @@ public class GraphQLWhereVariableBindingsTests {
 				.extracting("id", "title")
 				.containsOnly(tuple(5L, "The Cherry Orchard"));
 	}
+	
+    @Test
+    public void queryBooksWithWhereVariableCriteriaEnumListExpression() throws IOException {
+        //given
+        String query = "query($where: BooksCriteriaExpression) {" + 
+                "  Books (where: $where) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "    }" + 
+                "  }" + 
+                "}";
+        
+        String variables = "{"
+                + "  \"where\": {"
+                + "      \"genre\": {"
+                + "          \"IN\": [\"NOVEL\"]"
+                + "       }"
+                + "   } "
+                + "}";
+        
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}}";
 
+        //when
+        Object result = executor.execute(query, getVariablesMap(variables)).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
+    @Test
+    public void queryBooksWithWhereVariableCriteriaEnumExpression() throws IOException {
+        //given
+        String query = "query($where: BooksCriteriaExpression) {" + 
+                "  Books (where: $where) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String variables = "{"
+                + "  \"where\": {"
+                + "      \"genre\": {"
+                + "          \"IN\": \"NOVEL\""
+                + "       }"
+                + "   } "
+                + "}";
+        
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query, getVariablesMap(variables)).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryBooksWithWhereVariableCriteriaEQEnumExpression() throws IOException {
+        //given
+        String query = "query($where: BooksCriteriaExpression) {" + 
+                "  Books (where: $where) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String variables = "{"
+                + "  \"where\": {"
+                + "      \"genre\": {"
+                + "          \"EQ\": \"NOVEL\""
+                + "       }"
+                + "   } "
+                + "}";
+        
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, genre=NOVEL}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query, getVariablesMap(variables)).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> getVariablesMap(String variables) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
