@@ -1,5 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -22,8 +24,16 @@ public class IntrospectionUtils {
     }
 
     public static boolean isTransient(Class<?> entity, String propertyName) {
+        return isAnnotationPresent(entity, propertyName, Transient.class);
+    }
+
+    public static boolean isIgnored(Class<?> entity, String propertyName) {
+        return isAnnotationPresent(entity, propertyName, GraphQLIgnore.class);
+    }
+
+    private static boolean isAnnotationPresent(Class<?> entity, String propertyName, Class<? extends Annotation> annotation){
         return introspect(entity).getPropertyDescriptor(propertyName)
-                .map(it -> it.isAnnotationPresent(Transient.class))
+                .map(it -> it.isAnnotationPresent(annotation))
                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
 
