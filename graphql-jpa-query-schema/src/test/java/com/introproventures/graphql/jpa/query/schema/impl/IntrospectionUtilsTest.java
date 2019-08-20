@@ -54,21 +54,14 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isTransient(entity,"something")).isFalse();
     }
 
-	@Test
-	public void shouldIgnoreMethodsThatAreAnnotatedWithGraphQLIgnore() {
-		//when
-		boolean propertyIgnoredOnGetter = isIgnored("propertyIgnoredOnGetter");
-		boolean ignoredTransientValue = isIgnored("ignoredTransientValue");
+    @Test
+    public void shouldIgnoreMethodsThatAreAnnotatedWithGraphQLIgnore() {
+        //when
+        boolean propertyIgnoredOnGetter = IntrospectionUtils.isIgnored(entity, "propertyIgnoredOnGetter");
+        boolean ignoredTransientValue = IntrospectionUtils.isIgnored(entity, "ignoredTransientValue");
 
-		//then
-		assertThat(propertyIgnoredOnGetter).isTrue();
-		assertThat(ignoredTransientValue).isTrue();
-	}
-
-	private boolean isIgnored(String property) {
-		return IntrospectionUtils.introspect(entity)
-				.getPropertyDescriptor(property)
-				.map(cachedPropertyDescriptor -> cachedPropertyDescriptor.isAnnotationPresent(GraphQLIgnore.class))
-				.orElse(false);
-	}
+        //then
+        assertThat(propertyIgnoredOnGetter).isTrue();
+        assertThat(ignoredTransientValue).isTrue();
+    }
 }
