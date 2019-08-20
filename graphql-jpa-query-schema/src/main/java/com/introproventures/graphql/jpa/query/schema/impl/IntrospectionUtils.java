@@ -34,7 +34,7 @@ public class IntrospectionUtils {
     private static boolean isAnnotationPresent(Class<?> entity, String propertyName, Class<? extends Annotation> annotation){
         return introspect(entity).getPropertyDescriptor(propertyName)
                 .map(it -> it.isAnnotationPresent(annotation))
-                .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+                .orElse(false);
     }
 
     public static class CachedIntrospectionResult {

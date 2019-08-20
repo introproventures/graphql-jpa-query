@@ -12,7 +12,7 @@ public class IntrospectionUtilsTest {
 	// given
     private final Class<CalculatedEntity> entity = CalculatedEntity.class;
 
-    @Test(expected=RuntimeException.class)
+    @Test
     public void testIsTransientNonExisting() throws Exception {
         // then
         assertThat(IntrospectionUtils.isTransient(entity, "notFound")).isFalse();
