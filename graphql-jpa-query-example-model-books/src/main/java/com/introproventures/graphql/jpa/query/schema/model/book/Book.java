@@ -18,13 +18,9 @@ package com.introproventures.graphql.jpa.query.schema.model.book;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import lombok.Data;
@@ -49,5 +45,11 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
-    Date publicationDate;	
+    Date publicationDate;
+
+    @Transient
+	@GraphQLIgnore
+    public String getAuthorName(){
+    	return author.getName();
+	}
 }

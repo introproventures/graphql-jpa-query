@@ -1,12 +1,13 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.util.Lists.list;
 
 import javax.persistence.EntityManager;
 
+import graphql.ExecutionResult;
+import graphql.validation.ValidationErrorType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,6 @@ import org.springframework.util.Assert;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
-import graphql.ErrorType;
-import graphql.GraphQLError;
-import graphql.validation.ValidationError;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
@@ -69,17 +66,37 @@ public class CalculatedEntityTests {
 
     @Test
     public void testIgnoreFields() {
-        String query = "query GraphQLCalcFields { CalculatedEntities { select {id title fieldMem fieldFun logic customLogic hideField hideFieldFunction } } }";
+        String query = "" +
+                "query GraphQLCalcFields { " +
+                "   CalculatedEntities { " +
+                "       select {" +
+                "           id" +
+                "           title" +
+                "           fieldMem" +
+                "           fieldFun" +
+                "           logic" +
+                "           customLogic" +
+                "           hideField" +
+                "           hideFieldFunction" +
+                "           propertyIgnoredOnGetter" +
+                "           ignoredTransientValue" +
+                "       } " +
+                "   } " +
+                "}";
 
         //when
-        List<GraphQLError> result = executor.execute(query).getErrors();
+        ExecutionResult result = executor.execute(query);
 
         //then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
-        			             .extracting(ValidationError.class::cast)
-        			             .extracting("errorType", "queryPath")
-      				             .contains(ErrorType.ValidationError, Arrays.asList("CalculatedEntities", "select", "hideFieldFunction"));
+        assertThat(result.getErrors())
+                .isNotEmpty()
+                .extracting("validationErrorType", "queryPath")
+                .containsOnly(
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideField")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideFieldFunction")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "propertyIgnoredOnGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "ignoredTransientValue"))
+                );
     }
 
 }

@@ -17,6 +17,8 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.util.Lists.list;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +27,13 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import graphql.ErrorType;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
+import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1417,5 +1426,27 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
+    @Test
+    public void queryForTransientMethodAnnotatedWithGraphQLIgnoreShouldFail() {
+        //given
+        String query = ""
+                + "query { "
+                + "    Books {"
+                + "        select {"
+                + "            authorName"
+                + "        }"
+                + "    }"
+                + "}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors())
+                .isNotEmpty()
+                .extracting("validationErrorType", "queryPath")
+                .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
+    }
+
 }

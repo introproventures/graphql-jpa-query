@@ -661,22 +661,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
-    	return entityType.getAttributes()
-    					 .stream()
-				         .filter(this::isNotIgnored)
-				         .map(it -> getObjectField(it, entityType))
-				         .collect(Collectors.toList());    	
+        return entityType
+                .getAttributes().stream()
+                .filter(this::isNotIgnored)
+                .filter(attribute -> !IntrospectionUtils.isIgnored(entityType.getJavaType(), attribute.getName()))
+                .map(it -> getObjectField(it, entityType))
+                .collect(Collectors.toList());
     }
 
-    
     private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
         return IntrospectionUtils.introspect(clazz)
-			 				     .getPropertyDescriptors().stream()
-			        			 .filter(it -> it.isAnnotationPresent(Transient.class))
-			        			 .map(CachedPropertyDescriptor::getDelegate)
-			        			 .filter(it -> isNotIgnored(it.getPropertyType()))
-			        			 .map(this::getJavaFieldDefinition)
-			        			 .collect(Collectors.toList());
+                .getPropertyDescriptors().stream()
+                .filter(it -> it.isAnnotationPresent(Transient.class))
+                .filter(it -> !it.isAnnotationPresent(GraphQLIgnore.class))
+                .map(CachedPropertyDescriptor::getDelegate)
+                .map(this::getJavaFieldDefinition)
+                .collect(Collectors.toList());
     }
     
     @SuppressWarnings( { "rawtypes" } )
@@ -978,12 +978,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private boolean isNotIgnored(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            GraphQLIgnore schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnore.class);
-            return schemaDocumentation == null;
-        }
-
-        return false;
+        return annotatedElement != null && annotatedElement.getAnnotation(GraphQLIgnore.class) == null;
     }
 
     protected boolean isNotIgnoredFilter(Attribute<?,?> attribute) {
