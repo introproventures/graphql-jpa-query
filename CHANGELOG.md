@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.28
+## 0.3.29-SNAPSHOT
 * feat: support transient field modifier with class hierarchy introspection (#168) [81a6a19](https://github.com/introproventures/graphql-jpa-query/commit/81a6a198a1eecafb6056ed8ea9752482d26ba589)
 * feat: add support for variable where criteria expressions (#162) [5385a41](https://github.com/introproventures/graphql-jpa-query/commit/5385a4147cba654b4f57f3c6fc7cb4d40009ca3a)
 * Add METHOD to the @GraphQLIgnore annotation target (#165) [8028d12](https://github.com/introproventures/graphql-jpa-query/commit/8028d129f70f497e38463ad18fe2900072129877)
