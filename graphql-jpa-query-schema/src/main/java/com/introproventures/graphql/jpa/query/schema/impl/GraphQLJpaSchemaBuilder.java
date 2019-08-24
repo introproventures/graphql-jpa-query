@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 
 import javax.persistence.Convert;
 import javax.persistence.EntityManager;
-import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -43,6 +42,9 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
@@ -53,6 +55,7 @@ import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.CachedIntrospectionResult.CachedPropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.Assert;
 import graphql.Scalars;
 import graphql.schema.Coercing;
@@ -71,8 +74,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -672,7 +673,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
         return IntrospectionUtils.introspect(clazz)
                 .getPropertyDescriptors().stream()
-                .filter(it -> it.isAnnotationPresent(Transient.class))
+                .filter(it -> IntrospectionUtils.isTransient(clazz, it.getName()))
                 .filter(it -> !it.isAnnotationPresent(GraphQLIgnore.class))
                 .map(CachedPropertyDescriptor::getDelegate)
                 .map(this::getJavaFieldDefinition)

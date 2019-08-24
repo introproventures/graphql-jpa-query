@@ -6,8 +6,6 @@ import static org.assertj.core.util.Lists.list;
 
 import javax.persistence.EntityManager;
 
-import graphql.ExecutionResult;
-import graphql.validation.ValidationErrorType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,9 @@ import org.springframework.util.Assert;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
+import graphql.ExecutionResult;
+import graphql.validation.ValidationErrorType;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
@@ -80,6 +81,17 @@ public class CalculatedEntityTests {
                 "           hideFieldFunction" +
                 "           propertyIgnoredOnGetter" +
                 "           ignoredTransientValue" +
+                "           transientModifier" +
+                "           transientModifierGraphQLIgnore" +
+                "           parentField" +
+                "           parentTransientModifier" +
+                "           parentTransient" +
+                "           parentTransientGetter" +
+                "           parentGraphQLIngore" +
+                "           parentGraphQLIgnoreGetter" +
+                "           parentTransientGraphQLIgnore" +
+                "           parentTransientModifierGraphQLIgnore" +
+                "           parentTransientGraphQLIgnoreGetter" +
                 "       } " +
                 "   } " +
                 "}";
@@ -95,7 +107,13 @@ public class CalculatedEntityTests {
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideField")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideFieldFunction")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "propertyIgnoredOnGetter")),
-                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "ignoredTransientValue"))
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "ignoredTransientValue")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentGraphQLIngore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentGraphQLIgnoreGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnoreGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore"))
                 );
     }
 
