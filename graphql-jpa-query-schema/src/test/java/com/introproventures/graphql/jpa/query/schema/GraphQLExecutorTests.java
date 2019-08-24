@@ -45,6 +45,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
+import graphql.ErrorType;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
+import graphql.validation.ValidationError;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -1440,4 +1448,5 @@ public class GraphQLExecutorTests {
                 .extracting("validationErrorType", "queryPath")
                 .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
     }
+
 }
