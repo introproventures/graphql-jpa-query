@@ -30,6 +30,7 @@ public class CalculatedEntity {
     @GraphQLIgnore
     String hideField = "hideField";
 
+    String propertyIgnoredOnGetter;
    
     @Transient
     @GraphQLDescription("i desc function")
@@ -47,4 +48,15 @@ public class CalculatedEntity {
     }
 
     public void setSomething(int a){}
+
+    @GraphQLIgnore
+    public String getPropertyIgnoredOnGetter() {
+        return propertyIgnoredOnGetter;
+    }
+
+    @Transient
+    @GraphQLIgnore
+    public String getIgnoredTransientValue(){
+        return "IgnoredTransientValue";
+    }
 }
