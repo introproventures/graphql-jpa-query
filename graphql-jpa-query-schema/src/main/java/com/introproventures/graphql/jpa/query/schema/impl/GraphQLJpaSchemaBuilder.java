@@ -879,7 +879,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return IntrospectionUtils.introspect(attribute.getDeclaringType()
                                                       .getJavaType())
                 .getPropertyDescriptor(attribute)
-                .flatMap(it -> it.getSchemaDescription())
+                .flatMap(AttributePropertyDescriptor::getSchemaDescription)
                 .orElse(null);
     }
     
