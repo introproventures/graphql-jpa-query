@@ -878,9 +878,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private String getSchemaDescription(Attribute<?,?> attribute) {
         return IntrospectionUtils.introspect(attribute.getDeclaringType()
                                                       .getJavaType())
-                .getPropertyDescriptor(attribute)
-                .flatMap(AttributePropertyDescriptor::getSchemaDescription)
-                .orElse(null);
+                                 .getPropertyDescriptor(attribute)
+                                 .flatMap(AttributePropertyDescriptor::getSchemaDescription)
+                                 .orElse(null);
     }
     
     private String getSchemaDescription(EntityType<?> entityType) {
