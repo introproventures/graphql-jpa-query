@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.EntityPropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 
@@ -129,7 +129,7 @@ public class IntrospectionUtilsTest {
         
         // then
         assertThat(result.getPropertyDescriptors())
-                .extracting(EntityPropertyDescriptor::getSchemaDescription)
+                .extracting(AttributePropertyDescriptor::getSchemaDescription)
                 .filteredOn(Optional::isPresent)
                 .extracting(Optional::get)
                 .containsOnly("title",
@@ -147,7 +147,7 @@ public class IntrospectionUtilsTest {
         when(attribute.getName()).thenReturn("title");
         
         // when
-        Optional<EntityPropertyDescriptor> result = IntrospectionUtils.introspect(CalculatedEntity.class)
+        Optional<AttributePropertyDescriptor> result = IntrospectionUtils.introspect(CalculatedEntity.class)
                                                              .getPropertyDescriptor(attribute);
         // then
         assertThat(result.isPresent()).isTrue();
@@ -160,6 +160,7 @@ public class IntrospectionUtilsTest {
         
         // then
         assertThat(result.getSchemaDescription()).contains("ParentCalculatedEntity description");
+        assertThat(result.hasSchemaDescription()).isTrue();
     }    
     
 }

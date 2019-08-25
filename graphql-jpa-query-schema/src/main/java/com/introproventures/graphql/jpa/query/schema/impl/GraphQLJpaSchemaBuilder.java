@@ -47,7 +47,7 @@ import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.EntityPropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 
 import graphql.Assert;
@@ -667,14 +667,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
         return IntrospectionUtils.introspect(clazz)
                 .getPropertyDescriptors().stream()
-                .filter(EntityPropertyDescriptor::isTransient)
-                .filter(EntityPropertyDescriptor::isNotIgnored)
+                .filter(AttributePropertyDescriptor::isTransient)
+                .filter(AttributePropertyDescriptor::isNotIgnored)
                 .map(this::getJavaFieldDefinition)
                 .collect(Collectors.toList());
     }
     
     @SuppressWarnings( { "rawtypes" } )
-    private GraphQLFieldDefinition getJavaFieldDefinition(EntityPropertyDescriptor propertyDescriptor) {
+    private GraphQLFieldDefinition getJavaFieldDefinition(AttributePropertyDescriptor propertyDescriptor) {
     	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
         

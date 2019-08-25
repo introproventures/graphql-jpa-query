@@ -5,9 +5,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -32,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.EntityPropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 
 public class IntrospectionUtils {
     private static final Logger log = LoggerFactory.getLogger(IntrospectionUtils.class);
@@ -53,7 +51,7 @@ public class IntrospectionUtils {
      */
     public static boolean isTransient(Class<?> entity, String propertyName) {
         return introspect(entity).getPropertyDescriptor(propertyName)
-                                 .map(EntityPropertyDescriptor::isTransient)
+                                 .map(AttributePropertyDescriptor::isTransient)
                                  .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
     
@@ -79,7 +77,7 @@ public class IntrospectionUtils {
      */
     public static boolean isIgnored(Class<?> entity, String propertyName) {
         return introspect(entity).getPropertyDescriptor(propertyName)
-                                 .map(EntityPropertyDescriptor::isIgnored)
+                                 .map(AttributePropertyDescriptor::isIgnored)
                                  .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
     
@@ -97,7 +95,7 @@ public class IntrospectionUtils {
 
     public static class EntityIntrospectionResult {
 
-        private final Map<String, EntityPropertyDescriptor> descriptors;
+        private final Map<String, AttributePropertyDescriptor> descriptors;
         private final Class<?> entity;
         private final BeanInfo beanInfo;
         private final Map<String, Field> fields;
@@ -112,15 +110,15 @@ public class IntrospectionUtils {
 
             this.entity = entity;
             this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
-                    .map(EntityPropertyDescriptor::new)
-                    .collect(Collectors.toMap(EntityPropertyDescriptor::getName, it -> it));
+                    .map(AttributePropertyDescriptor::new)
+                    .collect(Collectors.toMap(AttributePropertyDescriptor::getName, it -> it));
             
             this.fields = getClasses().flatMap(k -> Arrays.stream(k.getDeclaredFields()))
                                       .filter(f -> descriptors.containsKey(f.getName()))
                                       .collect(Collectors.toMap(Field::getName, it -> it));
         }
         
-        public Collection<EntityPropertyDescriptor> getPropertyDescriptors() {
+        public Collection<AttributePropertyDescriptor> getPropertyDescriptors() {
             return descriptors.values();
         }
 
@@ -128,11 +126,11 @@ public class IntrospectionUtils {
             return fields.values();
         }
         
-        public Optional<EntityPropertyDescriptor> getPropertyDescriptor(String fieldName) {
+        public Optional<AttributePropertyDescriptor> getPropertyDescriptor(String fieldName) {
             return Optional.ofNullable(descriptors.getOrDefault(fieldName, null));
         }
         
-        public Optional<EntityPropertyDescriptor> getPropertyDescriptor(Attribute<?,?> attribute) {
+        public Optional<AttributePropertyDescriptor> getPropertyDescriptor(Attribute<?,?> attribute) {
             return getPropertyDescriptor(attribute.getName());
         }
 
@@ -160,15 +158,19 @@ public class IntrospectionUtils {
                                .findFirst();                        
         }
         
+        public boolean hasSchemaDescription() {
+            return getSchemaDescription().isPresent();                  
+        }
+        
         public Stream<Class<?>> getClasses() {
             return iterate(entity, k -> Optional.ofNullable(k.getSuperclass()));
         }
         
-        public class EntityPropertyDescriptor {
+        public class AttributePropertyDescriptor {
 
             private final PropertyDescriptor delegate;
 
-            public EntityPropertyDescriptor(PropertyDescriptor delegate) {
+            public AttributePropertyDescriptor(PropertyDescriptor delegate) {
                 this.delegate = delegate;
             }
 
@@ -198,12 +200,12 @@ public class IntrospectionUtils {
             
             public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationClass) {
                 return getReadMethod().map(m -> m.getAnnotation(annotationClass))
-                                      .map(Optional::of)
+                                      .map(Optional::of) // Java 8 support
                                       .orElseGet(() -> getField().map(f -> f.getAnnotation(annotationClass)));
             }
             
             public Optional<String> getSchemaDescription() {
-                return getAnnotation(GraphQLDescription.class).map(it -> it.value());
+                return getAnnotation(GraphQLDescription.class).map(GraphQLDescription::value);
             }
             
             public boolean hasSchemaDescription() {
@@ -272,7 +274,7 @@ public class IntrospectionUtils {
                     return false;
                 if (getClass() != obj.getClass())
                     return false;
-                EntityPropertyDescriptor other = (EntityPropertyDescriptor) obj;
+                AttributePropertyDescriptor other = (AttributePropertyDescriptor) obj;
                 if (!getEnclosingInstance().equals(other.getEnclosingInstance()))
                     return false;
                 return Objects.equals(delegate, other.delegate);
@@ -301,85 +303,6 @@ public class IntrospectionUtils {
             return "EntityIntrospectionResult [beanInfo=" + beanInfo + "]";
         }
         
-    }
-    
-    private String getSchemaDescription(Member member) {
-        if (member instanceof AnnotatedElement) {
-            String desc = getSchemaDescription((AnnotatedElement) member);
-            if (desc != null) {
-                return (desc);
-            }
-        }
-
-        //The given Member has no @GraphQLDescription set.
-        //If the Member is a Method it might be a getter/setter, see if the property it represents
-        //is annotated with @GraphQLDescription
-        //Alternatively if the Member is a Field its getter might be annotated, see if its getter
-        //is annotated with @GraphQLDescription
-        if (member instanceof Method) {
-            Field fieldMember = getFieldByAccessor((Method) member);
-            if (fieldMember != null) {
-                return (getSchemaDescription((AnnotatedElement) fieldMember));
-            }
-        } else if (member instanceof Field) {
-            Method fieldGetter = getGetterOfField((Field) member);
-            if (fieldGetter != null) {
-                return (getSchemaDescription((AnnotatedElement) fieldGetter));
-            }
-        }
-
-        return null;
-    }
-
-    private Method getGetterOfField(Field field) {
-        try {
-            Class<?> clazz = field.getDeclaringClass();
-            BeanInfo info = Introspector.getBeanInfo(clazz);
-            PropertyDescriptor[] props = info.getPropertyDescriptors();
-            for (PropertyDescriptor pd : props) {
-                if (pd.getName().equals(field.getName())) {
-                    return (pd.getReadMethod());
-                }
-            }
-        } catch (IntrospectionException e) {
-            e.printStackTrace();
-        }
-
-        return (null);
-    }
-
-    //from https://stackoverflow.com/questions/13192734/getting-a-property-field-name-using-getter-method-of-a-pojo-java-bean/13514566
-    private static Field getFieldByAccessor(Method method) {
-        try {
-            Class<?> clazz = method.getDeclaringClass();
-            BeanInfo info = Introspector.getBeanInfo(clazz);
-            PropertyDescriptor[] props = info.getPropertyDescriptors();
-            for (PropertyDescriptor pd : props) {
-                if (method.equals(pd.getWriteMethod()) || method.equals(pd.getReadMethod())) {
-                    String fieldName = pd.getName();
-                    try {
-                        return (clazz.getDeclaredField(fieldName));
-                    } catch (Throwable t) {
-                        log.error("class '" + clazz.getName() + "' contains method '" + method.getName() + "' which is an accessor for a Field named '" + fieldName + "', error getting the field:",
-                                  t);
-                        return (null);
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            log.error("error finding Field for accessor with name '" + method.getName() + "'", t);
-        }
-
-        return null;
-    }
-
-    private String getSchemaDescription(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            GraphQLDescription schemaDocumentation = annotatedElement.getAnnotation(GraphQLDescription.class);
-            return schemaDocumentation != null ? schemaDocumentation.value() : null;
-        }
-
-        return null;
     }
     
     /**
