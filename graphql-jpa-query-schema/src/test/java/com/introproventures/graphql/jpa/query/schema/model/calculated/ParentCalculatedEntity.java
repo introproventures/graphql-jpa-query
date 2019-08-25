@@ -3,16 +3,19 @@ package com.introproventures.graphql.jpa.query.schema.model.calculated;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 
 import lombok.Data;
 
+@GraphQLDescription("ParentCalculatedEntity description")
 @MappedSuperclass
 @Data
 public class ParentCalculatedEntity {
 
     private Integer parentField; // persistent property
     
+    @GraphQLDescription("parentTransientModifier")
     private transient String parentTransientModifier; // transient property
 
     @GraphQLIgnore
@@ -35,6 +38,7 @@ public class ParentCalculatedEntity {
     private String parentTransientGraphQLIgnoreGetter; 
     
     @Transient // transient getter property
+    @GraphQLDescription("getParentTransientGetter")
     public String getParentTransientGetter() {
         return parentTransientGetter;
     }
