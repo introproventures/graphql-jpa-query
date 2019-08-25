@@ -6,6 +6,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,34 +33,38 @@ public class IntrospectionUtils {
         return map.computeIfAbsent(entity, CachedIntrospectionResult::new);
     }
 
+    /**
+     * Test if Java bean property is transient according to JPA specification 
+     * 
+     * @param entity a Java entity class to introspect
+     * @param propertyName the name of the property
+     * @return true if property has Transient annotation or transient field modifier
+     * @throws RuntimeException if property does not exists
+     */
     public static boolean isTransient(Class<?> entity, String propertyName) {
-        if(!introspect(entity).hasPropertyDescriptor(propertyName)) {
-            throw new RuntimeException(new NoSuchFieldException(propertyName));
-        }
-        
-        return Stream.of(isAnnotationPresent(entity, propertyName, Transient.class),
-                         isModifierPresent(entity, propertyName, Modifier::isTransient))
-                     .anyMatch(it -> it.isPresent() && it.get() == true);
-    }
-    
-    public static boolean isIgnored(Class<?> entity, String propertyName) {
-        return isAnnotationPresent(entity, propertyName, GraphQLIgnore.class)
-                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
-    }
-
-    private static Optional<Boolean> isAnnotationPresent(Class<?> entity, String propertyName, Class<? extends Annotation> annotation){
         return introspect(entity).getPropertyDescriptor(propertyName)
-                                 .map(it -> it.isAnnotationPresent(annotation));
+                                 .map(it -> it.isAnnotationPresent(Transient.class)  
+                                                 || it.hasModifier(Modifier::isTransient))
+                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
 
-    private static Optional<Boolean> isModifierPresent(Class<?> entity, String propertyName, Function<Integer, Boolean> function){
-        return introspect(entity).getField(propertyName)
-                                 .map(it -> function.apply(it.getModifiers()));
+    /**
+     * Test if entity property is annotated with GraphQLIgnore  
+     * 
+     * @param entity a Java entity class to introspect
+     * @param propertyName the name of the property
+     * @return true if property has GraphQLIgnore
+     * @throws RuntimeException if property does not exists
+     */
+    public static boolean isIgnored(Class<?> entity, String propertyName) {
+        return introspect(entity).getPropertyDescriptor(propertyName)
+                                 .map(it -> it.isAnnotationPresent(GraphQLIgnore.class))
+                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
-    
+
     public static class CachedIntrospectionResult {
 
-        private final Map<String, CachedPropertyDescriptor> map;
+        private final Map<String, CachedPropertyDescriptor> descriptors;
         private final Class<?> entity;
         private final BeanInfo beanInfo;
         private final Map<String, Field> fields;
@@ -73,26 +78,30 @@ public class IntrospectionUtils {
             }
 
             this.entity = entity;
-            this.map = Stream.of(beanInfo.getPropertyDescriptors())
+            this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
                     .map(CachedPropertyDescriptor::new)
                     .collect(Collectors.toMap(CachedPropertyDescriptor::getName, it -> it));
             
             this.fields = iterate((Class) entity, k -> Optional.ofNullable(k.getSuperclass()))
                     .flatMap(k -> Arrays.stream(k.getDeclaredFields()))
-                    .filter(f -> map.containsKey(f.getName()))
+                    .filter(f -> descriptors.containsKey(f.getName()))
                     .collect(Collectors.toMap(Field::getName, it -> it));
         }
 
         public Collection<CachedPropertyDescriptor> getPropertyDescriptors() {
-            return map.values();
+            return descriptors.values();
         }
 
+        public Collection<Field> getFields() {
+            return fields.values();
+        }
+        
         public Optional<CachedPropertyDescriptor> getPropertyDescriptor(String fieldName) {
-            return Optional.ofNullable(map.getOrDefault(fieldName, null));
+            return Optional.ofNullable(descriptors.getOrDefault(fieldName, null));
         }
 
         public boolean hasPropertyDescriptor(String fieldName) {
-            return map.containsKey(fieldName);
+            return descriptors.containsKey(fieldName);
         }
         
         public Optional<Field> getField(String fieldName) {
@@ -125,19 +134,32 @@ public class IntrospectionUtils {
             public String getName() {
                 return delegate.getName();
             }
+            
+            public Optional<Field> getField() {
+                return Optional.ofNullable(fields.get(getName()));
+            }
+
+            public Optional<Method> getReadMethod() {
+                return Optional.ofNullable(delegate.getReadMethod());
+            }
+            
+            public boolean hasModifier(Function<Integer, Boolean> test) {
+                return getField().map(it -> test.apply(it.getModifiers()))
+                                 .orElse(false);
+            }
 
             public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
                 return isAnnotationPresentOnField(annotation) || isAnnotationPresentOnReadMethod(annotation);
             }
 
             private boolean isAnnotationPresentOnField(Class<? extends Annotation> annotation) {
-                return Optional.ofNullable(fields.get(delegate.getName()))
-                               .map(f -> f.isAnnotationPresent(annotation))
-                               .orElse(false);
+                return getField().map(f -> f.isAnnotationPresent(annotation))
+                                 .orElse(false);
             }
 
             private boolean isAnnotationPresentOnReadMethod(Class<? extends Annotation> annotation) {
-                return delegate.getReadMethod() != null && delegate.getReadMethod().isAnnotationPresent(annotation);
+                return getReadMethod().map(m -> m.isAnnotationPresent(annotation))
+                                      .orElse(false);
             }
 
         }
