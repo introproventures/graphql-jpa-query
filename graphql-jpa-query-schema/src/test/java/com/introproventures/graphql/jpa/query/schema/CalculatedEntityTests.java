@@ -1,11 +1,16 @@
 package com.introproventures.graphql.jpa.query.schema;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
 
 import javax.persistence.EntityManager;
 
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchema;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +50,9 @@ public class CalculatedEntityTests {
 
     @Autowired
     private GraphQLExecutor executor;
+
+    @Autowired
+    private GraphQLSchemaBuilder schemaBuilder;
 
     @Test
     public void contextLoads() {
@@ -115,6 +123,35 @@ public class CalculatedEntityTests {
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnoreGetter")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore"))
                 );
+    }
+
+    @Test
+    public void shouldInheritMethodDescriptionFromBaseClass() {
+        //when
+        GraphQLSchema schema = schemaBuilder.build();
+
+        //then
+        Optional<GraphQLFieldDefinition> field = getFieldForType("parentTransientGetter",
+                                                                 "CalculatedEntity",
+                                                                 schema);
+        then(field)
+                .isPresent().get()
+                .extracting("description")
+                .isNotNull()
+                .containsExactly("getParentTransientGetter");
+    }
+
+    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName,
+                                                             String type,
+                                                             GraphQLSchema schema) {
+        return schema.getQueryType()
+                .getFieldDefinition(type)
+                .getType()
+                .getChildren()
+                .stream()
+                .map(GraphQLFieldDefinition.class::cast)
+                .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
+                .findFirst();
     }
 
 }
