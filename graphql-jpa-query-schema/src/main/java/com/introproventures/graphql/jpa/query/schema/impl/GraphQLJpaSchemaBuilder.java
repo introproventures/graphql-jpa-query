@@ -1031,6 +1031,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             classCache.putIfAbsent(clazz, enumType);
             
             return enumType;
+        } else if (clazz.isArray()) {
+            return GraphQLList.list(JavaScalars.of(clazz.getComponentType()));
         }
 
         return JavaScalars.of(clazz);
