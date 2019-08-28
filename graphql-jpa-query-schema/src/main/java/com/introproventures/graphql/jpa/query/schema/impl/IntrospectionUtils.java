@@ -185,7 +185,7 @@ public class IntrospectionUtils {
                 return delegate.getName();
             }
 
-            public String getFieldName() {
+            private String getFieldName() {
                 String name = getName();
                 
                 return fields.containsKey(name) 
