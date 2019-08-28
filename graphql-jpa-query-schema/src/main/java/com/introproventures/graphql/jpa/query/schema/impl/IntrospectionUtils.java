@@ -100,7 +100,6 @@ public class IntrospectionUtils {
         private final BeanInfo beanInfo;
         private final Map<String, Field> fields;
         
-        @SuppressWarnings("rawtypes")
         public EntityIntrospectionResult(Class<?> entity) {
             try {
                 this.beanInfo = Introspector.getBeanInfo(entity);
@@ -114,7 +113,7 @@ public class IntrospectionUtils {
                     .collect(Collectors.toMap(AttributePropertyDescriptor::getName, it -> it));
             
             this.fields = getClasses().flatMap(k -> Arrays.stream(k.getDeclaredFields()))
-                                      .filter(f -> descriptors.containsKey(f.getName()))
+                                      .filter(f -> descriptors.containsKey(Introspector.decapitalize(f.getName())))
                                       .collect(Collectors.toMap(Field::getName, it -> it));
         }
         
@@ -127,7 +126,7 @@ public class IntrospectionUtils {
         }
         
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(String fieldName) {
-            return Optional.ofNullable(descriptors.getOrDefault(fieldName, null));
+            return Optional.ofNullable(descriptors.get(Introspector.decapitalize(fieldName)));
         }
         
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(Attribute<?,?> attribute) {
@@ -185,9 +184,17 @@ public class IntrospectionUtils {
             public String getName() {
                 return delegate.getName();
             }
+
+            public String getFieldName() {
+                String name = getName();
+                
+                return fields.containsKey(name) 
+                             ? name
+                             : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+            }
             
             public Optional<Field> getField() {
-                return Optional.ofNullable(fields.get(getName()));
+                return Optional.ofNullable(fields.get(getFieldName()));
             }
 
             public boolean hasField() {
@@ -250,7 +257,7 @@ public class IntrospectionUtils {
 
             @Override
             public String toString() {
-                return "EntityPropertyDescriptor [delegate=" + delegate + "]";
+                return "AttributePropertyDescriptor [delegate=" + delegate + "]";
             }
 
             private EntityIntrospectionResult getEnclosingInstance() {

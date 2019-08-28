@@ -52,6 +52,11 @@ public class CalculatedEntity extends ParentCalculatedEntity {
 
     String info;
     
+    @GraphQLDescription("Uppercase")
+    String Uppercase;
+
+    String UppercaseGetter;
+    
     @GraphQLDescription("transientModifier")
     transient Integer transientModifier; // transient property
 
@@ -98,4 +103,16 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     public String getIgnoredTransientValue(){
         return "IgnoredTransientValue";
     }
+    
+    @Transient
+    @GraphQLDescription("UppercaseGetter")
+    public String getUppercaseGetter() {
+        return Uppercase;
+    }
+
+    @GraphQLIgnore
+    public String getUppercaseGetterIgnore() {
+        return Uppercase;
+    }
+    
 }
