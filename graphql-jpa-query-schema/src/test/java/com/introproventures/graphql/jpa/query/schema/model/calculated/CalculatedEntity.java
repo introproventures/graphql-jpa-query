@@ -47,10 +47,12 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     @Id
     Long id;
 
+    @GraphQLDescription("title")
     String title;
 
     String info;
     
+    @GraphQLDescription("transientModifier")
     transient Integer transientModifier; // transient property
 
     @GraphQLIgnore

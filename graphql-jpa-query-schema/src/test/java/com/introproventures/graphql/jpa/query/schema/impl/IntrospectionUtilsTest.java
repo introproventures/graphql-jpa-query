@@ -1,10 +1,19 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import javax.persistence.metamodel.Attribute;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
+import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 
 public class IntrospectionUtilsTest {
 
@@ -36,6 +45,13 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isTransient(entity, "hideFieldFunction")).isFalse();
     }
 
+    @Test
+    public void testIsPersistentFunction() throws Exception {
+        // then
+        assertThat(IntrospectionUtils.isPesistent(entity, "fieldFun")).isFalse();
+        assertThat(IntrospectionUtils.isPesistent(entity, "hideFieldFunction")).isTrue();
+    }
+    
     @Test
     public void testIsTransientFields() throws Exception {
         // then
@@ -71,5 +87,80 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isIgnored(entity, "ignoredTransientValue")).isTrue();
         assertThat(IntrospectionUtils.isIgnored(entity, "hideField")).isTrue();
         assertThat(IntrospectionUtils.isIgnored(entity, "parentGraphQLIgnore")).isTrue();
+
+        assertThat(IntrospectionUtils.isIgnored(entity, "transientModifier")).isFalse();
+        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransientModifier")).isFalse();
+        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransient")).isFalse();
+        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransientGetter")).isFalse();
     }
+
+    @Test
+    public void shouldNotIgnoreMethodsThatAreNotAnnotatedWithGraphQLIgnore() {
+        //then
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "propertyIgnoredOnGetter")).isFalse();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "ignoredTransientValue")).isFalse();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "hideField")).isFalse();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentGraphQLIgnore")).isFalse();
+        
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "transientModifier")).isTrue();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransientModifier")).isTrue();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransient")).isTrue();
+        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransientGetter")).isTrue();
+    }
+    
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void shouldGetClassesInHierarchy() {
+        //when
+        Class[] result = IntrospectionUtils.introspect(entity)
+                                           .getClasses()
+                                           .toArray(Class[]::new);
+        
+        //then
+        assertThat(result).containsExactly(CalculatedEntity.class, 
+                                           ParentCalculatedEntity.class,
+                                           Object.class);
+    }
+    
+    @Test
+    public void testGetPropertyDescriptorsSchemaDescription() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(result.getPropertyDescriptors())
+                .extracting(AttributePropertyDescriptor::getSchemaDescription)
+                .filteredOn(Optional::isPresent)
+                .extracting(Optional::get)
+                .containsOnly("title",
+                              "transientModifier", 
+                              "i desc member",
+                              "i desc function",
+                              "getParentTransientGetter",
+                              "parentTransientModifier");
+    }
+
+    @Test
+    public void testGetPropertyDescriptorSchemaDescriptionByAttribute() throws Exception {
+        Attribute<?, ?> attribute = Mockito.mock(Attribute.class);
+        
+        when(attribute.getName()).thenReturn("title");
+        
+        // when
+        Optional<AttributePropertyDescriptor> result = IntrospectionUtils.introspect(CalculatedEntity.class)
+                                                             .getPropertyDescriptor(attribute);
+        // then
+        assertThat(result.isPresent()).isTrue();
+    }
+    
+    @Test
+    public void testGetParentEntitySchemaDescription() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(result.getSchemaDescription()).contains("ParentCalculatedEntity description");
+        assertThat(result.hasSchemaDescription()).isTrue();
+    }    
+    
 }
