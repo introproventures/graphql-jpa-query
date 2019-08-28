@@ -108,13 +108,22 @@ public class IntrospectionUtils {
             }
 
             this.entity = entity;
-            this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
-                    .map(AttributePropertyDescriptor::new)
-                    .collect(Collectors.toMap(AttributePropertyDescriptor::getName, it -> it));
+            
+            Map<String, PropertyDescriptor> map = Stream.of(beanInfo.getPropertyDescriptors())
+                                                        .collect(Collectors.toMap(PropertyDescriptor::getName, 
+                                                                                  Function.identity())); 
             
             this.fields = getClasses().flatMap(k -> Arrays.stream(k.getDeclaredFields()))
-                                      .filter(f -> descriptors.containsKey(Introspector.decapitalize(f.getName())))
-                                      .collect(Collectors.toMap(Field::getName, it -> it));
+                                      .filter(f -> map.containsKey(Introspector.decapitalize(f.getName())))
+                                      .collect(Collectors.toMap(Field::getName, 
+                                                                Function.identity()));
+            
+            this.descriptors = map.values()
+                                  .stream()
+                                  .map(AttributePropertyDescriptor::new)
+                                  .collect(Collectors.toMap(AttributePropertyDescriptor::getName, 
+                                                            Function.identity()));
+            
         }
         
         public Collection<AttributePropertyDescriptor> getPropertyDescriptors() {
@@ -168,9 +177,12 @@ public class IntrospectionUtils {
         public class AttributePropertyDescriptor {
 
             private final PropertyDescriptor delegate;
+            private final Optional<Field> field;
 
             public AttributePropertyDescriptor(PropertyDescriptor delegate) {
                 this.delegate = delegate;
+                this.field = Optional.ofNullable(fields.getOrDefault(getName(), 
+                                                                     fields.get(capitalize(getName()))));
             }
 
             public PropertyDescriptor getDelegate() {
@@ -185,16 +197,8 @@ public class IntrospectionUtils {
                 return delegate.getName();
             }
 
-            private String getFieldName() {
-                String name = getName();
-                
-                return fields.containsKey(name) 
-                             ? name
-                             : Character.toUpperCase(name.charAt(0)) + name.substring(1);
-            }
-            
             public Optional<Field> getField() {
-                return Optional.ofNullable(fields.get(getFieldName()));
+                return field;
             }
 
             public boolean hasField() {
@@ -344,5 +348,9 @@ public class IntrospectionUtils {
             Spliterators.spliteratorUnknownSize( iterator, Spliterator.ORDERED | Spliterator.IMMUTABLE),
             false
         );
-    }        
+    }
+    
+    private static String capitalize(String str) {
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1); 
+    }
 }
