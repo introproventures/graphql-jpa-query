@@ -137,7 +137,9 @@ public class IntrospectionUtilsTest {
                               "i desc member",
                               "i desc function",
                               "getParentTransientGetter",
-                              "parentTransientModifier");
+                              "parentTransientModifier",
+                              "Uppercase",
+                              "UppercaseGetter");
     }
 
     @Test
@@ -161,6 +163,51 @@ public class IntrospectionUtilsTest {
         // then
         assertThat(result.getSchemaDescription()).contains("ParentCalculatedEntity description");
         assertThat(result.hasSchemaDescription()).isTrue();
+    }    
+
+    @Test
+    public void testUppercasePropertyNamesAreSupported() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(result.getField("Uppercase")).isPresent();
+        assertThat(result.getPropertyDescriptor("Uppercase")).isPresent();
+
+        assertThat(result.getPropertyDescriptor("Uppercase")
+                         .get())
+                         .extracting(AttributePropertyDescriptor::isIgnored)
+                         .isEqualTo(false);
+
+        assertThat(result.getPropertyDescriptor("Uppercase")
+                         .get())
+                         .extracting(AttributePropertyDescriptor::isTransient)
+                         .isEqualTo(false);
+        
+        assertThat(result.getPropertyDescriptor("Uppercase")
+                         .get()
+                         .getSchemaDescription())
+                         .contains("Uppercase");
+
+        assertThat(result.getPropertyDescriptor("UppercaseGetter")
+                         .get())
+                         .extracting(AttributePropertyDescriptor::isIgnored)
+                         .isEqualTo(false);
+        
+        assertThat(result.getPropertyDescriptor("UppercaseGetter")
+                         .get()
+                         .getSchemaDescription())
+                         .contains("UppercaseGetter");
+        
+        assertThat(result.getPropertyDescriptor("UppercaseGetter")
+                         .get())
+                         .extracting(AttributePropertyDescriptor::isTransient)
+                         .isEqualTo(true);
+
+        assertThat(result.getPropertyDescriptor("UppercaseGetterIgnore")
+                         .get())
+                         .extracting(AttributePropertyDescriptor::isIgnored)
+                         .isEqualTo(true);
     }    
     
 }
