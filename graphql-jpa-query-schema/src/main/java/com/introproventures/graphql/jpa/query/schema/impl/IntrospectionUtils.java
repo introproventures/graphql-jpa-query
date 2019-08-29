@@ -44,7 +44,7 @@ public class IntrospectionUtils {
     
     public static boolean isIgnored(Class<?> entity, String propertyName) {
         return isAnnotationPresent(entity, propertyName, GraphQLIgnore.class)
-                 .orElse(false);
+                .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
     }
 
     private static Optional<Boolean> isAnnotationPresent(Class<?> entity, String propertyName, Class<? extends Annotation> annotation){
