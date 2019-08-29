@@ -36,15 +36,15 @@ public class IntrospectionUtils {
         if(!introspect(entity).hasPropertyDescriptor(propertyName)) {
             throw new RuntimeException(new NoSuchFieldException(propertyName));
         }
-        
+
         return Stream.of(isAnnotationPresent(entity, propertyName, Transient.class),
                          isModifierPresent(entity, propertyName, Modifier::isTransient))
                      .anyMatch(it -> it.isPresent() && it.get() == true);
     }
-    
+
     public static boolean isIgnored(Class<?> entity, String propertyName) {
         return isAnnotationPresent(entity, propertyName, GraphQLIgnore.class)
-                .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+                .orElse(false);
     }
 
     private static Optional<Boolean> isAnnotationPresent(Class<?> entity, String propertyName, Class<? extends Annotation> annotation){
@@ -56,14 +56,14 @@ public class IntrospectionUtils {
         return introspect(entity).getField(propertyName)
                                  .map(it -> function.apply(it.getModifiers()));
     }
-    
+
     public static class CachedIntrospectionResult {
 
         private final Map<String, CachedPropertyDescriptor> map;
         private final Class<?> entity;
         private final BeanInfo beanInfo;
         private final Map<String, Field> fields;
-        
+
         @SuppressWarnings("rawtypes")
         public CachedIntrospectionResult(Class<?> entity) {
             try {
@@ -76,7 +76,7 @@ public class IntrospectionUtils {
             this.map = Stream.of(beanInfo.getPropertyDescriptors())
                     .map(CachedPropertyDescriptor::new)
                     .collect(Collectors.toMap(CachedPropertyDescriptor::getName, it -> it));
-            
+
             this.fields = iterate((Class) entity, k -> Optional.ofNullable(k.getSuperclass()))
                     .flatMap(k -> Arrays.stream(k.getDeclaredFields()))
                     .filter(f -> map.containsKey(f.getName()))
@@ -94,7 +94,7 @@ public class IntrospectionUtils {
         public boolean hasPropertyDescriptor(String fieldName) {
             return map.containsKey(fieldName);
         }
-        
+
         public Optional<Field> getField(String fieldName) {
             return Optional.ofNullable(fields.get(fieldName));
         }
@@ -121,7 +121,7 @@ public class IntrospectionUtils {
             public Class<?> getPropertyType() {
                 return delegate.getPropertyType();
             }
-            
+
             public String getName() {
                 return delegate.getName();
             }
@@ -142,12 +142,12 @@ public class IntrospectionUtils {
 
         }
     }
-    
+
     /**
-     * The following method is borrowed from Streams.iterate, 
-     * however Streams.iterate is designed to create infinite streams. 
-     * 
-     * This version has been modified to end when Optional.empty() 
+     * The following method is borrowed from Streams.iterate,
+     * however Streams.iterate is designed to create infinite streams.
+     *
+     * This version has been modified to end when Optional.empty()
      * is returned from the fetchNextFunction.
      */
     protected static <T> Stream<T> iterate( T seed, Function<T, Optional<T>> fetchNextFunction ) {
@@ -175,5 +175,5 @@ public class IntrospectionUtils {
             Spliterators.spliteratorUnknownSize( iterator, Spliterator.ORDERED | Spliterator.IMMUTABLE),
             false
         );
-    }        
+    }
 }
