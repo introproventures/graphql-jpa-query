@@ -208,6 +208,21 @@ public class IntrospectionUtilsTest {
                          .get())
                          .extracting(AttributePropertyDescriptor::isIgnored)
                          .isEqualTo(true);
+    }
+    
+    @Test
+    public void testPrivateModifierOnGetterProperty() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(result.getField("age")).isPresent();
+        assertThat(result.getPropertyDescriptor("age")).isPresent();
+        assertThat(result.getPropertyDescriptor("age")
+                         .get()
+                         .getReadMethod())
+                         .isEmpty();
     }    
+        
     
 }
