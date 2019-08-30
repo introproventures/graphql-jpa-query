@@ -35,8 +35,10 @@ public class ParentCalculatedEntity {
 
     private String parentGraphQLIgnoreGetter; 
 
-    private String parentTransientGraphQLIgnoreGetter; 
-    
+    private String parentTransientGraphQLIgnoreGetter;
+
+    private String propertyDuplicatedInChild;
+
     @Transient // transient getter property
     @GraphQLDescription("getParentTransientGetter")
     public String getParentTransientGetter() {
