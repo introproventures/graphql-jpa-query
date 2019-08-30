@@ -86,6 +86,8 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     String hideField = "hideField";
 
     String propertyIgnoredOnGetter;
+
+    String propertyDuplicatedInChild;
    
     @Transient
     @GraphQLDescription("i desc function")

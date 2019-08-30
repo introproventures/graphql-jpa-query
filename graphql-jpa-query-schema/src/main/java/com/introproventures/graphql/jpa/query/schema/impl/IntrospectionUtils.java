@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,7 +35,7 @@ import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 
 public class IntrospectionUtils {
-    private static final Logger log = LoggerFactory.getLogger(IntrospectionUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntrospectionUtils.class);
     
     private static final Map<Class<?>, EntityIntrospectionResult> map = new LinkedHashMap<>();
 
@@ -116,15 +117,21 @@ public class IntrospectionUtils {
             
             this.fields = getClasses().flatMap(k -> Arrays.stream(k.getDeclaredFields()))
                                       .filter(f -> map.containsKey(Introspector.decapitalize(f.getName())))
-                                      .collect(Collectors.toMap(Field::getName, 
-                                                                Function.identity()));
-            
+                                      .collect(Collectors.toMap(Field::getName,
+                                                                Function.identity(), fieldMergeFunction()));
+
             this.descriptors = map.values()
                                   .stream()
                                   .map(AttributePropertyDescriptor::new)
                                   .collect(Collectors.toMap(AttributePropertyDescriptor::getName, 
                                                             Function.identity()));
-            
+        }
+
+        private BinaryOperator<Field> fieldMergeFunction() {
+            return (field1, field2) -> {
+                LOGGER.warn("Duplicated field " + field1.getName() + " found in " + field1.getDeclaringClass() + " and " + field2.getDeclaringClass());
+                return field1;
+            };
         }
         
         public Collection<AttributePropertyDescriptor> getPropertyDescriptors() {
