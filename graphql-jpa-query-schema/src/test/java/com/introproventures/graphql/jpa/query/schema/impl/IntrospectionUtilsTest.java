@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.persistence.metamodel.Attribute;
@@ -21,13 +22,13 @@ public class IntrospectionUtilsTest {
 	// given
     private final Class<CalculatedEntity> entity = CalculatedEntity.class;
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = NoSuchElementException.class)
     public void testIsTransientNonExisting() throws Exception {
         // then
         assertThat(IntrospectionUtils.isTransient(entity, "notFound")).isFalse();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = NoSuchElementException.class)
     public void testIsIgnoredNonExisting() throws Exception {
         // then
         assertThat(IntrospectionUtils.isIgnored(entity, "notFound")).isFalse();
@@ -49,8 +50,8 @@ public class IntrospectionUtilsTest {
     @Test
     public void testIsPersistentFunction() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isPesistent(entity, "fieldFun")).isFalse();
-        assertThat(IntrospectionUtils.isPesistent(entity, "hideFieldFunction")).isTrue();
+        assertThat(IntrospectionUtils.isPersistent(entity, "fieldFun")).isFalse();
+        assertThat(IntrospectionUtils.isPersistent(entity, "hideFieldFunction")).isTrue();
     }
     
     @Test
@@ -210,6 +211,24 @@ public class IntrospectionUtilsTest {
                          .extracting(AttributePropertyDescriptor::isIgnored)
                          .isEqualTo(true);
     }
+    
+    @Test
+    public void testPrivateModifierOnGetterProperty() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(IntrospectionUtils.isIgnored(entity, "age")).isFalse();
+        assertThat(IntrospectionUtils.isPersistent(entity, "age")).isTrue();
+        assertThat(IntrospectionUtils.isTransient(entity, "age")).isFalse();
+        
+        assertThat(result.getField("age")).isPresent();
+        assertThat(result.getPropertyDescriptor("age")).isPresent();
+        assertThat(result.getPropertyDescriptor("age")
+                         .get()
+                         .getReadMethod())
+                         .isEmpty();
+    }    
 
     @Test
     public void shouldNotFailWhenPropertyIsDuplicatedInParentAndChild() {
@@ -232,5 +251,4 @@ public class IntrospectionUtilsTest {
         Optional<AttributePropertyDescriptor> propertyOverriddenInChild = introspectionResult.getPropertyDescriptor("propertyDuplicatedInChild");
         assertThat(propertyOverriddenInChild).isPresent();
     }
-
 }

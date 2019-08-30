@@ -84,6 +84,7 @@ public class CalculatedEntityTests {
                 "           fieldMem" +
                 "           fieldFun" +
                 "           logic" +
+                "           age" +
                 "           customLogic" +
                 "           hideField" +
                 "           hideFieldFunction" +

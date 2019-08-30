@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -48,12 +49,12 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has Transient annotation or transient field modifier
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isTransient(Class<?> entity, String propertyName) {
         return introspect(entity).getPropertyDescriptor(propertyName)
                                  .map(AttributePropertyDescriptor::isTransient)
-                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+                                 .orElseThrow(() -> new NoSuchElementException(propertyName));
     }
     
     /**
@@ -62,9 +63,9 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property is persitent
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
-    public static boolean isPesistent(Class<?> entity, String propertyName) {
+    public static boolean isPersistent(Class<?> entity, String propertyName) {
         return !isTransient(entity, propertyName);
     }    
 
@@ -74,12 +75,12 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has GraphQLIgnore annotation
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isIgnored(Class<?> entity, String propertyName) {
         return introspect(entity).getPropertyDescriptor(propertyName)
                                  .map(AttributePropertyDescriptor::isIgnored)
-                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+                                 .orElseThrow(() -> new NoSuchElementException(propertyName));
     }
     
     /**
@@ -88,7 +89,7 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has no GraphQLIgnore annotation
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isNotIgnored(Class<?> entity, String propertyName) {
         return !isIgnored(entity, propertyName);
