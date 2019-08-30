@@ -1,6 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -208,6 +209,28 @@ public class IntrospectionUtilsTest {
                          .get())
                          .extracting(AttributePropertyDescriptor::isIgnored)
                          .isEqualTo(true);
-    }    
-    
+    }
+
+    @Test
+    public void shouldNotFailWhenPropertyIsDuplicatedInParentAndChild() {
+        // given
+        // There is a duplicated property in parent and child
+
+        // then
+        assertThatCode(() -> IntrospectionUtils.introspect(CalculatedEntity.class)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void shouldCorrectlyIntrospectPropertyDuplicatedInParentAndChild() {
+        // given
+        // There is a duplicated property in parent and child
+
+        // when
+        EntityIntrospectionResult introspectionResult = IntrospectionUtils.introspect(CalculatedEntity.class);
+
+        // then
+        Optional<AttributePropertyDescriptor> propertyOverriddenInChild = introspectionResult.getPropertyDescriptor("propertyDuplicatedInChild");
+        assertThat(propertyOverriddenInChild).isPresent();
+    }
+
 }
