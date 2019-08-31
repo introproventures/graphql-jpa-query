@@ -239,7 +239,7 @@ public class IntrospectionUtilsTest {
                          .extracting(AttributePropertyDescriptor::isTransient)
                          .isEqualTo(false);
 
-        assertThat(result.getPropertyDescriptor("UppercaseGetterIgnore")
+        assertThat(result.getPropertyDescriptor("uppercaseGetterIgnore")
                          .get())
                          .extracting(AttributePropertyDescriptor::isIgnored)
                          .isEqualTo(true);
@@ -312,5 +312,32 @@ public class IntrospectionUtilsTest {
                                                                           "parentTransientGraphQLIgnore");
         ;
     }    
+    
+    @Test
+    public void testGetPersistentPropertyDescriptors() {
+        // given
+        ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
+        
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        
+        // then
+        assertThat(result.getPersistentPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
+                                                             .containsOnly("Uppercase",
+                                                                           "title",
+                                                                           "parentGraphQLIgnore",
+                                                                           "parentGraphQLIgnoreGetter",
+                                                                           "propertyIgnoredOnGetter",
+                                                                           "id",
+                                                                           "info",
+                                                                           "parentTransientGraphQLIgnoreGetter",
+                                                                           "protectedGetter",
+                                                                           "parentField",
+                                                                           "UppercaseGetter",
+                                                                           "propertyDuplicatedInChild",
+                                                                           "age");
+        ;
+    }    
+    
     
 }

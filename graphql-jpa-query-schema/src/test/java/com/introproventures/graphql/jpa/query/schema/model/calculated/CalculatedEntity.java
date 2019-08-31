@@ -66,6 +66,12 @@ public class CalculatedEntity extends ParentCalculatedEntity {
                      .getYears();
     }
     
+    private Integer protectedGetter;
+    
+    protected Integer getProtectedGetter(){
+        return protectedGetter;
+    }
+    
     String UppercaseGetter;
     
     @GraphQLDescription("transientModifier")

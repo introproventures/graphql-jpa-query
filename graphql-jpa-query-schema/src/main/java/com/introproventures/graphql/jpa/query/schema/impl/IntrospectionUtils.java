@@ -137,6 +137,13 @@ public class IntrospectionUtils {
                               .collect(Collectors.toList());
         }
 
+        public Collection<AttributePropertyDescriptor> getPersistentPropertyDescriptors() {
+            return descriptors.values()
+                              .stream()
+                              .filter(AttributePropertyDescriptor::isPersistent)
+                              .collect(Collectors.toList());
+        }
+        
         public Map<String, Attribute<?, ?>> getAttributes() {
             return attributes;
         }
@@ -150,7 +157,7 @@ public class IntrospectionUtils {
         }
 
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(String fieldName) {
-            return Optional.ofNullable(descriptors.get(Introspector.decapitalize(fieldName)));
+            return Optional.ofNullable(descriptors.get(fieldName));
         }
         
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(Attribute<?,?> attribute) {
@@ -206,12 +213,15 @@ public class IntrospectionUtils {
 
             public AttributePropertyDescriptor(PropertyDescriptor delegate) {
                 this.delegate = delegate;
-                this.attribute = Optional.ofNullable(attributes.getOrDefault(getName(), 
-                                                                             attributes.get(capitalize(getName()))));
+                
+                String name = delegate.getName();
+                
+                this.attribute = Optional.ofNullable(attributes.getOrDefault(name, 
+                                                                             attributes.get(capitalize(name))));
                 this.field = attribute.map(Attribute::getJavaMember)
                                       .filter(Field.class::isInstance)
                                       .map(Field.class::cast)
-                                      .map(Optional::of).orElseGet(() -> findField(entity, getName()));
+                                      .map(Optional::of).orElseGet(() -> findField(entity, name));
             }
 
             public ManagedType<?> getManagedType() {
@@ -227,7 +237,8 @@ public class IntrospectionUtils {
             }
             
             public String getName() {
-                return delegate.getName();
+                return attribute.map(Attribute::getName)
+                                .orElseGet(() -> delegate.getName());
             }
 
             public Optional<Method> getReadMethod() {
@@ -259,6 +270,10 @@ public class IntrospectionUtils {
                 return !attribute.isPresent();
             }
 
+            public boolean isPersistent() {
+                return attribute.isPresent();
+            }
+            
             public boolean isIgnored() {
                 return isAnnotationPresent(GraphQLIgnore.class);  
             }
