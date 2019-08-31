@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.schema.impl;
+package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -7,19 +7,51 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.ManagedType;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.FieldDescriptor;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
+@TestPropertySource({"classpath:hibernate.properties"})
 public class IntrospectionUtilsTest {
 
+    @SpringBootApplication
+    static class Application {
+        @Bean
+        public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
+            return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
+        }
+
+        @Bean
+        public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
+            return new GraphQLJpaSchemaBuilder(entityManager)
+                    .name("GraphQLCalcFields")
+                    .description("CalcFields JPA test schema");
+        }
+    }
+
+    @Autowired
+    private EntityManager entityManager;
+    
 	// given
     private final Class<CalculatedEntity> entity = CalculatedEntity.class;
 
@@ -36,23 +68,25 @@ public class IntrospectionUtilsTest {
     }
     
     @Test
-    public void testIsTransientClass() throws Exception {
+    public void shouldExcludeClassPropertyDescriptor() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity, "class")).isFalse();
+        assertThat(IntrospectionUtils.introspect(entity)
+                                     .getPropertyDescriptor("class"))
+                                     .isEmpty();
     }
 
     @Test
     public void testIsTransientFunction() throws Exception {
         // then
         assertThat(IntrospectionUtils.isTransient(entity, "fieldFun")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "hideFieldFunction")).isFalse();
+        assertThat(IntrospectionUtils.isTransient(entity, "hideFieldFunction")).isTrue();
     }
 
     @Test
     public void testIsPersistentFunction() throws Exception {
         // then
         assertThat(IntrospectionUtils.isPersistent(entity, "fieldFun")).isFalse();
-        assertThat(IntrospectionUtils.isPersistent(entity, "hideFieldFunction")).isTrue();
+        assertThat(IntrospectionUtils.isPersistent(entity, "hideFieldFunction")).isFalse();
     }
     
     @Test
@@ -80,7 +114,7 @@ public class IntrospectionUtilsTest {
     @Test
     public void testByPassSetMethod() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity,"something")).isFalse();
+        assertThat(IntrospectionUtils.isTransient(entity,"something")).isTrue();
     }
 
     @Test
@@ -136,17 +170,12 @@ public class IntrospectionUtilsTest {
                                                    .extracting(Optional::get)
                                                    .containsOnly("i desc function",
                                                                  "getParentTransientGetter",
-                                                                 "UppercaseGetter");
-        
-        assertThat(result.getFieldDescriptors()).extracting(FieldDescriptor::getSchemaDescription)
-                                                .filteredOn(Optional::isPresent)
-                                                .extracting(Optional::get)
-                                                .containsOnly("title",
-                                                              "transientModifier",
-                                                              "i desc member",
-                                                              "parentTransientModifier",
-                                                              "Uppercase");
-        
+                                                                 "UppercaseGetter",
+                                                                 "title",
+                                                                 "transientModifier",
+                                                                 "i desc member",
+                                                                 "parentTransientModifier",
+                                                                 "Uppercase");
     }
 
     @Test
@@ -178,7 +207,6 @@ public class IntrospectionUtilsTest {
         EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
         
         // then
-        assertThat(result.getFieldDescriptor("Uppercase")).isPresent();
         assertThat(result.getPropertyDescriptor("Uppercase")).isPresent();
 
         assertThat(result.getPropertyDescriptor("Uppercase")
@@ -191,7 +219,7 @@ public class IntrospectionUtilsTest {
                          .extracting(AttributePropertyDescriptor::isTransient)
                          .isEqualTo(false);
         
-        assertThat(result.getFieldDescriptor("Uppercase")
+        assertThat(result.getPropertyDescriptor("Uppercase")
                          .get()
                          .getSchemaDescription())
                          .contains("Uppercase");
@@ -209,7 +237,7 @@ public class IntrospectionUtilsTest {
         assertThat(result.getPropertyDescriptor("UppercaseGetter")
                          .get())
                          .extracting(AttributePropertyDescriptor::isTransient)
-                         .isEqualTo(true);
+                         .isEqualTo(false);
 
         assertThat(result.getPropertyDescriptor("UppercaseGetterIgnore")
                          .get())
@@ -227,7 +255,6 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isPersistent(entity, "age")).isTrue();
         assertThat(IntrospectionUtils.isTransient(entity, "age")).isFalse();
         
-        assertThat(result.getFieldDescriptor("age")).isPresent();
         assertThat(result.getPropertyDescriptor("age")).isPresent();
         assertThat(result.getPropertyDescriptor("age")
                          .get()
@@ -256,4 +283,34 @@ public class IntrospectionUtilsTest {
         Optional<AttributePropertyDescriptor> propertyOverriddenInChild = introspectionResult.getPropertyDescriptor("propertyDuplicatedInChild");
         assertThat(propertyOverriddenInChild).isPresent();
     }
+    
+    @Test
+    public void testGetTransientPropertyDescriptors() {
+        // given
+        ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
+        
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        
+        // then
+        assertThat(result.getTransientPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
+                                                            .containsOnly("fieldFun", 
+                                                                          "fieldMem", 
+                                                                          "hideField", 
+                                                                          "logic", 
+                                                                          "transientModifier", 
+                                                                          "parentTransientModifier", 
+                                                                          "parentTransient", 
+                                                                          "parentTransientGetter",
+                                                                          "uppercaseGetterIgnore",
+                                                                          "hideFieldFunction",
+                                                                          "transientModifierGraphQLIgnore",
+                                                                          "customLogic",
+                                                                          "parentTransientModifierGraphQLIgnore",
+                                                                          "ignoredTransientValue",
+                                                                          "something",
+                                                                          "parentTransientGraphQLIgnore");
+        ;
+    }    
+    
 }

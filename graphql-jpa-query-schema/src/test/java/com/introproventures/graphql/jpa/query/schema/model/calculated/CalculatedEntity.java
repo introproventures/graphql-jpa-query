@@ -100,6 +100,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
         return false;
     }
 
+    @GraphQLIgnore
     public String getHideFieldFunction() {
         return "getHideFieldFunction";
     }
@@ -123,9 +124,10 @@ public class CalculatedEntity extends ParentCalculatedEntity {
         return Uppercase;
     }
 
+    // transient getter 
     @GraphQLIgnore
     public String getUppercaseGetterIgnore() {
-        return Uppercase;
+        return UppercaseGetter;
     }
     
 }
