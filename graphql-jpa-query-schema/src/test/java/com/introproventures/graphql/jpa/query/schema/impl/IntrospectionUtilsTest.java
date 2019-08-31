@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult;
 import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.FieldDescriptor;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 
@@ -130,18 +131,22 @@ public class IntrospectionUtilsTest {
         EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
         
         // then
-        assertThat(result.getPropertyDescriptors())
-                .extracting(AttributePropertyDescriptor::getSchemaDescription)
-                .filteredOn(Optional::isPresent)
-                .extracting(Optional::get)
-                .containsOnly("title",
-                              "transientModifier", 
-                              "i desc member",
-                              "i desc function",
-                              "getParentTransientGetter",
-                              "parentTransientModifier",
-                              "Uppercase",
-                              "UppercaseGetter");
+        assertThat(result.getPropertyDescriptors()).extracting(AttributePropertyDescriptor::getSchemaDescription)
+                                                   .filteredOn(Optional::isPresent)
+                                                   .extracting(Optional::get)
+                                                   .containsOnly("i desc function",
+                                                                 "getParentTransientGetter",
+                                                                 "UppercaseGetter");
+        
+        assertThat(result.getFieldDescriptors()).extracting(FieldDescriptor::getSchemaDescription)
+                                                .filteredOn(Optional::isPresent)
+                                                .extracting(Optional::get)
+                                                .containsOnly("title",
+                                                              "transientModifier",
+                                                              "i desc member",
+                                                              "parentTransientModifier",
+                                                              "Uppercase");
+        
     }
 
     @Test
@@ -173,7 +178,7 @@ public class IntrospectionUtilsTest {
         EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
         
         // then
-        assertThat(result.getField("Uppercase")).isPresent();
+        assertThat(result.getFieldDescriptor("Uppercase")).isPresent();
         assertThat(result.getPropertyDescriptor("Uppercase")).isPresent();
 
         assertThat(result.getPropertyDescriptor("Uppercase")
@@ -186,7 +191,7 @@ public class IntrospectionUtilsTest {
                          .extracting(AttributePropertyDescriptor::isTransient)
                          .isEqualTo(false);
         
-        assertThat(result.getPropertyDescriptor("Uppercase")
+        assertThat(result.getFieldDescriptor("Uppercase")
                          .get()
                          .getSchemaDescription())
                          .contains("Uppercase");
@@ -222,7 +227,7 @@ public class IntrospectionUtilsTest {
         assertThat(IntrospectionUtils.isPersistent(entity, "age")).isTrue();
         assertThat(IntrospectionUtils.isTransient(entity, "age")).isFalse();
         
-        assertThat(result.getField("age")).isPresent();
+        assertThat(result.getFieldDescriptor("age")).isPresent();
         assertThat(result.getPropertyDescriptor("age")).isPresent();
         assertThat(result.getPropertyDescriptor("age")
                          .get()

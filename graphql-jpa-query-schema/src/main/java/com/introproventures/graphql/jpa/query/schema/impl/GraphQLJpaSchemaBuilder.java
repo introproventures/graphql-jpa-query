@@ -659,18 +659,18 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return entityType
                 .getAttributes().stream()
                 .filter(this::isNotIgnored)
-                .filter(attribute -> !IntrospectionUtils.isIgnored(entityType.getJavaType(), attribute.getName()))
+                .filter(attribute -> IntrospectionUtils.isNotIgnored(entityType.getJavaType(), attribute.getName()))
                 .map(it -> getObjectField(it, entityType))
                 .collect(Collectors.toList());
     }
 
     private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
         return IntrospectionUtils.introspect(clazz)
-                .getPropertyDescriptors().stream()
-                .filter(AttributePropertyDescriptor::isTransient)
-                .filter(AttributePropertyDescriptor::isNotIgnored)
-                .map(this::getJavaFieldDefinition)
-                .collect(Collectors.toList());
+                                 .getPropertyDescriptors().stream()
+                                 .filter(p -> IntrospectionUtils.isTransient(clazz, p.getName()))
+                                 .filter(p -> IntrospectionUtils.isNotIgnored(clazz, p.getName()))
+                                 .map(this::getJavaFieldDefinition)
+                                 .collect(Collectors.toList());
     }
     
     @SuppressWarnings( { "rawtypes" } )
@@ -678,8 +678,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
         
-        String description = propertyDescriptor.getSchemaDescription()
-                                               .orElse(null);
+        String description = propertyDescriptor.getSchemaDescription().orElse(null);
 
         return GraphQLFieldDefinition.newFieldDefinition()
                                      .name(propertyDescriptor.getName())
@@ -878,8 +877,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private String getSchemaDescription(Attribute<?,?> attribute) {
         return IntrospectionUtils.introspect(attribute.getDeclaringType()
                                                       .getJavaType())
-                                 .getPropertyDescriptor(attribute)
-                                 .flatMap(AttributePropertyDescriptor::getSchemaDescription)
+                                 .getSchemaDescription(attribute.getName())
                                  .orElse(null);
     }
     
