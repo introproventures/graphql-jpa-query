@@ -249,8 +249,7 @@ public class IntrospectionUtils {
             }
             
             public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
-                return getReadMethod().map(m -> m.isAnnotationPresent(annotation))
-                                      .orElse(false);
+                return getAnnotation(annotation).isPresent();
             }
 
             @Override
@@ -303,7 +302,7 @@ public class IntrospectionUtils {
             }
             
             public Class<?> getFieldType() {
-                return delegate.getClass();
+                return delegate.getType();
             }
             
             public String getName() {
