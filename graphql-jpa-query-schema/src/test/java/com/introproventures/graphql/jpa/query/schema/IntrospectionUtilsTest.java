@@ -336,8 +336,28 @@ public class IntrospectionUtilsTest {
                                                                            "UppercaseGetter",
                                                                            "propertyDuplicatedInChild",
                                                                            "age");
-        ;
     }    
-    
-    
+
+    @Test
+    public void testGetIgnoredPropertyDescriptors() {
+        // given
+        ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
+        
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        
+        // then
+        assertThat(result.getIgnoredPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
+                                                          .containsOnly("uppercaseGetterIgnore",
+                                                                        "hideFieldFunction",
+                                                                        "parentGraphQLIgnore",
+                                                                        "parentGraphQLIgnoreGetter",
+                                                                        "transientModifierGraphQLIgnore",
+                                                                        "propertyIgnoredOnGetter",
+                                                                        "parentTransientModifierGraphQLIgnore",
+                                                                        "ignoredTransientValue",
+                                                                        "hideField",
+                                                                        "parentTransientGraphQLIgnoreGetter",
+                                                                        "parentTransientGraphQLIgnore");
+    }    
 }

@@ -144,6 +144,13 @@ public class IntrospectionUtils {
                               .collect(Collectors.toList());
         }
         
+        public Collection<AttributePropertyDescriptor> getIgnoredPropertyDescriptors() {
+            return descriptors.values()
+                              .stream()
+                              .filter(AttributePropertyDescriptor::isIgnored)
+                              .collect(Collectors.toList());
+        }
+        
         public Map<String, Attribute<?, ?>> getAttributes() {
             return attributes;
         }
