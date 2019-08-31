@@ -19,6 +19,10 @@ import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -969,10 +973,51 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             return ((BooleanValue) value).isValue();
         } else if (value instanceof FloatValue) {
             return ((FloatValue) value).getValue();
+        } else if (value instanceof ObjectValue) {
+            Class javaType = getJavaType(environment, argument);
+            
+            try {
+                Object beanValue = javaType.getConstructor()
+                                           .newInstance();
+                
+                Map<String, Object> objectValue =  environment.getArgument(argument.getName());
+               
+                objectValue.entrySet()
+                           .stream()
+                           .forEach(e -> {
+                               setPropertyValue(beanValue, 
+                                                e.getKey(), 
+                                                e.getValue());
+                           });
+                    
+                return beanValue;
+                
+            } catch (Exception e1) {
+                // TODO
+            }
+            
         }
 
-        //return value.toString();
         return value;
+    }
+    
+    private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) { 
+        try {
+            BeanInfo bi = Introspector.getBeanInfo(javaBean.getClass());
+            PropertyDescriptor pds[] = bi.getPropertyDescriptors();
+            for (PropertyDescriptor pd : pds) {
+                if (pd.getName().equals(propertyName)) {
+                    Method setter = pd.getWriteMethod();
+                    setter.setAccessible(true);
+                    
+                    if (setter != null) {
+                        setter.invoke(javaBean, new Object[] {propertyValue} );
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // TODO
+        }
     }
 
     /**

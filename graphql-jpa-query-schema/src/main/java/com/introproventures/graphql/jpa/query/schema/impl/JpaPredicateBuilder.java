@@ -19,7 +19,12 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,6 +42,7 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.language.NullValue;
 
 /**
@@ -783,8 +789,7 @@ class JpaPredicateBuilder {
                 Object arg = NullValue.class.isInstance(object) ? null : object;
                 return constructor.newInstance(arg);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
         
         return object;
