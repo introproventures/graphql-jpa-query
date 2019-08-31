@@ -58,8 +58,7 @@ public class IntrospectionUtils {
      * @throws NoSuchElementException if property does not exists
      */
     public static boolean isTransient(Class<?> entity, String propertyName) {
-        return introspect(entity).isTransient(propertyName)
-                                 .orElseThrow(() -> noSuchElementException(entity, propertyName));
+        return introspect(entity).isTransient(propertyName);
     }
     
     /**
@@ -83,8 +82,7 @@ public class IntrospectionUtils {
      * @throws NoSuchElementException if property does not exists
      */
     public static boolean isIgnored(Class<?> entity, String propertyName) {
-        return introspect(entity).isIgnored(propertyName)
-                                 .orElseThrow(() -> noSuchElementException(entity, propertyName));
+        return introspect(entity).isIgnored(propertyName);
     }
     
     /**
@@ -155,8 +153,14 @@ public class IntrospectionUtils {
             return attributes;
         }
         
-        public Optional<Boolean> isIgnored(String propertyName) {
-            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isIgnored);
+        public Boolean isIgnored(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isIgnored)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
+        }
+
+        public Boolean isNotIgnored(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isNotIgnored)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
         }
         
         public Collection<AttributePropertyDescriptor> getPropertyDescriptors() {
@@ -175,8 +179,9 @@ public class IntrospectionUtils {
             return descriptors.containsKey(fieldName);
         }
         
-        public Optional<Boolean> isTransient(String propertyName) {
-            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isTransient);
+        public Boolean isTransient(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isTransient)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
         }
         
         public Class<?> getEntity() {

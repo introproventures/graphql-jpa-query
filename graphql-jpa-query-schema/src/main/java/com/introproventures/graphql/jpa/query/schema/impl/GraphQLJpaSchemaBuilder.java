@@ -656,12 +656,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
-        return entityType
-                .getAttributes().stream()
-                .filter(this::isNotIgnored)
-                .filter(attribute -> IntrospectionUtils.isNotIgnored(entityType.getJavaType(), attribute.getName()))
-                .map(it -> getObjectField(it, entityType))
-                .collect(Collectors.toList());
+        return entityType.getAttributes()
+                         .stream()
+                         .filter(attribute -> IntrospectionUtils.introspect(entityType)
+                                                                .isNotIgnored(attribute.getName()))
+                         .map(it -> getObjectField(it, entityType))
+                         .collect(Collectors.toList());
     }
 
     private List<GraphQLFieldDefinition> getTransientFields(ManagedType<?> managedType) {
