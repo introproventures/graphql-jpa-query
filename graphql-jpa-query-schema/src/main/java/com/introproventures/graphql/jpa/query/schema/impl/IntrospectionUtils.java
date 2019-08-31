@@ -211,7 +211,7 @@ public class IntrospectionUtils {
                 this.field = attribute.map(Attribute::getJavaMember)
                                       .filter(Field.class::isInstance)
                                       .map(Field.class::cast)
-                                      .or(() -> findField(entity, getName()));
+                                      .map(Optional::of).orElseGet(() -> findField(entity, getName()));
             }
 
             public ManagedType<?> getManagedType() {
@@ -236,7 +236,7 @@ public class IntrospectionUtils {
             
             public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationClass) {
                 return getReadMethod().map(m -> m.getAnnotation(annotationClass))
-                                      .or(() -> getField().map(f -> f.getAnnotation(annotationClass)));
+                                      .map(Optional::of).orElseGet(() -> getField().map(f -> f.getAnnotation(annotationClass)));
             }
             
             public Optional<Attribute<?,?>> getAttribute() {
