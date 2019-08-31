@@ -256,7 +256,7 @@ public class IntrospectionUtils {
             }
             
             public boolean isTransient() {
-                return attribute.isEmpty();
+                return !attribute.isPresent();
             }
 
             public boolean isIgnored() {
