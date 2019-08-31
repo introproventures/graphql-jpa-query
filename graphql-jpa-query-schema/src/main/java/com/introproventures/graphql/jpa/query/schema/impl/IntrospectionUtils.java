@@ -114,7 +114,8 @@ public class IntrospectionUtils {
                                       .filter(f -> !Modifier.isStatic(f.getModifiers()))
                                       .map(FieldDescriptor::new)
                                       .collect(Collectors.toMap(FieldDescriptor::getName,
-                                                                Function.identity(), fieldMergeFunction()));
+                                                                Function.identity(),
+                                                                fieldMergeFunction()));
 
             this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
                                   .map(AttributePropertyDescriptor::new)
@@ -149,10 +150,7 @@ public class IntrospectionUtils {
         }
         
         public Optional<FieldDescriptor> getFieldDescriptor(String fieldName) {
-            return Optional.ofNullable(fields.computeIfAbsent(fieldName,
-                                                              key -> findField(entity, 
-                                                                               fieldName).map(FieldDescriptor::new)
-                                                                                         .orElse(null)));
+            return Optional.ofNullable(fields.get(fieldName));
         }
         
         public Optional<Boolean> isTransient(String propertyName) {
@@ -440,38 +438,6 @@ public class IntrospectionUtils {
             false
         );
     }
-    
-    private static Optional<Field> findField(Class<?> containerClass, String propertyName) {
-        if ( containerClass == null ) {
-            throw new IllegalArgumentException( "Class on which to find field [" + propertyName + "] cannot be null" );
-        }
-        else if ( containerClass == Object.class ) {
-            throw new IllegalArgumentException( "Illegal attempt to locate field [" + propertyName + "] on Object.class" );
-        }
-
-        return locateField( containerClass, propertyName );
-    }
-    
-    private static Optional<Field> locateField(Class<?> clazz, String propertyName) {
-        if ( clazz == null || Object.class.equals( clazz ) ) {
-            return Optional.empty();
-        }
-
-        try {
-            Field field = clazz.getDeclaredField( propertyName );
-            if ( !isStaticField( field ) ) {
-                return Optional.of(field);
-            }
-            return locateField( clazz.getSuperclass(), propertyName );
-        }
-        catch ( NoSuchFieldException nsfe ) {
-            return locateField( clazz.getSuperclass(), propertyName );
-        }
-    }
-    
-    private static boolean isStaticField(Field field) {
-        return field != null && ( field.getModifiers() & Modifier.STATIC ) == Modifier.STATIC;
-    }    
     
     private static NoSuchElementException noSuchElementException(Class<?> containerClass,
                                                                  String propertyName) {
