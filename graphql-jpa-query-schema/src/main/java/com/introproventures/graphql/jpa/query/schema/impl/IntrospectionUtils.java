@@ -5,7 +5,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -450,19 +449,7 @@ public class IntrospectionUtils {
             throw new IllegalArgumentException( "Illegal attempt to locate field [" + propertyName + "] on Object.class" );
         }
 
-        Optional<Field> field = locateField( containerClass, propertyName );
-
-        field.ifPresent(f -> ensureAccessibility( f ));
-
-        return field;
-    }
-    
-    public static void ensureAccessibility(AccessibleObject accessibleObject) {
-        if ( accessibleObject.isAccessible() ) {
-            return;
-        }
-
-        accessibleObject.setAccessible( true );
+        return locateField( containerClass, propertyName );
     }
     
     private static Optional<Field> locateField(Class<?> clazz, String propertyName) {
