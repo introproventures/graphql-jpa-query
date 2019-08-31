@@ -104,6 +104,7 @@ public class CalculatedEntityTests {
                 "           Uppercase" +
                 "           UppercaseGetter" +
                 "           UppercaseGetterIgnore" +
+                "           protectedGetter" +
                 "       } " +
                 "   } " +
                 "}";
