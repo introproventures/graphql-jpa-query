@@ -159,7 +159,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         return entityManager.createQuery(query.distinct(isDistinct));
     }
-
+    
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
@@ -169,9 +169,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         field.getSelectionSet().getSelections().forEach(selection -> {
             if (selection instanceof Field) {
                 Field selectedField = (Field) selection;
-
+                
                 // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
+                if(!TYPENAME.equals(selectedField.getName()) && isPersistent(environment, selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
                     From<?,?> fetch = null;
@@ -1165,7 +1165,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
-                    if(!TYPENAME.equals(it.getName()) && !IntrospectionUtils.isTransient(entityType.getJavaType(), it.getName()))
+                    if(!TYPENAME.equals(it.getName()) && isPersistent(entityType, it.getName()))
                         entityGraph.addAttributeNodes(it.getName());
                 }
             });
@@ -1264,6 +1264,34 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                       .filter(it -> fieldName.equals(it.getName()))
                                                       .findFirst();
     }
+    
+    protected boolean isPersistent(DataFetchingEnvironment environment,
+                                   String attributeName) {
+        GraphQLObjectType objectType = getObjectType(environment);
+        EntityType<?> entityType = getEntityType(objectType);
+        
+        return isPersistent(entityType, attributeName);
+    }
+
+    protected boolean isPersistent(EntityType<?> entityType,
+                                   String attributeName) {
+        try {
+            return entityType.getAttribute(attributeName) != null;
+        } catch (Exception ignored) { } 
+        
+        return false;
+    }
+    
+    protected boolean isTransient(DataFetchingEnvironment environment,
+                                  String attributeName) {
+        return !isPersistent(environment, attributeName);
+    }
+
+    protected boolean isTransient(EntityType<?> entityType,
+                                  String attributeName) {
+        return !isPersistent(entityType, attributeName);
+    }
+    
 
     @SuppressWarnings("rawtypes")
     class NullValue implements Value {
