@@ -22,6 +22,7 @@ import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -975,30 +976,33 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             return ((FloatValue) value).getValue();
         } else if (value instanceof ObjectValue) {
             Class javaType = getJavaType(environment, argument);
+            Map<String, Object> values = environment.getArgument(argument.getName());
             
             try {
-                Object beanValue = javaType.getConstructor()
-                                           .newInstance();
-                
-                Map<String, Object> objectValue =  environment.getArgument(argument.getName());
-               
-                objectValue.entrySet()
-                           .stream()
-                           .forEach(e -> {
-                               setPropertyValue(beanValue, 
-                                                e.getKey(), 
-                                                e.getValue());
-                           });
-                    
-                return beanValue;
-                
-            } catch (Exception e1) {
-                // TODO
+                return getJavaBeanValue(javaType, values);
+            } catch (Exception cause) {
+                throw new RuntimeException(cause);
             }
-            
         }
 
         return value;
+    }
+    
+    private Object getJavaBeanValue(Class<?> javaType, Map<String, Object> values) throws Exception {
+        Constructor<?> constructor = javaType.getConstructor();
+        constructor.setAccessible(true);
+
+        Object javaBean = constructor.newInstance();
+        
+        values.entrySet()
+              .stream()
+              .forEach(entry -> {
+                  setPropertyValue(javaBean,
+                                   entry.getKey(),
+                                   entry.getValue());
+              });
+        
+        return javaBean;
     }
     
     private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) { 
@@ -1016,7 +1020,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 }
             }
         } catch (Exception ignored) {
-            // TODO
+            // ignore
         }
     }
 
