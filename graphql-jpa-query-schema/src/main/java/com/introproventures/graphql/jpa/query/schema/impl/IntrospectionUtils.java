@@ -1,5 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static java.util.Locale.ENGLISH;
+
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -8,11 +10,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -22,23 +25,28 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.ManagedType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
 
 public class IntrospectionUtils {
-    private static final Logger log = LoggerFactory.getLogger(IntrospectionUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntrospectionUtils.class);
     
     private static final Map<Class<?>, EntityIntrospectionResult> map = new LinkedHashMap<>();
 
     public static EntityIntrospectionResult introspect(Class<?> entity) {
-        return map.computeIfAbsent(entity, EntityIntrospectionResult::new);
+        return Optional.ofNullable(map.get(entity))
+                       .orElseThrow(() -> new NoSuchElementException(entity.getName()));
+    }
+    
+    public static EntityIntrospectionResult introspect(ManagedType<?> entityType) {
+        return map.computeIfAbsent(entityType.getJavaType(), 
+                                   cls -> new EntityIntrospectionResult(entityType));
     }
 
     /**
@@ -47,12 +55,10 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has Transient annotation or transient field modifier
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isTransient(Class<?> entity, String propertyName) {
-        return introspect(entity).getPropertyDescriptor(propertyName)
-                                 .map(AttributePropertyDescriptor::isTransient)
-                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+        return introspect(entity).isTransient(propertyName);
     }
     
     /**
@@ -61,9 +67,9 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property is persitent
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
-    public static boolean isPesistent(Class<?> entity, String propertyName) {
+    public static boolean isPersistent(Class<?> entity, String propertyName) {
         return !isTransient(entity, propertyName);
     }    
 
@@ -73,12 +79,10 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has GraphQLIgnore annotation
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isIgnored(Class<?> entity, String propertyName) {
-        return introspect(entity).getPropertyDescriptor(propertyName)
-                                 .map(AttributePropertyDescriptor::isIgnored)
-                                 .orElseThrow(() -> new RuntimeException(new NoSuchFieldException(propertyName)));
+        return introspect(entity).isIgnored(propertyName);
     }
     
     /**
@@ -87,7 +91,7 @@ public class IntrospectionUtils {
      * @param entity a Java entity class to introspect
      * @param propertyName the name of the property
      * @return true if property has no GraphQLIgnore annotation
-     * @throws RuntimeException if property does not exists
+     * @throws NoSuchElementException if property does not exists
      */
     public static boolean isNotIgnored(Class<?> entity, String propertyName) {
         return !isIgnored(entity, propertyName);
@@ -98,44 +102,73 @@ public class IntrospectionUtils {
         private final Map<String, AttributePropertyDescriptor> descriptors;
         private final Class<?> entity;
         private final BeanInfo beanInfo;
-        private final Map<String, Field> fields;
-        
-        public EntityIntrospectionResult(Class<?> entity) {
+        private final ManagedType<?> managedType;
+        private final Map<String, Attribute<?,?>> attributes;
+
+        public EntityIntrospectionResult(ManagedType<?> managedType) {
+            this.managedType = managedType;
+            
+            this.attributes = managedType.getAttributes()
+                                    .stream()
+                                    .collect(Collectors.toMap(Attribute::getName, 
+                                                              Function.identity()));
+
+            this.entity = managedType.getJavaType();
+            
             try {
                 this.beanInfo = Introspector.getBeanInfo(entity);
             } catch (IntrospectionException cause) {
                 throw new RuntimeException(cause);
             }
-
-            this.entity = entity;
             
-            Map<String, PropertyDescriptor> map = Stream.of(beanInfo.getPropertyDescriptors())
-                                                        .collect(Collectors.toMap(PropertyDescriptor::getName, 
-                                                                                  Function.identity())); 
-            
-            this.fields = getClasses().flatMap(k -> Arrays.stream(k.getDeclaredFields()))
-                                      .filter(f -> map.containsKey(Introspector.decapitalize(f.getName())))
-                                      .collect(Collectors.toMap(Field::getName, 
+            this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
+                                     .filter(it -> !"class".equals(it.getName()))  
+                                     .map(AttributePropertyDescriptor::new)
+                                     .collect(Collectors.toMap(AttributePropertyDescriptor::getName, 
                                                                 Function.identity()));
-            
-            this.descriptors = map.values()
-                                  .stream()
-                                  .map(AttributePropertyDescriptor::new)
-                                  .collect(Collectors.toMap(AttributePropertyDescriptor::getName, 
-                                                            Function.identity()));
-            
+        }
+        
+        public Collection<AttributePropertyDescriptor> getTransientPropertyDescriptors() {
+            return descriptors.values()
+                              .stream()
+                              .filter(AttributePropertyDescriptor::isTransient)
+                              .collect(Collectors.toList());
+        }
+
+        public Collection<AttributePropertyDescriptor> getPersistentPropertyDescriptors() {
+            return descriptors.values()
+                              .stream()
+                              .filter(AttributePropertyDescriptor::isPersistent)
+                              .collect(Collectors.toList());
+        }
+        
+        public Collection<AttributePropertyDescriptor> getIgnoredPropertyDescriptors() {
+            return descriptors.values()
+                              .stream()
+                              .filter(AttributePropertyDescriptor::isIgnored)
+                              .collect(Collectors.toList());
+        }
+        
+        public Map<String, Attribute<?, ?>> getAttributes() {
+            return attributes;
+        }
+        
+        public Boolean isIgnored(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isIgnored)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
+        }
+
+        public Boolean isNotIgnored(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isNotIgnored)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
         }
         
         public Collection<AttributePropertyDescriptor> getPropertyDescriptors() {
             return descriptors.values();
         }
 
-        public Collection<Field> getFields() {
-            return fields.values();
-        }
-        
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(String fieldName) {
-            return Optional.ofNullable(descriptors.get(Introspector.decapitalize(fieldName)));
+            return Optional.ofNullable(descriptors.get(fieldName));
         }
         
         public Optional<AttributePropertyDescriptor> getPropertyDescriptor(Attribute<?,?> attribute) {
@@ -146,20 +179,26 @@ public class IntrospectionUtils {
             return descriptors.containsKey(fieldName);
         }
         
-        public Optional<Field> getField(String fieldName) {
-            return Optional.ofNullable(fields.get(fieldName));
+        public Boolean isTransient(String propertyName) {
+            return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isTransient)
+                                                      .orElseThrow(() -> noSuchElementException(entity, propertyName));
         }
-
+        
         public Class<?> getEntity() {
             return entity;
         }
 
+        public ManagedType<?> getManagedType() {
+            return managedType;
+        }
+        
         public BeanInfo getBeanInfo() {
             return beanInfo;
         }
         
         public Optional<String> getSchemaDescription() {
-            return getClasses().map(cls -> Optional.ofNullable(cls.getAnnotation(GraphQLDescription.class))
+            return getClasses().filter(cls -> !Object.class.equals(cls))
+                               .map(cls -> Optional.ofNullable(cls.getAnnotation(GraphQLDescription.class))
                                                    .map(GraphQLDescription::value))
                                .filter(Optional::isPresent)
                                .map(Optional::get)
@@ -170,6 +209,10 @@ public class IntrospectionUtils {
             return getSchemaDescription().isPresent();                  
         }
         
+        public Optional<String> getSchemaDescription(String propertyName) {
+            return getPropertyDescriptor(propertyName).flatMap(AttributePropertyDescriptor::getSchemaDescription);
+        }
+        
         public Stream<Class<?>> getClasses() {
             return iterate(entity, k -> Optional.ofNullable(k.getSuperclass()));
         }
@@ -177,42 +220,54 @@ public class IntrospectionUtils {
         public class AttributePropertyDescriptor {
 
             private final PropertyDescriptor delegate;
+            private final Optional<Attribute<?,?>> attribute;
             private final Optional<Field> field;
 
             public AttributePropertyDescriptor(PropertyDescriptor delegate) {
                 this.delegate = delegate;
-                this.field = Optional.ofNullable(fields.getOrDefault(getName(), 
-                                                                     fields.get(capitalize(getName()))));
+                
+                String name = delegate.getName();
+                
+                this.attribute = Optional.ofNullable(attributes.getOrDefault(name, 
+                                                                             attributes.get(capitalize(name))));
+                this.field = attribute.map(Attribute::getJavaMember)
+                                      .filter(Field.class::isInstance)
+                                      .map(Field.class::cast)
+                                      .map(Optional::of).orElseGet(() -> findField(entity, name));
             }
 
+            public ManagedType<?> getManagedType() {
+                return managedType;
+            }
+            
             public PropertyDescriptor getDelegate() {
                 return delegate;
             }
-
+            
             public Class<?> getPropertyType() {
                 return delegate.getPropertyType();
             }
             
             public String getName() {
-                return delegate.getName();
+                return attribute.map(Attribute::getName)
+                                .orElseGet(() -> delegate.getName());
             }
 
-            public Optional<Field> getField() {
-                return field;
-            }
-
-            public boolean hasField() {
-                return getField().isPresent();
-            }
-            
             public Optional<Method> getReadMethod() {
                 return Optional.ofNullable(delegate.getReadMethod());
             }
             
             public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationClass) {
                 return getReadMethod().map(m -> m.getAnnotation(annotationClass))
-                                      .map(Optional::of) // Java 8 support
-                                      .orElseGet(() -> getField().map(f -> f.getAnnotation(annotationClass)));
+                                      .map(Optional::of).orElseGet(() -> getField().map(f -> f.getAnnotation(annotationClass)));
+            }
+            
+            public Optional<Attribute<?,?>> getAttribute() {
+                return attribute;
+            }
+            
+            public Optional<Field> getField() {
+                return field;
             }
             
             public Optional<String> getSchemaDescription() {
@@ -224,10 +279,13 @@ public class IntrospectionUtils {
             }
             
             public boolean isTransient() {
-                return isAnnotationPresent(Transient.class)  
-                        || hasFieldModifier(Modifier::isTransient);
+                return !attribute.isPresent();
             }
 
+            public boolean isPersistent() {
+                return attribute.isPresent();
+            }
+            
             public boolean isIgnored() {
                 return isAnnotationPresent(GraphQLIgnore.class);  
             }
@@ -240,23 +298,8 @@ public class IntrospectionUtils {
                 return getReadMethod().isPresent();
             }
             
-            public boolean hasFieldModifier(Function<Integer, Boolean> test) {
-                return getField().map(it -> test.apply(it.getModifiers()))
-                                 .orElse(false);
-            }
-
             public boolean isAnnotationPresent(Class<? extends Annotation> annotation) {
-                return isAnnotationPresentOnField(annotation) || isAnnotationPresentOnReadMethod(annotation);
-            }
-
-            private boolean isAnnotationPresentOnField(Class<? extends Annotation> annotation) {
-                return getField().map(f -> f.isAnnotationPresent(annotation))
-                                 .orElse(false);
-            }
-
-            private boolean isAnnotationPresentOnReadMethod(Class<? extends Annotation> annotation) {
-                return getReadMethod().map(m -> m.isAnnotationPresent(annotation))
-                                      .orElse(false);
+                return getAnnotation(annotation).isPresent();
             }
 
             @Override
@@ -292,6 +335,7 @@ public class IntrospectionUtils {
             }
         }
         
+        
         @Override
         public int hashCode() {
             return Objects.hash(beanInfo, entity);
@@ -313,7 +357,6 @@ public class IntrospectionUtils {
         public String toString() {
             return "EntityIntrospectionResult [beanInfo=" + beanInfo + "]";
         }
-        
     }
     
     /**
@@ -350,7 +393,54 @@ public class IntrospectionUtils {
         );
     }
     
-    private static String capitalize(String str) {
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1); 
+    private static NoSuchElementException noSuchElementException(Class<?> containerClass,
+                                                                 String propertyName) {
+        return new NoSuchElementException(String.format(Locale.ROOT,
+                                                        "Could not locate field name [%s] on class [%s]",
+                                                        propertyName,
+                                                        containerClass.getName()));
+        
     }
+    
+    /**
+     * Returns a String which capitalizes the first letter of the string.
+     */
+    private static String capitalize(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+        return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
+    }
+    
+    private static Optional<Field> findField(Class<?> containerClass, String propertyName) {
+        if ( containerClass == null ) {
+            throw new IllegalArgumentException( "Class on which to find field [" + propertyName + "] cannot be null" );
+        }
+        else if ( containerClass == Object.class ) {
+            throw new IllegalArgumentException( "Illegal attempt to locate field [" + propertyName + "] on Object.class" );
+        }
+
+        return Optional.ofNullable(locateField( containerClass, propertyName ));
+    }
+
+    private static Field locateField(Class<?> clazz, String propertyName) {
+        if ( clazz == null || Object.class.equals( clazz ) ) {
+            return null;
+        }
+
+        try {
+            Field field = clazz.getDeclaredField( propertyName );
+            if ( !isStaticField( field ) ) {
+                return field;
+            }
+            return locateField( clazz.getSuperclass(), propertyName );
+        }
+        catch ( NoSuchFieldException nsfe ) {
+            return locateField( clazz.getSuperclass(), propertyName );
+        }
+    }
+
+    private static boolean isStaticField(Field field) {
+        return field != null && ( field.getModifiers() & Modifier.STATIC ) == Modifier.STATIC;
+    }    
 }

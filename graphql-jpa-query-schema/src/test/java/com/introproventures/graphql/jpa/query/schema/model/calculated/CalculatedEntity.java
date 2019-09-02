@@ -1,5 +1,8 @@
 package com.introproventures.graphql.jpa.query.schema.model.calculated;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
@@ -54,7 +57,21 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     
     @GraphQLDescription("Uppercase")
     String Uppercase;
-
+    
+    private Integer age;
+    
+    private Integer getAge(){
+        return Period.between(LocalDate.now(), 
+                              LocalDate.of(2000, 1, 1))
+                     .getYears();
+    }
+    
+    private Integer protectedGetter;
+    
+    protected Integer getProtectedGetter(){
+        return protectedGetter;
+    }
+    
     String UppercaseGetter;
     
     @GraphQLDescription("transientModifier")
@@ -75,6 +92,8 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     String hideField = "hideField";
 
     String propertyIgnoredOnGetter;
+
+    String propertyDuplicatedInChild;
    
     @Transient
     @GraphQLDescription("i desc function")
@@ -87,6 +106,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
         return false;
     }
 
+    @GraphQLIgnore
     public String getHideFieldFunction() {
         return "getHideFieldFunction";
     }
@@ -110,9 +130,10 @@ public class CalculatedEntity extends ParentCalculatedEntity {
         return Uppercase;
     }
 
+    // transient getter 
     @GraphQLIgnore
     public String getUppercaseGetterIgnore() {
-        return Uppercase;
+        return UppercaseGetter;
     }
     
 }

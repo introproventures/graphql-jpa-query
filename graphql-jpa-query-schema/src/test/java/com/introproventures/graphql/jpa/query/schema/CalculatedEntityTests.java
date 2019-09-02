@@ -84,6 +84,7 @@ public class CalculatedEntityTests {
                 "           fieldMem" +
                 "           fieldFun" +
                 "           logic" +
+                "           age" +
                 "           customLogic" +
                 "           hideField" +
                 "           hideFieldFunction" +
@@ -103,6 +104,7 @@ public class CalculatedEntityTests {
                 "           Uppercase" +
                 "           UppercaseGetter" +
                 "           UppercaseGetterIgnore" +
+                "           protectedGetter" +
                 "       } " +
                 "   } " +
                 "}";
