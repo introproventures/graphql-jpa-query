@@ -175,7 +175,8 @@ public class IntrospectionUtilsTest {
                                                                  "transientModifier",
                                                                  "i desc member",
                                                                  "parentTransientModifier",
-                                                                 "Uppercase");
+                                                                 "Uppercase",
+                                                                 "protectedGetter");
     }
 
     @Test
@@ -260,7 +261,24 @@ public class IntrospectionUtilsTest {
                          .get()
                          .getReadMethod())
                          .isEmpty();
-    }    
+    }
+    
+    @Test
+    public void testProtectedModifierOnGetterProperty() throws Exception {
+        // when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        
+        // then
+        assertThat(IntrospectionUtils.isIgnored(entity, "protectedGetter")).isFalse();
+        assertThat(IntrospectionUtils.isPersistent(entity, "protectedGetter")).isTrue();
+        assertThat(IntrospectionUtils.isTransient(entity, "protectedGetter")).isFalse();
+        
+        assertThat(result.getPropertyDescriptor("protectedGetter")).isPresent();
+        assertThat(result.getPropertyDescriptor("protectedGetter")
+                         .get()
+                         .getReadMethod())
+                         .isPresent();
+    }      
 
     @Test
     public void shouldNotFailWhenPropertyIsDuplicatedInParentAndChild() {
