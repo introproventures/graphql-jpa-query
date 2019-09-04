@@ -222,11 +222,14 @@ public class IntrospectionUtils {
             private final PropertyDescriptor delegate;
             private final Optional<Attribute<?,?>> attribute;
             private final Optional<Field> field;
+            private final Optional<Method> readMethod;
 
             public AttributePropertyDescriptor(PropertyDescriptor delegate) {
                 this.delegate = delegate;
                 
                 String name = delegate.getName();
+                
+                this.readMethod = Optional.ofNullable(getterMethodOrNull(entity, name));
                 
                 this.attribute = Optional.ofNullable(attributes.getOrDefault(name, 
                                                                              attributes.get(capitalize(name))));
@@ -254,7 +257,7 @@ public class IntrospectionUtils {
             }
 
             public Optional<Method> getReadMethod() {
-                return Optional.ofNullable(delegate.getReadMethod());
+                return readMethod;
             }
             
             public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationClass) {
@@ -442,5 +445,167 @@ public class IntrospectionUtils {
 
     private static boolean isStaticField(Field field) {
         return field != null && ( field.getModifiers() & Modifier.STATIC ) == Modifier.STATIC;
+    }
+    
+    public static Method findGetterMethod(Class<?> containerClass, String propertyName) {
+        Class<?> checkClass = containerClass;
+        Method getter = null;
+
+        // check containerClass, and then its super types (if any)
+        while ( getter == null && checkClass != null ) {
+            if ( checkClass.equals( Object.class ) ) {
+                break;
+            }
+
+            getter = getGetterOrNull( checkClass, propertyName );
+
+            // if no getter found yet, check all implemented interfaces
+            if ( getter == null ) {
+                getter = getGetterOrNull( checkClass.getInterfaces(), propertyName );
+            }
+
+            checkClass = checkClass.getSuperclass();
+        }
+
+
+        if ( getter == null ) {
+            throw new NoSuchElementException(
+                    String.format(
+                            Locale.ROOT,
+                            "Could not locate getter method for property [%s#%s]",
+                            containerClass.getName(),
+                            propertyName
+                    )
+            );
+        }
+
+        return getter;
+    }
+
+    private static Method getGetterOrNull(Class<?>[] interfaces, String propertyName) {
+        Method getter = null;
+        for ( int i = 0; getter == null && i < interfaces.length; ++i ) {
+            final Class<?> anInterface = interfaces[i];
+            getter = getGetterOrNull( anInterface, propertyName );
+            if ( getter == null ) {
+                // if no getter found yet, check all implemented interfaces of interface
+                getter = getGetterOrNull( anInterface.getInterfaces(), propertyName );
+            }
+        }
+        return getter;
+    }
+
+    private static Method getGetterOrNull(Class<?> containerClass, String propertyName) {
+        for ( Method method : containerClass.getDeclaredMethods() ) {
+            // if the method has parameters, skip it
+            if ( method.getParameterCount() != 0 ) {
+                continue;
+            }
+
+            // if the method is a "bridge", skip it
+            if ( method.isBridge() ) {
+                continue;
+            }
+
+            if ( Modifier.isStatic( method.getModifiers()) ) {
+                continue;
+            }
+            
+            if ( Modifier.isPrivate( method.getModifiers()) ) {
+                continue;
+            }
+
+            final String methodName = method.getName();
+
+            // try "get"
+            if ( methodName.startsWith( "get" ) ) {
+                final String stemName = methodName.substring( 3 );
+                final String decapitalizedStemName = Introspector.decapitalize( stemName );
+                if ( stemName.equals( propertyName ) || decapitalizedStemName.equals( propertyName ) ) {
+                    verifyNoIsVariantExists( containerClass, propertyName, method, stemName );
+                    return method;
+                }
+
+            }
+
+            // if not "get", then try "is"
+            if ( methodName.startsWith( "is" ) ) {
+                final String stemName = methodName.substring( 2 );
+                String decapitalizedStemName = Introspector.decapitalize( stemName );
+                if ( stemName.equals( propertyName ) || decapitalizedStemName.equals( propertyName ) ) {
+                    verifyNoGetVariantExists( containerClass, propertyName, method, stemName );
+                    return method;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static void verifyNoIsVariantExists(
+            Class<?> containerClass,
+            String propertyName,
+            Method getMethod,
+            String stemName) {
+        // verify that the Class does not also define a method with the same stem name with 'is'
+        try {
+            final Method isMethod = containerClass.getDeclaredMethod( "is" + stemName );
+            if ( !Modifier.isStatic( isMethod.getModifiers()) && !Modifier.isPrivate( getMethod.getModifiers()) ) {
+                // No such method should throw the caught exception.  So if we get here, there was
+                // such a method.
+                checkGetAndIsVariants( containerClass, propertyName, getMethod, isMethod );
+            }
+        }
+        catch (NoSuchMethodException ignore) {
+        }
+    }
+
+    private static void checkGetAndIsVariants(
+            Class<?> containerClass,
+            String propertyName,
+            Method getMethod,
+            Method isMethod) {
+        // Check the return types.  If they are the same, its ok.  If they are different
+        // we are in a situation where we could not reasonably know which to use.
+        if ( !isMethod.getReturnType().equals( getMethod.getReturnType() ) ) {
+            throw new NoSuchElementException(
+                    String.format(
+                            Locale.ROOT,
+                            "In trying to locate getter for property [%s], Class [%s] defined " +
+                                    "both a `get` [%s] and `is` [%s] variant",
+                            propertyName,
+                            containerClass.getName(),
+                            getMethod.toString(),
+                            isMethod.toString()
+                    )
+            );
+        }
+    }
+
+    private static void verifyNoGetVariantExists(
+            Class<?> containerClass,
+            String propertyName,
+            Method isMethod,
+            String stemName) {
+        // verify that the Class does not also define a method with the same stem name with 'is'
+        try {
+            final Method getMethod = containerClass.getDeclaredMethod( "get" + stemName );
+            // No such method should throw the caught exception.  So if we get here, there was
+            // such a method.
+            if ( !Modifier.isStatic( getMethod.getModifiers()) && !Modifier.isPrivate( getMethod.getModifiers()) ) {
+                checkGetAndIsVariants( containerClass, propertyName, getMethod, isMethod );
+            }
+        }
+        catch (NoSuchMethodException ignore) {
+        }
+    }
+
+    public static Method getterMethodOrNull(Class<?> containerJavaType, String propertyName) {
+        try {
+            return findGetterMethod( containerJavaType, propertyName );
+        }
+        catch (NoSuchElementException e) {
+            return null;
+        }
     }    
 }

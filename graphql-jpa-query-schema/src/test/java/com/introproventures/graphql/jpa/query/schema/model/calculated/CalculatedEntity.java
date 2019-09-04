@@ -68,6 +68,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     
     private Integer protectedGetter;
     
+    @GraphQLDescription("protectedGetter")
     protected Integer getProtectedGetter(){
         return protectedGetter;
     }
