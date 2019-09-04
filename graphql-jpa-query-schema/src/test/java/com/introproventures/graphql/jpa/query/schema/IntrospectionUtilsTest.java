@@ -9,8 +9,10 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 
+import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -377,5 +379,22 @@ public class IntrospectionUtilsTest {
                                                                         "hideField",
                                                                         "parentTransientGraphQLIgnoreGetter",
                                                                         "parentTransientGraphQLIgnore");
-    }    
+    }
+
+    @Test
+    public void shouldIntrospectEntityWithCustomMetamodel() {
+        //given
+        EntityType<ClassWithCustomMetamodel> entity = entityManager.getMetamodel().entity(ClassWithCustomMetamodel.class);
+
+        //when
+        EntityIntrospectionResult result = IntrospectionUtils.introspect(entity);
+
+        //then
+        assertThat(result.getPropertyDescriptors())
+                .extracting(AttributePropertyDescriptor::getName)
+                .containsOnly("id",
+                              "publicValue",
+                              "protectedValue",
+                              "ignoredProtectedValue");
+    }
 }
