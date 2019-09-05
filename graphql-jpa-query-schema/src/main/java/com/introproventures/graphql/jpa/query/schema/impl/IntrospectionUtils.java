@@ -2,10 +2,6 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static java.util.Locale.ENGLISH;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,11 +29,22 @@ import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+import com.introproventures.graphql.jpa.query.introspection.ClassDescriptor;
+import com.introproventures.graphql.jpa.query.introspection.ClassIntrospector;
+import com.introproventures.graphql.jpa.query.introspection.FieldDescriptor;
+import com.introproventures.graphql.jpa.query.introspection.MethodDescriptor;
+import com.introproventures.graphql.jpa.query.introspection.PropertyDescriptor;
 
 public class IntrospectionUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(IntrospectionUtils.class);
     
     private static final Map<Class<?>, EntityIntrospectionResult> map = new LinkedHashMap<>();
+    
+    private static ClassIntrospector introspector = ClassIntrospector.builder()
+                                                                     .withScanAccessible(false)
+                                                                     .withEnhancedProperties(true)
+                                                                     .withIncludeFieldsAsProperties(false)
+                                                                     .build();
 
     public static EntityIntrospectionResult introspect(Class<?> entity) {
         return Optional.ofNullable(map.get(entity))
@@ -101,7 +108,7 @@ public class IntrospectionUtils {
 
         private final Map<String, AttributePropertyDescriptor> descriptors;
         private final Class<?> entity;
-        private final BeanInfo beanInfo;
+        private final ClassDescriptor classDescriptor;
         private final ManagedType<?> managedType;
         private final Map<String, Attribute<?,?>> attributes;
 
@@ -115,13 +122,9 @@ public class IntrospectionUtils {
 
             this.entity = managedType.getJavaType();
             
-            try {
-                this.beanInfo = Introspector.getBeanInfo(entity);
-            } catch (IntrospectionException cause) {
-                throw new RuntimeException(cause);
-            }
+            this.classDescriptor = introspector.introspect(entity);
             
-            this.descriptors = Stream.of(beanInfo.getPropertyDescriptors())
+            this.descriptors = Stream.of(classDescriptor.getAllPropertyDescriptors())
                                      .filter(it -> !"class".equals(it.getName()))  
                                      .map(AttributePropertyDescriptor::new)
                                      .collect(Collectors.toMap(AttributePropertyDescriptor::getName, 
@@ -192,8 +195,8 @@ public class IntrospectionUtils {
             return managedType;
         }
         
-        public BeanInfo getBeanInfo() {
-            return beanInfo;
+        public ClassDescriptor getClassDescriptor() {
+            return classDescriptor;
         }
         
         public Optional<String> getSchemaDescription() {
@@ -229,14 +232,18 @@ public class IntrospectionUtils {
                 
                 String name = delegate.getName();
                 
-                this.readMethod = Optional.ofNullable(getterMethodOrNull(entity, name));
+                this.readMethod = Optional.ofNullable(delegate.getReadMethodDescriptor())
+                                          .map(MethodDescriptor::getMethod)
+                                          .filter(m -> !Modifier.isPrivate(m.getModifiers())); 
                 
                 this.attribute = Optional.ofNullable(attributes.getOrDefault(name, 
                                                                              attributes.get(capitalize(name))));
                 this.field = attribute.map(Attribute::getJavaMember)
                                       .filter(Field.class::isInstance)
                                       .map(Field.class::cast)
-                                      .map(Optional::of).orElseGet(() -> findField(entity, name));
+                                      .map(Optional::of)
+                                      .orElseGet(() -> Optional.ofNullable(delegate.getFieldDescriptor())
+                                                               .map(FieldDescriptor::getField));
             }
 
             public ManagedType<?> getManagedType() {
@@ -248,7 +255,7 @@ public class IntrospectionUtils {
             }
             
             public Class<?> getPropertyType() {
-                return delegate.getPropertyType();
+                return delegate.getType();
             }
             
             public String getName() {
@@ -341,7 +348,7 @@ public class IntrospectionUtils {
         
         @Override
         public int hashCode() {
-            return Objects.hash(beanInfo, entity);
+            return Objects.hash(classDescriptor, entity);
         }
 
         @Override
@@ -353,12 +360,12 @@ public class IntrospectionUtils {
             if (getClass() != obj.getClass())
                 return false;
             EntityIntrospectionResult other = (EntityIntrospectionResult) obj;
-            return Objects.equals(beanInfo, other.beanInfo) && Objects.equals(entity, other.entity);
+            return Objects.equals(classDescriptor, other.classDescriptor) && Objects.equals(entity, other.entity);
         }
         
         @Override
         public String toString() {
-            return "EntityIntrospectionResult [beanInfo=" + beanInfo + "]";
+            return "EntityIntrospectionResult [beanInfo=" + classDescriptor + "]";
         }
     }
     
@@ -415,197 +422,4 @@ public class IntrospectionUtils {
         return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
     }
     
-    private static Optional<Field> findField(Class<?> containerClass, String propertyName) {
-        if ( containerClass == null ) {
-            throw new IllegalArgumentException( "Class on which to find field [" + propertyName + "] cannot be null" );
-        }
-        else if ( containerClass == Object.class ) {
-            throw new IllegalArgumentException( "Illegal attempt to locate field [" + propertyName + "] on Object.class" );
-        }
-
-        return Optional.ofNullable(locateField( containerClass, propertyName ));
-    }
-
-    private static Field locateField(Class<?> clazz, String propertyName) {
-        if ( clazz == null || Object.class.equals( clazz ) ) {
-            return null;
-        }
-
-        try {
-            Field field = clazz.getDeclaredField( propertyName );
-            if ( !isStaticField( field ) ) {
-                return field;
-            }
-            return locateField( clazz.getSuperclass(), propertyName );
-        }
-        catch ( NoSuchFieldException nsfe ) {
-            return locateField( clazz.getSuperclass(), propertyName );
-        }
-    }
-
-    private static boolean isStaticField(Field field) {
-        return field != null && ( field.getModifiers() & Modifier.STATIC ) == Modifier.STATIC;
-    }
-    
-    public static Method findGetterMethod(Class<?> containerClass, String propertyName) {
-        Class<?> checkClass = containerClass;
-        Method getter = null;
-
-        // check containerClass, and then its super types (if any)
-        while ( getter == null && checkClass != null ) {
-            if ( checkClass.equals( Object.class ) ) {
-                break;
-            }
-
-            getter = getGetterOrNull( checkClass, propertyName );
-
-            // if no getter found yet, check all implemented interfaces
-            if ( getter == null ) {
-                getter = getGetterOrNull( checkClass.getInterfaces(), propertyName );
-            }
-
-            checkClass = checkClass.getSuperclass();
-        }
-
-
-        if ( getter == null ) {
-            throw new NoSuchElementException(
-                    String.format(
-                            Locale.ROOT,
-                            "Could not locate getter method for property [%s#%s]",
-                            containerClass.getName(),
-                            propertyName
-                    )
-            );
-        }
-
-        return getter;
-    }
-
-    private static Method getGetterOrNull(Class<?>[] interfaces, String propertyName) {
-        Method getter = null;
-        for ( int i = 0; getter == null && i < interfaces.length; ++i ) {
-            final Class<?> anInterface = interfaces[i];
-            getter = getGetterOrNull( anInterface, propertyName );
-            if ( getter == null ) {
-                // if no getter found yet, check all implemented interfaces of interface
-                getter = getGetterOrNull( anInterface.getInterfaces(), propertyName );
-            }
-        }
-        return getter;
-    }
-
-    private static Method getGetterOrNull(Class<?> containerClass, String propertyName) {
-        for ( Method method : containerClass.getDeclaredMethods() ) {
-            // if the method has parameters, skip it
-            if ( method.getParameterCount() != 0 ) {
-                continue;
-            }
-
-            // if the method is a "bridge", skip it
-            if ( method.isBridge() ) {
-                continue;
-            }
-
-            if ( Modifier.isStatic( method.getModifiers()) ) {
-                continue;
-            }
-            
-            if ( Modifier.isPrivate( method.getModifiers()) ) {
-                continue;
-            }
-
-            final String methodName = method.getName();
-
-            // try "get"
-            if ( methodName.startsWith( "get" ) ) {
-                final String stemName = methodName.substring( 3 );
-                final String decapitalizedStemName = Introspector.decapitalize( stemName );
-                if ( stemName.equals( propertyName ) || decapitalizedStemName.equals( propertyName ) ) {
-                    verifyNoIsVariantExists( containerClass, propertyName, method, stemName );
-                    return method;
-                }
-
-            }
-
-            // if not "get", then try "is"
-            if ( methodName.startsWith( "is" ) ) {
-                final String stemName = methodName.substring( 2 );
-                String decapitalizedStemName = Introspector.decapitalize( stemName );
-                if ( stemName.equals( propertyName ) || decapitalizedStemName.equals( propertyName ) ) {
-                    verifyNoGetVariantExists( containerClass, propertyName, method, stemName );
-                    return method;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static void verifyNoIsVariantExists(
-            Class<?> containerClass,
-            String propertyName,
-            Method getMethod,
-            String stemName) {
-        // verify that the Class does not also define a method with the same stem name with 'is'
-        try {
-            final Method isMethod = containerClass.getDeclaredMethod( "is" + stemName );
-            if ( !Modifier.isStatic( isMethod.getModifiers()) && !Modifier.isPrivate( getMethod.getModifiers()) ) {
-                // No such method should throw the caught exception.  So if we get here, there was
-                // such a method.
-                checkGetAndIsVariants( containerClass, propertyName, getMethod, isMethod );
-            }
-        }
-        catch (NoSuchMethodException ignore) {
-        }
-    }
-
-    private static void checkGetAndIsVariants(
-            Class<?> containerClass,
-            String propertyName,
-            Method getMethod,
-            Method isMethod) {
-        // Check the return types.  If they are the same, its ok.  If they are different
-        // we are in a situation where we could not reasonably know which to use.
-        if ( !isMethod.getReturnType().equals( getMethod.getReturnType() ) ) {
-            throw new NoSuchElementException(
-                    String.format(
-                            Locale.ROOT,
-                            "In trying to locate getter for property [%s], Class [%s] defined " +
-                                    "both a `get` [%s] and `is` [%s] variant",
-                            propertyName,
-                            containerClass.getName(),
-                            getMethod.toString(),
-                            isMethod.toString()
-                    )
-            );
-        }
-    }
-
-    private static void verifyNoGetVariantExists(
-            Class<?> containerClass,
-            String propertyName,
-            Method isMethod,
-            String stemName) {
-        // verify that the Class does not also define a method with the same stem name with 'is'
-        try {
-            final Method getMethod = containerClass.getDeclaredMethod( "get" + stemName );
-            // No such method should throw the caught exception.  So if we get here, there was
-            // such a method.
-            if ( !Modifier.isStatic( getMethod.getModifiers()) && !Modifier.isPrivate( getMethod.getModifiers()) ) {
-                checkGetAndIsVariants( containerClass, propertyName, getMethod, isMethod );
-            }
-        }
-        catch (NoSuchMethodException ignore) {
-        }
-    }
-
-    public static Method getterMethodOrNull(Class<?> containerJavaType, String propertyName) {
-        try {
-            return findGetterMethod( containerJavaType, propertyName );
-        }
-        catch (NoSuchElementException e) {
-            return null;
-        }
-    }    
 }
