@@ -35,8 +35,8 @@ import com.introproventures.graphql.jpa.query.introspection.FieldDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.MethodDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.PropertyDescriptor;
 
-public class IntrospectionUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IntrospectionUtils.class);
+public class EntityIntrospector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntityIntrospector.class);
     
     private static final Map<Class<?>, EntityIntrospectionResult> map = new LinkedHashMap<>();
     
@@ -45,63 +45,27 @@ public class IntrospectionUtils {
                                                                      .withEnhancedProperties(true)
                                                                      .withIncludeFieldsAsProperties(false)
                                                                      .build();
-
-    public static EntityIntrospectionResult introspect(Class<?> entity) {
+    /**
+     * Get existing EntityIntrospectionResult for Java type 
+     * 
+     * @param entity Java type of the entity
+     * @return EntityIntrospectionResult result
+     * @throws NoSuchElementException if not found
+     */
+    public static EntityIntrospectionResult resultOf(Class<?> entity) {
         return Optional.ofNullable(map.get(entity))
                        .orElseThrow(() -> new NoSuchElementException(entity.getName()));
     }
     
+    /**
+     * Introspect entity type represented by ManagedType instance 
+     * 
+     * @param entityType ManagedType representing persistent entity
+     * @return EntityIntrospectionResult result
+     */
     public static EntityIntrospectionResult introspect(ManagedType<?> entityType) {
         return map.computeIfAbsent(entityType.getJavaType(), 
                                    cls -> new EntityIntrospectionResult(entityType));
-    }
-
-    /**
-     * Test if Java bean property is transient according to JPA specification 
-     * 
-     * @param entity a Java entity class to introspect
-     * @param propertyName the name of the property
-     * @return true if property has Transient annotation or transient field modifier
-     * @throws NoSuchElementException if property does not exists
-     */
-    public static boolean isTransient(Class<?> entity, String propertyName) {
-        return introspect(entity).isTransient(propertyName);
-    }
-    
-    /**
-     * Test if Java bean property is persistent according to JPA specification 
-     * 
-     * @param entity a Java entity class to introspect
-     * @param propertyName the name of the property
-     * @return true if property is persitent
-     * @throws NoSuchElementException if property does not exists
-     */
-    public static boolean isPersistent(Class<?> entity, String propertyName) {
-        return !isTransient(entity, propertyName);
-    }    
-
-    /**
-     * Test if entity property is annotated with GraphQLIgnore  
-     * 
-     * @param entity a Java entity class to introspect
-     * @param propertyName the name of the property
-     * @return true if property has GraphQLIgnore annotation
-     * @throws NoSuchElementException if property does not exists
-     */
-    public static boolean isIgnored(Class<?> entity, String propertyName) {
-        return introspect(entity).isIgnored(propertyName);
-    }
-    
-    /**
-     * Test if entity property is not ignored  
-     * 
-     * @param entity a Java entity class to introspect
-     * @param propertyName the name of the property
-     * @return true if property has no GraphQLIgnore annotation
-     * @throws NoSuchElementException if property does not exists
-     */
-    public static boolean isNotIgnored(Class<?> entity, String propertyName) {
-        return !isIgnored(entity, propertyName);
     }
 
     public static class EntityIntrospectionResult {
@@ -156,11 +120,27 @@ public class IntrospectionUtils {
             return attributes;
         }
         
+        /**
+         * Test if entity property is annotated with GraphQLIgnore  
+         * 
+         * @param entity a Java entity class to introspect
+         * @param propertyName the name of the property
+         * @return true if property has GraphQLIgnore annotation
+         * @throws NoSuchElementException if property does not exists
+         */
         public Boolean isIgnored(String propertyName) {
             return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isIgnored)
                                                       .orElseThrow(() -> noSuchElementException(entity, propertyName));
         }
 
+        /**
+         * Test if entity property is not ignored  
+         * 
+         * @param entity a Java entity class to introspect
+         * @param propertyName the name of the property
+         * @return true if property has no GraphQLIgnore annotation
+         * @throws NoSuchElementException if property does not exists
+         */
         public Boolean isNotIgnored(String propertyName) {
             return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isNotIgnored)
                                                       .orElseThrow(() -> noSuchElementException(entity, propertyName));
@@ -182,9 +162,29 @@ public class IntrospectionUtils {
             return descriptors.containsKey(fieldName);
         }
         
+        /**
+         * Test if Java bean property is transient according to JPA specification 
+         * 
+         * @param entity a Java entity class to introspect
+         * @param propertyName the name of the property
+         * @return true if property has Transient annotation or transient field modifier
+         * @throws NoSuchElementException if property does not exists
+         */
         public Boolean isTransient(String propertyName) {
             return getPropertyDescriptor(propertyName).map(AttributePropertyDescriptor::isTransient)
                                                       .orElseThrow(() -> noSuchElementException(entity, propertyName));
+        }
+
+        /**
+         * Test if Java bean property is persistent according to JPA specification 
+         * 
+         * @param entity a Java entity class to introspect
+         * @param propertyName the name of the property
+         * @return true if property is persitent
+         * @throws NoSuchElementException if property does not exists
+         */
+        public Boolean isPersistent(String propertyName) {
+            return !isTransient(propertyName);
         }
         
         public Class<?> getEntity() {

@@ -12,146 +12,148 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
 
-import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
+import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
 @TestPropertySource({"classpath:hibernate.properties"})
-public class IntrospectionUtilsTest {
+public class EntityIntrospectorTest {
 
     @SpringBootApplication
     static class Application {
-        @Bean
-        public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
-            return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
-        }
-
-        @Bean
-        public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            return new GraphQLJpaSchemaBuilder(entityManager)
-                    .name("GraphQLCalcFields")
-                    .description("CalcFields JPA test schema");
-        }
     }
 
     @Autowired
     private EntityManager entityManager;
     
 	// given
-    private final Class<CalculatedEntity> entity = CalculatedEntity.class;
+    private final Class<CalculatedEntity> entityClass = CalculatedEntity.class;
+    
+    private EntityIntrospectionResult subject;
+    
+    @Before
+    public void setUp() {
+        ManagedType<CalculatedEntity> entityType = entityManager.getMetamodel()
+                                                                .managedType(entityClass);
+        
+        this.subject = EntityIntrospector.introspect(entityType);
+    }
 
+    
+    @Test(expected = NoSuchElementException.class)
+    public void testResultOfNoSuchElementException() throws Exception {
+        // then
+        EntityIntrospector.resultOf(Object.class);
+    }
+    
     @Test(expected = NoSuchElementException.class)
     public void testIsTransientNonExisting() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity, "notFound")).isFalse();
+        assertThat(subject.isTransient("notFound")).isFalse();
     }
 
     @Test(expected = NoSuchElementException.class)
     public void testIsIgnoredNonExisting() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isIgnored(entity, "notFound")).isFalse();
+        assertThat(subject.isIgnored("notFound")).isFalse();
     }
     
     @Test
     public void shouldExcludeClassPropertyDescriptor() throws Exception {
         // then
-        assertThat(IntrospectionUtils.introspect(entity)
-                                     .getPropertyDescriptor("class"))
-                                     .isEmpty();
+        assertThat(subject.getPropertyDescriptor("class")).isEmpty();
     }
 
     @Test
     public void testIsTransientFunction() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity, "fieldFun")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "hideFieldFunction")).isTrue();
-    }
+        assertThat(subject.isTransient("fieldFun")).isTrue();
+        assertThat(subject.isTransient("hideFieldFunction")).isTrue();
+    } 
 
     @Test
     public void testIsPersistentFunction() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isPersistent(entity, "fieldFun")).isFalse();
-        assertThat(IntrospectionUtils.isPersistent(entity, "hideFieldFunction")).isFalse();
+        assertThat(subject.isPersistent("fieldFun")).isFalse();
+        assertThat(subject.isPersistent("hideFieldFunction")).isFalse();
     }
     
     @Test
     public void testIsTransientFields() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity, "fieldFun")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "fieldMem")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "hideField")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "logic")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "transientModifier")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "parentTransientModifier")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "parentTransient")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "parentTransientGetter")).isTrue();
+        assertThat(subject.isTransient("fieldFun")).isTrue();
+        assertThat(subject.isTransient("fieldMem")).isTrue();
+        assertThat(subject.isTransient("hideField")).isTrue();
+        assertThat(subject.isTransient("logic")).isTrue();
+        assertThat(subject.isTransient("transientModifier")).isTrue();
+        assertThat(subject.isTransient("parentTransientModifier")).isTrue();
+        assertThat(subject.isTransient("parentTransient")).isTrue();
+        assertThat(subject.isTransient("parentTransientGetter")).isTrue();
     }
 
     @Test
     public void testNotTransientFields() throws Exception {
     	// then
-        assertThat(IntrospectionUtils.isTransient(entity, "id")).isFalse();
-        assertThat(IntrospectionUtils.isTransient(entity, "info")).isFalse();
-        assertThat(IntrospectionUtils.isTransient(entity, "title")).isFalse();
-        assertThat(IntrospectionUtils.isTransient(entity, "parentField")).isFalse();
+        assertThat(subject.isTransient("id")).isFalse();
+        assertThat(subject.isTransient("info")).isFalse();
+        assertThat(subject.isTransient("title")).isFalse();
+        assertThat(subject.isTransient("parentField")).isFalse();
     }
 
     @Test
     public void testByPassSetMethod() throws Exception {
         // then
-        assertThat(IntrospectionUtils.isTransient(entity,"something")).isTrue();
+        assertThat(subject.isTransient("something")).isTrue();
     }
 
     @Test
     public void shouldIgnoreMethodsThatAreAnnotatedWithGraphQLIgnore() {
         //then
-        assertThat(IntrospectionUtils.isIgnored(entity, "propertyIgnoredOnGetter")).isTrue();
-        assertThat(IntrospectionUtils.isIgnored(entity, "ignoredTransientValue")).isTrue();
-        assertThat(IntrospectionUtils.isIgnored(entity, "hideField")).isTrue();
-        assertThat(IntrospectionUtils.isIgnored(entity, "parentGraphQLIgnore")).isTrue();
+        assertThat(subject.isIgnored("propertyIgnoredOnGetter")).isTrue();
+        assertThat(subject.isIgnored("ignoredTransientValue")).isTrue();
+        assertThat(subject.isIgnored("hideField")).isTrue();
+        assertThat(subject.isIgnored("parentGraphQLIgnore")).isTrue();
 
-        assertThat(IntrospectionUtils.isIgnored(entity, "transientModifier")).isFalse();
-        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransientModifier")).isFalse();
-        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransient")).isFalse();
-        assertThat(IntrospectionUtils.isIgnored(entity, "parentTransientGetter")).isFalse();
+        assertThat(subject.isIgnored("transientModifier")).isFalse();
+        assertThat(subject.isIgnored("parentTransientModifier")).isFalse();
+        assertThat(subject.isIgnored("parentTransient")).isFalse();
+        assertThat(subject.isIgnored("parentTransientGetter")).isFalse();
     }
 
     @Test
     public void shouldNotIgnoreMethodsThatAreNotAnnotatedWithGraphQLIgnore() {
         //then
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "propertyIgnoredOnGetter")).isFalse();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "ignoredTransientValue")).isFalse();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "hideField")).isFalse();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentGraphQLIgnore")).isFalse();
+        assertThat(subject.isNotIgnored("propertyIgnoredOnGetter")).isFalse();
+        assertThat(subject.isNotIgnored("ignoredTransientValue")).isFalse();
+        assertThat(subject.isNotIgnored("hideField")).isFalse();
+        assertThat(subject.isNotIgnored("parentGraphQLIgnore")).isFalse();
         
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "transientModifier")).isTrue();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransientModifier")).isTrue();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransient")).isTrue();
-        assertThat(IntrospectionUtils.isNotIgnored(entity, "parentTransientGetter")).isTrue();
+        assertThat(subject.isNotIgnored("transientModifier")).isTrue();
+        assertThat(subject.isNotIgnored("parentTransientModifier")).isTrue();
+        assertThat(subject.isNotIgnored("parentTransient")).isTrue();
+        assertThat(subject.isNotIgnored("parentTransientGetter")).isTrue();
     }
     
     @SuppressWarnings("rawtypes")
     @Test
     public void shouldGetClassesInHierarchy() {
         //when
-        Class[] result = IntrospectionUtils.introspect(entity)
+        Class[] result = EntityIntrospector.resultOf(entityClass)
                                            .getClasses()
                                            .toArray(Class[]::new);
         
@@ -164,7 +166,7 @@ public class IntrospectionUtilsTest {
     @Test
     public void testGetPropertyDescriptorsSchemaDescription() throws Exception {
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult result = EntityIntrospector.resultOf(CalculatedEntity.class);
         
         // then
         assertThat(result.getPropertyDescriptors()).extracting(AttributePropertyDescriptor::getSchemaDescription)
@@ -188,7 +190,7 @@ public class IntrospectionUtilsTest {
         when(attribute.getName()).thenReturn("title");
         
         // when
-        Optional<AttributePropertyDescriptor> result = IntrospectionUtils.introspect(CalculatedEntity.class)
+        Optional<AttributePropertyDescriptor> result = EntityIntrospector.resultOf(CalculatedEntity.class)
                                                              .getPropertyDescriptor(attribute);
         // then
         assertThat(result.isPresent()).isTrue();
@@ -197,7 +199,7 @@ public class IntrospectionUtilsTest {
     @Test
     public void testGetParentEntitySchemaDescription() throws Exception {
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult result = EntityIntrospector.resultOf(CalculatedEntity.class);
         
         // then
         assertThat(result.getSchemaDescription()).contains("ParentCalculatedEntity description");
@@ -207,7 +209,7 @@ public class IntrospectionUtilsTest {
     @Test
     public void testUppercasePropertyNamesAreSupported() throws Exception {
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult result = EntityIntrospector.resultOf(CalculatedEntity.class);
         
         // then
         assertThat(result.getPropertyDescriptor("Uppercase")).isPresent();
@@ -251,12 +253,12 @@ public class IntrospectionUtilsTest {
     @Test
     public void testPrivateModifierOnGetterProperty() throws Exception {
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult result = EntityIntrospector.resultOf(CalculatedEntity.class);
         
         // then
-        assertThat(IntrospectionUtils.isIgnored(entity, "age")).isFalse();
-        assertThat(IntrospectionUtils.isPersistent(entity, "age")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "age")).isFalse();
+        assertThat(subject.isIgnored("age")).isFalse();
+        assertThat(subject.isPersistent("age")).isTrue();
+        assertThat(subject.isTransient("age")).isFalse();
         
         assertThat(result.getPropertyDescriptor("age")).isPresent();
         assertThat(result.getPropertyDescriptor("age")
@@ -268,12 +270,12 @@ public class IntrospectionUtilsTest {
     @Test
     public void testProtectedModifierOnGetterProperty() throws Exception {
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult result = EntityIntrospector.resultOf(CalculatedEntity.class);
         
         // then
-        assertThat(IntrospectionUtils.isIgnored(entity, "protectedGetter")).isFalse();
-        assertThat(IntrospectionUtils.isPersistent(entity, "protectedGetter")).isTrue();
-        assertThat(IntrospectionUtils.isTransient(entity, "protectedGetter")).isFalse();
+        assertThat(subject.isIgnored("protectedGetter")).isFalse();
+        assertThat(subject.isPersistent("protectedGetter")).isTrue();
+        assertThat(subject.isTransient("protectedGetter")).isFalse();
         
         assertThat(result.getPropertyDescriptor("protectedGetter")).isPresent();
         assertThat(result.getPropertyDescriptor("protectedGetter")
@@ -288,7 +290,7 @@ public class IntrospectionUtilsTest {
         // There is a duplicated property in parent and child
 
         // then
-        assertThatCode(() -> IntrospectionUtils.introspect(CalculatedEntity.class)).doesNotThrowAnyException();
+        assertThatCode(() -> EntityIntrospector.resultOf(CalculatedEntity.class)).doesNotThrowAnyException();
     }
 
     @Test
@@ -297,7 +299,7 @@ public class IntrospectionUtilsTest {
         // There is a duplicated property in parent and child
 
         // when
-        EntityIntrospectionResult introspectionResult = IntrospectionUtils.introspect(CalculatedEntity.class);
+        EntityIntrospectionResult introspectionResult = EntityIntrospector.resultOf(CalculatedEntity.class);
 
         // then
         Optional<AttributePropertyDescriptor> propertyOverriddenInChild = introspectionResult.getPropertyDescriptor("propertyDuplicatedInChild");
@@ -310,7 +312,7 @@ public class IntrospectionUtilsTest {
         ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
         
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        EntityIntrospectionResult result = EntityIntrospector.introspect(managedType);
         
         // then
         assertThat(result.getTransientPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
@@ -339,7 +341,7 @@ public class IntrospectionUtilsTest {
         ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
         
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        EntityIntrospectionResult result = EntityIntrospector.introspect(managedType);
         
         // then
         assertThat(result.getPersistentPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
@@ -364,7 +366,7 @@ public class IntrospectionUtilsTest {
         ManagedType<?> managedType = entityManager.getMetamodel().entity(CalculatedEntity.class);
         
         // when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(managedType);
+        EntityIntrospectionResult result = EntityIntrospector.introspect(managedType);
         
         // then
         assertThat(result.getIgnoredPropertyDescriptors()).extracting(AttributePropertyDescriptor::getName)
@@ -384,10 +386,11 @@ public class IntrospectionUtilsTest {
     @Test
     public void shouldIntrospectEntityWithCustomMetamodel() {
         //given
-        EntityType<ClassWithCustomMetamodel> entity = entityManager.getMetamodel().entity(ClassWithCustomMetamodel.class);
+        EntityType<ClassWithCustomMetamodel> entity = entityManager.getMetamodel()
+                                                                   .entity(ClassWithCustomMetamodel.class);
 
         //when
-        EntityIntrospectionResult result = IntrospectionUtils.introspect(entity);
+        EntityIntrospectionResult result = EntityIntrospector.introspect(entity);
 
         //then
         assertThat(result.getPropertyDescriptors())
