@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.introspection;
 
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -38,6 +39,10 @@ public class Fields {
                 continue;
             }
 
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            
             map.put(fieldName, createFieldDescriptor(field));
         }
 
