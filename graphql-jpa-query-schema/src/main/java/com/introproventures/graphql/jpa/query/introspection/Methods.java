@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.introspection;
 
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +34,11 @@ public class Methods {
         Map<String, MethodDescriptor[]> map = new LinkedHashMap<>(methods.length);
 
         for (Method method : methods) {
+            
+            if(Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+                
             String methodName = method.getName();
 
             MethodDescriptor[] mds = map.get(methodName);
