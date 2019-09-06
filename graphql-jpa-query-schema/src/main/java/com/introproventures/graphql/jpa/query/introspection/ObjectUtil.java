@@ -7,6 +7,10 @@ import java.util.stream.Stream;
 public class ObjectUtil {
 
     public static boolean isAnyNull(Object... objects) {
+        if(objects == null) {
+            return true;
+        }
+        
         return Stream.of(objects).anyMatch(Objects::isNull);
     }
     
