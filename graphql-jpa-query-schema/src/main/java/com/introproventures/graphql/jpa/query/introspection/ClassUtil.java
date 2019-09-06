@@ -31,6 +31,16 @@ public class ClassUtil {
         }
     }    
     
+    public static List<Class<?>> getAllInterfaces(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+
+        List<Class<?>> interfacesFound = new ArrayList<>();
+        getAllInterfaces(clazz, interfacesFound);
+
+        return interfacesFound;
+    }    
     public static List<Class<?>> getAllSuperclasses(Class<?> clazz) {
         if (clazz == null) {
             return null;

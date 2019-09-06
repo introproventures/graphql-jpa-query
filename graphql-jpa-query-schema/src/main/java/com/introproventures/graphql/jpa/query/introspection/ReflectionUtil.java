@@ -14,6 +14,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -133,6 +134,10 @@ public abstract class ReflectionUtil {
         }
         return componentTypes[componentTypes.length - 1];
     }
+    
+    public static Class<?> getComponentType(Type type) {
+        return getComponentType(type, null);
+    }    
     
     static Field[] getAllFieldsOfClass0(Class<?> clazz) {
         Field[] fields = null;
@@ -475,5 +480,156 @@ public abstract class ReflectionUtil {
             }
         }
         return null;
+    }
+    
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>...parameterTypes) {
+        if (clazz == null || methodName == null) {
+            return null;
+        }
+
+        for (Class<?> itr = clazz; hasSuperClass(itr);) {
+            Method[] methods = itr.getDeclaredMethods();
+
+            for (Method method : methods) {
+                if (method.getName().equals(methodName) && Arrays.equals(method.getParameterTypes(), parameterTypes)) {
+                    return method;
+                }
+            }
+
+            itr = itr.getSuperclass();
+        }
+
+        return null;
+
+    }
+
+    public static Field[] getAllInstanceFields(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+
+        return getAllInstanceFields0(clazz);
+    }
+    
+    static Field[] getAllInstanceFields0(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        for (Class<?> itr = clazz; hasSuperClass(itr);) {
+            for (Field field : itr.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) {
+                    fields.add(field);
+                }
+            }
+            itr = itr.getSuperclass();
+        }
+
+        return fields.toArray(new Field[fields.size()]);
+    }
+
+    public static <T, A extends Annotation> List<Method> getAnnotationMethods(Class<T> clazz, Class<A> annotationType) {
+        if (clazz == null || annotationType == null) {
+            return null;
+        }
+        List<Method> list = new ArrayList<>();
+
+        for (Method method : getAllMethodsOfClass(clazz)) {
+            A type = method.getAnnotation(annotationType);
+            if (type != null) {
+                list.add(method);
+            }
+        }
+
+        return list;
+    }
+
+    public static Field[] getAnnotationFields(Class<?> clazz, Class<? extends Annotation> annotationClass) {
+        if (clazz == null || annotationClass == null) {
+            return null;
+        }
+
+        Field[] fields = getAllFieldsOfClass0(clazz);
+        if (ArrayUtil.isEmpty(fields)) {
+            return null;
+        }
+
+        List<Field> list = new ArrayList<>();
+        for (Field field : fields) {
+            if (null != field.getAnnotation(annotationClass)) {
+                list.add(field);
+                field.setAccessible(true);
+            }
+        }
+
+        return list.toArray(new Field[0]);
+    }
+
+    public static Class<?>[] getGenericSuperTypes(Class<?> type) {
+        if (type == null) {
+            return null;
+        }
+
+        return getComponentTypes(type.getGenericSuperclass());
+    }
+    
+    public static Class<?>[] getComponentTypes(Type type) {
+        return getComponentTypes(type, null);
+    }
+    
+    public static <T> T invokeMethod(Method method, Object target, Object...args) {
+        if (method == null) {
+            return null;
+        }
+
+        method.setAccessible(true);
+        try {
+            @SuppressWarnings("unchecked")
+            T result = (T) method.invoke(target, args);
+
+            return result;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
+    }
+    
+    public static Object invokeMethod(Object object, String methodName, Class<?>[] parameterTypes, Object...args) {
+        if (object == null || methodName == null) {
+            return null;
+        }
+
+        if (parameterTypes == null) {
+            parameterTypes = new Class[0];
+        }
+        if (args == null) {
+            args = new Object[0];
+        }
+        Method method;
+        try {
+            method = object.getClass().getDeclaredMethod(methodName, parameterTypes);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        if (method == null) {
+            return null;
+        }
+
+        return invokeMethod(method, object, args);
+
+    }
+    
+    public static Object invokeMethod(Object object, String methodName, Object...args) {
+        if (object == null || methodName == null) {
+            return null;
+        }
+        if (args == null) {
+            args =  new Object[0];
+        }
+
+        int arguments = args.length;
+        Class<?>[] parameterTypes = new Class[arguments];
+        for (int i = 0; i < arguments; i++) {
+            parameterTypes[i] = args[i].getClass();
+        }
+
+        return invokeMethod(object, methodName, parameterTypes, args);
     }    
 }
