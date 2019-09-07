@@ -433,19 +433,19 @@ public class ClassIntrospectorTest {
         
         // then
         assertThat(classDescriptor.getAllAnnotationDescriptors())
-                        .containsOnly(expected)
-                        .extracting(AnnotationDescriptor::getAnnotation,
-                                    AnnotationDescriptor::getAnnotationType,
-                                    AnnotationDescriptor::getElementTypes,
-                                    AnnotationDescriptor::getPolicy,
-                                    AnnotationDescriptor::isDocumented,
-                                    AnnotationDescriptor::isInherited)
-                        .contains(tuple(classAnnotation,
-                                        Entity.class,
-                                        new ElementType[] {ElementType.TYPE},
-                                        expected.getPolicy(),
-                                        true,
-                                        false));
+                                  .containsOnly(expected)
+                                  .extracting(AnnotationDescriptor::getAnnotation,
+                                              AnnotationDescriptor::getAnnotationType,
+                                              AnnotationDescriptor::getElementTypes,
+                                              AnnotationDescriptor::getPolicy,
+                                              AnnotationDescriptor::isDocumented,
+                                              AnnotationDescriptor::isInherited)
+                                  .contains(tuple(classAnnotation,
+                                                  Entity.class,
+                                                  new ElementType[] {ElementType.TYPE},
+                                                  expected.getPolicy(),
+                                                  true,
+                                                  false));
     }
     
     @Test
@@ -460,19 +460,19 @@ public class ClassIntrospectorTest {
                                                       .getFieldDescriptor("foo", true);
         // then
         assertThat(subject.getAllAnnotationDescriptors())
-                        .containsOnly(expected)
-                        .extracting(AnnotationDescriptor::getAnnotation,
-                                    AnnotationDescriptor::getAnnotationType,
-                                    AnnotationDescriptor::getElementTypes,
-                                    AnnotationDescriptor::getPolicy,
-                                    AnnotationDescriptor::isDocumented,
-                                    AnnotationDescriptor::isInherited)
-                        .contains(tuple(fieldAnnotation,
-                                        GraphQLIgnore.class,
-                                        new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
-                                        expected.getPolicy(),
-                                        false,
-                                        false));
+                          .containsOnly(expected)
+                          .extracting(AnnotationDescriptor::getAnnotation,
+                                      AnnotationDescriptor::getAnnotationType,
+                                      AnnotationDescriptor::getElementTypes,
+                                      AnnotationDescriptor::getPolicy,
+                                      AnnotationDescriptor::isDocumented,
+                                      AnnotationDescriptor::isInherited)
+                          .contains(tuple(fieldAnnotation,
+                                          GraphQLIgnore.class,
+                                          new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
+                                          expected.getPolicy(),
+                                          false,
+                                          false));
         
     }
 
@@ -488,19 +488,19 @@ public class ClassIntrospectorTest {
                                                    .getMethodDescriptor("getBar", new Class[] {}, true);
         // then
         assertThat(subject.getAllAnnotationDescriptors())
-                        .containsOnly(expected)
-                        .extracting(AnnotationDescriptor::getAnnotation,
-                                    AnnotationDescriptor::getAnnotationType,
-                                    AnnotationDescriptor::getElementTypes,
-                                    AnnotationDescriptor::getPolicy,
-                                    AnnotationDescriptor::isDocumented,
-                                    AnnotationDescriptor::isInherited)
-                        .contains(tuple(fieldAnnotation,
-                                        GraphQLDescription.class,
-                                        new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
-                                        expected.getPolicy(),
-                                        false,
-                                        false));
+                          .containsOnly(expected)
+                          .extracting(AnnotationDescriptor::getAnnotation,
+                                      AnnotationDescriptor::getAnnotationType,
+                                      AnnotationDescriptor::getElementTypes,
+                                      AnnotationDescriptor::getPolicy,
+                                      AnnotationDescriptor::isDocumented,
+                                      AnnotationDescriptor::isInherited)
+                          .contains(tuple(fieldAnnotation,
+                                          GraphQLDescription.class,
+                                          new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
+                                          expected.getPolicy(),
+                                          false,
+                                          false));
     }
     
     @Test
@@ -514,19 +514,19 @@ public class ClassIntrospectorTest {
                                                     .getConstructorDescriptor(new Class[] {}, true);
         // then
         assertThat(classDescriptor.getAllConstructorDescriptors())
-                        .containsOnly(subject)
-                        .extracting(ConstructorDescriptor::getConstructor,
-                                    ConstructorDescriptor::getClassDescriptor,
-                                    ConstructorDescriptor::getName,
-                                    ConstructorDescriptor::getParameters,
-                                    ConstructorDescriptor::isDefault,
-                                    ConstructorDescriptor::isPublic)
-                        .contains(tuple(constructor,
-                                        classDescriptor,
-                                        "com.introproventures.graphql.jpa.query.introspection.ClassIntrospectorTest$BeanSampleD",
-                                        new Class[] {},
-                                        true,
-                                        true));
+                                  .containsOnly(subject)
+                                  .extracting(ConstructorDescriptor::getConstructor,
+                                              ConstructorDescriptor::getClassDescriptor,
+                                              ConstructorDescriptor::getName,
+                                              ConstructorDescriptor::getParameters,
+                                              ConstructorDescriptor::isDefault,
+                                              ConstructorDescriptor::isPublic)
+                                  .contains(tuple(constructor,
+                                                  classDescriptor,
+                                                  "com.introproventures.graphql.jpa.query.introspection.ClassIntrospectorTest$BeanSampleD",
+                                                  new Class[] {},
+                                                  true,
+                                                  true));
     }
         
     
@@ -540,13 +540,13 @@ public class ClassIntrospectorTest {
                                                    .getAllPropertyDescriptors();
         // then
         assertThat(subject).hasSize(2)
-                        .extracting(PropertyDescriptor::getName,
-                                    PropertyDescriptor::getType,
-                                    PropertyDescriptor::getClassDescriptor,
-                                    PropertyDescriptor::isFieldOnlyDescriptor,
-                                    PropertyDescriptor::isPublic)
-                        .contains(tuple("bar", String.class, classDescriptor, false, false),
-                                  tuple("foo", Integer.class, classDescriptor, false, true));
+                           .extracting(PropertyDescriptor::getName,
+                                       PropertyDescriptor::getType,
+                                       PropertyDescriptor::getClassDescriptor,
+                                       PropertyDescriptor::isFieldOnlyDescriptor,
+                                       PropertyDescriptor::isPublic)
+                           .contains(tuple("bar", String.class, classDescriptor, false, false),
+                                     tuple("foo", Integer.class, classDescriptor, false, true));
     }
     
     
