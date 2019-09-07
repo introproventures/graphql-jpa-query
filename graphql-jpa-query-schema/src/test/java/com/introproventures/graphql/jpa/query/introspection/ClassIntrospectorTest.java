@@ -1,5 +1,7 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -8,6 +10,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -15,7 +19,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Entity;
+
 import org.junit.Test;
+
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+
+import lombok.Data;
 
 
 public class ClassIntrospectorTest {
@@ -410,7 +421,105 @@ public class ClassIntrospectorTest {
         assertEquals(List.class, md5.getSetterRawType());
         assertEquals(Integer.class, md5.getSetterRawComponentType());
     }    
+    
+    @Test
+    public void testClassAnnotations() throws NoSuchFieldException, SecurityException {
+        // given
+        Annotation classAnnotation = BeanSampleD.class.getAnnotation(Entity.class);
+        AnnotationDescriptor expected = new AnnotationDescriptor(classAnnotation);
+        
+        // when
+        ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
+        
+        // then
+        assertThat(classDescriptor.getAllAnnotationDescriptors())
+                        .containsOnly(expected)
+                        .extracting(AnnotationDescriptor::getAnnotation,
+                                    AnnotationDescriptor::getAnnotationType,
+                                    AnnotationDescriptor::getElementTypes,
+                                    AnnotationDescriptor::getPolicy,
+                                    AnnotationDescriptor::isDocumented,
+                                    AnnotationDescriptor::isInherited)
+                        .contains(tuple(classAnnotation,
+                                        Entity.class,
+                                        new ElementType[] {ElementType.TYPE},
+                                        expected.getPolicy(),
+                                        true,
+                                        false));
+    }
+    
+    @Test
+    public void testFieldAnnotations() throws NoSuchFieldException, SecurityException {
+        // given
+        Annotation fieldAnnotation = BeanSampleD.class.getDeclaredField("foo")
+                                                      .getAnnotation(GraphQLIgnore.class);
+        AnnotationDescriptor expected = new AnnotationDescriptor(fieldAnnotation);
 
+        // when
+        FieldDescriptor subject = introspector.introspect(BeanSampleD.class)
+                                                      .getFieldDescriptor("foo", true);
+        // then
+        assertThat(subject.getAllAnnotationDescriptors())
+                        .containsOnly(expected)
+                        .extracting(AnnotationDescriptor::getAnnotation,
+                                    AnnotationDescriptor::getAnnotationType,
+                                    AnnotationDescriptor::getElementTypes,
+                                    AnnotationDescriptor::getPolicy,
+                                    AnnotationDescriptor::isDocumented,
+                                    AnnotationDescriptor::isInherited)
+                        .contains(tuple(fieldAnnotation,
+                                        GraphQLIgnore.class,
+                                        new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
+                                        expected.getPolicy(),
+                                        false,
+                                        false));
+        
+    }
+
+    @Test
+    public void testMethodAnnotations() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
+        // given
+        Annotation fieldAnnotation = BeanSampleD.class.getDeclaredMethod("getBar")
+                                                      .getAnnotation(GraphQLDescription.class);
+        AnnotationDescriptor expected = new AnnotationDescriptor(fieldAnnotation);
+        
+        // when
+        MethodDescriptor subject = introspector.introspect(BeanSampleD.class)
+                                                   .getMethodDescriptor("getBar", new Class[] {}, true);
+        // then
+        assertThat(subject.getAllAnnotationDescriptors())
+                        .containsOnly(expected)
+                        .extracting(AnnotationDescriptor::getAnnotation,
+                                    AnnotationDescriptor::getAnnotationType,
+                                    AnnotationDescriptor::getElementTypes,
+                                    AnnotationDescriptor::getPolicy,
+                                    AnnotationDescriptor::isDocumented,
+                                    AnnotationDescriptor::isInherited)
+                        .contains(tuple(fieldAnnotation,
+                                        GraphQLDescription.class,
+                                        new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
+                                        expected.getPolicy(),
+                                        false,
+                                        false));
+    }
+    
+
+    @Data
+    @Entity
+    static class BeanSampleD {
+        
+        @GraphQLIgnore
+        protected Integer foo;
+        
+        private String bar;
+        
+        @GraphQLDescription("getBar")
+        protected String getBar() {
+            return bar;
+        }
+
+    }
+    
     static class BeanSampleA {
         
         protected static String staticField;
