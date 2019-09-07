@@ -4,6 +4,7 @@ package com.introproventures.graphql.jpa.query.introspection;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.util.Objects;
 
 public class FieldDescriptor extends Descriptor implements Getter, Setter {
 
@@ -62,30 +63,37 @@ public class FieldDescriptor extends Descriptor implements Getter, Setter {
         return ReflectionUtil.getComponentTypes(type, classDescriptor.getType());
     }
 
+    @Override
     public Object invokeGetter(Object target) throws InvocationTargetException, IllegalAccessException {
         return field.get(target);
     }
 
+    @Override
     public Class<?> getGetterRawType() {
         return getRawType();
     }
 
+    @Override
     public Class<?> getGetterRawComponentType() {
         return getRawComponentType();
     }
 
+    @Override
     public Class<?> getGetterRawKeyComponentType() {
         return getRawKeyComponentType();
     }
 
+    @Override
     public void invokeSetter(Object target, Object argument) throws IllegalAccessException {
         field.set(target, argument);
     }
 
+    @Override
     public Class<?> getSetterRawType() {
         return getRawType();
     }
 
+    @Override
     public Class<?> getSetterRawComponentType() {
         return getRawComponentType();
     }
@@ -93,6 +101,26 @@ public class FieldDescriptor extends Descriptor implements Getter, Setter {
     @Override
     public String toString() {
         return classDescriptor.getType().getSimpleName() + '#' + field.getName();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Objects.hash(field, type);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        FieldDescriptor other = (FieldDescriptor) obj;
+        return Objects.equals(field, other.field) && Objects.equals(type, other.type);
     }
 
 }
