@@ -24,10 +24,14 @@ public class PropertyDescriptorTest {
     
     @Test
     public void testToString() {
+        PropertyDescriptor subject = classDescriptor.getPropertyDescriptor("name", true);        
+        
         // then
-        assertThatCode(() -> classDescriptor.getPropertyDescriptor("name", true)
-                                            .toString())
-                                            .doesNotThrowAnyException();
+        assertThatCode(() -> {
+                            subject.toString();
+                            subject.hashCode();
+                            subject.equals(subject);
+                        }).doesNotThrowAnyException();
     }
     
     @Test
