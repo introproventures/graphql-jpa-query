@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.introspection;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class PropertyDescriptor extends Descriptor {
 
@@ -200,5 +201,25 @@ public class PropertyDescriptor extends Descriptor {
                .append(annotations)
                .append("]");
         return builder.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Objects.hash(name, type);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PropertyDescriptor other = (PropertyDescriptor) obj;
+        return Objects.equals(name, other.name) && Objects.equals(type, other.type);
     }
 }
