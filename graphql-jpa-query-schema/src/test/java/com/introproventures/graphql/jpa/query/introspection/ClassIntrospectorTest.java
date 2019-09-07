@@ -503,6 +503,53 @@ public class ClassIntrospectorTest {
                                         false));
     }
     
+    @Test
+    public void testConstructorDescriptors() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
+        // given
+        ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
+        Constructor<BeanSampleD> constructor = BeanSampleD.class.getConstructor(new Class[] {});
+                
+        // when
+        ConstructorDescriptor subject = introspector.introspect(BeanSampleD.class)
+                                                    .getConstructorDescriptor(new Class[] {}, true);
+        // then
+        assertThat(classDescriptor.getAllConstructorDescriptors())
+                        .containsOnly(subject)
+                        .extracting(ConstructorDescriptor::getConstructor,
+                                    ConstructorDescriptor::getClassDescriptor,
+                                    ConstructorDescriptor::getName,
+                                    ConstructorDescriptor::getParameters,
+                                    ConstructorDescriptor::isDefault,
+                                    ConstructorDescriptor::isPublic)
+                        .contains(tuple(constructor,
+                                        classDescriptor,
+                                        "com.introproventures.graphql.jpa.query.introspection.ClassIntrospectorTest$BeanSampleD",
+                                        new Class[] {},
+                                        true,
+                                        true));
+    }
+        
+    
+    @Test
+    public void testPropertyDescriptors() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
+        // given
+        ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
+                
+        // when
+        PropertyDescriptor[] subject = introspector.introspect(BeanSampleD.class)
+                                                   .getAllPropertyDescriptors();
+        // then
+        assertThat(subject).hasSize(2)
+                        .extracting(PropertyDescriptor::getName,
+                                    PropertyDescriptor::getType,
+                                    PropertyDescriptor::getClassDescriptor,
+                                    PropertyDescriptor::isFieldOnlyDescriptor,
+                                    PropertyDescriptor::isPublic)
+                        .contains(tuple("bar", String.class, classDescriptor, false, false),
+                                  tuple("foo", Integer.class, classDescriptor, false, true));
+    }
+    
+    
 
     @Data
     @Entity
@@ -517,7 +564,6 @@ public class ClassIntrospectorTest {
         protected String getBar() {
             return bar;
         }
-
     }
     
     static class BeanSampleA {
