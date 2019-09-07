@@ -26,6 +26,7 @@ public class Methods {
 
     protected Map<String, MethodDescriptor[]> inspectMethods() {
         boolean scanAccessible = classDescriptor.isScanAccessible();
+        boolean scanStatics = classDescriptor.isScanStatics();
         Class<?> type = classDescriptor.getType();
 
         Method[] methods =
@@ -35,7 +36,7 @@ public class Methods {
 
         for (Method method : methods) {
             
-            if(Modifier.isStatic(method.getModifiers())) {
+            if(!scanStatics && Modifier.isStatic(method.getModifiers())) {
                 continue;
             }
                 

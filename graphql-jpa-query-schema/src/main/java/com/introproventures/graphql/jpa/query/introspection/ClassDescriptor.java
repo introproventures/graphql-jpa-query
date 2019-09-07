@@ -11,6 +11,7 @@ public class ClassDescriptor {
 
     protected final Class<?> type;
     protected final boolean scanAccessible;
+    protected final boolean scanStatics;
     protected final boolean extendedProperties;
     protected final boolean includeFieldsAsProperties;
     protected final String propertyFieldPrefix;
@@ -31,12 +32,13 @@ public class ClassDescriptor {
     private final Annotations annotations;
 
     public ClassDescriptor(Class<?> type, boolean scanAccessible, boolean extendedProperties,
-            boolean includeFieldsAsProperties, String propertyFieldPrefix) {
+            boolean includeFieldsAsProperties, boolean scanStatics, String propertyFieldPrefix) {
         this.type = type;
         this.scanAccessible = scanAccessible;
         this.extendedProperties = extendedProperties;
         this.includeFieldsAsProperties = includeFieldsAsProperties;
         this.propertyFieldPrefix = propertyFieldPrefix;
+        this.scanStatics = scanStatics;
 
         isArray = type.isArray();
         isMap = Map.class.isAssignableFrom(type);
@@ -262,5 +264,10 @@ public class ClassDescriptor {
             return false;
         ClassDescriptor other = (ClassDescriptor) obj;
         return Objects.equals(type, other.type);
+    }
+
+    
+    public boolean isScanStatics() {
+        return scanStatics;
     }
 }

@@ -25,6 +25,7 @@ public class Fields {
 
     protected Map<String, FieldDescriptor> inspectFields() {
         boolean scanAccessible = classDescriptor.isScanAccessible();
+        boolean scanStatics = classDescriptor.isScanStatics();
         Class<?> type = classDescriptor.getType();
 
         Field[] fields =
@@ -39,7 +40,7 @@ public class Fields {
                 continue;
             }
 
-            if (Modifier.isStatic(field.getModifiers())) {
+            if (!scanStatics && Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
             

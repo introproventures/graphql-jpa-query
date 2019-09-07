@@ -24,6 +24,7 @@ public class ClassIntrospectorTest {
                                                                      .withEnhancedProperties(true)
                                                                      .withScanAccessible(true)
                                                                      .withIncludeFieldsAsProperties(true)
+                                                                     .withScanStatics(false)
                                                                      .build();
     
     @Test
@@ -257,6 +258,20 @@ public class ClassIntrospectorTest {
 
         assertNull(cd.getFieldDescriptor("serialVersionUID", true));
     }
+
+    @Test
+    public void testStaticField() {
+        ClassDescriptor cd = introspector.introspect(BeanSampleA.class);
+
+        assertNull(cd.getFieldDescriptor("staticField", true));
+    }
+
+    @Test
+    public void testStaticMethod() {
+        ClassDescriptor cd = introspector.introspect(BeanSampleB.class);
+
+        assertNull(cd.getMethodDescriptor("staticMethod", true));
+    }
     
     @Test
     public void testFields() throws NoSuchFieldException {
@@ -372,8 +387,6 @@ public class ClassIntrospectorTest {
 
         ClassDescriptor cd1 = introspector.introspect(Foo.class);
 
-        //assertEquals(0, Foo.class.getDeclaredMethods().length);
-
         MethodDescriptor[] allm = cd1.getAllMethodDescriptors();
 
         assertEquals(5, allm.length);
@@ -399,6 +412,8 @@ public class ClassIntrospectorTest {
     }    
 
     static class BeanSampleA {
+        
+        protected static String staticField;
 
         protected Integer shared;
 
@@ -420,6 +435,8 @@ public class ClassIntrospectorTest {
     static class BeanSampleB extends BeanSampleA {
 
         public static final long serialVersionUID = 42L;
+        
+        public static void staticMethod() { };
 
         private Long boo;
 

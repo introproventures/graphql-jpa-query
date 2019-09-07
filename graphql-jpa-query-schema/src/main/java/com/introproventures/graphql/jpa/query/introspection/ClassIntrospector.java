@@ -9,6 +9,7 @@ public class ClassIntrospector {
     protected final boolean scanAccessible;
     protected final boolean enhancedProperties;
     protected final boolean includeFieldsAsProperties;
+    protected final boolean scanStatics;
     protected final String propertyFieldPrefix;
 
     private ClassIntrospector(Builder builder) {
@@ -16,20 +17,23 @@ public class ClassIntrospector {
         this.enhancedProperties = builder.enhancedProperties;
         this.includeFieldsAsProperties = builder.includeFieldsAsProperties;
         this.propertyFieldPrefix = builder.propertyFieldPrefix;
+        this.scanStatics = builder.scanStatics ;
     }
 
     public ClassIntrospector() {
-        this(true, true, true, null);
+        this(true, true, true, true, null);
     }
 
     public ClassIntrospector(boolean scanAccessible,
                              boolean enhancedProperties,
                              boolean includeFieldsAsProperties,
+                             boolean scanStatics,
                              String propertyFieldPrefix) {
         this.scanAccessible = scanAccessible;
         this.enhancedProperties = enhancedProperties;
         this.includeFieldsAsProperties = includeFieldsAsProperties;
         this.propertyFieldPrefix = propertyFieldPrefix;
+        this.scanStatics = scanStatics;
     }
 
     public ClassDescriptor introspect(Class<?> type) {
@@ -45,6 +49,7 @@ public class ClassIntrospector {
                                    scanAccessible,
                                    enhancedProperties,
                                    includeFieldsAsProperties,
+                                   scanStatics,
                                    propertyFieldPrefix);
     }
 
@@ -61,6 +66,7 @@ public class ClassIntrospector {
      */
     public static final class Builder {
 
+        public boolean scanStatics = false;
         private boolean scanAccessible = true;
         private boolean enhancedProperties = true;
         private boolean includeFieldsAsProperties = true;
@@ -86,6 +92,11 @@ public class ClassIntrospector {
 
         public Builder withPropertyFieldPrefix(String propertyFieldPrefix) {
             this.propertyFieldPrefix = propertyFieldPrefix;
+            return this;
+        }
+
+        public Builder withScanStatics(boolean includeStatics) {
+            this.scanStatics = includeStatics;
             return this;
         }
 
