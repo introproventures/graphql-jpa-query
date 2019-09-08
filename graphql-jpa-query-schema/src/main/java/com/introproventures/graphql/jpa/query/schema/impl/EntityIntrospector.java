@@ -44,6 +44,7 @@ public class EntityIntrospector {
                                                                      .withScanAccessible(false)
                                                                      .withEnhancedProperties(true)
                                                                      .withIncludeFieldsAsProperties(false)
+                                                                     .withScanStatics(false)
                                                                      .build();
     /**
      * Get existing EntityIntrospectionResult for Java type 
