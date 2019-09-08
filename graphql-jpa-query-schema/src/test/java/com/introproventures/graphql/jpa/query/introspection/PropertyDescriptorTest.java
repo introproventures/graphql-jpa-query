@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.Optional;
 
+import javax.persistence.Version;
+
 import org.junit.Test;
 
 import lombok.Data;
@@ -87,11 +89,38 @@ public class PropertyDescriptorTest {
                                   .isFalse();
                                             
     }
-    
+
+    @Test
+    public void testGetAnnotations() {
+        // then
+        assertThat(classDescriptor.getPropertyDescriptor("version", true)
+                                  .getAnnotations())
+                                  .isNotNull();
+                                            
+    }
+
+    @Test
+    public void testGetAnnotationDescriptor() {
+        // then
+        assertThat(classDescriptor.getPropertyDescriptor("version", true)
+                                  .getAnnotationDescriptor(Version.class))
+                                  .isNotNull();
+                                            
+    }
+
+    @Test
+    public void testGetAnnotation() {
+        // then
+        assertThat(classDescriptor.getPropertyDescriptor("version", true)
+                                  .getAnnotation(Version.class))
+                                  .isNotNull();
+                                            
+    }
     
     @Data
     static class SampleBean {
         private final String id;
+        @Version
         private Integer version;
         private String name;
         private Optional<String> optional;

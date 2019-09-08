@@ -21,6 +21,7 @@ public class PropertyDescriptor extends Descriptor {
         this.readMethodDescriptor = null;
         this.writeMethodDescriptor = null;
         this.fieldDescriptor = fieldDescriptor;
+        this.annotations = new Annotations(fieldDescriptor.getField());
     }
 
     public PropertyDescriptor(ClassDescriptor classDescriptor, String propertyName, MethodDescriptor readMethod,
@@ -33,9 +34,13 @@ public class PropertyDescriptor extends Descriptor {
 
         if (classDescriptor.isExtendedProperties()) {
             this.fieldDescriptor = findField(propertyName);
+            this.annotations = new Annotations(fieldDescriptor.getField());
         } else {
             this.fieldDescriptor = null;
+            this.annotations = new Annotations(readMethod.getMethod());
         }
+        
+        
     }
 
     protected FieldDescriptor findField(String fieldName) {
