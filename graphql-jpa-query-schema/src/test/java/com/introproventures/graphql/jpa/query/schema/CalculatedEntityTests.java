@@ -1,16 +1,14 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
 
+import java.util.Optional;
+
 import javax.persistence.EntityManager;
 
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLSchema;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +23,8 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.ExecutionResult;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationErrorType;
 
 @RunWith(SpringRunner.class)
@@ -84,6 +84,7 @@ public class CalculatedEntityTests {
                 "           fieldMem" +
                 "           fieldFun" +
                 "           logic" +
+                "           age" +
                 "           customLogic" +
                 "           hideField" +
                 "           hideFieldFunction" +
@@ -100,6 +101,10 @@ public class CalculatedEntityTests {
                 "           parentTransientGraphQLIgnore" +
                 "           parentTransientModifierGraphQLIgnore" +
                 "           parentTransientGraphQLIgnoreGetter" +
+                "           Uppercase" +
+                "           UppercaseGetter" +
+                "           UppercaseGetterIgnore" +
+                "           protectedGetter" +
                 "       } " +
                 "   } " +
                 "}";
@@ -121,7 +126,9 @@ public class CalculatedEntityTests {
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnore")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientModifierGraphQLIgnore")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnoreGetter")),
-                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore"))
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "UppercaseGetterIgnore"))
                 );
     }
 

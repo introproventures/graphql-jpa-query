@@ -22,6 +22,7 @@ import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -158,7 +159,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         return entityManager.createQuery(query.distinct(isDistinct));
     }
-
+    
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
@@ -168,9 +169,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         field.getSelectionSet().getSelections().forEach(selection -> {
             if (selection instanceof Field) {
                 Field selectedField = (Field) selection;
-
+                
                 // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
+                if(isPersistent(environment, selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
                     From<?,?> fetch = null;
@@ -975,30 +976,33 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             return ((FloatValue) value).getValue();
         } else if (value instanceof ObjectValue) {
             Class javaType = getJavaType(environment, argument);
+            Map<String, Object> values = environment.getArgument(argument.getName());
             
             try {
-                Object beanValue = javaType.getConstructor()
-                                           .newInstance();
-                
-                Map<String, Object> objectValue =  environment.getArgument(argument.getName());
-               
-                objectValue.entrySet()
-                           .stream()
-                           .forEach(e -> {
-                               setPropertyValue(beanValue, 
-                                                e.getKey(), 
-                                                e.getValue());
-                           });
-                    
-                return beanValue;
-                
-            } catch (Exception e1) {
-                // TODO
+                return getJavaBeanValue(javaType, values);
+            } catch (Exception cause) {
+                throw new RuntimeException(cause);
             }
-            
         }
 
         return value;
+    }
+    
+    private Object getJavaBeanValue(Class<?> javaType, Map<String, Object> values) throws Exception {
+        Constructor<?> constructor = javaType.getConstructor();
+        constructor.setAccessible(true);
+
+        Object javaBean = constructor.newInstance();
+        
+        values.entrySet()
+              .stream()
+              .forEach(entry -> {
+                  setPropertyValue(javaBean,
+                                   entry.getKey(),
+                                   entry.getValue());
+              });
+        
+        return javaBean;
     }
     
     private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) { 
@@ -1016,7 +1020,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 }
             }
         } catch (Exception ignored) {
-            // TODO
+            // ignore
         }
     }
 
@@ -1161,7 +1165,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
-                    if(!TYPENAME.equals(it.getName()) && !IntrospectionUtils.isTransient(entityType.getJavaType(), it.getName()))
+                    if(isPersistent(entityType, it.getName()))
                         entityGraph.addAttributeNodes(it.getName());
                 }
             });
@@ -1260,6 +1264,34 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                       .filter(it -> fieldName.equals(it.getName()))
                                                       .findFirst();
     }
+    
+    protected boolean isPersistent(DataFetchingEnvironment environment,
+                                   String attributeName) {
+        GraphQLObjectType objectType = getObjectType(environment);
+        EntityType<?> entityType = getEntityType(objectType);
+        
+        return isPersistent(entityType, attributeName);
+    }
+
+    protected boolean isPersistent(EntityType<?> entityType,
+                                   String attributeName) {
+        try {
+            return entityType.getAttribute(attributeName) != null;
+        } catch (Exception ignored) { } 
+        
+        return false;
+    }
+    
+    protected boolean isTransient(DataFetchingEnvironment environment,
+                                  String attributeName) {
+        return !isPersistent(environment, attributeName);
+    }
+
+    protected boolean isTransient(EntityType<?> entityType,
+                                  String attributeName) {
+        return !isPersistent(entityType, attributeName);
+    }
+    
 
     @SuppressWarnings("rawtypes")
     class NullValue implements Value {

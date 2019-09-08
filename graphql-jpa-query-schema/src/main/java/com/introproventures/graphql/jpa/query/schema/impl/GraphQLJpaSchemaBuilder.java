@@ -47,7 +47,7 @@ import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.EntityIntrospectionResult.AttributePropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 
 import graphql.Assert;
@@ -651,26 +651,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 				                .name(entityType.getName())
 				                .description(getSchemaDescription(entityType))
 				                .fields(getEntityAttributesFields(entityType))
-				                .fields(getTransientFields(entityType.getJavaType()))
+				                .fields(getTransientFields(entityType))
 				                .build();
     }
 
     private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
-        return entityType
-                .getAttributes().stream()
-                .filter(this::isNotIgnored)
-                .filter(attribute -> !IntrospectionUtils.isIgnored(entityType.getJavaType(), attribute.getName()))
-                .map(it -> getObjectField(it, entityType))
-                .collect(Collectors.toList());
+        return entityType.getAttributes()
+                         .stream()
+                         .filter(attribute -> EntityIntrospector.introspect(entityType)
+                                                                .isNotIgnored(attribute.getName()))
+                         .map(it -> getObjectField(it, entityType))
+                         .collect(Collectors.toList());
     }
 
-    private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
-        return IntrospectionUtils.introspect(clazz)
-                .getPropertyDescriptors().stream()
-                .filter(AttributePropertyDescriptor::isTransient)
-                .filter(AttributePropertyDescriptor::isNotIgnored)
-                .map(this::getJavaFieldDefinition)
-                .collect(Collectors.toList());
+    private List<GraphQLFieldDefinition> getTransientFields(ManagedType<?> managedType) {
+        return EntityIntrospector.introspect(managedType)
+                                 .getTransientPropertyDescriptors()
+                                 .stream()
+                                 .filter(AttributePropertyDescriptor::isNotIgnored)
+                                 .map(this::getJavaFieldDefinition)
+                                 .collect(Collectors.toList());
     }
     
     @SuppressWarnings( { "rawtypes" } )
@@ -678,8 +678,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
         
-        String description = propertyDescriptor.getSchemaDescription()
-                                               .orElse(null);
+        String description = propertyDescriptor.getSchemaDescription().orElse(null);
 
         return GraphQLFieldDefinition.newFieldDefinition()
                                      .name(propertyDescriptor.getName())
@@ -876,21 +875,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
 
     private String getSchemaDescription(Attribute<?,?> attribute) {
-        return IntrospectionUtils.introspect(attribute.getDeclaringType()
-                                                      .getJavaType())
-                                 .getPropertyDescriptor(attribute)
-                                 .flatMap(AttributePropertyDescriptor::getSchemaDescription)
+        return EntityIntrospector.introspect(attribute.getDeclaringType())
+                                 .getSchemaDescription(attribute.getName())
                                  .orElse(null);
     }
     
     private String getSchemaDescription(EntityType<?> entityType) {
-        return IntrospectionUtils.introspect(entityType.getJavaType())
+        return EntityIntrospector.introspect(entityType)
                                  .getSchemaDescription()
                                  .orElse(null);
     }
 
     private String getSchemaDescription(EmbeddableType<?> embeddableType) {
-        return IntrospectionUtils.introspect(embeddableType.getJavaType())
+        return EntityIntrospector.introspect(embeddableType)
                                  .getSchemaDescription()
                                  .orElse(null);
     }
