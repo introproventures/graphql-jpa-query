@@ -1,6 +1,12 @@
 # Change Log
 
-## 0.3.29-SNAPSHOT
+## 0.3.29
+* fix: Javadoc errors [8284cbd](https://github.com/introproventures/graphql-jpa-query/commit/8284cbd84c80092b4e506fbffc5706d0bed8133d)
+* fix: support uppercase attribute names introspection (#173) [798b30d](https://github.com/introproventures/graphql-jpa-query/commit/798b30d7fd8978f2cf8819d2e52d8c355f689b8b)
+* fix: add query support for entities with &#96;@EmbeddedId&#96; attribute (#180) [6552cb8](https://github.com/introproventures/graphql-jpa-query/commit/6552cb8b749ab5e1254b614375ad44badbc43b9d)
+* fix: Error querying entity with @IdClass #176 (#179) [50df533](https://github.com/introproventures/graphql-jpa-query/commit/50df533b87cd174f3eeb45266e23adf7172327ce)
+* fix: Description is not inherited from the parent class (#169) [82be5d5](https://github.com/introproventures/graphql-jpa-query/commit/82be5d5e3773923119cc549052875e6f9e3ee050)
+* Add java arrays basic support (#171) [a5f72bc](https://github.com/introproventures/graphql-jpa-query/commit/a5f72bc2c359c72cf7b91d6098286a2c3a903b68)
 * feat: support transient field modifier with class hierarchy introspection (#168) [81a6a19](https://github.com/introproventures/graphql-jpa-query/commit/81a6a198a1eecafb6056ed8ea9752482d26ba589)
 * feat: add support for variable where criteria expressions (#162) [5385a41](https://github.com/introproventures/graphql-jpa-query/commit/5385a4147cba654b4f57f3c6fc7cb4d40009ca3a)
 * Add METHOD to the @GraphQLIgnore annotation target (#165) [8028d12](https://github.com/introproventures/graphql-jpa-query/commit/8028d129f70f497e38463ad18fe2900072129877)
