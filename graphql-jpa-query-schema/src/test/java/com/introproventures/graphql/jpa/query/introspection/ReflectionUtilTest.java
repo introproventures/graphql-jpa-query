@@ -1,5 +1,6 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -16,10 +17,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.management.loading.MLet;
 
 import org.junit.Test;
+
+import lombok.Data;
 
 
 public class ReflectionUtilTest {
@@ -203,25 +207,56 @@ public class ReflectionUtilTest {
         }
 
     }    
-    public static class BaseClass<A, B> {
+    
+    @Test
+    public void testReadField() {
+        // given
+        FooClass foo = new FooClass("foo");
+        
+        // when
+        String result = ReflectionUtil.readField(foo, "bar");
+        
+        // then
+        assertThat(result).isEqualTo("foo");
+        
+    }
+    
+    @Test(expected = NoSuchElementException.class)
+    public void testReadFieldNoSuchElement() {
+        // given
+        FooClass foo = new FooClass("foo");
+        
+        // when
+        String result = ReflectionUtil.readField(foo, "foo");
+        
+    }
+    
+    
+    
+    @Data
+    static class FooClass {
+        private final String bar;
+    }
+    
+    static class BaseClass<A, B> {
         public A f1;
         public B f2;
         public String f3;
         public A[] array1;
     }
 
-    public static class ConcreteClass extends BaseClass<String, Integer> {
+    static class ConcreteClass extends BaseClass<String, Integer> {
         public Long f4;
         public List<Long> f5;
     }
 
-    public static class BaseClass2<X> extends BaseClass<X, Integer> {
+    static class BaseClass2<X> extends BaseClass<X, Integer> {
     }
 
-    public static class ConcreteClass2 extends BaseClass2<String> {
+    static class ConcreteClass2 extends BaseClass2<String> {
     }
 
-    public static class Soo {
+    static class Soo {
         public List<String> stringList;
         public String[] strings;
         public String string;
@@ -251,31 +286,31 @@ public class ReflectionUtilTest {
         }
     }    
     
-    public interface SomeGuy {
+    interface SomeGuy {
     }
 
-    public interface Cool extends SomeGuy {
+    interface Cool extends SomeGuy {
     }
 
-    public interface Vigilante {
+    interface Vigilante {
     }
 
-    public interface Flying extends Vigilante {
+    interface Flying extends Vigilante {
     }
 
-    public interface SuperMario extends Flying, Cool {
+    interface SuperMario extends Flying, Cool {
     };
 
-    public class User implements SomeGuy {
+    class User implements SomeGuy {
     }
 
-    public class SuperUser extends User implements Cool {
+    class SuperUser extends User implements Cool {
     }
 
-    public class SuperMan extends SuperUser implements Flying {
+    class SuperMan extends SuperUser implements Flying {
     }
     
-    public static class AnnotationClass {
+    static class AnnotationClass {
 
         private int x;
         @TestAnnotation(value = "y")

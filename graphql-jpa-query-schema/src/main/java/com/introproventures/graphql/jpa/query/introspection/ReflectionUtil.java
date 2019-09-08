@@ -16,7 +16,10 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +107,21 @@ public abstract class ReflectionUtil {
 
         allMethods.add(newMethod);
     }
+    
+    public static <T> T readField(Object target, String propertyName) { 
+        Field field = Optional.ofNullable(getField(target.getClass(), 
+                                                   propertyName))
+                              .orElseThrow(() -> noSuchElementException(target.getClass(),  
+                                                                        propertyName)); 
+        try { 
+            field.setAccessible(true); 
+             
+            return (T) field.get(target); 
+             
+        } catch (Exception ignored) { } 
+               
+        return null; 
+    }     
     
     public static Field getField(Class<?> clazz, String fieldName) {
         if (ObjectUtil.isAnyNull(clazz, fieldName)) {
@@ -631,5 +649,14 @@ public abstract class ReflectionUtil {
         }
 
         return invokeMethod(object, methodName, parameterTypes, args);
-    }    
+    }
+    
+    private static NoSuchElementException noSuchElementException(Class<?> containerClass, 
+                                                                 String propertyName) { 
+        return new NoSuchElementException(String.format(Locale.ROOT, 
+                                                        "Could not locate field name [%s] on class [%s]", 
+                                                        propertyName, 
+                                                        containerClass.getName())); 
+         
+    }     
 }
