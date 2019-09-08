@@ -34,10 +34,17 @@ public class PropertyDescriptor extends Descriptor {
 
         if (classDescriptor.isExtendedProperties()) {
             this.fieldDescriptor = findField(propertyName);
-            this.annotations = new Annotations(fieldDescriptor.getField());
+            if(fieldDescriptor != null) {
+                this.annotations = new Annotations(fieldDescriptor.getField());
+            }
         } else {
             this.fieldDescriptor = null;
-            this.annotations = new Annotations(readMethod.getMethod());
+            if(readMethod != null) {
+                this.annotations = new Annotations(readMethod.getMethod());
+            }
+            else if(writeMethod != null) {
+                this.annotations = new Annotations(writeMethod.getMethod());
+            }
         }
         
         
