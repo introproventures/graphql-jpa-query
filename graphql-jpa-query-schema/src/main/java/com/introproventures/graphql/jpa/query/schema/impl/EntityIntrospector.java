@@ -124,7 +124,6 @@ public class EntityIntrospector {
         /**
          * Test if entity property is annotated with GraphQLIgnore  
          * 
-         * @param entity a Java entity class to introspect
          * @param propertyName the name of the property
          * @return true if property has GraphQLIgnore annotation
          * @throws NoSuchElementException if property does not exists
@@ -137,7 +136,6 @@ public class EntityIntrospector {
         /**
          * Test if entity property is not ignored  
          * 
-         * @param entity a Java entity class to introspect
          * @param propertyName the name of the property
          * @return true if property has no GraphQLIgnore annotation
          * @throws NoSuchElementException if property does not exists
@@ -166,7 +164,6 @@ public class EntityIntrospector {
         /**
          * Test if Java bean property is transient according to JPA specification 
          * 
-         * @param entity a Java entity class to introspect
          * @param propertyName the name of the property
          * @return true if property has Transient annotation or transient field modifier
          * @throws NoSuchElementException if property does not exists
@@ -179,7 +176,6 @@ public class EntityIntrospector {
         /**
          * Test if Java bean property is persistent according to JPA specification 
          * 
-         * @param entity a Java entity class to introspect
          * @param propertyName the name of the property
          * @return true if property is persitent
          * @throws NoSuchElementException if property does not exists
@@ -369,16 +365,23 @@ public class EntityIntrospector {
             return "EntityIntrospectionResult [beanInfo=" + classDescriptor + "]";
         }
     }
-    
+
     /**
      * The following method is borrowed from Streams.iterate, 
      * however Streams.iterate is designed to create infinite streams. 
      * 
      * This version has been modified to end when Optional.empty() 
      * is returned from the fetchNextFunction.
+
+     * @param <T> the type of stream elements
+     * @param seed the initial element
+     * @param f a function to be applied to the previous element to produce
+     *          a new element
+     * @return a new sequential {@code Stream}
+     * 
      */
-    public static <T> Stream<T> iterate(T seed, Function<T,Optional<T>> fetchNextFunction) {
-        Objects.requireNonNull(fetchNextFunction);
+    public static <T> Stream<T> iterate(T seed, Function<T,Optional<T>> f) {
+        Objects.requireNonNull(f);
 
         Iterator<T> iterator = new Iterator<T>() {
             private Optional<T> t = Optional.ofNullable(seed);
@@ -392,7 +395,7 @@ public class EntityIntrospector {
             public T next() {
                 T v = t.get();
 
-                t = fetchNextFunction.apply(v);
+                t = f.apply(v);
 
                 return v;
             }

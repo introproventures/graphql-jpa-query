@@ -39,6 +39,7 @@ public interface GraphQLExecutor {
      * Execute GraphQL query provided in query argument and variables 
      * 
      * @param query GraphQL query string
+     * @param arguments GraphQL arguments key/value mapo 
      * @return GraphQL ExecutionResult
      */
     ExecutionResult execute(String query, Map<String, Object> arguments);
