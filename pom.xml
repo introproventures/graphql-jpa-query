@@ -61,7 +61,26 @@
         </repository>
     </distributionManagement>
 
-
+	<repositories>
+		<!-- Maven2 is just to speed up downloading repositories -->
+		<repository>
+			<id>maven2</id>
+			<name>maven2</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>http://repo.spring.io/milestone</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	
     <scm>
         <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
         <developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
