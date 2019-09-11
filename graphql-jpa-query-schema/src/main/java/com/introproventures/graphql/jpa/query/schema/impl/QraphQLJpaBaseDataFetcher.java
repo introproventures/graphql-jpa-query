@@ -743,7 +743,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         
         // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc. 
-        JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
+        JpaPredicateBuilder pb = new JpaPredicateBuilder(cb);
 
         expressionValue.getObjectFields()
             .stream()

@@ -28,7 +28,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -74,23 +75,40 @@ import graphql.language.NullValue;
  */
 class JpaPredicateBuilder {
 
+    public static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES = new HashMap<Class<?>, Class<?>>();
+    public static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = new HashMap<Class<?>, Class<?>>();
+
+    static {
+        PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
+        PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
+        PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
+        PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
+        PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
+        PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
+        PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
+        PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
+        PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
+
+        WRAPPERS_TO_PRIMITIVES.put(Boolean.class, boolean.class);
+        WRAPPERS_TO_PRIMITIVES.put(Byte.class, byte.class);
+        WRAPPERS_TO_PRIMITIVES.put(Character.class, char.class);
+        WRAPPERS_TO_PRIMITIVES.put(Double.class, double.class);
+        WRAPPERS_TO_PRIMITIVES.put(Float.class, float.class);
+        WRAPPERS_TO_PRIMITIVES.put(Integer.class, int.class);
+        WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
+        WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
+        WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
+    }
+    
     private final CriteriaBuilder cb;
 
-    private final EnumSet<Logical> globalOptions;
-
     /**
-     * Field name can be prepended with (comma separated list of local options)
-     * if field is prepended with (), even without options, any global options
-     * avoided and defaults are used.Defaults: for numbers and booleas -
-     * equality; for strings case insensitive beginning matches; for dates
-     * greater or equal;
-     *
+     * JpaPredicateBuilder constructor 
+     * 
      * @param cb
-     * @param globalOptions
      */
-    public JpaPredicateBuilder(CriteriaBuilder cb, EnumSet<Logical> globalOptions) {
+    public JpaPredicateBuilder(CriteriaBuilder cb) {
         this.cb = cb;
-        this.globalOptions = globalOptions;
     }
 
     protected Predicate addOrNull(Path<?> root, Predicate p) {
@@ -656,7 +674,7 @@ class JpaPredicateBuilder {
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
 
         if (type.isPrimitive())
-            type = JpaQueryBuilder.PRIMITIVES_TO_WRAPPERS.get(type);
+            type = PRIMITIVES_TO_WRAPPERS.get(type);
         if (type.equals(String.class)) {
             return getStringPredicate((Path<String>)field, filter);
         }
