@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.30-SNAPSHOT
+## 0.3.30
+* chore: remove obsolete JpaQueryBuilder class (#190) [ae9ce62](https://github.com/introproventures/graphql-jpa-query/commit/ae9ce6203c6d1f3c9448dddfa2405c61057f0035)
+* fix: switch off lower(COLUMN_NAME) decoration on String equality check (#186) [9445f89](https://github.com/introproventures/graphql-jpa-query/commit/9445f8965cb9e23665f4dc4f6ecc88833157bd5f)
+* fix: coerce Zoned and Offset time to UTC  [f2d4756](https://github.com/introproventures/graphql-jpa-query/commit/f2d475640aa36ecbb6592fa4e216aa645772e832)
 * fix: Javadoc errors [8284cbd](https://github.com/introproventures/graphql-jpa-query/commit/8284cbd84c80092b4e506fbffc5706d0bed8133d)
 * fix: support uppercase attribute names introspection (#173) [798b30d](https://github.com/introproventures/graphql-jpa-query/commit/798b30d7fd8978f2cf8819d2e52d8c355f689b8b)
 * fix: add query support for entities with &#96;@EmbeddedId&#96; attribute (#180) [6552cb8](https://github.com/introproventures/graphql-jpa-query/commit/6552cb8b749ab5e1254b614375ad44badbc43b9d)
