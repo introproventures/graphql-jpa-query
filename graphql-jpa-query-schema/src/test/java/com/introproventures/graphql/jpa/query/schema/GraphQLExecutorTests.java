@@ -27,13 +27,6 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.ErrorType;
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import graphql.validation.ValidationError;
-import graphql.validation.ValidationErrorType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +45,7 @@ import graphql.ErrorType;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 
 
 @RunWith(SpringRunner.class)
@@ -1448,5 +1442,35 @@ public class GraphQLExecutorTests {
                 .extracting("validationErrorType", "queryPath")
                 .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
     }
+    
+    @Test
+    public void queryWithEQNotMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War And Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithEQMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War and Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }        
 
 }
