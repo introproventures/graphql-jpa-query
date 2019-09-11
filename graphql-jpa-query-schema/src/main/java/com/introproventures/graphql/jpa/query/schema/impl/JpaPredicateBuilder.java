@@ -105,13 +105,12 @@ class JpaPredicateBuilder {
      * @return
      */
     protected Predicate getStringPredicate(Path<String> root, PredicateFilter filter) {
-        Expression<String> fieldValue;
-
         // list or arrays only for in and not in, between and not between
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
 
         if(arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
+            Expression<String> fieldValue = root;
 
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
                 CriteriaBuilder.In<Object> in = cb.in(root);
@@ -120,15 +119,7 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(root.in(compareValue));
             }
-
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.CASE)) {
-                fieldValue = root;
-            }
-            else {
-                fieldValue = cb.lower(root);
-                compareValue = compareValue.toLowerCase();
-            }
-
+            
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
                 return cb.equal(fieldValue, compareValue);
             } 
