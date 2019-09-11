@@ -9,13 +9,33 @@
     <artifactId>graphql-jpa-query-build</artifactId>
     <packaging>pom</packaging>
 
+    <repositories>
+        <!-- Maven2 is just to speed up downloading repositories -->
+        <repository>
+            <id>maven2</id>
+            <name>maven2</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>http://repo.spring.io/milestone</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
     <dependencyManagement>
         <dependencies>
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.2.0.M5</version>
+                <version>2.2.0.M6</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
