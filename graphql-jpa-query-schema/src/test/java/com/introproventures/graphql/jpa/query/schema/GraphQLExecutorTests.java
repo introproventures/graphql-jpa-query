@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.util.Lists.list;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1471,6 +1472,100 @@ public class GraphQLExecutorTests {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForCollectionCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors(where: { " + 
+                "    books: {" + 
+                "        genre: {EQ: $genre}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForEmbeddedCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(where:{ genre: {EQ: $genre} }) {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }      
 
 }
