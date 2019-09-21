@@ -108,10 +108,6 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
-            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
-            // between requests with different search criteria. This looks like a Hibernate bug... 
-            entityManager.clear();
-            
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
