@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.31
+## 0.3.32-SNAPSHOT
 * fix: removed EntityManager.clear() from GraphQLJpaQueryDataFetcher (#192) [ae25aba](https://github.com/introproventures/graphql-jpa-query/commit/ae25aba8cbcf4397f2f0fb2c79fa2a23d9697cb6)
 * chore: remove obsolete JpaQueryBuilder class (#190) [ae9ce62](https://github.com/introproventures/graphql-jpa-query/commit/ae9ce6203c6d1f3c9448dddfa2405c61057f0035)
 * fix: switch off lower(COLUMN_NAME) decoration on String equality check (#186) [9445f89](https://github.com/introproventures/graphql-jpa-query/commit/9445f8965cb9e23665f4dc4f6ecc88833157bd5f)
