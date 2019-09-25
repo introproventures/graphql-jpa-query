@@ -107,8 +107,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     private static final String WHERE = "where";
 
     protected static final String OPTIONAL = "optional";
-    
-    protected static final List<String> ARGUMENTS = Arrays.asList(OPTIONAL);
 
     // "__typename" is part of the graphql introspection spec and has to be ignored
     private static final String TYPENAME = "__typename";
@@ -182,16 +180,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     // Build predicate arguments for singular attributes only
                     if(fieldPath.getModel() instanceof SingularAttribute) {
                         // Process the orderBy clause
-                        Optional<Argument> orderByArgument = selectedField.getArguments().stream()
-                            .filter(this::isOrderByArgument)
-                            .findFirst();
-
-                        if (orderByArgument.isPresent()) {
-                            if ("DESC".equals(((EnumValue) orderByArgument.get().getValue()).getName()))
-                                query.orderBy(cb.desc(fieldPath));
-                            else
-                                query.orderBy(cb.asc(fieldPath));
-                        }
+                        selectedField.getArguments().stream()
+                                .filter(this::isOrderByArgument)
+                                .findFirst()
+                                .map(a -> getOrderByValue(a, environment))
+                                .ifPresent(orderBy -> {
+                                    if ("DESC".equals(orderBy.getName())) {
+                                        query.orderBy(cb.desc(fieldPath));
+                                    } else {
+                                        query.orderBy(cb.asc(fieldPath));
+                                    }
+                                });
 
                         // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
                         SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
@@ -391,12 +390,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         Value<?> value = argument.getValue();
         
         if(VariableReference.class.isInstance(value)) {
-            String variableName = VariableReference.class.cast(value)
-                                                         .getName();
-            
-            Object variableValue = environment.getExecutionContext()
-                                              .getVariables()
-                                              .get(variableName);
+            Object variableValue = getVariableReferenceValue((VariableReference) value, environment);
             
             GraphQLArgument graphQLArgument = environment.getExecutionStepInfo()
                                                 .getFieldDefinition()
@@ -406,6 +400,22 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         
         return (R) value;
+    }
+
+    private EnumValue getOrderByValue(Argument argument, DataFetchingEnvironment environment) {
+        Value<?> value = argument.getValue();
+
+        if(VariableReference.class.isInstance(value)) {
+            Object variableValue = getVariableReferenceValue((VariableReference) value, environment);
+            return EnumValue.newEnumValue(variableValue.toString()).build();
+        }
+        return (EnumValue) value;
+    }
+
+    private Object getVariableReferenceValue(VariableReference variableReference, DataFetchingEnvironment env) {
+        return env.getExecutionContext()
+                .getVariables()
+                .get(variableReference.getName());
     }
 
     protected Predicate getWherePredicate(CriteriaBuilder cb, Root<?> root,  From<?,?> path, DataFetchingEnvironment environment, Argument argument) {

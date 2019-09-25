@@ -1027,8 +1027,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             GraphQLEnumType.newEnum()
                     .name("OrderBy")
                     .description("Specifies the direction (Ascending / Descending) to sort a field.")
-                    .value("ASC", 0, "Ascending")
-                    .value("DESC", 1, "Descending")
+                    .value("ASC", "ASC", "Ascending")
+                    .value("DESC", "DESC", "Descending")
                     .build();
 
     
