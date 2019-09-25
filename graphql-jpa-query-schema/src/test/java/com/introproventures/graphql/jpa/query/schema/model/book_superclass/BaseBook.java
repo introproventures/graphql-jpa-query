@@ -20,4 +20,6 @@ public class BaseBook {
     SuperGenre genre;
 
     Date publicationDate;
+
+    String[] tags;
 }

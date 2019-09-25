@@ -21,7 +21,14 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
@@ -33,6 +40,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import graphql.Assert;
 import graphql.Scalars;
@@ -51,8 +61,6 @@ import graphql.schema.Coercing;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides Registry to resolve GraphQL Query Java Scalar Types
@@ -374,7 +382,7 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToZonedDateTime((String) input);
             } else if (input instanceof ZonedDateTime) {
-                return input;
+                return ((ZonedDateTime) input).withZoneSameInstant(ZoneId.of("UTC"));
             } else if (input instanceof LocalDate) {
                 return input;
             } else if (input instanceof Long) {
@@ -419,7 +427,7 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToOffsetDateTime((String) input);
             } else if (input instanceof OffsetDateTime) {
-                return input;
+                return ((OffsetDateTime) input).withOffsetSameInstant(ZoneOffset.of("Z"));
             } else if (input instanceof LocalDate) {
                 return input;
             } else if (input instanceof Long) {

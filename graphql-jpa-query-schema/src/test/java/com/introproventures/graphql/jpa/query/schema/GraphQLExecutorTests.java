@@ -21,19 +21,13 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.util.Lists.list;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.ErrorType;
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import graphql.validation.ValidationError;
-import graphql.validation.ValidationErrorType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +46,7 @@ import graphql.ErrorType;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 
 
 @RunWith(SpringRunner.class)
@@ -853,6 +848,7 @@ public class GraphQLExecutorTests {
                 "    }" +
                 "  }) {" +
                 "    total" +
+                "    pages" +
                 "    select {" +
                 "      id" +
                 "      name" +
@@ -887,6 +883,7 @@ public class GraphQLExecutorTests {
                 "    }" +
                 "  }) {" +
                 "    total" +
+                "    pages" +
                 "    select {" +
                 "      id" +
                 "      name" +
@@ -1520,5 +1517,129 @@ public class GraphQLExecutorTests {
                 .extracting("validationErrorType", "queryPath")
                 .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
     }
+    
+    @Test
+    public void queryWithEQNotMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War And Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithEQMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War and Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForCollectionCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors(where: { " + 
+                "    books: {" + 
+                "        genre: {EQ: $genre}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForEmbeddedCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(where:{ genre: {EQ: $genre} }) {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }      
 
 }

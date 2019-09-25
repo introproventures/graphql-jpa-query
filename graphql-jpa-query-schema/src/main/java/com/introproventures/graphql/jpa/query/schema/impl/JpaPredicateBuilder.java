@@ -19,11 +19,17 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,6 +43,7 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.language.NullValue;
 
 /**
@@ -68,23 +75,40 @@ import graphql.language.NullValue;
  */
 class JpaPredicateBuilder {
 
+    public static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES = new HashMap<Class<?>, Class<?>>();
+    public static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = new HashMap<Class<?>, Class<?>>();
+
+    static {
+        PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
+        PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
+        PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
+        PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
+        PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
+        PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
+        PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
+        PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
+        PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
+
+        WRAPPERS_TO_PRIMITIVES.put(Boolean.class, boolean.class);
+        WRAPPERS_TO_PRIMITIVES.put(Byte.class, byte.class);
+        WRAPPERS_TO_PRIMITIVES.put(Character.class, char.class);
+        WRAPPERS_TO_PRIMITIVES.put(Double.class, double.class);
+        WRAPPERS_TO_PRIMITIVES.put(Float.class, float.class);
+        WRAPPERS_TO_PRIMITIVES.put(Integer.class, int.class);
+        WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
+        WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
+        WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
+    }
+    
     private final CriteriaBuilder cb;
 
-    private final EnumSet<Logical> globalOptions;
-
     /**
-     * Field name can be prepended with (comma separated list of local options)
-     * if field is prepended with (), even without options, any global options
-     * avoided and defaults are used.Defaults: for numbers and booleas -
-     * equality; for strings case insensitive beginning matches; for dates
-     * greater or equal;
-     *
+     * JpaPredicateBuilder constructor 
+     * 
      * @param cb
-     * @param globalOptions
      */
-    public JpaPredicateBuilder(CriteriaBuilder cb, EnumSet<Logical> globalOptions) {
+    public JpaPredicateBuilder(CriteriaBuilder cb) {
         this.cb = cb;
-        this.globalOptions = globalOptions;
     }
 
     protected Predicate addOrNull(Path<?> root, Predicate p) {
@@ -99,13 +123,12 @@ class JpaPredicateBuilder {
      * @return
      */
     protected Predicate getStringPredicate(Path<String> root, PredicateFilter filter) {
-        Expression<String> fieldValue;
-
         // list or arrays only for in and not in, between and not between
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
 
         if(arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
+            Expression<String> fieldValue = root;
 
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
                 CriteriaBuilder.In<Object> in = cb.in(root);
@@ -114,15 +137,7 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                 return cb.not(root.in(compareValue));
             }
-
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.CASE)) {
-                fieldValue = root;
-            }
-            else {
-                fieldValue = cb.lower(root);
-                compareValue = compareValue.toLowerCase();
-            }
-
+            
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
                 return cb.equal(fieldValue, compareValue);
             } 
@@ -659,7 +674,7 @@ class JpaPredicateBuilder {
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
 
         if (type.isPrimitive())
-            type = JpaQueryBuilder.PRIMITIVES_TO_WRAPPERS.get(type);
+            type = PRIMITIVES_TO_WRAPPERS.get(type);
         if (type.equals(String.class)) {
             return getStringPredicate((Path<String>)field, filter);
         }
@@ -783,8 +798,7 @@ class JpaPredicateBuilder {
                 Object arg = NullValue.class.isInstance(object) ? null : object;
                 return constructor.newInstance(arg);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
         
         return object;

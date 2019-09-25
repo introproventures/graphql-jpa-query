@@ -30,7 +30,6 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.SingularAttribute;
 
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
@@ -109,10 +108,6 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
-            // Let's clear session persistent context to avoid getting stale objects cached in the same session 
-            // between requests with different search criteria. This looks like a Hibernate bug... 
-            entityManager.clear();
-            
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
@@ -187,9 +182,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<?> root = query.from(entityType);
 
-        SingularAttribute<?,?> idAttribute = entityType.getId(Object.class);
-        
-        query.select(cb.count(root.get(idAttribute.getName())));
+        query.select(cb.count(root));
         
         List<Predicate> predicates = field.getArguments().stream()
             .map(it -> getPredicate(cb, root, null, environment, it))

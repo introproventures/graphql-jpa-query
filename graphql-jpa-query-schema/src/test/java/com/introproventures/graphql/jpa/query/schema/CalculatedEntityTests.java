@@ -2,7 +2,10 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
+
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -20,6 +23,8 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.ExecutionResult;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationErrorType;
 
 @RunWith(SpringRunner.class)
@@ -45,6 +50,9 @@ public class CalculatedEntityTests {
 
     @Autowired
     private GraphQLExecutor executor;
+
+    @Autowired
+    private GraphQLSchemaBuilder schemaBuilder;
 
     @Test
     public void contextLoads() {
@@ -76,6 +84,7 @@ public class CalculatedEntityTests {
                 "           fieldMem" +
                 "           fieldFun" +
                 "           logic" +
+                "           age" +
                 "           customLogic" +
                 "           hideField" +
                 "           hideFieldFunction" +
@@ -92,6 +101,10 @@ public class CalculatedEntityTests {
                 "           parentTransientGraphQLIgnore" +
                 "           parentTransientModifierGraphQLIgnore" +
                 "           parentTransientGraphQLIgnoreGetter" +
+                "           Uppercase" +
+                "           UppercaseGetter" +
+                "           UppercaseGetterIgnore" +
+                "           protectedGetter" +
                 "       } " +
                 "   } " +
                 "}";
@@ -113,8 +126,39 @@ public class CalculatedEntityTests {
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnore")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientModifierGraphQLIgnore")),
                         tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnoreGetter")),
-                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore"))
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "UppercaseGetterIgnore"))
                 );
+    }
+
+    @Test
+    public void shouldInheritMethodDescriptionFromBaseClass() {
+        //when
+        GraphQLSchema schema = schemaBuilder.build();
+
+        //then
+        Optional<GraphQLFieldDefinition> field = getFieldForType("parentTransientGetter",
+                                                                 "CalculatedEntity",
+                                                                 schema);
+        then(field)
+                .isPresent().get()
+                .extracting("description")
+                .isNotNull()
+                .containsExactly("getParentTransientGetter");
+    }
+
+    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName,
+                                                             String type,
+                                                             GraphQLSchema schema) {
+        return schema.getQueryType()
+                .getFieldDefinition(type)
+                .getType()
+                .getChildren()
+                .stream()
+                .map(GraphQLFieldDefinition.class::cast)
+                .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
+                .findFirst();
     }
 
 }
