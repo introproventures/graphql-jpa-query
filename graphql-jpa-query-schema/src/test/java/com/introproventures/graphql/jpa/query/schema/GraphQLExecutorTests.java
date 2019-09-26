@@ -18,6 +18,7 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
 
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.assertj.core.util.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1568,4 +1570,45 @@ public class GraphQLExecutorTests {
         assertThat(result2.toString()).isEqualTo(expected2);
     }      
 
+    @Test
+    public void queryWithEnumParameterShouldExecuteWithNoError() {
+        //given
+        String query = "" +
+                "query($orderById: OrderBy) {" +
+                "   Books {" +
+                "       select {" +
+                "           id(orderBy: $orderById)" +
+                "           title" +
+                "       }" +
+                "   }" +
+                "}";
+        Map<String, Object> variables = Maps.newHashMap("orderById",
+                                                        "DESC");
+
+        //when
+        ExecutionResult executionResult = executor.execute(query,
+                                                           variables);
+
+        // then
+        List<GraphQLError> errors = executionResult.getErrors();
+        Map<String, Object> data = executionResult.getData();
+        then(errors).isEmpty();
+        then(data)
+                .isNotNull().isNotEmpty()
+                .extracting("Books")
+                .flatExtracting("select")
+                .extracting("id", "title")
+                .containsExactly(
+                        tuple(7L,
+                              "Three Sisters"),
+                        tuple(6L,
+                              "The Seagull"),
+                        tuple(5L,
+                              "The Cherry Orchard"),
+                        tuple(3L,
+                              "Anna Karenina"),
+                        tuple(2L,
+                              "War and Peace")
+                );
+    }
 }
