@@ -1616,7 +1616,7 @@ public class GraphQLExecutorTests {
     @Test
     public void queryOptionalElementCollections() {
         //given
-        String query = "{ Author(id: 8) { id name phoneNumbers books { id title } } }";
+        String query = "{ Author(id: 8) { id name phoneNumbers books { id title tags } } }";
         
         String expected = "{Author={id=8, name=Igor Dianov, phoneNumbers=[], books=[]}}";
 
