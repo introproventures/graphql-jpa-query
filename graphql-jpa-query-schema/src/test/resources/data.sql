@@ -126,6 +126,12 @@ insert into book (id, title, author_id, genre, publication_date, description)
 values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01', 'The play is sometimes included on the short list of Chekhov''s outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]');
 insert into author (id, name, genre) values (8, 'Igor Dianov', 'JAVA');
 
+insert into book_tags (book_id, tags) values (2, 'war'), (2, 'piece');
+insert into book_tags (book_id, tags) values (3, 'anna'), (3, 'karenina');
+insert into book_tags (book_id, tags) values (5, 'cherry'), (5, 'orchard');
+insert into book_tags (book_id, tags) values (6, 'seagull');
+insert into book_tags (book_id, tags) values (7, 'three'), (7, 'sisters');
+
 insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-1234', 1),
 	('1-123-5678', 1),
