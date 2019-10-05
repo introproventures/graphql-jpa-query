@@ -1611,4 +1611,41 @@ public class GraphQLExecutorTests {
                               "War and Peace")
                 );
     }
+    
+    // https://github.com/introproventures/graphql-jpa-query/issues/198
+    @Test
+    public void queryOptionalElementCollections() {
+        //given
+        String query = "{ Author(id: 8) { id name phoneNumbers books { id title tags } } }";
+        
+        String expected = "{Author={id=8, name=Igor Dianov, phoneNumbers=[], books=[]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryElementCollectionsWithWhereCriteriaExpression() {
+        //given:
+        String query = "query {" + 
+                "  Books(where: {tags: {EQ: \"war\"}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      tags" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Books={select=[{id=2, title=War and Peace, tags=[piece, war]}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    } 
 }

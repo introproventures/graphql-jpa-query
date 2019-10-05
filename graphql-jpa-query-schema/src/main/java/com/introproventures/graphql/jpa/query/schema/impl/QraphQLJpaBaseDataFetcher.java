@@ -218,20 +218,20 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         // Let's do fugly conversion 
                         // the many end is a collection, and it is always optional by default (empty collection)
                         isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                             .orElse(toManyDefaultOptional);
+                                                     .orElse(toManyDefaultOptional);
 
-                        // Let's apply join to retrieve associated collection
-                        fetch = reuseFetch(from, selectedField.getName(), isOptional);
-
-                        // Let's fetch element collections to avoid filtering their values used where search criteria
                         GraphQLObjectType objectType = getObjectType(environment);
                         EntityType<?> entityType = getEntityType(objectType);
 
                         PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
                         
+                        // Let's join fetch element collections to avoid filtering their values used where search criteria
                         if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
-                            from.fetch(selectedField.getName());
-                        }                    
+                            from.fetch(selectedField.getName(), JoinType.LEFT);
+                        } else {
+                            // Let's apply fetch join to retrieve associated plural attributes
+                            fetch = reuseFetch(from, selectedField.getName(), isOptional);
+                        }
                     }
                     // Let's build join fetch graph to avoid Hibernate error: 
                     // "query specified join fetching, but the owner of the fetched association was not present in the select list"
