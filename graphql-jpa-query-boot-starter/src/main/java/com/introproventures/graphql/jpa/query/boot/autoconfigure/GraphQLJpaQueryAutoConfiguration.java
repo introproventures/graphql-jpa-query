@@ -24,8 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.context.annotation.RequestScope;
-import org.springframework.web.context.annotation.SessionScope;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
@@ -63,14 +61,12 @@ public class GraphQLJpaQueryAutoConfiguration {
     public static class DefaultGraphQLJpaQueryConfiguration {
 
         @Bean 
-        @RequestScope
         @ConditionalOnMissingBean
         public GraphQLExecutionInputFactory graphQLExecutionInputFactory() {
             return new GraphQLExecutionInputFactory() { };
         }
         
         @Bean 
-        @SessionScope
         @ConditionalOnMissingBean
         public GraphQLExecutorContextFactory graphQLExecutorContextFactory(GraphQLExecutionInputFactory graphQLExecutionInputFactory) {
             return new GraphQLJpaExecutorContextFactory(graphQLExecutionInputFactory);
