@@ -862,7 +862,7 @@ public class GraphQLExecutorTests {
                 "  }"+
                 "}";
 
-        String expected = "{Authors={select=[]}}";
+        String expected = "{Authors={total=0, pages=0, select=[]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -897,7 +897,7 @@ public class GraphQLExecutorTests {
                 "  }"+
                 "}";
 
-        String expected = "{Authors={select=["
+        String expected = "{Authors={total=3, pages=1, select=["
                 + "{id=4, name=Anton Chekhov, books=["
                 +   "{id=5, title=The Cherry Orchard}, "
                 +   "{id=6, title=The Seagull}, "

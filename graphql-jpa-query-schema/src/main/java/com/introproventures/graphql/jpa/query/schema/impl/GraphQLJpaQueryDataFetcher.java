@@ -182,10 +182,14 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<?> root = query.from(entityType);
 
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .root(query)
+                                                                                 .build();
+        
         query.select(cb.count(root));
         
         List<Predicate> predicates = field.getArguments().stream()
-            .map(it -> getPredicate(cb, root, null, environment, it))
+            .map(it -> getPredicate(cb, root, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
         
