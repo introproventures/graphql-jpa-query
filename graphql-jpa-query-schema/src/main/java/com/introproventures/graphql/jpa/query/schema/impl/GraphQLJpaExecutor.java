@@ -24,6 +24,8 @@ import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -41,7 +43,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
 
     private final GraphQLSchema graphQLSchema;
 
-    private final GraphQLJpaExecutorContextFactory contextFactory;
+    private final GraphQLExecutorContextFactory contextFactory;
     
     /**
      * Creates instance using GraphQLSchema parameter with default GraphQLJpaExecutorContextFactory
@@ -59,7 +61,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @param GraphQLJpaExecutorContextFactory contextFactory
      */
     public GraphQLJpaExecutor(GraphQLSchema graphQLSchema,
-                              GraphQLJpaExecutorContextFactory contextFactory) {
+                              GraphQLExecutorContextFactory contextFactory) {
         this.graphQLSchema = graphQLSchema;
         this.contextFactory = contextFactory;
     }
@@ -80,28 +82,21 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
-
-        GraphQLJpaExecutorContext executorContext = contextFactory.create();
-
-        GraphQLSchema schema = executorContext.graphQLFieldVisibility()
-                                              .map(graphQLFieldVisibility -> 
-                                                   graphQLSchema.transform(builder -> 
-                                                                           builder.fieldVisibility(graphQLFieldVisibility)))
-                                              .orElse(graphQLSchema);
         
+        GraphQLExecutorContext executorContext = contextFactory.newExecutorContext();
+
+        ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
+                                                               .query(query)
+                                                               .variables(arguments);        
+        
+        GraphQLSchema schema = executorContext.schemaBuilder(graphQLSchema)
+                                              .map(graphQLSchema::transform)
+                                              .orElse(graphQLSchema);
+
         GraphQL.Builder graphQL = GraphQL.newGraphQL(schema);
         
-        executorContext.getInstrumentation()
+        executorContext.instrumentation()
                        .ifPresent(graphQL::instrumentation);
-        
-        ExecutionInput.Builder executionInput = ExecutionInput.newExecutionInput()
-                                                              .query(query)
-                                                              .variables(arguments);
-        executorContext.getExecutionContext()
-                       .ifPresent(executionInput::context);
-
-        executorContext.getExecutionRoot()
-                       .ifPresent(executionInput::root);
         
         return graphQL.build()
                       .execute(executionInput);

@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.schema.impl;
+package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import graphql.ExecutionInput;
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.schema.GraphQLSchema;
 
-public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
+public interface GraphQLExecutorContext {
     
-    private final GraphQLExecutionInputFactory factory;
-    
-    public GraphQLJpaExecutorContext(GraphQLExecutionInputFactory factory) {
-        this.factory = factory;
+    ExecutionInput.Builder newExecutionInput();
+
+    default Optional<Consumer<GraphQLSchema.Builder>> schemaBuilder(GraphQLSchema schema) {
+        return Optional.empty();
     }
     
-    @Override
-    public ExecutionInput.Builder newExecutionInput() {
-        return factory.create();
+    default Optional<Instrumentation> instrumentation() {
+        return Optional.empty();
     }
     
 }
