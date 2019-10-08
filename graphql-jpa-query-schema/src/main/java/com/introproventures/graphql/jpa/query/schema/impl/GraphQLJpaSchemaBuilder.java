@@ -16,14 +16,9 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,7 +30,6 @@ import java.util.stream.Stream;
 
 import javax.persistence.Convert;
 import javax.persistence.EntityManager;
-import javax.persistence.Transient;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -44,15 +38,18 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
-import com.introproventures.graphql.jpa.query.schema.impl.IntrospectionUtils.CachedIntrospectionResult.CachedPropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.Assert;
 import graphql.Scalars;
 import graphql.schema.Coercing;
@@ -71,8 +68,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -163,7 +158,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(entityType.getName())
-                .description(getSchemaDescription( entityType.getJavaType()))
+                .description(getSchemaDescription(entityType))
                 .type(getObjectType(entityType))
                 .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType, toManyDefaultOptional))
                 .argument(entityType.getAttributes().stream()
@@ -425,7 +420,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         ManagedType<?> foreignType = getForeignType(attribute);
         
         String type = resolveWhereInputTypeName(foreignType);
-        String description = getSchemaDescription(attribute.getJavaMember());
+        String description = getSchemaDescription(attribute);
 
         return GraphQLInputObjectField.newInputObjectField()
                                       .name(attribute.getName())
@@ -436,7 +431,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private GraphQLInputObjectField getWhereInputField(Attribute<?,?> attribute) {
         GraphQLInputType type = getWhereAttributeType(attribute);
-        String description = getSchemaDescription(attribute.getJavaMember());
+        String description = getSchemaDescription(attribute);
 
         if (type instanceof GraphQLInputType) {
             return GraphQLInputObjectField.newInputObjectField()
@@ -598,7 +593,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private GraphQLArgument getArgument(Attribute<?,?> attribute) {
         GraphQLInputType type = getAttributeInputType(attribute);
-        String description = getSchemaDescription(attribute.getJavaMember());
+        String description = getSchemaDescription(attribute);
 
         return GraphQLArgument.newArgument()
                 .name(attribute.getName())
@@ -618,7 +613,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         if (input) {
             graphQLType = GraphQLInputObjectType.newInputObject()
                     .name(embeddableTypeName)
-                    .description(getSchemaDescription(embeddableType.getJavaType()))
+                    .description(getSchemaDescription(embeddableType))
                     .fields(embeddableType.getAttributes().stream()
                             .filter(this::isNotIgnored)
                             .map(this::getInputObjectField)
@@ -628,7 +623,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         } else {
             graphQLType = GraphQLObjectType.newObject()
                     .name(embeddableTypeName)
-                    .description(getSchemaDescription(embeddableType.getJavaType()))
+                    .description(getSchemaDescription(embeddableType))
                     .fields(embeddableType.getAttributes().stream()
                             .filter(this::isNotIgnored)
                             .map(this::getObjectField)
@@ -654,45 +649,46 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private GraphQLObjectType computeObjectType(EntityType<?> entityType) {
     	return GraphQLObjectType.newObject()
 				                .name(entityType.getName())
-				                .description(getSchemaDescription(entityType.getJavaType()))
+				                .description(getSchemaDescription(entityType))
 				                .fields(getEntityAttributesFields(entityType))
-				                .fields(getTransientFields(entityType.getJavaType()))
+				                .fields(getTransientFields(entityType))
 				                .build();
     }
 
     private List<GraphQLFieldDefinition> getEntityAttributesFields(EntityType<?> entityType) {
-    	return entityType.getAttributes()
-    					 .stream()
-				         .filter(this::isNotIgnored)
-				         .map(it -> getObjectField(it, entityType))
-				         .collect(Collectors.toList());    	
+        return entityType.getAttributes()
+                         .stream()
+                         .filter(attribute -> EntityIntrospector.introspect(entityType)
+                                                                .isNotIgnored(attribute.getName()))
+                         .map(it -> getObjectField(it, entityType))
+                         .collect(Collectors.toList());
     }
 
-    
-    private List<GraphQLFieldDefinition> getTransientFields(Class<?> clazz) {
-        return IntrospectionUtils.introspect(clazz)
-			 				     .getPropertyDescriptors().stream()
-			        			 .filter(it -> it.isAnnotationPresent(Transient.class))
-			        			 .map(CachedPropertyDescriptor::getDelegate)
-			        			 .filter(it -> isNotIgnored(it.getPropertyType()))
-			        			 .map(this::getJavaFieldDefinition)
-			        			 .collect(Collectors.toList());
+    private List<GraphQLFieldDefinition> getTransientFields(ManagedType<?> managedType) {
+        return EntityIntrospector.introspect(managedType)
+                                 .getTransientPropertyDescriptors()
+                                 .stream()
+                                 .filter(AttributePropertyDescriptor::isNotIgnored)
+                                 .map(this::getJavaFieldDefinition)
+                                 .collect(Collectors.toList());
     }
     
     @SuppressWarnings( { "rawtypes" } )
-    private GraphQLFieldDefinition getJavaFieldDefinition(PropertyDescriptor propertyDescriptor) {
+    private GraphQLFieldDefinition getJavaFieldDefinition(AttributePropertyDescriptor propertyDescriptor) {
     	GraphQLOutputType type = getGraphQLTypeFromJavaType(propertyDescriptor.getPropertyType());
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(propertyDescriptor.getName());
+        
+        String description = propertyDescriptor.getSchemaDescription().orElse(null);
 
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(propertyDescriptor.getName())
-                .description(getSchemaDescription(propertyDescriptor.getPropertyType()))
-                .type(type)
-                .dataFetcher(dataFetcher)
-                .build();
+                                     .name(propertyDescriptor.getName())
+                                     .description(description)
+                                     .type(type)
+                                     .dataFetcher(dataFetcher)
+                                     .build();
     }
 
-    private GraphQLFieldDefinition getObjectField(Attribute attribute) {
+    private GraphQLFieldDefinition getObjectField(Attribute<?,?> attribute) {
         return getObjectField(attribute, null);
     }
 
@@ -750,7 +746,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(attribute.getName())
-                .description(getSchemaDescription(attribute.getJavaMember()))
+                .description(getSchemaDescription(attribute))
                 .type(type)
                 .dataFetcher(dataFetcher)
                 .argument(arguments)
@@ -779,7 +775,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         return GraphQLInputObjectField.newInputObjectField()
                 .name(attribute.getName())
-                .description(getSchemaDescription(attribute.getJavaMember()))
+                .description(getSchemaDescription(attribute))
                 .type(type)
                 .build();
     }
@@ -877,86 +873,25 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return isOneToMany(attribute) || isToOne(attribute);
     }
 
+
+    private String getSchemaDescription(Attribute<?,?> attribute) {
+        return EntityIntrospector.introspect(attribute.getDeclaringType())
+                                 .getSchemaDescription(attribute.getName())
+                                 .orElse(null);
+    }
     
+    private String getSchemaDescription(EntityType<?> entityType) {
+        return EntityIntrospector.introspect(entityType)
+                                 .getSchemaDescription()
+                                 .orElse(null);
+    }
+
+    private String getSchemaDescription(EmbeddableType<?> embeddableType) {
+        return EntityIntrospector.introspect(embeddableType)
+                                 .getSchemaDescription()
+                                 .orElse(null);
+    }
     
-    private String getSchemaDescription(Member member) {
-        if (member instanceof AnnotatedElement) {
-            String desc = getSchemaDescription((AnnotatedElement) member);
-            if (desc != null) {
-                return(desc);
-            }
-        }
-
-        //The given Member has no @GraphQLDescription set.
-        //If the Member is a Method it might be a getter/setter, see if the property it represents
-        //is annotated with @GraphQLDescription
-        //Alternatively if the Member is a Field its getter might be annotated, see if its getter
-        //is annotated with @GraphQLDescription
-        if (member instanceof Method) {
-            Field fieldMember = getFieldByAccessor((Method)member);
-            if (fieldMember != null) {
-                return(getSchemaDescription((AnnotatedElement) fieldMember));
-            }
-        } else if (member instanceof Field) {
-            Method fieldGetter = getGetterOfField((Field)member);
-            if (fieldGetter != null) {
-                return(getSchemaDescription((AnnotatedElement) fieldGetter));
-            }
-        }
-
-        return null;
-    }
-
-    private Method getGetterOfField(Field field) {
-        try {
-            Class<?> clazz = field.getDeclaringClass();
-            BeanInfo info = Introspector.getBeanInfo(clazz);
-            PropertyDescriptor[] props = info.getPropertyDescriptors();
-            for (PropertyDescriptor pd : props) { 
-                if (pd.getName().equals(field.getName())) {
-                    return(pd.getReadMethod());
-                }
-            }
-        } catch (IntrospectionException e) {
-            e.printStackTrace();
-        }
-
-        return(null);
-    }
-
-    //from https://stackoverflow.com/questions/13192734/getting-a-property-field-name-using-getter-method-of-a-pojo-java-bean/13514566
-    private static Field getFieldByAccessor(Method method) {
-        try {
-            Class<?> clazz = method.getDeclaringClass();
-            BeanInfo info = Introspector.getBeanInfo(clazz);  
-            PropertyDescriptor[] props = info.getPropertyDescriptors();  
-            for (PropertyDescriptor pd : props) {  
-                if(method.equals(pd.getWriteMethod()) || method.equals(pd.getReadMethod())) {
-                    String fieldName = pd.getName();
-                    try {
-                        return(clazz.getDeclaredField(fieldName));
-                    } catch (Throwable t) {
-                        log.error("class '" + clazz.getName() + "' contains method '" + method.getName() + "' which is an accessor for a Field named '" + fieldName + "', error getting the field:", t);
-                        return(null);
-                    }
-                }
-            }
-        } catch (Throwable t)  {
-            log.error("error finding Field for accessor with name '" + method.getName() + "'", t);
-        }
-
-        return null;
-    }
-
-    private String getSchemaDescription(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            GraphQLDescription schemaDocumentation = annotatedElement.getAnnotation(GraphQLDescription.class);
-            return schemaDocumentation != null ? schemaDocumentation.value() : null;
-        }
-
-        return null;
-    }
-
     private boolean isNotIgnored(EmbeddableType<?> attribute) {
         return isNotIgnored(attribute.getJavaType());
     }
@@ -978,12 +913,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private boolean isNotIgnored(AnnotatedElement annotatedElement) {
-        if (annotatedElement != null) {
-            GraphQLIgnore schemaDocumentation = annotatedElement.getAnnotation(GraphQLIgnore.class);
-            return schemaDocumentation == null;
-        }
-
-        return false;
+        return annotatedElement != null && annotatedElement.getAnnotation(GraphQLIgnore.class) == null;
     }
 
     protected boolean isNotIgnoredFilter(Attribute<?,?> attribute) {
@@ -1035,6 +965,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             classCache.putIfAbsent(clazz, enumType);
             
             return enumType;
+        } else if (clazz.isArray()) {
+            return GraphQLList.list(JavaScalars.of(clazz.getComponentType()));
         }
 
         return JavaScalars.of(clazz);
@@ -1095,8 +1027,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             GraphQLEnumType.newEnum()
                     .name("OrderBy")
                     .description("Specifies the direction (Ascending / Descending) to sort a field.")
-                    .value("ASC", 0, "Ascending")
-                    .value("DESC", 1, "Descending")
+                    .value("ASC", "ASC", "Ascending")
+                    .value("DESC", "DESC", "Descending")
                     .build();
 
     

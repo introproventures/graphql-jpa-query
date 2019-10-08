@@ -17,20 +17,19 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.util.Lists.list;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.ErrorType;
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import graphql.validation.ValidationError;
+import org.assertj.core.util.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +40,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
+import graphql.ErrorType;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
+import graphql.validation.ValidationError;
+import graphql.validation.ValidationErrorType;
 
 
 @RunWith(SpringRunner.class)
@@ -619,7 +627,7 @@ public class GraphQLExecutorTests {
                 "        title: {LIKE: \"War\"}" + 
                 "      }" + 
                 "    }" + 
-                "  }) {" + 
+                "  }) {" +
                 "    select {" + 
                 "      id" + 
                 "      name" + 
@@ -827,8 +835,82 @@ public class GraphQLExecutorTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }     
-    
+    }
+
+    @Test
+    public void queryTotalForAuthorsWithWhereEXISTSBooksLIKETitleEmpty() {
+        //given
+        String query = "query { "
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" +
+                "        author: {name: {LIKE: \"Anton\"}}" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    total" +
+                "    pages" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"+
+                "}";
+
+        String expected = "{Authors={total=0, pages=0, select=[]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryTotalForAuthorsWithWhereBooksNOTEXISTSAuthorLIKENameLeo() {
+        //given
+        String query = "query { "
+                + "  Authors(where: {" +
+                "    books: {" +
+                "      NOT_EXISTS: {" +
+                "        author: {" +
+                "          name: {LIKE: \"Leo\"}" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    total" +
+                "    pages" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"+
+                "}";
+
+        String expected = "{Authors={total=3, pages=1, select=["
+                + "{id=4, name=Anton Chekhov, books=["
+                +   "{id=5, title=The Cherry Orchard}, "
+                +   "{id=6, title=The Seagull}, "
+                +   "{id=7, title=Three Sisters}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @Test
     public void queryForAuthorssWithWhereBooksGenreEquals() {
         //given
@@ -1414,5 +1496,230 @@ public class GraphQLExecutorTests {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForTransientMethodAnnotatedWithGraphQLIgnoreShouldFail() {
+        //given
+        String query = ""
+                + "query { "
+                + "    Books {"
+                + "        select {"
+                + "            authorName"
+                + "        }"
+                + "    }"
+                + "}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors())
+                .isNotEmpty()
+                .extracting("validationErrorType", "queryPath")
+                .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
+    }
+    
+    @Test
+    public void queryWithEQNotMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War And Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithEQMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ: \"War and Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForCollectionCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors(where: { " + 
+                "    books: {" + 
+                "        genre: {EQ: $genre}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }
+    
+    @Test
+    public void shouldNotReturnStaleCacheResultsFromPreviousQueryForEmbeddedCriteriaExpression() {
+        //given:
+        String query = "query ($genre: Genre) {" + 
+                "  Authors {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(where:{ genre: {EQ: $genre} }) {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        //when: 1st query
+        Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
+        
+        String expected1 = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
+                +       "{id=6, title=The Seagull, genre=PLAY}, "
+                +       "{id=7, title=Three Sisters, genre=PLAY}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result1.toString()).isEqualTo(expected1);
+        
+        //when: 2nd query
+        Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
+        
+        String expected2 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}, "
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //then:
+        assertThat(result2.toString()).isEqualTo(expected2);
+    }      
+
+    @Test
+    public void queryWithEnumParameterShouldExecuteWithNoError() {
+        //given
+        String query = "" +
+                "query($orderById: OrderBy) {" +
+                "   Books {" +
+                "       select {" +
+                "           id(orderBy: $orderById)" +
+                "           title" +
+                "       }" +
+                "   }" +
+                "}";
+        Map<String, Object> variables = Maps.newHashMap("orderById",
+                                                        "DESC");
+
+        //when
+        ExecutionResult executionResult = executor.execute(query,
+                                                           variables);
+
+        // then
+        List<GraphQLError> errors = executionResult.getErrors();
+        Map<String, Object> data = executionResult.getData();
+        then(errors).isEmpty();
+        then(data)
+                .isNotNull().isNotEmpty()
+                .extracting("Books")
+                .flatExtracting("select")
+                .extracting("id", "title")
+                .containsExactly(
+                        tuple(7L,
+                              "Three Sisters"),
+                        tuple(6L,
+                              "The Seagull"),
+                        tuple(5L,
+                              "The Cherry Orchard"),
+                        tuple(3L,
+                              "Anna Karenina"),
+                        tuple(2L,
+                              "War and Peace")
+                );
+    }
+    
+    // https://github.com/introproventures/graphql-jpa-query/issues/198
+    @Test
+    public void queryOptionalElementCollections() {
+        //given
+        String query = "{ Author(id: 8) { id name phoneNumbers books { id title tags } } }";
+        
+        String expected = "{Author={id=8, name=Igor Dianov, phoneNumbers=[], books=[]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
     }    
+    
+    @Test
+    public void queryElementCollectionsWithWhereCriteriaExpression() {
+        //given:
+        String query = "query {" + 
+                "  Books(where: {tags: {EQ: \"war\"}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      tags" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Books={select=[{id=2, title=War and Peace, tags=[piece, war]}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    } 
 }

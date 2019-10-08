@@ -1,9 +1,11 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.util.Lists.list;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
@@ -20,9 +22,10 @@ import org.springframework.util.Assert;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-import graphql.ErrorType;
-import graphql.GraphQLError;
-import graphql.validation.ValidationError;
+import graphql.ExecutionResult;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchema;
+import graphql.validation.ValidationErrorType;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
@@ -48,6 +51,9 @@ public class CalculatedEntityTests {
     @Autowired
     private GraphQLExecutor executor;
 
+    @Autowired
+    private GraphQLSchemaBuilder schemaBuilder;
+
     @Test
     public void contextLoads() {
         Assert.isAssignable(GraphQLExecutor.class, executor.getClass());
@@ -69,17 +75,90 @@ public class CalculatedEntityTests {
 
     @Test
     public void testIgnoreFields() {
-        String query = "query GraphQLCalcFields { CalculatedEntities { select {id title fieldMem fieldFun logic customLogic hideField hideFieldFunction } } }";
+        String query = "" +
+                "query GraphQLCalcFields { " +
+                "   CalculatedEntities { " +
+                "       select {" +
+                "           id" +
+                "           title" +
+                "           fieldMem" +
+                "           fieldFun" +
+                "           logic" +
+                "           age" +
+                "           customLogic" +
+                "           hideField" +
+                "           hideFieldFunction" +
+                "           propertyIgnoredOnGetter" +
+                "           ignoredTransientValue" +
+                "           transientModifier" +
+                "           transientModifierGraphQLIgnore" +
+                "           parentField" +
+                "           parentTransientModifier" +
+                "           parentTransient" +
+                "           parentTransientGetter" +
+                "           parentGraphQLIngore" +
+                "           parentGraphQLIgnoreGetter" +
+                "           parentTransientGraphQLIgnore" +
+                "           parentTransientModifierGraphQLIgnore" +
+                "           parentTransientGraphQLIgnoreGetter" +
+                "           Uppercase" +
+                "           UppercaseGetter" +
+                "           UppercaseGetterIgnore" +
+                "           protectedGetter" +
+                "       } " +
+                "   } " +
+                "}";
 
         //when
-        List<GraphQLError> result = executor.execute(query).getErrors();
+        ExecutionResult result = executor.execute(query);
 
         //then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isExactlyInstanceOf(ValidationError.class)
-        			             .extracting(ValidationError.class::cast)
-        			             .extracting("errorType", "queryPath")
-      				             .contains(ErrorType.ValidationError, Arrays.asList("CalculatedEntities", "select", "hideFieldFunction"));
+        assertThat(result.getErrors())
+                .isNotEmpty()
+                .extracting("validationErrorType", "queryPath")
+                .containsOnly(
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideField")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "hideFieldFunction")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "propertyIgnoredOnGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "ignoredTransientValue")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentGraphQLIngore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentGraphQLIgnoreGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "parentTransientGraphQLIgnoreGetter")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "transientModifierGraphQLIgnore")),
+                        tuple(ValidationErrorType.FieldUndefined, list("CalculatedEntities", "select", "UppercaseGetterIgnore"))
+                );
+    }
+
+    @Test
+    public void shouldInheritMethodDescriptionFromBaseClass() {
+        //when
+        GraphQLSchema schema = schemaBuilder.build();
+
+        //then
+        Optional<GraphQLFieldDefinition> field = getFieldForType("parentTransientGetter",
+                                                                 "CalculatedEntity",
+                                                                 schema);
+        then(field)
+                .isPresent().get()
+                .extracting("description")
+                .isNotNull()
+                .containsExactly("getParentTransientGetter");
+    }
+
+    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName,
+                                                             String type,
+                                                             GraphQLSchema schema) {
+        return schema.getQueryType()
+                .getFieldDefinition(type)
+                .getType()
+                .getChildren()
+                .stream()
+                .map(GraphQLFieldDefinition.class::cast)
+                .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
+                .findFirst();
     }
 
 }

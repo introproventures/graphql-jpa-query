@@ -19,11 +19,7 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -210,5 +206,74 @@ public class JavaScalarsTest {
 
         assertThat(coercing).isInstanceOf(GraphQLObjectCoercing.class);
         assertThat(scalarType.getName()).isEqualTo("Map");
-    }    
+    }
+    @Test
+    public void string2OffsetDateTime() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(OffsetDateTime.class).getCoercing();
+        final String input = "2017-02-02T12:30:15+07:00";
+
+        //when
+        Object result = coercing.serialize(input);
+
+        //then
+        assertThat(result).isInstanceOf(OffsetDateTime.class);
+
+        OffsetDateTime resultLDT = (OffsetDateTime) result;
+
+        assert resultLDT.getDayOfMonth() == 2;
+        assert resultLDT.getMonth() == Month.FEBRUARY;
+        assert resultLDT.getYear() == 2017;
+        assert resultLDT.getHour() == 12;
+        assert resultLDT.getMinute() == 30;
+        assert resultLDT.getSecond() == 15;
+        assert resultLDT.getOffset() == ZoneOffset.of("+07:00");
+    }
+
+    @Test
+    public void string2ZonedDateTime() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(ZonedDateTime.class).getCoercing();
+        final String input = "2019-08-05T13:47:57.428260700+07:00[Asia/Bangkok]";
+
+        //when
+        Object result = coercing.serialize(input);
+
+        //then
+        assertThat(result).isInstanceOf(ZonedDateTime.class);
+
+        ZonedDateTime resultLDT = (ZonedDateTime) result;
+
+        assert resultLDT.getDayOfMonth() == 05;
+        assert resultLDT.getMonth() == Month.AUGUST;
+        assert resultLDT.getYear() == 2019;
+        assert resultLDT.getHour() == 13;
+        assert resultLDT.getMinute() == 47;
+        assert resultLDT.getSecond() == 57;
+        assert resultLDT.getNano() == 428260700;
+        assert resultLDT.getOffset() == ZoneOffset.of("+07:00");
+    }
+
+    @Test
+    public void string2Instant() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Instant.class).getCoercing();
+        final String input = "2019-08-05T07:15:07.199582Z";
+        Instant instant = Instant.parse(input);
+
+//        when
+        Object result = coercing.serialize(instant);
+
+        //then
+        assertThat(result).isInstanceOf(Instant.class);
+
+        OffsetDateTime resultLDT = OffsetDateTime.ofInstant((Instant) result, ZoneOffset.UTC);
+
+        assert resultLDT.getYear() == 2019;
+        assert resultLDT.getDayOfMonth() == 05;
+        assert resultLDT.getMonth() == Month.AUGUST;
+        assert resultLDT.getHour() == 07;
+        assert resultLDT.getMinute() == 15;
+        assert resultLDT.getSecond() == 07;
+    }
 }

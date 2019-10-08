@@ -1,6 +1,25 @@
 # Change Log
 
-## 0.3.28-SNAPSHOT
+## 0.3.34-SNAPSHOT
+* fix(GH-193): Fixed error in GQL Queries when &#96;total&#96; or &#96;pages&#96; is included with condition &#96;where: NOT_EXISTS&#96; or &#96;EXISTS&#96; (#201) [40a0e2d](https://github.com/introproventures/graphql-jpa-query/commit/40a0e2d844854f8888e3502d1d6434db9cb1dd7e)
+* fix(GH-198): adedd support for fetching optional element collections elements (#200) [5d99c3b](https://github.com/introproventures/graphql-jpa-query/commit/5d99c3b4629521ebee2788c6b877250c279c8bf2)
+* fix: Added support for binding orderBy argument as a variable (#195) [2a01382](https://github.com/introproventures/graphql-jpa-query/commit/2a0138237cb639427f169b18f6b6f159c430afac)
+* fix: removed EntityManager.clear() from GraphQLJpaQueryDataFetcher (#192) [ae25aba](https://github.com/introproventures/graphql-jpa-query/commit/ae25aba8cbcf4397f2f0fb2c79fa2a23d9697cb6)
+* chore: remove obsolete JpaQueryBuilder class (#190) [ae9ce62](https://github.com/introproventures/graphql-jpa-query/commit/ae9ce6203c6d1f3c9448dddfa2405c61057f0035)
+* fix: switch off lower(COLUMN_NAME) decoration on String equality check (#186) [9445f89](https://github.com/introproventures/graphql-jpa-query/commit/9445f8965cb9e23665f4dc4f6ecc88833157bd5f)
+* fix: coerce Zoned and Offset time to UTC  [f2d4756](https://github.com/introproventures/graphql-jpa-query/commit/f2d475640aa36ecbb6592fa4e216aa645772e832)
+* fix: Javadoc errors [8284cbd](https://github.com/introproventures/graphql-jpa-query/commit/8284cbd84c80092b4e506fbffc5706d0bed8133d)
+* fix: support uppercase attribute names introspection (#173) [798b30d](https://github.com/introproventures/graphql-jpa-query/commit/798b30d7fd8978f2cf8819d2e52d8c355f689b8b)
+* fix: add query support for entities with &#96;@EmbeddedId&#96; attribute (#180) [6552cb8](https://github.com/introproventures/graphql-jpa-query/commit/6552cb8b749ab5e1254b614375ad44badbc43b9d)
+* fix: Error querying entity with @IdClass #176 (#179) [50df533](https://github.com/introproventures/graphql-jpa-query/commit/50df533b87cd174f3eeb45266e23adf7172327ce)
+* fix: Description is not inherited from the parent class (#169) [82be5d5](https://github.com/introproventures/graphql-jpa-query/commit/82be5d5e3773923119cc549052875e6f9e3ee050)
+* Add java arrays basic support (#171) [a5f72bc](https://github.com/introproventures/graphql-jpa-query/commit/a5f72bc2c359c72cf7b91d6098286a2c3a903b68)
+* feat: support transient field modifier with class hierarchy introspection (#168) [81a6a19](https://github.com/introproventures/graphql-jpa-query/commit/81a6a198a1eecafb6056ed8ea9752482d26ba589)
+* feat: add support for variable where criteria expressions (#162) [5385a41](https://github.com/introproventures/graphql-jpa-query/commit/5385a4147cba654b4f57f3c6fc7cb4d40009ca3a)
+* Add METHOD to the @GraphQLIgnore annotation target (#165) [8028d12](https://github.com/introproventures/graphql-jpa-query/commit/8028d129f70f497e38463ad18fe2900072129877)
+* feat: add conditional property to disable GraphQLController (#161) [4bf7596](https://github.com/introproventures/graphql-jpa-query/commit/4bf75966b31e9a7d7e931ad9fbd300fec109d02d)
+* Add LocalDate/LocalDateTime/OffsetDateTime/ZonedDateTime/Instant support for query and filter (#158) [a3f7877](https://github.com/introproventures/graphql-jpa-query/commit/a3f7877b1b80fc074c4677c67511c55413172ef1)
+* fix(versions): update Spring Boot to 2.1.7 (#159) [257a92d](https://github.com/introproventures/graphql-jpa-query/commit/257a92d58cd12ef67ec4134c0277967c72d8eb9e)
 * feat: add EXISTS/NOT_EXISTS subquery logical where criteria expressions (#151) [85d2f3a](https://github.com/introproventures/graphql-jpa-query/commit/85d2f3a7b64db6d54300f6979f872b38d1738364)
 * fix: correct element collection fetch sort order (#149) [5327a22](https://github.com/introproventures/graphql-jpa-query/commit/5327a226b6e86418612fbaeaf6fedc7cd3c51576)
 * fix: add support for nested where criteria expressions (#148) [2065101](https://github.com/introproventures/graphql-jpa-query/commit/206510146783dde2446e21f9a2c06cf61dcedf69)

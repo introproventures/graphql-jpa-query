@@ -17,13 +17,16 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenCode;
 
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLSchema;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,18 +102,13 @@ public class BooksSchemaBuildTest {
             .isNotNull();
 
         //then
-        assertThat(schema.getQueryType()
-                         .getFieldDefinition("Book")
-                         .getType()
-                         .getChildren()
-                         .stream()
-                         .map(GraphQLFieldDefinition.class::cast)
-                         .collect(Collectors.toList())
-                  )
-                  .filteredOn("name", "author")
-                  .extracting(it -> it.getArgument("optional"))
-                  .extractingResultOf("getDefaultValue", Object.class)
-                  .containsExactly(new Boolean(false));
+        assertThat(getFieldForType("author",
+                                   "Book",
+                                   schema))
+                .isPresent().get()
+                .extracting(it -> it.getArgument("optional"))
+                .extracting("defaultValue")
+                .containsExactly(Boolean.FALSE);
     }
 
     @Test
@@ -124,20 +122,45 @@ public class BooksSchemaBuildTest {
             .isNotNull();
 
         //then
-        assertThat(schema.getQueryType()
-                         .getFieldDefinition("Author")
-                         .getType()
-                         .getChildren()
-                         .stream()
-                         .map(GraphQLFieldDefinition.class::cast)
-                         .collect(Collectors.toList())
-                  )
-                  .filteredOn("name", "books")
-                  .extracting(it -> it.getArgument("optional"))
-                  .extractingResultOf("getDefaultValue", Object.class)
-                  .containsExactly(new Boolean(true));
+        assertThat(getFieldForType("books",
+                                   "Author",
+                                   schema))
+                .isPresent().get()
+                .extracting(it -> it.getArgument("optional"))
+                .extracting("defaultValue")
+                .containsExactly(Boolean.TRUE);
     }
-    
+
+    @Test
+    public void shouldBuildSchemaWithStringArrayAsStringListType() {
+        //given
+        //there is a property in the model that is of array type
+
+        //when
+        GraphQLSchema schema = builder.build();
+
+        //then
+        Optional<GraphQLFieldDefinition> tags = getFieldForType("tags",
+                                                                "SuperBook",
+                                                                schema);
+        then(tags)
+                .isPresent().get()
+                .extracting(GraphQLFieldDefinition::getType)
+                .isInstanceOf(GraphQLList.class)
+                .extracting("wrappedType")
+                .extracting("name")
+                .containsOnly("String");
+    }
+
+    @Test
+    public void shouldBuildSchemaWithStringArrayAsStringListTypeWithoutAnyError() {
+        //given
+        //there is a property in the model that is of array type
+
+        //then
+        thenCode(() -> builder.build()).doesNotThrowAnyException();
+    }
+
     @Test
     public void testBuildSchema(){
         //given
@@ -146,5 +169,18 @@ public class BooksSchemaBuildTest {
         //then
         assertThat(schema).isNotNull();
     }
-    
+
+    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName,
+                                                             String type,
+                                                             GraphQLSchema schema) {
+        return schema.getQueryType()
+                .getFieldDefinition(type)
+                .getType()
+                .getChildren()
+                .stream()
+                .map(GraphQLFieldDefinition.class::cast)
+                .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
+                .findFirst();
+    }
+
 }

@@ -17,22 +17,29 @@
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@EqualsAndHashCode(exclude="author")
+@EqualsAndHashCode(exclude= {"author", "tags"})
 public class Book {
 	@Id
 	Long id;
@@ -42,6 +49,10 @@ public class Book {
 	@GraphQLIgnoreOrder
 	@GraphQLIgnoreFilter
 	String description;
+	
+	@ElementCollection(fetch = FetchType.LAZY)
+	@GraphQLDescription("A set of user-defined tags")
+	private Set<String> tags = new LinkedHashSet<>();	
 
 	@ManyToOne(fetch=FetchType.LAZY, optional = false)
 	Author author;
@@ -49,5 +60,11 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
-    Date publicationDate;	
+    Date publicationDate;
+
+    @Transient
+	@GraphQLIgnore
+    public String getAuthorName(){
+    	return author.getName();
+	}
 }

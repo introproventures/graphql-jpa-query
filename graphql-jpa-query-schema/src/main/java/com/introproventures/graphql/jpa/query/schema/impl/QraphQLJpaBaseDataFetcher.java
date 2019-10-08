@@ -19,6 +19,11 @@ import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,10 +63,12 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
 import graphql.language.ArrayValue;
+import graphql.language.AstValueHelper;
 import graphql.language.BooleanValue;
 import graphql.language.Comment;
 import graphql.language.EnumValue;
@@ -79,6 +87,7 @@ import graphql.language.VariableReference;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentBuilder;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -98,8 +107,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     private static final String WHERE = "where";
 
     protected static final String OPTIONAL = "optional";
-    
-    protected static final List<String> ARGUMENTS = Arrays.asList(OPTIONAL);
 
     // "__typename" is part of the graphql introspection spec and has to be ignored
     private static final String TYPENAME = "__typename";
@@ -150,7 +157,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
         return entityManager.createQuery(query.distinct(isDistinct));
     }
-
+    
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
@@ -160,9 +167,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         field.getSelectionSet().getSelections().forEach(selection -> {
             if (selection instanceof Field) {
                 Field selectedField = (Field) selection;
-
+                
                 // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(!TYPENAME.equals(selectedField.getName()) && !IntrospectionUtils.isTransient(from.getJavaType(), selectedField.getName())) {
+                if(isPersistent(environment, selectedField.getName())) {
 
                     Path<?> fieldPath = from.get(selectedField.getName());
                     From<?,?> fetch = null;
@@ -173,16 +180,17 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     // Build predicate arguments for singular attributes only
                     if(fieldPath.getModel() instanceof SingularAttribute) {
                         // Process the orderBy clause
-                        Optional<Argument> orderByArgument = selectedField.getArguments().stream()
-                            .filter(this::isOrderByArgument)
-                            .findFirst();
-
-                        if (orderByArgument.isPresent()) {
-                            if ("DESC".equals(((EnumValue) orderByArgument.get().getValue()).getName()))
-                                query.orderBy(cb.desc(fieldPath));
-                            else
-                                query.orderBy(cb.asc(fieldPath));
-                        }
+                        selectedField.getArguments().stream()
+                                .filter(this::isOrderByArgument)
+                                .findFirst()
+                                .map(a -> getOrderByValue(a, environment))
+                                .ifPresent(orderBy -> {
+                                    if ("DESC".equals(orderBy.getName())) {
+                                        query.orderBy(cb.desc(fieldPath));
+                                    } else {
+                                        query.orderBy(cb.asc(fieldPath));
+                                    }
+                                });
 
                         // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
                         SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
@@ -210,20 +218,20 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                         // Let's do fugly conversion 
                         // the many end is a collection, and it is always optional by default (empty collection)
                         isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                             .orElse(toManyDefaultOptional);
+                                                     .orElse(toManyDefaultOptional);
 
-                        // Let's apply join to retrieve associated collection
-                        fetch = reuseFetch(from, selectedField.getName(), isOptional);
-
-                        // Let's fetch element collections to avoid filtering their values used where search criteria
                         GraphQLObjectType objectType = getObjectType(environment);
                         EntityType<?> entityType = getEntityType(objectType);
 
                         PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
                         
+                        // Let's join fetch element collections to avoid filtering their values used where search criteria
                         if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
-                            from.fetch(selectedField.getName());
-                        }                    
+                            from.fetch(selectedField.getName(), JoinType.LEFT);
+                        } else {
+                            // Let's apply fetch join to retrieve associated plural attributes
+                            fetch = reuseFetch(from, selectedField.getName(), isOptional);
+                        }
                     }
                     // Let's build join fetch graph to avoid Hibernate error: 
                     // "query specified join fetching, but the owner of the fetched association was not present in the select list"
@@ -378,12 +386,40 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     
 
     @SuppressWarnings( "unchecked" )
-    private <R extends Value> R getValue(Argument argument) {
-        return (R) argument.getValue();
+    private <R extends Value<?>> R getValue(Argument argument, DataFetchingEnvironment environment) {
+        Value<?> value = argument.getValue();
+        
+        if(VariableReference.class.isInstance(value)) {
+            Object variableValue = getVariableReferenceValue((VariableReference) value, environment);
+            
+            GraphQLArgument graphQLArgument = environment.getExecutionStepInfo()
+                                                .getFieldDefinition()
+                                                .getArgument(argument.getName());
+            
+            return (R) AstValueHelper.astFromValue(variableValue, graphQLArgument.getType());
+        }
+        
+        return (R) value;
+    }
+
+    private EnumValue getOrderByValue(Argument argument, DataFetchingEnvironment environment) {
+        Value<?> value = argument.getValue();
+
+        if(VariableReference.class.isInstance(value)) {
+            Object variableValue = getVariableReferenceValue((VariableReference) value, environment);
+            return EnumValue.newEnumValue(variableValue.toString()).build();
+        }
+        return (EnumValue) value;
+    }
+
+    private Object getVariableReferenceValue(VariableReference variableReference, DataFetchingEnvironment env) {
+        return env.getExecutionContext()
+                .getVariables()
+                .get(variableReference.getName());
     }
 
     protected Predicate getWherePredicate(CriteriaBuilder cb, Root<?> root,  From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-        ObjectValue whereValue = getValue(argument);
+        ObjectValue whereValue = getValue(argument, environment);
 
         if(whereValue.getChildren().isEmpty())
             return cb.conjunction();
@@ -404,7 +440,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected Predicate getArgumentPredicate(CriteriaBuilder cb, From<?,?> from,
         DataFetchingEnvironment environment, Argument argument) {
-        ObjectValue whereValue = getValue(argument);
+        ObjectValue whereValue = getValue(argument, environment);
 
         if (whereValue.getChildren().isEmpty())
             return cb.disjunction(); 
@@ -494,7 +530,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                   From<?, ?> path,
                                                   DataFetchingEnvironment environment,
                                                   Argument argument) {
-        ArrayValue whereValue = getValue(argument);
+        ArrayValue whereValue = getValue(argument, environment);
 
         if (whereValue.getValues().isEmpty())
             return cb.disjunction();
@@ -717,7 +753,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         
         // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc. 
-        JpaPredicateBuilder pb = new JpaPredicateBuilder(cb, EnumSet.of(Logical.AND));
+        JpaPredicateBuilder pb = new JpaPredicateBuilder(cb);
 
         expressionValue.getObjectFields()
             .stream()
@@ -896,22 +932,41 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 return argumentValue;
             }
         } else if (value instanceof ArrayValue) {
-            Object convertedValue =  environment.getArgument(argument.getName());
-            if (convertedValue != null && !getJavaType(environment, argument).isEnum()) {
-                // unwrap [[EnumValue{name='value'}]]
-                if(convertedValue instanceof Collection
-                    && ((Collection) convertedValue).stream().allMatch(it->it instanceof Collection)) {
-                    convertedValue = ((Collection) convertedValue).iterator().next();
-                }
+            Collection arrayValue =  environment.getArgument(argument.getName());
 
-                if(convertedValue instanceof Collection
-                    && ((Collection) convertedValue).stream().anyMatch(it->it instanceof Value)) {
-                    return ((Collection) convertedValue).stream()
-                        .map((it) -> convertValue(environment, argument, (Value) it))
-                        .collect(Collectors.toList());
+            if (arrayValue != null) {
+                // Let's unwrap array of array values
+                if(arrayValue.stream()
+                             .allMatch(it->it instanceof Collection)) {
+                    arrayValue = Collection.class.cast(arrayValue.iterator()
+                                                                 .next());
                 }
-                // Return real typed resolved array value
-                return convertedValue;
+                
+                // Let's convert enum types, i.e. array of strings or EnumValue into Java type
+                if(getJavaType(environment, argument).isEnum()) {
+                    Function<Object, Value> objectValue = (obj) -> Value.class.isInstance(obj)
+                                                                              ? Value.class.cast(obj)
+                                                                              : new EnumValue(obj.toString());
+                    // Return real typed resolved array values converted into Java enums 
+                    return arrayValue.stream()
+                                     .map((it) -> convertValue(environment, 
+                                                               argument, 
+                                                               objectValue.apply(it)))
+                                     .collect(Collectors.toList());
+                } 
+                // Let's try handle Ast Value types 
+                else if(arrayValue.stream()
+                                  .anyMatch(it->it instanceof Value)) {
+                        return arrayValue.stream()
+                                         .map(it -> convertValue(environment, 
+                                                                 argument, 
+                                                                 Value.class.cast(it)))
+                                         .collect(Collectors.toList());
+                } 
+                // Return real typed resolved array value, i.e. Date, UUID, Long
+                else {
+                    return arrayValue;
+                }
             } else {
                 // Wrap converted values in ArrayList
                 return ((ArrayValue) value).getValues().stream()
@@ -929,10 +984,54 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             return ((BooleanValue) value).isValue();
         } else if (value instanceof FloatValue) {
             return ((FloatValue) value).getValue();
+        } else if (value instanceof ObjectValue) {
+            Class javaType = getJavaType(environment, argument);
+            Map<String, Object> values = environment.getArgument(argument.getName());
+            
+            try {
+                return getJavaBeanValue(javaType, values);
+            } catch (Exception cause) {
+                throw new RuntimeException(cause);
+            }
         }
 
-        //return value.toString();
         return value;
+    }
+    
+    private Object getJavaBeanValue(Class<?> javaType, Map<String, Object> values) throws Exception {
+        Constructor<?> constructor = javaType.getConstructor();
+        constructor.setAccessible(true);
+
+        Object javaBean = constructor.newInstance();
+        
+        values.entrySet()
+              .stream()
+              .forEach(entry -> {
+                  setPropertyValue(javaBean,
+                                   entry.getKey(),
+                                   entry.getValue());
+              });
+        
+        return javaBean;
+    }
+    
+    private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) { 
+        try {
+            BeanInfo bi = Introspector.getBeanInfo(javaBean.getClass());
+            PropertyDescriptor pds[] = bi.getPropertyDescriptors();
+            for (PropertyDescriptor pd : pds) {
+                if (pd.getName().equals(propertyName)) {
+                    Method setter = pd.getWriteMethod();
+                    setter.setAccessible(true);
+                    
+                    if (setter != null) {
+                        setter.invoke(javaBean, new Object[] {propertyValue} );
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // ignore
+        }
     }
 
     /**
@@ -1076,7 +1175,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
                     buildSubgraph(it, sg);
                 } else {
-                    if(!TYPENAME.equals(it.getName()) && !IntrospectionUtils.isTransient(entityType.getJavaType(), it.getName()))
+                    if(isPersistent(entityType, it.getName()))
                         entityGraph.addAttributeNodes(it.getName());
                 }
             });
@@ -1175,6 +1274,34 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                                       .filter(it -> fieldName.equals(it.getName()))
                                                       .findFirst();
     }
+    
+    protected boolean isPersistent(DataFetchingEnvironment environment,
+                                   String attributeName) {
+        GraphQLObjectType objectType = getObjectType(environment);
+        EntityType<?> entityType = getEntityType(objectType);
+        
+        return isPersistent(entityType, attributeName);
+    }
+
+    protected boolean isPersistent(EntityType<?> entityType,
+                                   String attributeName) {
+        try {
+            return entityType.getAttribute(attributeName) != null;
+        } catch (Exception ignored) { } 
+        
+        return false;
+    }
+    
+    protected boolean isTransient(DataFetchingEnvironment environment,
+                                  String attributeName) {
+        return !isPersistent(environment, attributeName);
+    }
+
+    protected boolean isTransient(EntityType<?> entityType,
+                                  String attributeName) {
+        return !isPersistent(entityType, attributeName);
+    }
+    
 
     @SuppressWarnings("rawtypes")
     class NullValue implements Value {
