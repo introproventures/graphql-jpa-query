@@ -86,11 +86,31 @@ public class GraphQLJpaQueryStarterIT {
 
 @Value
 class Result implements ExecutionResult {
-	Map<String, Object>   data;
-	List<GraphQLError>				   errors;
-	Map<Object, Object>                extensions;
-	
-	@Override
+	Map<String, Object> data;
+	List<GraphQLError> errors;
+	Map<Object, Object> extensions;
+
+  @Override
+  public List<GraphQLError> getErrors() {
+    return errors;
+  }
+
+  @Override
+  public <T> T getData() {
+    return null;
+  }
+
+  @Override
+  public boolean isDataPresent() {
+    return data != null;
+  }
+
+  @Override
+  public Map<Object, Object> getExtensions() {
+    return extensions;
+  }
+
+  @Override
 	public Map<String, Object> toSpecification() {
 		return new HashMap<>();
 	}	

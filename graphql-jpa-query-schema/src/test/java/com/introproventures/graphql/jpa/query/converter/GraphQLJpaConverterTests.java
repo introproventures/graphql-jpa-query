@@ -122,7 +122,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         CriteriaQuery<TaskVariableEntity> criteria = cb.createQuery(TaskVariableEntity.class);
         Root<TaskVariableEntity> taskVariable = criteria.from(TaskVariableEntity.class);
         
-        Boolean object = new Boolean(true); 
+        Boolean object = Boolean.TRUE;
 
         VariableValue<Boolean> variableValue = new VariableValue<>(object);
         criteria.select(taskVariable)
@@ -151,7 +151,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         Predicate isOwner = cb.in(taskVariables.get("task")).value(task);
 
         Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
         Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
                                 cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
@@ -181,7 +181,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
         
         Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
         Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
                                 cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
@@ -211,7 +211,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
         
         Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
         Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
                                 cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
@@ -243,7 +243,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
         
         Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new Boolean(true))));
+                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
         Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
                                 cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
