@@ -41,11 +41,11 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
     @Override
     public Object get(DataFetchingEnvironment environment) {
         
-        Field field = environment.getFields().iterator().next();
+        Field field = environment.getField();
 
         if(!field.getArguments().isEmpty()) {
             
-            flattenEmbeddedIdArguments(field);
+            field = flattenEmbeddedIdArguments(field);
             
             try {
                 // Create entity graph from selection
@@ -64,7 +64,7 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
         return null;
     }
 
-	private void flattenEmbeddedIdArguments(Field field) {
+	private Field flattenEmbeddedIdArguments(Field field) {
 		// manage object arguments (EmbeddedId)
 		final List<Argument> argumentsWhereObjectsAreFlattened = field.getArguments()
 				.stream()
@@ -80,6 +80,7 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
 					}
 				})
 				.collect(Collectors.toList());
-		field.setArguments(argumentsWhereObjectsAreFlattened);
+		return field.transform(builder ->
+        builder.arguments(argumentsWhereObjectsAreFlattened));
 	}
 }

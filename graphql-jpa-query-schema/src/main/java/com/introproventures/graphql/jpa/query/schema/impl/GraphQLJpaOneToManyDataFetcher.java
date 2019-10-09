@@ -60,7 +60,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
     
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        Field field = environment.getFields().iterator().next();
+        Field field = environment.getField();
 
         Object source = environment.getSource();
         Optional<Argument> whereArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME);
@@ -157,7 +157,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
      * Fetches the value of the given SingularAttribute on the given
      * entity.
      *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     * @see <a href="http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object">Stackoverflow#7077464</a>
      */
     @SuppressWarnings("unchecked")
     public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
@@ -180,7 +180,7 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
      * Fetches the value of the given SingularAttribute on the given
      * entity.
      *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     * @see <a href="http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object">Stackoverflow 7077464</a>
      */
     @SuppressWarnings("unchecked")
     public <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {

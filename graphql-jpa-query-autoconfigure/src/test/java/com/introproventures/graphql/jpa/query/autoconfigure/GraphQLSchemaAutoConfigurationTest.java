@@ -6,9 +6,13 @@ import java.util.Map;
 
 import graphql.GraphQL;
 import graphql.Scalars;
+import graphql.schema.DataFetcher;
+import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,7 @@ public class GraphQLSchemaAutoConfigurationTest {
 
             @Override
             public void configure(GraphQLShemaRegistration registry) {
+
                 GraphQLObjectType mutation = GraphQLObjectType.newObject()
                         .name("mutation")
                         .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -44,12 +49,17 @@ public class GraphQLSchemaAutoConfigurationTest {
                                 .dataFetcher(environment -> {
                                     return "hello world";
                                 }))
-                        .build(); 
-                
+                        .build();
+
+                GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
+                    .dataFetcher(FieldCoordinates.coordinates("mutation", "greet"), (DataFetcher<String>) environment -> "hello world")
+                    .build();
+
                 GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
                         .query(GraphQLObjectType.newObject().name("null"))
                         .mutation(mutation)
-                        .build();                
+                        .codeRegistry(codeRegistry)
+                    .build();
                 
                 registry.register(graphQLSchema);
             }
@@ -67,10 +77,16 @@ public class GraphQLSchemaAutoConfigurationTest {
                                 .dataFetcher(environment -> {
                                     return "world";
                                 }))
-                        .build(); 
-                
-                GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
+                        .build();
+
+              GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
+                  .dataFetcher(FieldCoordinates.coordinates("query", "hello"), (DataFetcher<String>) environment -> "world")
+                  .build();
+
+
+              GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
                         .query(query)
+                        .codeRegistry(codeRegistry)
                         .build();                
                 
                 registry.register(graphQLSchema);

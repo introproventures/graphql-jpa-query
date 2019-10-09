@@ -16,6 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
+import static graphql.schema.GraphQLScalarType.newScalar;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -196,7 +197,7 @@ public class JavaScalarsTest {
     @Test
     public void testRegisterJavaScalarWithObjectCoercing() {
         //given
-        JavaScalars.register(Map.class, new GraphQLScalarType("Map", "Map Object Type", new GraphQLObjectCoercing()));
+        JavaScalars.register(Map.class, newScalar().name("Map").description("Map Object Type").coercing(new GraphQLObjectCoercing()).build());
 
         //when
         GraphQLScalarType scalarType = JavaScalars.of(Map.class);
