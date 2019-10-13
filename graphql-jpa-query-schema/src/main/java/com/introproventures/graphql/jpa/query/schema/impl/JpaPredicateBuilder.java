@@ -129,7 +129,7 @@ class JpaPredicateBuilder {
         if(arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
             Expression<String> fieldValue = root;
-
+            
             if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
                 CriteriaBuilder.In<Object> in = cb.in(root);
                 return in.value(compareValue);
@@ -141,6 +141,10 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
                 return cb.equal(fieldValue, compareValue);
             } 
+            else if (filter.getCriterias().contains(PredicateFilter.Criteria.LOWER)) {
+                return cb.equal(cb.lower(fieldValue), 
+                                compareValue.toLowerCase());
+            }
             else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
                 return cb.notEqual(fieldValue, compareValue);
             }

@@ -61,9 +61,12 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          */
         CASE,
         /**
+         * case insensitive match
+         * <pre>LOWER(field) = LOWER(SEARCH)</pre> 
+         */
+        LOWER,
+        /**
          * end of the string matches
-         * <pre>LOWER(field) LIKE LOWER(SEARCH)</pre> if not set then case
-         * insensitive match
          */
         ENDS,
         /**
