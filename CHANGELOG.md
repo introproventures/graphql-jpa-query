@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.34-SNAPSHOT
+## 0.3.34
+* feat(GH-204): added LOWER predicate for case insensitive match (#206) [6ff6992](https://github.com/introproventures/graphql-jpa-query/commit/6ff699284a2340de0f22d7a5e447444e8347f0f7)
+* fix(travis): changed to openjdk8 [8f1e36c](https://github.com/introproventures/graphql-jpa-query/commit/8f1e36c302a1083f11ff4342e96005ead23e38ef)
+* docs(README): polish description [skip travis] [4ad2ad2](https://github.com/introproventures/graphql-jpa-query/commit/4ad2ad245659f3c6b78a9b119c1e791d99129925)
 * fix(GH-193): Fixed error in GQL Queries when &#96;total&#96; or &#96;pages&#96; is included with condition &#96;where: NOT_EXISTS&#96; or &#96;EXISTS&#96; (#201) [40a0e2d](https://github.com/introproventures/graphql-jpa-query/commit/40a0e2d844854f8888e3502d1d6434db9cb1dd7e)
 * fix(GH-198): adedd support for fetching optional element collections elements (#200) [5d99c3b](https://github.com/introproventures/graphql-jpa-query/commit/5d99c3b4629521ebee2788c6b877250c279c8bf2)
 * fix: Added support for binding orderBy argument as a variable (#195) [2a01382](https://github.com/introproventures/graphql-jpa-query/commit/2a0138237cb639427f169b18f6b6f159c430afac)
