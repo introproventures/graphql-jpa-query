@@ -1551,6 +1551,38 @@ public class GraphQLExecutorTests {
     }
     
     @Test
+    public void queryWithLOWERNotMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {LOWER: \"WAR AND PEACE\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithLOWERMatchingCase() {
+        //given:
+        String query = "query { Books ( where: { title: {LOWER: \"War and Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
     public void shouldNotReturnStaleCacheResultsFromPreviousQueryForCollectionCriteriaExpression() {
         //given:
         String query = "query ($genre: Genre) {" + 
