@@ -29,10 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
+import com.introproventures.graphql.jpa.query.annotation.*;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,6 +37,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @Entity
 @EqualsAndHashCode(exclude= {"author", "tags"})
+@GraphQLReadEntityForRole({"user", "admin"})
 public class Book {
 	@Id
 	Long id;

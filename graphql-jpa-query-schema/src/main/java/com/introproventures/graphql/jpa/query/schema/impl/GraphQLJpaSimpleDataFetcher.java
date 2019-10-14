@@ -30,16 +30,18 @@ import graphql.language.Field;
 import graphql.language.ObjectValue;
 import graphql.schema.DataFetchingEnvironment;
 
-class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher {
 
-    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, 
+    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager,
+									   FetcherParams fetcherParams,
                                        EntityType<?> entityType,
                                        boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
+        super(entityManager, fetcherParams, entityType, toManyDefaultOptional);
     }
     
     @Override
     public Object get(DataFetchingEnvironment environment) {
+		checkAccessDataFetching(environment);
         
         Field field = environment.getFields().iterator().next();
 

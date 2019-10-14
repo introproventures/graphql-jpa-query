@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 
@@ -51,6 +52,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     Long id;
 
     @GraphQLDescription("title")
+    @GraphQLDefaultOrderBy
     String title;
 
     String info;

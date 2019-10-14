@@ -43,6 +43,7 @@
         <module>graphql-jpa-query-example-model-starwars</module>
         <module>graphql-jpa-query-example-model-books</module>
         <module>graphql-jpa-query-graphiql</module>
+        <module>graphql-jpa-query-schema-mutations</module>
     </modules>
 
     <distributionManagement>
