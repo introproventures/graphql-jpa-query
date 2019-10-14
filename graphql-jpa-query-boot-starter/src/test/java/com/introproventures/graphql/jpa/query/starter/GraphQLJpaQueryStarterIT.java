@@ -42,76 +42,76 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryStarterIT {
-	private static final String	WAR_AND_PEACE	= "War and Peace";
+    private static final String	WAR_AND_PEACE	= "War and Peace";
+
+    @Autowired
+    private TestRestTemplate rest;
 
     @SpringBootApplication
     static class Application {
     }
-   	
-	@Autowired
-	TestRestTemplate			rest;
 
-	@Test
-	public void testGraphql() {
-		GraphQLQueryRequest query = new GraphQLQueryRequest("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}");
+    @Test
+    public void testGraphql() {
+        GraphQLQueryRequest query = new GraphQLQueryRequest("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}");
 
-		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-		Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
+        ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
+        Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
 
-		Result result = entity.getBody();
-		Assert.assertNotNull(result);
-		Assert.assertNull(result.getErrors());
-		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
-	}
+        Result result = entity.getBody();
+        Assert.assertNotNull(result);
+        Assert.assertNull(result.getErrors());
+        Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
+    }
 
-	@Test
-	public void testGraphqlArguments() throws JsonParseException, JsonMappingException, IOException {
-		GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}");
-		
+    @Test
+    public void testGraphqlArguments() throws JsonParseException, JsonMappingException, IOException {
+        GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}");
+
         HashMap<String, Object> variables = new HashMap<>();
         variables.put("title", WAR_AND_PEACE);
-        
-        query.setVariables(variables);
-		
-		
-		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-		Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
 
-		Result result = entity.getBody();
-		Assert.assertNotNull(result);
+        query.setVariables(variables);
+
+
+        ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
+        Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
+
+        Result result = entity.getBody();
+        Assert.assertNotNull(result);
         Assert.assertNull(result.getErrors());
-		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
-	}
+        Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
+    }
 }
 
 @Value
 class Result implements ExecutionResult {
-	Map<String, Object> data;
-	List<GraphQLError> errors;
-	Map<Object, Object> extensions;
+    Map<String, Object> data;
+    List<GraphQLError> errors;
+    Map<Object, Object> extensions;
 
-  @Override
-  public List<GraphQLError> getErrors() {
-    return errors;
-  }
+    @Override
+    public List<GraphQLError> getErrors() {
+        return errors;
+    }
 
-  @Override
-  public <T> T getData() {
-    return null;
-  }
+    @Override
+    public <T> T getData() {
+        return null;
+    }
 
-  @Override
-  public boolean isDataPresent() {
-    return data != null;
-  }
+    @Override
+    public boolean isDataPresent() {
+        return data != null;
+    }
 
-  @Override
-  public Map<Object, Object> getExtensions() {
-    return extensions;
-  }
+    @Override
+    public Map<Object, Object> getExtensions() {
+        return extensions;
+    }
 
-  @Override
-	public Map<String, Object> toSpecification() {
-		return new HashMap<>();
-	}	
+    @Override
+    public Map<String, Object> toSpecification() {
+        return new HashMap<>();
+    }
 }

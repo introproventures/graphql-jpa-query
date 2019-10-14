@@ -127,21 +127,6 @@ public class JavaScalars {
         return scalarsRegistry.computeIfAbsent(key, JavaScalars::computeGraphQLScalarType);
     }
 
-    protected static GraphQLScalarType computeGraphQLScalarType(Class<?> key) {
-        String typeName = key.getSimpleName();
-        String description = typeName+" Scalar Object Type";
-        
-        return toScalarType(typeName, description ,new GraphQLObjectCoercing());
-    }
-
-    public static <T extends Coercing> GraphQLScalarType toScalarType(String name, String description, T coercing) {
-        return newScalar()
-          .name(name)
-          .description(description)
-          .coercing(coercing)
-          .build();
-    }
-
     public static JavaScalars register(Class<?> key, GraphQLScalarType value) {
         Assert.assertNotNull(key, "key parameter cannot be null.");
         Assert.assertNotNull(value, "value parameter cannot be null.");
@@ -719,4 +704,18 @@ public class JavaScalars {
 
     }
 
+    private static GraphQLScalarType computeGraphQLScalarType(Class<?> key) {
+        String typeName = key.getSimpleName();
+        String description = typeName+" Scalar Object Type";
+
+        return toScalarType(typeName, description ,new GraphQLObjectCoercing());
+    }
+
+    private static <T extends Coercing> GraphQLScalarType toScalarType(String name, String description, T coercing) {
+        return newScalar()
+            .name(name)
+            .description(description)
+            .coercing(coercing)
+            .build();
+    }
 }
