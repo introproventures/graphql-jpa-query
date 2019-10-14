@@ -44,17 +44,7 @@ import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.AbstractQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Fetch;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.EntityType;
@@ -84,7 +74,6 @@ import graphql.language.SourceLocation;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentBuilder;
 import graphql.schema.GraphQLArgument;
@@ -96,13 +85,14 @@ import graphql.schema.GraphQLType;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 
+
 /**
  * Provides base implemetation for GraphQL JPA Query Data Fetchers
  *
  * @author Igor Dianov
  *
  */
-class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
+class GraphQLJpaBaseDataFetcher extends GraphQLJpaBaseFetcher {
 
     private static final String WHERE = "where";
 
@@ -111,7 +101,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     // "__typename" is part of the graphql introspection spec and has to be ignored
     private static final String TYPENAME = "__typename";
 
-    protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
     
     private boolean toManyDefaultOptional = true;
@@ -120,18 +109,21 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * Creates JPA entity DataFetcher instance
      *
      * @param entityManager
+     * @param predicateRole
      * @param entityType
      */
-    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, 
-                                     EntityType<?> entityType, 
+    public GraphQLJpaBaseDataFetcher(EntityManager entityManager,
+                                     FetcherParams fetcherParams,
+                                     EntityType<?> entityType,
                                      boolean toManyDefaultOptional) {
-        this.entityManager = entityManager;
+        super(entityManager, fetcherParams);
         this.entityType = entityType;
         this.toManyDefaultOptional = toManyDefaultOptional;
     }
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        checkAccessDataFetching(environment);
         return getQuery(environment, environment.getFields().iterator().next(), true).getResultList();
     }
 

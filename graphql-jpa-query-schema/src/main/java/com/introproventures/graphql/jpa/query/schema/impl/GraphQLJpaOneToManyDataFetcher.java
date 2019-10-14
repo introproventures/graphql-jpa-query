@@ -48,18 +48,21 @@ class GraphQLJpaOneToManyDataFetcher extends GraphQLJpaQueryDataFetcher {
     
     private final PluralAttribute<Object,Object,Object> attribute;
 
-    public GraphQLJpaOneToManyDataFetcher(EntityManager entityManager, 
+    public GraphQLJpaOneToManyDataFetcher(EntityManager entityManager,
+                                          FetcherParams fetcherParams,
                                           EntityType<?> entityType,
                                           boolean toManyDefaultOptional,
                                           boolean defaultDistinct,
                                           PluralAttribute<Object,Object,Object> attribute) {
-        super(entityManager, entityType, defaultDistinct, toManyDefaultOptional);
+        super(entityManager, fetcherParams, entityType, defaultDistinct, toManyDefaultOptional);
         
         this.attribute = attribute;
     }
     
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        checkAccessDataFetching(environment);
+
         Field field = environment.getFields().iterator().next();
 
         Object source = environment.getSource();
