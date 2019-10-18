@@ -1,10 +1,11 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 
 public interface GraphQLShemaRegistration {
 
-	public void register(GraphQLSchema graphQLSchema);
+	void register(GraphQLSchema graphQLSchema);
 
-
+	void setCustomDataFetcher(GraphQLCodeRegistry codeRegistry);
 }

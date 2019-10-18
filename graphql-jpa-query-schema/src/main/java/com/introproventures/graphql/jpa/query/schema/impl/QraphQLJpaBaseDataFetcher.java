@@ -892,7 +892,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     private Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
         if (value instanceof NullValue) {
-            return null;
+            return NullValue.Null;
         } else if (value instanceof StringValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
             if (convertedValue != null) {
@@ -1219,7 +1219,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings( "unchecked" )
     protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
         return (R) getObjectField(objectValue, fieldName).map(ObjectField::getValue)
-                       .orElse(NullValue.newNullValue().build());
+                       .orElse(NullValue.Null);
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1244,7 +1244,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             return (T) FloatValue.class.cast(value).getValue();
         }
         else if (NullValue.class.isInstance(value)) {
-            return (T) null;
+            return null;
         }
 
         throw new IllegalArgumentException("Not supported");

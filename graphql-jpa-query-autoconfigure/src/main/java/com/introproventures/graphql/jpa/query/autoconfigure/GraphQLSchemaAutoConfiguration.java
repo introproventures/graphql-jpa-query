@@ -3,6 +3,9 @@ package com.introproventures.graphql.jpa.query.autoconfigure;
 import java.util.ArrayList;
 import java.util.List;
 
+import graphql.GraphQL;
+import graphql.schema.GraphQLSchema;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,9 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.util.CollectionUtils;
-
-import graphql.GraphQL;
-import graphql.schema.GraphQLSchema;
 
 @Configuration
 @ConditionalOnClass(GraphQL.class)
@@ -40,13 +40,13 @@ public class GraphQLSchemaAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GraphQLSchema.class)
     public GraphQLSchemaFactoryBean graphQLSchemaFactoryBean() {
-    	GraphQLShemaRegistrationImpl graphQLShemaRegistration = new GraphQLShemaRegistrationImpl();
+    	GraphQLShemaRegistrationImpl schemaRegistry = new GraphQLShemaRegistrationImpl();
 
         for (GraphQLSchemaConfigurer configurer : graphQLSchemaConfigurers) {
-            configurer.configure(graphQLShemaRegistration);
+            configurer.configure(schemaRegistry);
         }
         
-        return new GraphQLSchemaFactoryBean(graphQLShemaRegistration.getManagedGraphQLSchemas())
+        return new GraphQLSchemaFactoryBean(schemaRegistry.getManagedGraphQLSchemas(), schemaRegistry.getCodeRegistry())
 	        		.setQueryName(properties.getName())
 	    			.setQueryDescription(properties.getDescription());
         

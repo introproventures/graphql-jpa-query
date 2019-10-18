@@ -1,18 +1,20 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.config.AbstractFactoryBean;
-
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
+import org.springframework.beans.factory.config.AbstractFactoryBean;
+
 public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
-	
+
 	private static final String QUERY_NAME = "Query";
     private static final String QUERY_DESCRIPTION = "";
     private static final String SUBSCRIPTION_NAME = "Subscription";
@@ -20,9 +22,8 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
     private static final String MUTATION_NAME = "Mutation";
     private static final String MUTATION_DESCRIPTION = "";
 
-    
     private final GraphQLSchema[] managedGraphQLSchemas;
-	
+
 	private String queryName = QUERY_NAME;
 	private String queryDescription = QUERY_DESCRIPTION;
 
@@ -31,13 +32,20 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
     private String mutationName = MUTATION_NAME;
     private String mutationDescription = MUTATION_DESCRIPTION;
-    
-	
+
+    private GraphQLCodeRegistry codeRegistry;
+
 	public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
 		this.managedGraphQLSchemas = managedGraphQLSchemas;
+		this.codeRegistry = null;
 	}
 
-	@Override
+    public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas, GraphQLCodeRegistry codeRegistry) {
+        this.managedGraphQLSchemas = managedGraphQLSchemas;
+        this.codeRegistry = codeRegistry;
+    }
+
+    @Override
 	protected GraphQLSchema createInstance() throws Exception {
 		
 		GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
@@ -46,22 +54,22 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 			.map(GraphQLSchema::getMutationType)
 			.filter(Objects::nonNull)
 			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(children -> children.stream())
+			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 
 		List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
 			.map(GraphQLSchema::getQueryType)
-			.filter(Objects::nonNull)
-			.filter(it -> !it.getName().equals("null")) // filter out null placeholders
+            .filter(Objects::nonNull)
+            .filter(it -> !it.getName().equals("null")) // filter out null placeholders
 			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(children -> children.stream())
+			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		
+
 		List<GraphQLFieldDefinition> subscriptions = Stream.of(managedGraphQLSchemas)
 			.map(GraphQLSchema::getSubscriptionType)
 			.filter(Objects::nonNull)
 			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(children -> children.stream())
+			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 
 		if(!mutations.isEmpty())
@@ -81,7 +89,24 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                                                         .name(this.subscriptionName)
                                                         .description(this.subscriptionDescription)
                                     			        .fields(subscriptions));
-		
+
+
+        GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
+        if (this.codeRegistry != null) {
+            codeRegistryBuilder.dataFetchers(this.codeRegistry);
+        }
+        for (GraphQLSchema managedGraphQLSchema : managedGraphQLSchemas) {
+
+            if (managedGraphQLSchema == null) {
+                continue;
+            }
+
+            codeRegistryBuilder = codeRegistryBuilder.dataFetchers(managedGraphQLSchema.getCodeRegistry());
+        }
+
+
+        schemaBuilder.codeRegistry(codeRegistryBuilder.build());
+
 		return schemaBuilder.build();
 	}
 
@@ -92,13 +117,13 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
 	public GraphQLSchemaFactoryBean setQueryName(String name) {
 		this.queryName = name;
-		
+
 		return this;
 	}
 
 	public GraphQLSchemaFactoryBean setQueryDescription(String description) {
 		this.queryDescription = description;
-		
+
 		return this;
 	}
 
