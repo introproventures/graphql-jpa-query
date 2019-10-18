@@ -43,7 +43,7 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
         
         Field field = environment.getField();
 
-        if(!field.getArguments().isEmpty()) {
+        if (!field.getArguments().isEmpty()) {
             
             field = flattenEmbeddedIdArguments(field);
             
@@ -80,7 +80,6 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
 					}
 				})
 				.collect(Collectors.toList());
-		return field.transform(builder ->
-        builder.arguments(argumentsWhereObjectsAreFlattened));
+		return field.transform(builder -> builder.arguments(argumentsWhereObjectsAreFlattened));
 	}
 }

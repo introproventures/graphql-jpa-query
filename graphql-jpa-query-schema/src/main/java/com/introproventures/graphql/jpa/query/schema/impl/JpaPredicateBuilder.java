@@ -126,7 +126,7 @@ class JpaPredicateBuilder {
         // list or arrays only for in and not in, between and not between
         Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
 
-        if(arrayValuePredicate == null) {
+        if (arrayValuePredicate == null) {
             String compareValue = filter.getValue().toString();
             Expression<String> fieldValue = root;
 
@@ -482,6 +482,7 @@ class JpaPredicateBuilder {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
                 return cb.greaterThanOrEqualTo(root, (LocalTime) filter.getValue());
             }
+
             if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
                 return cb.equal(root, filter.getValue());
             }
@@ -661,11 +662,11 @@ class JpaPredicateBuilder {
         Object value = filter.getValue();
         Set<Criteria> criterias = filter.getCriterias();
 
-        if(value == null) {
+        if (value == null) {
             return cb.disjunction();
         }
 
-        if(criterias.contains(Criteria.IS_NULL)) {
+        if (criterias.contains(Criteria.IS_NULL)) {
             return (boolean) value ? cb.isNull(field) : cb.isNotNull(field);
         } else if (criterias.contains(Criteria.NOT_NULL)) {
             return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
@@ -673,8 +674,9 @@ class JpaPredicateBuilder {
 
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
 
-        if (type.isPrimitive())
+        if (type.isPrimitive()) {
             type = PRIMITIVES_TO_WRAPPERS.get(type);
+        }
         if (type.equals(String.class)) {
             return getStringPredicate((Path<String>)field, filter);
         }
@@ -693,22 +695,22 @@ class JpaPredicateBuilder {
         else if (type.equals(java.util.Date.class)) {
             return getDatePredicate((Path<Date>) field, predicateFilter);
         }
-        else if(type.equals(java.time.LocalDate.class)){
+        else if (type.equals(java.time.LocalDate.class)){
             return getLocalDatePredicate((Path<LocalDate>) field, predicateFilter);
         }
-        else if(type.equals(LocalDateTime.class)){
+        else if (type.equals(LocalDateTime.class)){
             return getLocalDateTimePredicate((Path<LocalDateTime>) field, predicateFilter);
         }
-        else if(type.equals(Instant.class)){
+        else if (type.equals(Instant.class)){
             return getInstantPredicate((Path<Instant>) field, predicateFilter);
         }
-        else if(type.equals(LocalTime.class)){
+        else if (type.equals(LocalTime.class)){
             return getLocalTimePredicate((Path<LocalTime>) field, predicateFilter);
         }
-        else if(type.equals(ZonedDateTime.class)){
+        else if (type.equals(ZonedDateTime.class)){
             return getZonedDateTimePredicate((Path<ZonedDateTime>) field, predicateFilter);
         }
-        else if(type.equals(OffsetDateTime.class)){
+        else if (type.equals(OffsetDateTime.class)){
             return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, predicateFilter);
         }
         else if (type.equals(Boolean.class)) {
@@ -717,31 +719,31 @@ class JpaPredicateBuilder {
         else if (type.equals(UUID.class)) {
             return getUuidPredicate((Path<UUID>) field, predicateFilter);
         }
-        else if(Collection.class.isAssignableFrom(type)) {
+        else if (Collection.class.isAssignableFrom(type)) {
             // collection join for plural attributes
-            if(PluralAttribute.class.isInstance(from.getModel()) 
+            if (PluralAttribute.class.isInstance(from.getModel())
                     || EntityType.class.isInstance(from.getModel())) {
                 From<?,?> join = null;
                 
                 for(Join<?,?> fetch: from.getJoins()) {
-                    if(fetch.getAttribute().getName().equals(filter.getField()))
+                    if (fetch.getAttribute().getName().equals(filter.getField()))
                         join = (From<?,?>) fetch;
                 }
                 
-                if(join == null) {
+                if (join == null) {
                     join = (From<?,?>) from.join(filter.getField());
                 }
                 
                 
                 Predicate in = join.in(value);
                 
-                if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN))
+                if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN))
                    return cb.not(in);
                         
                 return in;
             }
-        } else if(type.isEnum()) {
-        	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
+        } else if (type.isEnum()) {
+            return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
         } // TODO need better detection mechanism
         else if (Object.class.isAssignableFrom(type)) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
@@ -750,7 +752,7 @@ class JpaPredicateBuilder {
             else { 
                 Object object = value;
                 
-                if(Collection.class.isInstance(value)) {
+                if (Collection.class.isInstance(value)) {
                     object = getValues(object, type);
                 } else {
                     object = getValue(object, type);
@@ -772,14 +774,14 @@ class JpaPredicateBuilder {
                 ) {
                     CriteriaBuilder.In<Object> in = cb.in(from.get(filter.getField()));
                     
-                    if(Collection.class.isInstance(object)) {
+                    if (Collection.class.isInstance(object)) {
                         Collection.class.cast(object)
                                   .forEach(in::value);
                     } else {
                         in.value(object);
                     }
                     
-                    if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
+                    if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
                         return cb.not(in);
                     }
                     
@@ -794,7 +796,7 @@ class JpaPredicateBuilder {
     private Object getValue(Object object, Class<?> type) {
         try {
             Constructor<?> constructor = type.getConstructor(Object.class);
-            if(constructor != null) {
+            if (constructor != null) {
                 Object arg = NullValue.class.isInstance(object) ? null : object;
                 return constructor.newInstance(arg);
             }

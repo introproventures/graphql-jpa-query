@@ -113,7 +113,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
-            if(pageArgument.isPresent()) {
+            if (pageArgument.isPresent()) {
                 query
                     .setMaxResults(page.size)
                     .setFirstResult((page.page - 1) * page.size);
@@ -133,7 +133,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             query.setHint(ORG_HIBERNATE_CACHEABLE, false);
             
             // Let's not pass distinct if enabled to have better performance
-            if(isDistinct) {
+            if (isDistinct) {
                 query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             }
             
@@ -141,7 +141,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             List<?> resultList = query.getResultList();
             
             // Let's remove any duplicate references for root entities 
-            if(isDistinct) {
+            if (isDistinct) {
                 resultList = resultList.stream()
                                  .distinct()
                                  .collect(Collectors.toList());
@@ -169,11 +169,13 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
     
     @Override
     protected Predicate getPredicate(CriteriaBuilder cb, Root<?> root, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-        if(isLogicalArgument(argument) || isDistinctArgument(argument))
+        if (isLogicalArgument(argument) || isDistinctArgument(argument)) {
             return null;
+        }
         
-        if(isWhereArgument(argument))
+        if (isWhereArgument(argument)) {
             return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument), argument);
+        }
         
         return super.getPredicate(cb, root, path, environment, argument);
     }
