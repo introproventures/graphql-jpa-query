@@ -28,6 +28,9 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Jpa specific GraphQLExecutor implementation with support to execute GraphQL query within
  * existing transaction context
@@ -36,6 +39,8 @@ import graphql.schema.GraphQLSchema;
  *
  */
 public class GraphQLJpaExecutor implements GraphQLExecutor {
+
+    private static final Logger log = LoggerFactory.getLogger(GraphQLJpaExecutor.class);
 
     private final GraphQL graphQL;
 
@@ -63,11 +68,21 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.SUPPORTS)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
-    	
-    	ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-    			.query(query)
-    			.variables(arguments)
-    			.build();
+
+        ExecutionInput executionInput;
+        if (arguments != null) {
+            executionInput = ExecutionInput.newExecutionInput()
+                                 .query(query)
+                                 .variables(arguments)
+                                 .build();
+        } else {
+            log.warn("No arguments provided for query {}", query);
+            executionInput = ExecutionInput.newExecutionInput()
+                                 .query(query)
+                                 .variables(Collections.emptyMap())
+                                 .build();
+
+        }
     	
         return graphQL.execute(executionInput);
     }

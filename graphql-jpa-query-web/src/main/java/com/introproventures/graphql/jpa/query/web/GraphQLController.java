@@ -16,6 +16,7 @@
 package com.introproventures.graphql.jpa.query.web;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import graphql.ExecutionResult;
+
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,7 +82,8 @@ public class GraphQLController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest) throws IOException
     {
-        return graphQLExecutor.execute(queryRequest.getQuery(), queryRequest.getVariables())
+        return graphQLExecutor.execute(queryRequest.getQuery(),
+            (queryRequest.getVariables() == null ? Collections.emptyMap() : queryRequest.getVariables()))
                               .toSpecification();
     }
 
@@ -147,10 +150,9 @@ public class GraphQLController {
     @PostMapping(value = PATH,
             consumes = APPLICATION_GRAPHQL_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public  Map<String, Object> postApplicationGraphQL(
-            @RequestBody final String query) throws IOException
+    public  Map<String, Object> postApplicationGraphQL(@RequestBody final String query) throws IOException
     {
-        return graphQLExecutor.execute(query, null)
+        return graphQLExecutor.execute(query, Collections.emptyMap())
                               .toSpecification();
     }
 
@@ -165,12 +167,11 @@ public class GraphQLController {
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> variablesStringToMap(final String json) throws IOException {
-        Map<String, Object> variables = null;
+        if (json != null && !json.isEmpty()) {
+            return mapper.readValue(json, Map.class);
+        }
 
-        if (json != null && !json.isEmpty())
-            variables = mapper.readValue(json, Map.class);
-
-        return variables;
+        return Collections.emptyMap();
     }
 
     /**

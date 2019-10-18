@@ -892,7 +892,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     private Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
         if (value instanceof NullValue) {
-            return value;
+            return null;
         } else if (value instanceof StringValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
             if (convertedValue != null) {
