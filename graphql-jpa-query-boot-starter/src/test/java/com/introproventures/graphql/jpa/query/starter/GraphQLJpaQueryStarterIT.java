@@ -15,17 +15,13 @@
  */
 package com.introproventures.graphql.jpa.query.starter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
-import graphql.ExecutionResult;
-import graphql.GraphQLError;
-import lombok.Value;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +35,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.introproventures.graphql.jpa.query.starter.Result.GraphQLError;
+import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
+
+import lombok.Data;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryStarterIT {
@@ -49,7 +52,7 @@ public class GraphQLJpaQueryStarterIT {
     }
    	
 	@Autowired
-	TestRestTemplate			rest;
+	TestRestTemplate rest;
 
 	@Test
 	public void testGraphql() {
@@ -82,36 +85,50 @@ public class GraphQLJpaQueryStarterIT {
         Assert.assertNull(result.getErrors());
 		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
 	}
+	
+    @Test
+    public void testGraphqlErrorResult() {
+        GraphQLQueryRequest query = new GraphQLQueryRequest("{ }");
+
+        ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
+        assertThat(entity.getStatusCode()).as(entity.toString())
+                                          .isEqualTo(HttpStatus.OK);
+        Result result = entity.getBody();
+        assertThat(result).isNotNull();
+        assertThat(result.getErrors()).isNotNull();
+        assertThat(result.getErrors()).extracting(GraphQLError::getMessage)
+                                      .isNotEmpty();
+        assertThat(result.getErrors()).extracting(GraphQLError::getExtensions)
+                                      .isNotEmpty();
+        assertThat(result.getErrors()).extracting(GraphQLError::getLocations)
+                                      .isNotEmpty();
+        assertThat(result.getData()).isNull();
+    }
 }
 
-@Value
-class Result implements ExecutionResult {
-	Map<String, Object> data;
-	List<GraphQLError> errors;
-	Map<Object, Object> extensions;
+@Data
+class Result {
 
-  @Override
-  public List<GraphQLError> getErrors() {
-    return errors;
-  }
+    Map<String, Object> data;
+    List<GraphQLError> errors;
+    Map<Object, Object> extensions;
+    
+    @Data    
+    static class GraphQLError {
 
-  @Override
-  public <T> T getData() {
-    return null;
-  }
+        String message;
+        List<SourceLocation> locations;
+        Map<String, Object> extensions;
+    }
 
-  @Override
-  public boolean isDataPresent() {
-    return data != null;
-  }
+    @Data
+    static class SourceLocation {
 
-  @Override
-  public Map<Object, Object> getExtensions() {
-    return extensions;
-  }
-
-  @Override
-	public Map<String, Object> toSpecification() {
-		return new HashMap<>();
-	}	
+        int line;
+        int column;
+        String sourceName;
+        
+    }    
 }
+
+
