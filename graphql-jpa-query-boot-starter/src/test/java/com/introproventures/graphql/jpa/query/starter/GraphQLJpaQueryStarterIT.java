@@ -40,8 +40,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.introproventures.graphql.jpa.query.starter.Result.GraphQLError;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
 
-import lombok.Data;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryStarterIT {
@@ -106,28 +104,64 @@ public class GraphQLJpaQueryStarterIT {
     }
 }
 
-@Data
 class Result {
 
     Map<String, Object> data;
     List<GraphQLError> errors;
     Map<Object, Object> extensions;
     
-    @Data    
     static class GraphQLError {
 
         String message;
         List<SourceLocation> locations;
         Map<String, Object> extensions;
+        
+        public String getMessage() {
+            return message;
+        }
+        
+        public List<SourceLocation> getLocations() {
+            return locations;
+        }
+        
+        public Map<String, Object> getExtensions() {
+            return extensions;
+        }
     }
 
-    @Data
     static class SourceLocation {
 
         int line;
         int column;
         String sourceName;
         
+        public int getLine() {
+            return line;
+        }
+        
+        public int getColumn() {
+            return column;
+        }
+        
+        public String getSourceName() {
+            return sourceName;
+        }
+        
+    }
+
+    
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    
+    public List<GraphQLError> getErrors() {
+        return errors;
+    }
+
+    
+    public Map<Object, Object> getExtensions() {
+        return extensions;
     }    
 }
 
