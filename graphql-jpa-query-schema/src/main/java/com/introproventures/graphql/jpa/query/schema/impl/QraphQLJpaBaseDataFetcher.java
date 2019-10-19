@@ -1164,7 +1164,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings( "unchecked" )
     protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
         return (R) getObjectField(objectValue, fieldName).map(ObjectField::getValue)
-                                                         .orElse(NullValue.newNullValue().build());
+                                                         .orElse(NullValue.Null);
     }
 
     @SuppressWarnings( "unchecked" )
