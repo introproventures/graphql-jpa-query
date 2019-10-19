@@ -62,6 +62,7 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
@@ -81,7 +82,6 @@ import graphql.language.Value;
 import graphql.language.VariableReference;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
@@ -133,7 +133,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         CriteriaQuery<?> query = cb.createQuery((Class<?>) entityType.getJavaType());
         Root<?> from = query.from(entityType);
 
-        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                  .root(query)
                                                                                  .build();
         from.alias(from.getModel().getName().toLowerCase());
@@ -421,7 +421,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         Map<String, Object> predicateArguments = new LinkedHashMap<>();
         predicateArguments.put(logical.name(), environment.getArguments());
         
-        DataFetchingEnvironment predicateDataFetchingEnvironment = DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        DataFetchingEnvironment predicateDataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                                  .arguments(predicateArguments)
                                                                                                  .build();
         Argument predicateArgument = new Argument(logical.name(), whereValue);
@@ -765,7 +765,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         Map<String, Object> valueArguments = new LinkedHashMap<String,Object>();
         valueArguments.put(objectField.getName(), environment.getArgument(argument.getName()));
         
-        DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                         .arguments(valueArguments)
                                                                                         .build();
         
@@ -777,7 +777,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     }
 
     protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment,  Map<String, Object> arguments) {
-        return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .build();
     }
@@ -785,13 +785,13 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment, Argument argument) {
         Map<String, Object> arguments = environment.getArgument(argument.getName());
         
-        return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .build();
     }
 
     protected final DataFetchingEnvironment wherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
-        return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment)
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .fieldDefinition(fieldDefinition)
                                              .fieldType(fieldDefinition.getType())
