@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
 
@@ -53,9 +54,13 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          */
         EQ,
         /**
-         * not equal (numbers, dates, booleans)
+         * not equal (numbers, dates, booleans, strings)
          */
         NE,
+        /**
+         * not equal strings, case insensitive
+         */
+        NE_,
         /**
          * case sensitive (strings)
          */
@@ -64,21 +69,35 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          * case insensitive match
          * <pre>LOWER(field) = LOWER(SEARCH)</pre> 
          */
-        LOWER,
+        LOWER, EQ_,
         /**
-         * end of the string matches
+         * end of the string matches, case sensitive
          */
         ENDS,
         /**
-         * beginning of string matches
+         * end of the string matches, case insensitive
+         */
+        ENDS_,
+        /**
+         * beginning of string matches, case sensitive
          * <pre>LIKE SEARCH%</pre>
          */
         STARTS,
         /**
-         * any part of the string matches
+         * beginning of string matches, case insensitive   
+         * <pre>LIKE SEARCH%</pre>
+         */
+        STARTS_,
+        /**
+         * any part of the string matches, case sensitive
          * <pre>LIKE %SEARCH%</pre>
          */
         LIKE,
+        /**
+         * any part of the string matches, case insensitive   
+         * <pre>LIKE %SEARCH%</pre>
+         */
+        LIKE_,
         /**
          * full string match =
          */
@@ -151,4 +170,10 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
     public int compareTo(PredicateFilter o) {
         return this.getField().compareTo(o.getField());
     }
+    
+    public boolean anyMatch(Criteria...criterias) {
+        return Stream.of(criterias)
+                     .anyMatch(criteria -> this.getCriterias()
+                                               .contains(criteria));
+    }    
 }
