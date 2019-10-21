@@ -1580,6 +1580,237 @@ public class GraphQLExecutorTests {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithEQCaseInsensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ_ : \"WAR AND PEACE\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithEQCaseSensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ : \"War and Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithEQCaseSensitiveNotMatching() {
+        //given:
+        String query = "query { Books ( where: { title: {EQ : \"war and peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithNECaseInsensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {NE_ : \"ANNA karenina\"} author: {id: {EQ: 1}}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithNECaseSensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {NE : \"Anna Karenina\"} author: {id: {EQ: 1}}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithNECaseSensitiveNonMatching() {
+        //given:
+        String query = "query { Books ( where: { title: {NE : \"anna karenina\"} author: {id: {EQ: 1}}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}, " +
+                "{id=3, title=Anna Karenina}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithLIKECaseInsensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {LIKE_ : \"AND\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithLIKECaseSensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {LIKE : \"and\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithLIKECaseSensitiveNonMatching() {
+        //given:
+        String query = "query { Books ( where: { title: {LIKE : \"And\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithSTARTSCaseInsensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {STARTS_ : \"WAR\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithSTARTSCaseSensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {STARTS : \"War\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithSTARTSCaseSensitiveNonMatching() {
+        //given:
+        String query = "query { Books ( where: { title: {STARTS : \"war\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void queryWithENDSCaseInsensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {ENDS_ : \"PEACE\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    public void queryWithENDSCaseSensitive() {
+        //given:
+        String query = "query { Books ( where: { title: {ENDS : \"Peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[" +
+                "{id=2, title=War and Peace}" +
+                "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    public void queryWithENDSCaseSensitiveNonMatching() {
+        //given:
+        String query = "query { Books ( where: { title: {ENDS : \"peace\"}}) { select { id title} } }";
+
+        String expected = "{Books={select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
     }    
     
     @Test
