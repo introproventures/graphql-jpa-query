@@ -1,7 +1,9 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
@@ -74,19 +76,29 @@ public class GraphQLSchemaAutoConfigurationTest {
             public void configure(GraphQLShemaRegistration registry) {
                 GraphQLObjectType query = GraphQLObjectType.newObject()
                                                            .name("query")
-                                                           .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                        .name("hello")
-                                                                                        .type(Scalars.GraphQLString)
-                                                                                        .dataFetcher(new StaticDataFetcher("world")))
-                                                           .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                        .name("hello2")
-                                                                                        .type(Scalars.GraphQLString))
+                                                           .field(newFieldDefinition().name("hello")
+                                                                                      .type(Scalars.GraphQLString)
+                                                                                      .dataFetcher(new StaticDataFetcher("world")))
+                                                           .field(newFieldDefinition().name("hello2")
+                                                                                      .type(Scalars.GraphQLString))
+                                                           .field(newFieldDefinition().name("greetings")
+                                                                                      .type(GraphQLObjectType.newObject()
+                                                                                                             .name("Hello3")
+                                                                                                             .field(newFieldDefinition().name("canada")
+                                                                                                                                        .type(Scalars.GraphQLString))                                                                                                             
+                                                                                                             .field(newFieldDefinition().name("america")
+                                                                                                                                        .type(Scalars.GraphQLString))))
                                                            .build();
 
                 GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
-                                                                      .dataFetcher(FieldCoordinates.coordinates(query.getName(),
-                                                                                                                "hello2"),
+                                                                      .dataFetcher(FieldCoordinates.coordinates(query.getName(), "hello2"),
                                                                                    new StaticDataFetcher("world2"))
+                                                                      .dataFetcher(FieldCoordinates.coordinates(query.getName(), "greetings"),
+                                                                                   new StaticDataFetcher(Collections.emptyMap()))
+                                                                      .dataFetcher(FieldCoordinates.coordinates("Hello3", "america"),
+                                                                                   new StaticDataFetcher("Hi!"))
+                                                                      .dataFetcher(FieldCoordinates.coordinates("Hello3", "canada"),
+                                                                                   new StaticDataFetcher("Eh?"))
                                                                       .build();
 
                 GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
@@ -109,12 +121,14 @@ public class GraphQLSchemaAutoConfigurationTest {
         Map<String, Object> result2 = graphQL.execute("mutation {greet}").getData();
         Map<String, Object> result3 = graphQL.execute("mutation {greet2}").getData();
         Map<String, Object> result4 = graphQL.execute("query {hello2}").getData();
+        Map<String, Object> result5 = graphQL.execute("query { greetings { america canada } }").getData();
         
         // then
         assertThat(result.toString()).isEqualTo("{hello=world}");
         assertThat(result2.toString()).isEqualTo("{greet=hello world}");
         assertThat(result3.toString()).isEqualTo("{greet2=hello world2}");
         assertThat(result4.toString()).isEqualTo("{hello2=world2}");
+        assertThat(result5.toString()).isEqualTo("{greetings={america=Hi!, canada=Eh?}}");
         
         assertThat(graphQLSchema.getQueryType())
                 .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)

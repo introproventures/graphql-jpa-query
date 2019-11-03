@@ -70,6 +70,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                 schema.getCodeRegistry().transform(builderConsumer -> {
                     typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer, 
                                                                      codeRegistryBuilder, 
+                                                                     schema.getMutationType(),
                                                                      mutationName), 
                                              schema.getMutationType());
                 });
@@ -83,17 +84,18 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
             .filter(it -> Optional.ofNullable(it.getQueryType())
                                   .map(GraphQLType::getName)
+                                  .filter(name -> !"null".equals(name)) // filter out null placeholders
                                   .isPresent())
             .peek(schema -> {
                 schema.getCodeRegistry().transform(builderConsumer -> {
                      typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer,
                                                                       codeRegistryBuilder,
+                                                                      schema.getQueryType(),
                                                                       queryName),
                                               schema.getQueryType());
                  });
             })
             .map(GraphQLSchema::getQueryType)
-            .filter(it -> !it.getName().equals("null")) // filter out null placeholders
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
@@ -104,6 +106,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                 schema.getCodeRegistry().transform(builderConsumer -> {
                     typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer,
                                                                      codeRegistryBuilder,
+                                                                     schema.getSubscriptionType(),
                                                                      subscriptionName),
                                              schema.getSubscriptionType());
                 });
@@ -183,25 +186,33 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
     class CodeRegistryVisitor extends GraphQLTypeVisitorStub {
         private final GraphQLCodeRegistry.Builder source;
         private final GraphQLCodeRegistry.Builder codeRegistry;
-        private final String root;
-
-        CodeRegistryVisitor(GraphQLCodeRegistry.Builder source,
-                            GraphQLCodeRegistry.Builder codeRegistry, 
-                            String root) {
-            this.source = source;
+        private final GraphQLFieldsContainer containerType;
+        private final String typeName;
+        
+        CodeRegistryVisitor(GraphQLCodeRegistry.Builder context,
+                            GraphQLCodeRegistry.Builder codeRegistry,
+                            GraphQLFieldsContainer containerType,
+                            String typeName) {
+            this.source = context;
             this.codeRegistry = codeRegistry;
-            this.root = root;
+            this.containerType = containerType;
+            this.typeName = typeName;
         }
 
         @Override
         public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLType> context) {
             GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer) context.getParentContext().thisNode();
-            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType, node);
+            FieldCoordinates coordinates = parentContainerType.equals(containerType) ? coordinates(typeName, node.getName()) 
+                                                                                     : coordinates(parentContainerType, node);
+
+            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType, 
+                                                               node);
             if (dataFetcher == null) {
                 dataFetcher = new PropertyDataFetcher<>(node.getName());
             }
-            FieldCoordinates coordinates = coordinates(root, node.getName());
-            codeRegistry.dataFetcherIfAbsent(coordinates, dataFetcher);
+                
+            codeRegistry.dataFetcherIfAbsent(coordinates, 
+                                             dataFetcher);
             return CONTINUE;
         }
 
