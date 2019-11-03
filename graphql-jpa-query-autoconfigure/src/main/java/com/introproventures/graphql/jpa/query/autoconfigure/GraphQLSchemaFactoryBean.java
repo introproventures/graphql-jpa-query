@@ -32,8 +32,8 @@ import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 
 public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
-	
-	private static final String QUERY_NAME = "Query";
+    
+    private static final String QUERY_NAME = "Query";
     private static final String QUERY_DESCRIPTION = "";
     private static final String SUBSCRIPTION_NAME = "Subscription";
     private static final String SUBSCRIPTION_DESCRIPTION = "";
@@ -42,9 +42,9 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
     
     private final GraphQLSchema[] managedGraphQLSchemas;
-	
-	private String queryName = QUERY_NAME;
-	private String queryDescription = QUERY_DESCRIPTION;
+    
+    private String queryName = QUERY_NAME;
+    private String queryDescription = QUERY_DESCRIPTION;
 
     private String subscriptionName = SUBSCRIPTION_NAME;
     private String subscriptionDescription = SUBSCRIPTION_DESCRIPTION;
@@ -52,19 +52,19 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
     private String mutationName = MUTATION_NAME;
     private String mutationDescription = MUTATION_DESCRIPTION;
     
-	
-	public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
-		this.managedGraphQLSchemas = managedGraphQLSchemas;
-	}
+    
+    public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
+        this.managedGraphQLSchemas = managedGraphQLSchemas;
+    }
 
-	@Override
-	protected GraphQLSchema createInstance() throws Exception {
-		
-		GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
+    @Override
+    protected GraphQLSchema createInstance() throws Exception {
+        
+        GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
         TypeTraverser typeTraverser = new TypeTraverser();
-		
-		List<GraphQLFieldDefinition> mutations = Stream.of(managedGraphQLSchemas)
+        
+        List<GraphQLFieldDefinition> mutations = Stream.of(managedGraphQLSchemas)
             .filter(it -> it.getMutationType() != null)
             .peek(schema -> {
                 schema.getCodeRegistry().transform(builderConsumer -> {
@@ -74,13 +74,13 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                                              schema.getMutationType());
                 });
             })
-	        .map(GraphQLSchema::getMutationType)
-			.filter(Objects::nonNull)
-			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
-		
-		List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
+            .map(GraphQLSchema::getMutationType)
+            .filter(Objects::nonNull)
+            .map(GraphQLObjectType::getFieldDefinitions)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+        
+        List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
             .filter(it -> Optional.ofNullable(it.getQueryType())
                                   .map(GraphQLType::getName)
                                   .isPresent())
@@ -92,65 +92,65 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                                               schema.getQueryType());
                  });
             })
-			.map(GraphQLSchema::getQueryType)
-			.filter(it -> !it.getName().equals("null")) // filter out null placeholders
-			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
+            .map(GraphQLSchema::getQueryType)
+            .filter(it -> !it.getName().equals("null")) // filter out null placeholders
+            .map(GraphQLObjectType::getFieldDefinitions)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-		List<GraphQLFieldDefinition> subscriptions = Stream.of(managedGraphQLSchemas)
+        List<GraphQLFieldDefinition> subscriptions = Stream.of(managedGraphQLSchemas)
             .filter(it -> it.getSubscriptionType() != null)
-		    .peek(schema -> {
+            .peek(schema -> {
                 schema.getCodeRegistry().transform(builderConsumer -> {
                     typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer,
                                                                      codeRegistryBuilder,
                                                                      subscriptionName),
                                              schema.getSubscriptionType());
                 });
-		    })
-			.map(GraphQLSchema::getSubscriptionType)
-			.map(GraphQLObjectType::getFieldDefinitions)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
+            })
+            .map(GraphQLSchema::getSubscriptionType)
+            .map(GraphQLObjectType::getFieldDefinitions)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
-		if(!mutations.isEmpty())
-			schemaBuilder.mutation(GraphQLObjectType.newObject()
+        if(!mutations.isEmpty())
+            schemaBuilder.mutation(GraphQLObjectType.newObject()
                                                     .name(this.mutationName)
                                                     .description(this.mutationDescription)
-                                			        .fields(mutations));
+                                                    .fields(mutations));
 
-		if(!queries.isEmpty())
-			schemaBuilder.query(GraphQLObjectType.newObject()
-					                             .name(this.queryName)
-					                             .description(this.queryDescription)
-					                             .fields(queries));
+        if(!queries.isEmpty())
+            schemaBuilder.query(GraphQLObjectType.newObject()
+                                                 .name(this.queryName)
+                                                 .description(this.queryDescription)
+                                                 .fields(queries));
 
-		if(!subscriptions.isEmpty())
-			schemaBuilder.subscription(GraphQLObjectType.newObject()
+        if(!subscriptions.isEmpty())
+            schemaBuilder.subscription(GraphQLObjectType.newObject()
                                                         .name(this.subscriptionName)
                                                         .description(this.subscriptionDescription)
-                                    			        .fields(subscriptions));
-		
+                                                        .fields(subscriptions));
+        
         return schemaBuilder.codeRegistry(codeRegistryBuilder.build())
                             .build();
-	}
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return GraphQLSchema.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return GraphQLSchema.class;
+    }
 
-	public GraphQLSchemaFactoryBean setQueryName(String name) {
-		this.queryName = name;
-		
-		return this;
-	}
+    public GraphQLSchemaFactoryBean setQueryName(String name) {
+        this.queryName = name;
+        
+        return this;
+    }
 
-	public GraphQLSchemaFactoryBean setQueryDescription(String description) {
-		this.queryDescription = description;
-		
-		return this;
-	}
+    public GraphQLSchemaFactoryBean setQueryDescription(String description) {
+        this.queryDescription = description;
+        
+        return this;
+    }
 
     public GraphQLSchemaFactoryBean setSubscriptionName(String subscriptionName) {
         this.subscriptionName = subscriptionName;
