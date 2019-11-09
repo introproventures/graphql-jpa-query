@@ -16,7 +16,7 @@ While typical REST APIs require loading from multiple URLs, GraphQL APIs get all
 
 JPA 2.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
 
-GraphQL JPA Query creates a uniform query API across for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
+GraphQL JPA Query creates a uniform query API for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting a separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
 
 Tested using JDK Versions
 ----------------------

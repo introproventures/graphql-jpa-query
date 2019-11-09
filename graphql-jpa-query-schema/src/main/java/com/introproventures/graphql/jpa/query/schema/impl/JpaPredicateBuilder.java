@@ -16,6 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -130,43 +131,47 @@ class JpaPredicateBuilder {
             String compareValue = filter.getValue().toString();
             Expression<String> fieldValue = root;
             
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.IN)) {
-                CriteriaBuilder.In<Object> in = cb.in(root);
+            if (filter.anyMatch(Criteria.EQ_, Criteria.NE_, Criteria.LIKE_, Criteria.STARTS_, Criteria.ENDS_, Criteria.LOWER)) {
+                compareValue = compareValue.toLowerCase();
+                fieldValue = cb.lower(fieldValue);
+            };
+            
+            if (filter.getCriterias().contains(Criteria.IN)) {
+                CriteriaBuilder.In<Object> in = cb.in(fieldValue);
                 return in.value(compareValue);
             }
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.NIN)) {
-                return cb.not(root.in(compareValue));
+            if (filter.getCriterias().contains(Criteria.NIN)) {
+                return cb.not(fieldValue.in(compareValue));
             }
             
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+            if (filter.anyMatch(Criteria.EQ, Criteria.LOWER, Criteria.EQ_)) {
                 return cb.equal(fieldValue, compareValue);
             } 
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.LOWER)) {
-                return cb.equal(cb.lower(fieldValue), 
-                                compareValue.toLowerCase());
-            }
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+            else if (filter.anyMatch(Criteria.NE, Criteria.NE_)) {
                 return cb.notEqual(fieldValue, compareValue);
             }
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.LIKE)) {
+            else if (filter.anyMatch(Criteria.LIKE, Criteria.LIKE_)) {
                 compareValue = "%" + compareValue + "%";
             }
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.ENDS)) {
-                compareValue = "%" + compareValue;
-            }
-            else if (filter.getCriterias().contains(PredicateFilter.Criteria.EXACT)) {
-                // do nothing
-            }
-            // STARTS or empty (default)
-            else {
+            else if (filter.anyMatch(Criteria.STARTS, Criteria.STARTS_)) {
                 compareValue = compareValue + "%";
             }
+            else if (filter.anyMatch(Criteria.ENDS, Criteria.ENDS_)) {
+                compareValue = "%" + compareValue;
+            }
+            else if (filter.anyMatch(Criteria.EXACT, Criteria.CASE)) {
+                // do nothing
+            } // default empty 
+            else {
+                compareValue = "%";
+            }
+            
             return cb.like(fieldValue, compareValue);
         }
 
         return arrayValuePredicate;
     }
-
+    
     protected Predicate getBooleanPredicate(Path<?> root, PredicateFilter filter) {
         Boolean bool = (Boolean) filter.getValue();
         if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
