@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -105,7 +106,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
-    private EntityManager entityManager;
+    protected EntityManager entityManager;
+    protected Predicate<String[]> predicateRole;
+    protected FetcherParams fetcherParams;
      
     private String name = "GraphQLJPAQuery";
     
@@ -120,17 +123,36 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         this.entityManager = entityManager;
     }
 
+    public GraphQLJpaSchemaBuilder predicateRole(Predicate<String[]> predicateRole) {
+
+        fetcherParams = new FetcherParams(
+                new MapEntityType(entityManager),
+                predicateRole
+        );
+
+        this.predicateRole = predicateRole;
+        return this;
+    }
+
     /* (non-Javadoc)
      * @see org.activiti.services.query.qraphql.jpa.GraphQLSchemaBuilder#getGraphQLSchema()
      */
     @Override
     public GraphQLSchema build() {
+        createFetcherParams();
         return GraphQLSchema.newSchema()
             .query(getQueryType())
             .build();
     }
 
-    private GraphQLObjectType getQueryType() {
+    protected void createFetcherParams() {
+        fetcherParams = new FetcherParams(
+                new MapEntityType(entityManager),
+                predicateRole
+        );
+    }
+
+    protected GraphQLObjectType getQueryType() {
         GraphQLObjectType.Builder queryType = 
             GraphQLObjectType.newObject()
                 .name(this.name)
@@ -160,7 +182,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .name(entityType.getName())
                 .description(getSchemaDescription(entityType))
                 .type(getObjectType(entityType))
-                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, entityType, toManyDefaultOptional))
+                .dataFetcher(new GraphQLJpaSimpleDataFetcher(entityManager, fetcherParams, entityType, toManyDefaultOptional))
                 .argument(entityType.getAttributes().stream()
                     .filter(this::isValidInput)
                     .filter(this::isNotIgnored)
@@ -203,7 +225,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, 
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager,
+                                                            fetcherParams,
                                                             entityType, 
                                                             isDefaultDistinct, 
                                                             toManyDefaultOptional))
@@ -638,7 +661,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
     
-    private GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input) {
+    protected GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input) {
         if (input && embeddableInputCache.containsKey(embeddableType.getJavaType()))
             return embeddableInputCache.get(embeddableType.getJavaType());
 
@@ -677,7 +700,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
 
-    private GraphQLObjectType getObjectType(EntityType<?> entityType) {
+    protected GraphQLObjectType getObjectType(EntityType<?> entityType) {
         return entityCache.computeIfAbsent(entityType, this::computeObjectType);
     }
     
@@ -773,6 +796,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY) {
                 dataFetcher = new GraphQLJpaOneToManyDataFetcher(entityManager,
+                                                                 fetcherParams,
                                                                  baseEntity,
                                                                  toManyDefaultOptional,
                                                                  isDefaultDistinct,
@@ -927,28 +951,28 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                  .getSchemaDescription()
                                  .orElse(null);
     }
-    
-    private boolean isNotIgnored(EmbeddableType<?> attribute) {
+
+    protected boolean isNotIgnored(EmbeddableType<?> attribute) {
         return isNotIgnored(attribute.getJavaType());
     }
-    
-    private boolean isNotIgnored(Attribute<?,?> attribute) {
+
+    protected boolean isNotIgnored(Attribute<?,?> attribute) {
         return isNotIgnored(attribute.getJavaMember()) && isNotIgnored(attribute.getJavaType());
     }
 
-    private boolean isIdentity(Attribute<?,?> attribute) {
+    protected boolean isIdentity(Attribute<?,?> attribute) {
         return attribute instanceof SingularAttribute && ((SingularAttribute<?,?>)attribute).isId();
     }
     
-    private boolean isNotIgnored(EntityType<?> entityType) {
+    protected boolean isNotIgnored(EntityType<?> entityType) {
         return isNotIgnored(entityType.getJavaType());
     }
 
-    private boolean isNotIgnored(Member member) {
+    protected boolean isNotIgnored(Member member) {
         return member instanceof AnnotatedElement && isNotIgnored((AnnotatedElement) member);
     }
 
-    private boolean isNotIgnored(AnnotatedElement annotatedElement) {
+    protected boolean isNotIgnored(AnnotatedElement annotatedElement) {
         return annotatedElement != null && annotatedElement.getAnnotation(GraphQLIgnore.class) == null;
     }
 
@@ -984,7 +1008,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     
     @SuppressWarnings( "unchecked" )
-    private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
+    protected GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
         if (clazz.isEnum()) {
             
             if (classCache.containsKey(clazz))

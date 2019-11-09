@@ -19,8 +19,13 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
@@ -275,5 +280,44 @@ public class JavaScalarsTest {
         assert resultLDT.getHour() == 07;
         assert resultLDT.getMinute() == 15;
         assert resultLDT.getSecond() == 07;
+    }
+
+    @Test
+    public void Long2SqlDate() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Date.class).getCoercing();
+        final Long input = 1573294499000L;
+
+        //when
+        Object result = coercing.serialize(input);
+
+        //then
+        assertThat(result).isInstanceOf(Date.class);
+
+        Date resultLDT = (Date) result;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        assert sdf.format(resultLDT).equals("2019-11-09") == true;
+    }
+
+    @Test
+    public void Long2SqlTimestamp() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        final Long input = 1573294499000L;
+
+        //when
+        Object result = coercing.serialize(input);
+
+        //then
+        assertThat(result).isInstanceOf(Timestamp.class);
+
+        Timestamp resultLDT = (Timestamp) result;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        System.out.println(sdf.format(resultLDT));
+
+        assert sdf.format(resultLDT).equals("2019-11-09 10:14:59") == true;
     }
 }

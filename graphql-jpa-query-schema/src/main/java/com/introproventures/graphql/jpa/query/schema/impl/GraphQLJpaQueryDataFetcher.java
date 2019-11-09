@@ -44,7 +44,7 @@ import graphql.schema.GraphQLObjectType;
  * @author Igor Dianov
  *
  */
-class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher {
 
     private boolean defaultDistinct = true;
 	
@@ -54,15 +54,21 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
-    private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
+    private GraphQLJpaQueryDataFetcher(
+            EntityManager entityManager,
+            FetcherParams fetcherParams,
+            EntityType<?> entityType,
+            boolean toManyDefaultOptional
+    ) {
+        super(entityManager, fetcherParams, entityType, toManyDefaultOptional);
     }
 
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, 
+    public GraphQLJpaQueryDataFetcher(EntityManager entityManager,
+                                      FetcherParams fetcherParams,
                                       EntityType<?> entityType, 
                                       boolean defaultDistinct,
                                       boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
+        super(entityManager, fetcherParams, entityType, toManyDefaultOptional);
         this.defaultDistinct = defaultDistinct;
     }
 
@@ -76,6 +82,8 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
+        checkAccessDataFetching(environment);
+
         Field field = environment.getFields().iterator().next();
         Map<String, Object> result = new LinkedHashMap<>();
 

@@ -31,6 +31,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLReadEntityForRole;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,6 +42,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode(exclude={"books","phoneNumbers"}) // Fixes NPE in Hibernate when initializing loaded collections #1
+@GraphQLReadEntityForRole({"admin"})
 public class Author {
 	@Id
 	Long id;
