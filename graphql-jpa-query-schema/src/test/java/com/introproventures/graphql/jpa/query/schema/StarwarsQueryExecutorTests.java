@@ -27,8 +27,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +35,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -686,19 +687,19 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
         //given:
         String query = "query {" + 
-                "  Characters(where: {\n" + 
-                "    friends: {appearsIn: {IN: A_NEW_HOPE}}\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      appearsIn\n" + 
-                "      friends(where: {name: {LIKE: \"Leia\"}}) {\n" + 
-                "        id\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+                "  Characters(where: {" + 
+                "    friends: {appearsIn: {IN: A_NEW_HOPE}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      appearsIn" + 
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
+                "        id" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Characters={select=["
@@ -1287,5 +1288,219 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseEQ() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseEQArray() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {EQ: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseIN() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {IN: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseINArray() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {IN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }   
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNE() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNEArray() {
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NE: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNIN() {
+        
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNINArray() {
+        
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
     
 }

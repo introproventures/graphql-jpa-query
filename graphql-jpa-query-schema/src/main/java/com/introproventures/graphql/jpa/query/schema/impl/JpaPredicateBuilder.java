@@ -730,24 +730,32 @@ class JpaPredicateBuilder {
             // collection join for plural attributes
             if(PluralAttribute.class.isInstance(from.getModel()) 
                     || EntityType.class.isInstance(from.getModel())) {
-                From<?,?> join = null;
+                Predicate predicate;
                 
-                for(Join<?,?> fetch: from.getJoins()) {
-                    if(fetch.getAttribute().getName().equals(filter.getField()))
-                        join = (From<?,?>) fetch;
+                if(EntityType.class.isInstance(from.getModel())) {
+                    From<?,?> join = null;
+
+                    for(Join<?,?> fetch: from.getJoins()) {
+                        if(fetch.getAttribute().getName().equals(filter.getField()))
+                            join = (From<?,?>) fetch;
+                    }
+                    
+                    if(join == null) {
+                        join = (From<?,?>) from.join(filter.getField());
+                    }
+                    
+                    predicate = join.in(value);
+                } else {
+                    Expression<? extends Collection<Object>> expression = from.get(filter.getField()); 
+                    
+                    predicate = cb.isMember(filter.getValue(), expression);
                 }
-                
-                if(join == null) {
-                    join = (From<?,?>) from.join(filter.getField());
+
+                if(filter.anyMatch(Criteria.NIN, Criteria.NE)) {
+                   return cb.not(predicate);
                 }
-                
-                
-                Predicate in = join.in(value);
-                
-                if(filter.getCriterias().contains(PredicateFilter.Criteria.NIN))
-                   return cb.not(in);
                         
-                return in;
+                return predicate;
             }
         } else if(type.isEnum()) {
         	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
