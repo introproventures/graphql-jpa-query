@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.36
+## 0.3.37-SNAPSHOT
 * fixGH-215): Cannot query set of enums within select clause (#218) [5705b95](https://github.com/introproventures/graphql-jpa-query/commit/5705b95809e81b49756a822a28598c5b77700433)
 * fix(GH-216): One-to-many queries joins the same tables twice (#217) [6e204fc](https://github.com/introproventures/graphql-jpa-query/commit/6e204fcb224d1032f49e9e2a0ddc441b10e6c20e)
 * a couple of minor typos (#212) [0151eec](https://github.com/introproventures/graphql-jpa-query/commit/0151eec406be5d30e4e179c0c645671b7c4904e6)
