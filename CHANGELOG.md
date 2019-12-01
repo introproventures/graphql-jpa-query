@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.36-SNAPSHOT
+## 0.3.36
+* fixGH-215): Cannot query set of enums within select clause (#218) [5705b95](https://github.com/introproventures/graphql-jpa-query/commit/5705b95809e81b49756a822a28598c5b77700433)
+* fix(GH-216): One-to-many queries joins the same tables twice (#217) [6e204fc](https://github.com/introproventures/graphql-jpa-query/commit/6e204fcb224d1032f49e9e2a0ddc441b10e6c20e)
+* a couple of minor typos (#212) [0151eec](https://github.com/introproventures/graphql-jpa-query/commit/0151eec406be5d30e4e179c0c645671b7c4904e6)
 * feat(GH-208): added EQ_, NE_, STARTS_, LIKE_, ENDS_ case insensitive string match criteria #210 [53c84dc](https://github.com/introproventures/graphql-jpa-query/commit/53c84dc9980f01cc037e2c81a418e74d4581bbfb)
 * feat(GH-204): added LOWER predicate for case insensitive match (#206) [6ff6992](https://github.com/introproventures/graphql-jpa-query/commit/6ff699284a2340de0f22d7a5e447444e8347f0f7)
 * fix(travis): changed to openjdk8 [8f1e36c](https://github.com/introproventures/graphql-jpa-query/commit/8f1e36c302a1083f11ff4342e96005ead23e38ef)
