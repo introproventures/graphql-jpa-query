@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -117,14 +116,6 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                 	.setFirstResult((page.page - 1) * page.size);
             }
             
-            // Let's create entity graph from selection
-            // When using fetchgraph all relationships are considered to be lazy regardless of annotation, 
-            // and only the elements of the provided graph are loaded. This particularly useful when running 
-            // reports on certain objects and you don't want a lot of the stuff that's normally flagged to 
-            // load via eager annotations.
-            EntityGraph<?> graph = buildEntityGraph(queryField);
-            query.setHint(JAVAX_PERSISTENCE_FETCHGRAPH, graph);
-
             // Let' try reduce overhead and disable all caching
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
             query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);

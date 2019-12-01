@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.metamodel.EntityType;
@@ -48,12 +47,7 @@ class GraphQLJpaSimpleDataFetcher extends QraphQLJpaBaseDataFetcher {
             flattenEmbeddedIdArguments(field);
             
             try {
-                // Create entity graph from selection
-                EntityGraph<?> entityGraph = buildEntityGraph(field);
-                
-                return super.getQuery(environment, field, true)
-                    .setHint("javax.persistence.fetchgraph", entityGraph)
-                    .getSingleResult();
+                return getQuery(environment, field, true).getSingleResult();
                 
             } catch (NoResultException ignored) {
                 // do nothing
