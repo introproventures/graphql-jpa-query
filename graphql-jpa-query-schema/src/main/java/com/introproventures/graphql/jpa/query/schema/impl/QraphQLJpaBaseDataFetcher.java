@@ -40,9 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
-import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -1145,44 +1143,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         return fieldDefinition;
     }
-
-    protected Subgraph<?> buildSubgraph(Field field, Subgraph<?> subgraph) {
-
-        selections(field).forEach(it ->{
-            if(hasSelectionSet(it)) {
-                Subgraph<?> sg = subgraph.addSubgraph(it.getName());
-                buildSubgraph(it, sg);
-            } else {
-                if(!TYPENAME.equals(it.getName()))
-                    subgraph.addAttributeNodes(it.getName());
-            }
-        });
-
-        return subgraph;
-    };
-
-
-    protected EntityGraph<?> buildEntityGraph(Field root) {
-
-        EntityGraph<?> entityGraph = this.entityManager.createEntityGraph(entityType.getJavaType());
-
-        selections(root)
-            .forEach(it -> {
-                if(hasSelectionSet(it) 
-                		&& hasNoArguments(it) 
-                		&& isManagedType(entityType.getAttribute(it.getName()))
-                ) {
-                    Subgraph<?> sg = entityGraph.addSubgraph(it.getName());
-                    buildSubgraph(it, sg);
-                } else {
-                    if(isPersistent(entityType, it.getName()))
-                        entityGraph.addAttributeNodes(it.getName());
-                }
-            });
-
-        return entityGraph;
-    };
-
     
     protected final boolean isManagedType(Attribute<?,?> attribute) {
     	return attribute.getPersistentAttributeType() != PersistentAttributeType.EMBEDDED 
