@@ -687,19 +687,19 @@ public class StarwarsQueryExecutorTests {
     public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
         //given:
         String query = "query {" + 
-                "  Characters(where: {\n" + 
-                "    friends: {appearsIn: {IN: A_NEW_HOPE}}\n" + 
-                "  }) {\n" + 
-                "    select {\n" + 
-                "      id\n" + 
-                "      name\n" + 
-                "      appearsIn\n" + 
-                "      friends(where: {name: {LIKE: \"Leia\"}}) {\n" + 
-                "        id\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+                "  Characters(where: {" + 
+                "    friends: {appearsIn: {IN: A_NEW_HOPE}}" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      appearsIn" + 
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
+                "        id" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Characters={select=["
@@ -1292,15 +1292,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseEQ() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1319,15 +1319,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseEQArray() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {EQ: [THE_FORCE_AWAKENS]}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {EQ: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1346,15 +1346,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseIN() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {IN: THE_FORCE_AWAKENS}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {IN: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1373,15 +1373,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseINArray() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {IN: [THE_FORCE_AWAKENS]}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {IN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1400,15 +1400,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseNE() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1426,15 +1426,15 @@ public class StarwarsQueryExecutorTests {
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseNEArray() {
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {NE: [THE_FORCE_AWAKENS]}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NE: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1453,15 +1453,15 @@ public class StarwarsQueryExecutorTests {
     public void querySetOfEnumsWithinEmbeddedSelectClauseNIN() {
         
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {NIN: THE_FORCE_AWAKENS}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: THE_FORCE_AWAKENS}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
@@ -1480,15 +1480,15 @@ public class StarwarsQueryExecutorTests {
     public void querySetOfEnumsWithinEmbeddedSelectClauseNINArray() {
         
         //given:
-        String query = "{\n" + 
-                "  Humans {\n" + 
-                "    select {\n" + 
-                "      name\n" + 
-                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {\n" + 
-                "        name\n" + 
-                "      }\n" + 
-                "    }\n" + 
-                "  }\n" + 
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
                 "}";
 
         String expected = "{Humans={select=["
