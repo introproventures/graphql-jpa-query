@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1692,6 +1693,89 @@ public class StarwarsQueryExecutorTests {
                 +       "{name=Han Solo}, "
                 +       "{name=Luke Skywalker}, "
                 +       "{name=R2-D2}]}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }   
+    
+    // FIXME
+    @Test
+    @Ignore
+    public void queryEmbeddedWhereWithRecursivePluralAssociationsBug() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids(where: {\n" + 
+                "    friends: {friends:{name:{EQ:\"Leia Organa\"}}}\n" + 
+                "  }) {\n" + 
+                "     select {\n" + 
+                "      name\n" + 
+                "      friends {\n" + 
+                "        name\n" + 
+                "        friends {\n" + 
+                "          name\n" + 
+                "        }\n" + 
+                "      }\n" + 
+                "    } \n" + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Han Solo, friends=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friends=[{name=Leia Organa}]}, "
+                +   "{name=R2-D2, friends=[{name=Leia Organa}" // should include only Leia Organa as friends
+                + "]}]}, "
+                + "{name=R2-D2, friends=["
+                //+   "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " // should not be in the result
+                +   "{name=Han Solo, friends=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friends=[{name=Leia Organa}]}]}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }  
+    
+    
+    // FIXME
+    @Test
+    @Ignore
+    public void queryEmbeddedWhereWithRecursivePluralAssociationsEXISTSBug() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids(where: {\n" + 
+                "    friends: {EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}\n" + 
+                "  }) {\n" + 
+                "     select {\n" + 
+                "      name\n" + 
+                "      friends {\n" + 
+                "        name\n" + 
+                "        friends {\n" + 
+                "          name\n" + 
+                "        }\n" + 
+                "      }\n" + 
+                "    } \n" + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                +   "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                +   "{name=R2-D2, friends=[{name=Han Solo}, {name=Leia Organa}, {name=Luke Skywalker}]}"
+                + "]}, "
+                + "{name=R2-D2, friends=["
+                +   "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                //+   "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " // should not be in the result 
+                +   "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
                 + "]}"
                 + "]}}";
 
