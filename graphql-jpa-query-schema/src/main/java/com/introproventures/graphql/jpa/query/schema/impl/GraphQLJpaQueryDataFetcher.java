@@ -256,11 +256,11 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
                                                                                "queryString");
                                                     
-            if(!queryStringField.canAccess(queryImpl)) {        
-                ReflectionUtil.forceAccess(queryStringField);
-            }
+            ReflectionUtil.forceAccess(queryStringField);
             
-            return String.class.cast(queryStringField.get(queryImpl));
+            return queryStringField.get(queryImpl)
+                                   .toString();
+            
         } catch (Exception ignored) {
             logger.error("Error getting JPQL string", ignored);
         }
