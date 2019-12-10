@@ -1710,18 +1710,18 @@ public class StarwarsQueryExecutorTests {
         
         //given:
         String query = "{" + 
-                "  Droids(where: {\n" + 
-                "    friends: {friends:{name:{EQ:\"Leia Organa\"}}}\n" + 
-                "  }) {\n" + 
-                "     select {\n" + 
-                "      name\n" + 
-                "      friends {\n" + 
-                "        name\n" + 
-                "        friends {\n" + 
-                "          name\n" + 
-                "        }\n" + 
-                "      }\n" + 
-                "    } \n" + 
+                "  Droids(where: {" + 
+                "    friends: {friends:{name:{EQ:\"Leia Organa\"}}}" + 
+                "  }) {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
                 "  } " + 
                 "}";
 
@@ -1751,18 +1751,18 @@ public class StarwarsQueryExecutorTests {
         
         //given:
         String query = "{" + 
-                "  Droids(where: {\n" + 
-                "    friends: {EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}\n" + 
-                "  }) {\n" + 
-                "     select {\n" + 
-                "      name\n" + 
-                "      friends {\n" + 
-                "        name\n" + 
-                "        friends {\n" + 
-                "          name\n" + 
-                "        }\n" + 
-                "      }\n" + 
-                "    } \n" + 
+                "  Droids(where: {" + 
+                "    friends: {EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}" + 
+                "  }) {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
                 "  } " + 
                 "}";
 
