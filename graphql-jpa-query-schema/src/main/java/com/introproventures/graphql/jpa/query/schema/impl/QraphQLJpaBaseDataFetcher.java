@@ -52,6 +52,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
@@ -471,61 +472,90 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                       Map<String, Object> args = getFieldArguments(environment, it, argument);
                       Argument arg = new Argument(it.getName(), it.getValue());
 
-                      if(isEntityType(environment)) {
-                          Attribute<?,?> attribute = getAttribute(environment, arg);
-                          
-                          if(attribute.isAssociation()) {
-                              GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
-                                                                                   this.getObjectType(environment),
-                                                                                   new Field(it.getName()));
-                              
-                              Boolean isOptional = false;
-                              
-                              if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
-                                  AbstractQuery<?> query = environment.getRoot();
-                                  Subquery<?> subquery = query.subquery(attribute.getJavaType());
-                                  From<?,?> correlation = Root.class.isInstance(from) ? subquery.correlate((Root<?>) from)
-                                                                                      : subquery.correlate((Join<?,?>) from);
-                                  
-                                  Join<?,?> correlationJoin = correlation.join(it.getName());
-                                  
-                                  DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
-                                                                                                            .root(subquery)
-                                                                                                            .build();                                                                                                  
-                                  
-                                  Predicate restriction = getArgumentPredicate(cb,
-                                                                               correlationJoin,
-                                                                               wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
-                                                                               arg);
-                                  
-                                  
-                                  Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
-                                                                       .where(restriction));
-                                  
-                                  return logical == Logical.EXISTS ? exists : cb.not(exists);
-                              }
-                                  
-                              return getArgumentPredicate(cb, reuseJoin(from, it.getName(), isOptional),  
-                                                          wherePredicateEnvironment(environment, fieldDefinition, args),
-                                                          arg);
-                          }
-                      }
-
-                      return getLogicalPredicate(it.getName(),
-                                               cb,
-                                               from,
-                                               it,
-                                               argumentEnvironment(environment, args),
-                                               arg);
+                      return getObjectFieldPredicate(environment, cb, from, logical, it, arg, args);
                   })
                   .filter(predicate -> predicate != null)
                   .forEach(predicates::add);
 
         return getCompoundPredicate(cb, predicates, logical);
     }
+    
+    
+    protected Predicate getObjectFieldPredicate(DataFetchingEnvironment environment, 
+                                                CriteriaBuilder cb, 
+                                                From<?,?> from, 
+                                                Logical logical,
+                                                ObjectField it, 
+                                                Argument arg, 
+                                                Map<String, Object> args
+                                                 ) {
+        if(isEntityType(environment)) {
+            Attribute<?,?> attribute = getAttribute(environment, arg);
+            
+            if(attribute.isAssociation()) {
+                GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+                                                                     this.getObjectType(environment),
+                                                                     new Field(it.getName()));
+                
+                Boolean isOptional = false;
+                
+                if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
+                    AbstractQuery<?> query = environment.getRoot();
+                    Subquery<?> subquery = query.subquery(attribute.getJavaType());
+                    From<?,?> correlation = Root.class.isInstance(from) ? subquery.correlate((Root<?>) from)
+                                                                        : subquery.correlate((Join<?,?>) from);
+                    
+                    Join<?,?> correlationJoin = correlation.join(it.getName());
+                    
+                    DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                              .root(subquery)
+                                                                                              .build();                                                                                                  
+                    
+                    Predicate restriction = getArgumentPredicate(cb,
+                                                                 correlationJoin,
+                                                                 wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
+                                                                 arg);
+                    
+                    
+                    Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
+                                                         .where(restriction));
+                    
+                    return logical == Logical.EXISTS ? exists : cb.not(exists);
+                }
+                
+                AbstractQuery<?> query = environment.getRoot();
+                
+                From<?,?> context = (isSubquery(query) || isCountQuery(query))
+                                        ? reuseJoin(from, it.getName(), isOptional)
+                                        : reuseFetch(from, it.getName(), isOptional);
+                            
+                return getArgumentPredicate(cb, context,  
+                                            wherePredicateEnvironment(environment, fieldDefinition, args),
+                                            arg);
+            }
+        }
+
+        return getLogicalPredicate(it.getName(),
+                                 cb,
+                                 from,
+                                 it,
+                                 argumentEnvironment(environment, args),
+                                 arg);        
+    }
+
+    protected boolean isSubquery(AbstractQuery<?> query) {
+        return Subquery.class.isInstance(query);
+    }
+    
+    protected boolean isCountQuery(AbstractQuery<?> query) {
+        return Optional.ofNullable(query.getSelection())
+                       .map(Selection::getJavaType)
+                       .map(Long.class::equals)
+                       .orElse(false);
+    }
 
     protected Predicate getArgumentsPredicate(CriteriaBuilder cb,
-                                                  From<?, ?> path,
+                                                  From<?, ?> from,
                                                   DataFetchingEnvironment environment,
                                                   Argument argument) {
         ArrayValue whereValue = getValue(argument, environment);
@@ -559,13 +589,13 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                  
                                  if(ArrayValue.class.isInstance(it.getValue())) {
                                      return getArgumentsPredicate(cb,
-                                                                 path,
+                                                                 from,
                                                                  argumentEnvironment(environment, args),
                                                                  arg);
                                  }
                                  
                                  return getArgumentPredicate(cb,
-                                                             path,
+                                                             from,
                                                              argumentEnvironment(environment, args),
                                                              arg);
                                  
@@ -581,53 +611,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                  Map<String, Object> args = e.getValue();
                                  Argument arg = new Argument(it.getName(), it.getValue());
                                  
-                                 if(isEntityType(environment)) {
-                                     Attribute<?,?> attribute = getAttribute(environment, arg);
-                                     
-                                     if(attribute.isAssociation()) {
-                                         
-                                         GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
-                                                                                              this.getObjectType(environment),
-                                                                                              new Field(it.getName()));
-                                         boolean isOptional = false;
-                                         
-                                         if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
-                                             AbstractQuery<?> query = environment.getRoot();
-                                             Subquery<?> subquery = query.subquery(attribute.getJavaType());
-                                             From<?,?> correlation = Root.class.isInstance(path) ? subquery.correlate((Root<?>) path)
-                                                                                                 : subquery.correlate((Join<?,?>) path);
-                                             
-                                             Join<?,?> correlationJoin = correlation.join(it.getName());
-                                             
-                                             DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
-                                                                                                                       .root(subquery)
-                                                                                                                       .build();                                                                                                  
-                                             
-                                             Predicate restriction = getArgumentPredicate(cb,
-                                                                                          correlationJoin,
-                                                                                          wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
-                                                                                          arg);
-                                             
-                                             
-                                             Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
-                                                                                  .where(restriction));
-                                             
-                                             return logical == Logical.EXISTS ? exists : cb.not(exists);
-                                         }
-                                         
-
-                                         return getArgumentPredicate(cb, reuseJoin(path, it.getName(), isOptional),  
-                                                                     wherePredicateEnvironment(environment, fieldDefinition, args),
-                                                                     arg);
-                                     }
-                                 }
-                                 
-                                 return getLogicalPredicate(it.getName(),
-                                                          cb,
-                                                          path,
-                                                          it,
-                                                          argumentEnvironment(environment, args),
-                                                          arg);
+                                 return getObjectFieldPredicate(environment, cb, from, logical, it, arg, args);
                              }))
               .filter(predicate -> predicate != null)
               .forEach(predicates::add);

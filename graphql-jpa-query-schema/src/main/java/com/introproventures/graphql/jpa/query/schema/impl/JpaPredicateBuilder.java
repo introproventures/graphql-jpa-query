@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,7 +38,6 @@ import java.util.UUID;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.metamodel.EntityType;
@@ -730,27 +730,21 @@ class JpaPredicateBuilder {
             // collection join for plural attributes
             if(PluralAttribute.class.isInstance(from.getModel()) 
                     || EntityType.class.isInstance(from.getModel())) {
+                Expression<? extends Collection<Object>> expression = from.get(filter.getField());
                 Predicate predicate;
-                
-                if(EntityType.class.isInstance(from.getModel())) {
-                    From<?,?> join = null;
 
-                    for(Join<?,?> fetch: from.getJoins()) {
-                        if(fetch.getAttribute().getName().equals(filter.getField()))
-                            join = (From<?,?>) fetch;
-                    }
+                if(Collection.class.isInstance(filter.getValue())) {
+                    List<Predicate> restrictions = new ArrayList<>();
                     
-                    if(join == null) {
-                        join = (From<?,?>) from.join(filter.getField());
-                    }
+                    Collection.class.cast(filter.getValue())
+                                    .forEach(v -> restrictions.add(cb.isMember(v, expression)));
+                                       
+                    predicate = cb.and(restrictions.toArray(new Predicate[] {}));
                     
-                    predicate = join.in(value);
                 } else {
-                    Expression<? extends Collection<Object>> expression = from.get(filter.getField()); 
-                    
                     predicate = cb.isMember(filter.getValue(), expression);
                 }
-
+                
                 if(filter.anyMatch(Criteria.NIN, Criteria.NE)) {
                    return cb.not(predicate);
                 }

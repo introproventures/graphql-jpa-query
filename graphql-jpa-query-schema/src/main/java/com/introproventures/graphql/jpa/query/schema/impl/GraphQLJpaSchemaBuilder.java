@@ -332,7 +332,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                           .build()            
             )
             .fields(managedType.getAttributes().stream()
-                                               .filter(this::isValidAssociation)    
+                                               .filter(Attribute::isAssociation)
                                                .filter(this::isNotIgnored)
                                                .filter(this::isNotIgnoredFilter)
                                                .map(this::getWhereInputRelationField)
@@ -404,7 +404,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                .collect(Collectors.toList())
             )
             .fields(managedType.getAttributes().stream()
-                                               .filter(this::isValidAssociation)    
+                                               .filter(Attribute::isAssociation)
                                                .filter(this::isNotIgnored)
                                                .filter(this::isNotIgnoredFilter)
                                                .map(this::getWhereInputRelationField)
@@ -898,11 +898,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ELEMENT_COLLECTION ||
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.EMBEDDED;
     }
-
-    protected final boolean isValidAssociation(Attribute<?,?> attribute) {
-        return isOneToMany(attribute) || isToOne(attribute);
-    }
-
 
     private String getSchemaDescription(Attribute<?,?> attribute) {
         return EntityIntrospector.introspect(attribute.getDeclaringType())

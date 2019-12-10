@@ -1079,6 +1079,55 @@ public class StarwarsQueryExecutorTests {
                 +   "}"
                 + "}, "
                 + "friends=["
+                +   "{name=Leia Organa}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryFilterNestedManyToManyRelationCriteriaWithEXISTS() {
+        //given:
+        String query = "query {" +
+                "    Humans(where: {" +
+                "      EXISTS: {" +
+                "        friends: { name: { LIKE: \"Leia\" } } " + 
+                "        favoriteDroid: { primaryFunction: { function: { EQ: \"Protocol\" } } }" +
+                "      }"+
+                "    }) {" + 
+                "      select {" + 
+                "        id" + 
+                "        name" + 
+                "        homePlanet" + 
+                "        favoriteDroid {" + 
+                "          name" + 
+                "          primaryFunction {" + 
+                "            function" + 
+                "          }" + 
+                "        }" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    }  " +
+                "}";
+
+        String expected = "{Humans={select=[{"
+                + "id=1000, "
+                + "name=Luke Skywalker, "
+                + "homePlanet=Tatooine, "
+                + "favoriteDroid={"
+                +   "name=C-3PO, "
+                +   "primaryFunction={"
+                +       "function=Protocol"
+                +   "}"
+                + "}, "
+                + "friends=["
                 +   "{name=C-3PO}, "
                 +   "{name=Han Solo}, "
                 +   "{name=Leia Organa}, "
@@ -1278,8 +1327,7 @@ public class StarwarsQueryExecutorTests {
                 + "{id=1000, name=Luke Skywalker}, "
                 + "{id=1001, name=Darth Vader}, "
                 + "{id=1002, name=Han Solo}, "
-                + "{id=1003, name=Leia Organa}, "
-                + "{id=1004, name=Wilhuff Tarkin}"
+                + "{id=1003, name=Leia Organa}"
                 + "]}}";
 
         //when:
@@ -1502,5 +1550,69 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }       
+
+    @Test
+    public void queryEmbeddedWhereWithPluralAssociations() {
+        
+        //given:
+        String query = "{ "
+                + "Droids {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where:{" + 
+                "        NOT_EXISTS:{ friends:{name:{EQ:\"R2-D2\"}}}" + 
+                "      }) {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=R2-D2, friends=["
+                +       "{name=Han Solo}, "
+                +       "{name=Leia Organa}, "
+                +       "{name=Luke Skywalker}"
+                +   "]}"
+                + "]}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+    
+    @Test
+    public void queryEmbeddedWhereWithPluralAssociationsNOT_EXISTS() {
+        
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+        
     
 }
