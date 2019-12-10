@@ -46,12 +46,14 @@ import graphql.schema.GraphQLObjectType;
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     private boolean defaultDistinct = true;
+    private boolean isShouldClearContext = true;
 	
     protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+    protected static final String HIBERNATE_CACHE_USE_QUERY_CACHE = "hibernate.cache.use_query_cache";
 
     private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
         super(entityManager, entityType, toManyDefaultOptional);
@@ -60,9 +62,11 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
     public GraphQLJpaQueryDataFetcher(EntityManager entityManager, 
                                       EntityType<?> entityType, 
                                       boolean defaultDistinct,
-                                      boolean toManyDefaultOptional) {
+                                      boolean toManyDefaultOptional,
+                                      boolean isShouldClearContext) {
         super(entityManager, entityType, toManyDefaultOptional);
         this.defaultDistinct = defaultDistinct;
+        this.isShouldClearContext = isShouldClearContext;
     }
 
     public boolean isDefaultDistinct() {
@@ -119,16 +123,21 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             // Let' try reduce overhead and disable all caching
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
             query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
-            query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+            query.setHint(ORG_HIBERNATE_CACHEABLE, true);
+            query.setHint(HIBERNATE_CACHE_USE_QUERY_CACHE, true);
             
             // Let's not pass distinct if enabled to have better performance
             if(isDistinct) {
                 query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             }
+            
+            if(isShouldClearContext) {
+                entityManager.clear();
+            }
 
             // Let's execute query 
             List<?> resultList = query.getResultList(); 
-                            
+
             // Let's remove any duplicate references for root entities 
             if(isDistinct) {
                 resultList = resultList.stream()
@@ -239,4 +248,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         }
     }
 
+    public boolean isShouldClearContext() {
+        return isShouldClearContext;
+    }
 }
