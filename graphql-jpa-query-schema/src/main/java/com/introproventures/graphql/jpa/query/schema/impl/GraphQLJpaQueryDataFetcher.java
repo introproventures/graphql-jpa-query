@@ -124,7 +124,6 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
             query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
             query.setHint(ORG_HIBERNATE_CACHEABLE, true);
-            query.setHint(HIBERNATE_CACHE_USE_QUERY_CACHE, true);
             
             // Let's not pass distinct if enabled to have better performance
             if(isDistinct) {
