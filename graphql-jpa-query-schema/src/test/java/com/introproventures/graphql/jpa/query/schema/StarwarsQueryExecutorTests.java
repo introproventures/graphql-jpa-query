@@ -1323,7 +1323,7 @@ public class StarwarsQueryExecutorTests {
                 "  Humans {" + 
                 "    select {" + 
                 "      name" + 
-                "      friends(where: {appearsIn: {EQ: [THE_FORCE_AWAKENS]}}) {" + 
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
                 "        name" + 
                 "      }" + 
                 "    }" + 
@@ -1430,7 +1430,7 @@ public class StarwarsQueryExecutorTests {
                 "  Humans {" + 
                 "    select {" + 
                 "      name" + 
-                "      friends(where: {appearsIn: {NE: [THE_FORCE_AWAKENS]}}) {" + 
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
                 "        name" + 
                 "      }" + 
                 "    }" + 

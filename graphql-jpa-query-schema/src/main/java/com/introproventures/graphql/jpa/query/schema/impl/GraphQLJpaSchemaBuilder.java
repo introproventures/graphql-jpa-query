@@ -853,7 +853,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
             
             if(foreignType.getPersistenceType() == Type.PersistenceType.BASIC) {
-            	return new GraphQLList(getGraphQLTypeFromJavaType(foreignType.getJavaType()));
+                GraphQLType graphQLType = getGraphQLTypeFromJavaType(foreignType.getJavaType());
+                
+            	return input ? graphQLType : new GraphQLList(graphQLType);
             }
         }
 
