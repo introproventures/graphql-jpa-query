@@ -27,7 +27,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1740,21 +1739,19 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }   
     
-    // FIXME
     @Test
-    @Ignore
-    public void queryEmbeddedWhereWithRecursivePluralAssociationsBug() {
+    public void queryEmbeddedWhereWithManyToManyAssociations() {
         
         //given:
         String query = "{" + 
                 "  Droids(where: {" + 
-                "    friends: {friends:{name:{EQ:\"Leia Organa\"}}}" + 
+                "    friends: {friendsOf:{name:{EQ:\"Leia Organa\"}}}" + 
                 "  }) {" + 
                 "     select {" + 
                 "      name" + 
                 "      friends {" + 
                 "        name" + 
-                "        friends {" + 
+                "        friendsOf {" + 
                 "          name" + 
                 "        }" + 
                 "      }" + 
@@ -1764,14 +1761,15 @@ public class StarwarsQueryExecutorTests {
 
         String expected = "{Droids={select=["
                 + "{name=C-3PO, friends=["
-                +   "{name=Han Solo, friends=[{name=Leia Organa}]}, "
-                +   "{name=Luke Skywalker, friends=[{name=Leia Organa}]}, "
-                +   "{name=R2-D2, friends=[{name=Leia Organa}" // should include only Leia Organa as friends
-                + "]}]}, "
+                +   "{name=Han Solo, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=R2-D2, friendsOf=[{name=Leia Organa}]}"
+                + "]}, "
                 + "{name=R2-D2, friends=["
-                //+   "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " // should not be in the result
-                +   "{name=Han Solo, friends=[{name=Leia Organa}]}, "
-                +   "{name=Luke Skywalker, friends=[{name=Leia Organa}]}]}]}}";
+                +   "{name=Han Solo, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=Leia Organa}]}"
+                + "]}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -1780,22 +1778,17 @@ public class StarwarsQueryExecutorTests {
         assertThat(result.toString()).isEqualTo(expected);
     }  
     
-    
-    // FIXME
     @Test
-    @Ignore
-    public void queryEmbeddedWhereWithRecursivePluralAssociationsEXISTSBug() {
+    public void queryEmbeddedWhereWithManyToManyAssociationsUsingEXISTS() {
         
         //given:
         String query = "{" + 
-                "  Droids(where: {" + 
-                "    friends: {EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}" + 
-                "  }) {" + 
+                "  Droids {" + 
                 "     select {" + 
                 "      name" + 
-                "      friends {" + 
+                "      friends(where: {EXISTS: {friendsOf:{name:{EQ:\"Leia Organa\"}}}}) {" + 
                 "        name" + 
-                "        friends {" + 
+                "        friendsOf {" + 
                 "          name" + 
                 "        }" + 
                 "      }" + 
@@ -1805,14 +1798,12 @@ public class StarwarsQueryExecutorTests {
 
         String expected = "{Droids={select=["
                 + "{name=C-3PO, friends=["
-                +   "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                +   "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
-                +   "{name=R2-D2, friends=[{name=Han Solo}, {name=Leia Organa}, {name=Luke Skywalker}]}"
+                +   "{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                +   "{name=R2-D2, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=Luke Skywalker}]}"
                 + "]}, "
-                + "{name=R2-D2, friends=["
-                +   "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                //+   "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " // should not be in the result 
-                +   "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
+                +   "{name=R2-D2, friends=[{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
                 + "]}"
                 + "]}}";
 
