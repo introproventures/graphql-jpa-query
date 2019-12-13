@@ -39,6 +39,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -85,6 +87,41 @@ public class StarwarsQueryExecutorTests {
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(13);
+    }
+    
+    @Test
+    @Transactional
+    public void queryManyToManyTester() {
+        // given:
+        Query query = em.createQuery("select distinct droid from Droid as droid "
+                                   + "left join fetch droid.friends as generatedAlias0 "
+                                   + "inner join fetch generatedAlias0.friendsOf as generatedAlias1 "
+                                   + "where generatedAlias1.name='Luke Skywalker' "
+                                   + "order by droid.id asc");
+
+        query.setHint("hibernate.query.passDistinctThrough", false);
+
+        // when:
+        List<Droid> result = query.getResultList();
+
+        // then:
+        assertThat(result).hasSize(2);
+
+        assertThat(result.get(0).getName()).isEqualTo("C-3PO");
+        assertThat(result.get(0).getFriends()).hasSize(3);
+        assertThat(result.get(0).getFriends()).extracting(Character::getName)
+                                              .containsOnly("Han Solo", "Leia Organa", "R2-D2"); 
+        assertThat(result.get(0).getFriends()).flatExtracting(Character::getFriendsOf)
+                                              .extracting(Character::getName)
+                                              .containsOnly("Luke Skywalker");
+        
+        assertThat(result.get(1).getName()).isEqualTo("R2-D2");
+        assertThat(result.get(1).getFriends()).hasSize(2);
+        assertThat(result.get(1).getFriends()).extracting(Character::getName)
+                                              .containsOnly("Han Solo", "Leia Organa");
+        assertThat(result.get(1).getFriends()).flatExtracting(Character::getFriendsOf)
+                                              .extracting(Character::getName)
+                                              .containsOnly("Luke Skywalker");
     }
 
     @Test
