@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.3.37
+## 0.3.38-SNAPSHOT
 * feat(GH-226): Support logging of the generated JPQL query string with debug log level  (#227) [ad1d404](https://github.com/introproventures/graphql-jpa-query/commit/ad1d40484692411f8b568d3bfdfc1724c017d447)
 * fix(GH-225): Configure shared entity manager for multiple data sources example (#228) [b235ee8](https://github.com/introproventures/graphql-jpa-query/commit/b235ee89a6fc9024e7f2ce3bd34a8d92233e355c)
 * fix(GH-220): Cannot nest multiple queries on the same table (#222) [38bfb17](https://github.com/introproventures/graphql-jpa-query/commit/38bfb17d4a734dfedece78d4a8ba75894dabfed9)
