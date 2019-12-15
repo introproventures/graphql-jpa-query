@@ -7,11 +7,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +21,13 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.support.SharedEntityManagerBean;
+
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 
 @Configuration
 public class BooksSchemaConfiguration {
@@ -39,7 +41,6 @@ public class BooksSchemaConfiguration {
     }    
      
     @Bean
-    @Qualifier("bookEntityManager")
     public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory(
             EntityManagerFactoryBuilder builder) {
         Map<String, Object> properties = new HashMap<>();
@@ -71,6 +72,14 @@ public class BooksSchemaConfiguration {
         return dataSourceInitializer;
     }
     
+    
+    @Bean 
+    public SharedEntityManagerBean bookEntityManager(EntityManagerFactory bookEntityManagerFactory) {
+        SharedEntityManagerBean bean =  new SharedEntityManagerBean();
+        bean.setEntityManagerFactory(bookEntityManagerFactory);
+        
+        return bean;
+    }
 
     @Configuration
     public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
@@ -80,8 +89,8 @@ public class BooksSchemaConfiguration {
         @Autowired
         private GraphQLJpaQueryProperties properties;
 
-        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("bookEntityManager") EntityManagerFactory entityManager) {
-            this.entityManager = entityManager.createEntityManager();
+        public GraphQLJpaQuerySchemaConfigurer(EntityManager bookEntityManager) {
+            this.entityManager = bookEntityManager;
         }
 
         @Override

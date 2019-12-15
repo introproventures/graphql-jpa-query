@@ -23,6 +23,7 @@ import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -52,7 +53,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String)
      */
     @Override
-    @Transactional(TxType.SUPPORTS)
+    @Transactional(TxType.REQUIRES_NEW)
     public ExecutionResult execute(String query) {
         return execute(query, Collections.emptyMap());
     }
@@ -61,7 +62,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String, java.util.Map)
      */
     @Override
-    @Transactional(TxType.SUPPORTS)
+    @Transactional(TxType.REQUIRES_NEW)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
     	
     	ExecutionInput executionInput = ExecutionInput.newExecutionInput()

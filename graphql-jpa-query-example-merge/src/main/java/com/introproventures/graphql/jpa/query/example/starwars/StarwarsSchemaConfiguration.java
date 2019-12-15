@@ -7,10 +7,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +21,12 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.support.SharedEntityManagerBean;
+
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 
 @Configuration
 public class StarwarsSchemaConfiguration {
@@ -38,7 +40,7 @@ public class StarwarsSchemaConfiguration {
     }    
      
     @Bean
-    public DataSourceInitializer starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
+    public DataSourceInitializer starWarsDataSourceInitializer(DataSource starWarsDataSource) {
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         ResourceLoader resourceLoader = new DefaultResourceLoader();
         
@@ -54,7 +56,6 @@ public class StarwarsSchemaConfiguration {
     
     @Bean
     @Primary
-    @Qualifier("starWarsEntityManager")
     public LocalContainerEntityManagerFactoryBean starWarsEntityManagerFactory(
             EntityManagerFactoryBuilder builder) {
         
@@ -73,13 +74,20 @@ public class StarwarsSchemaConfiguration {
                 .build();
     }    
 
+    @Bean 
+    public SharedEntityManagerBean starWarsEntityManager(EntityManagerFactory entityManager) {
+        SharedEntityManagerBean bean =  new SharedEntityManagerBean();
+        bean.setEntityManagerFactory(entityManager);
+        
+        return bean;
+    }    
     @Configuration
     public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
 
         private final EntityManager entityManager;
 
-        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManagerFactory entityManager) {
-            this.entityManager = entityManager.createEntityManager();
+        public GraphQLJpaQuerySchemaConfigurer(EntityManager starWarsEntityManager) {
+            this.entityManager = starWarsEntityManager;
         }
 
         @Override
