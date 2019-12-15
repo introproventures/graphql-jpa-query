@@ -26,10 +26,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.persistence.EntityManager;
 
 import org.assertj.core.util.Maps;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +79,11 @@ public class GraphQLExecutorTests {
     
     @Autowired
     private GraphQLExecutor executor;
+
+    @BeforeClass
+    public static void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
     
     @Test
     public void contextLoads() {
