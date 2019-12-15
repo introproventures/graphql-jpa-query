@@ -1,8 +1,12 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import graphql.schema.GraphQLSchema;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,19 +14,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.persistence.EntityManager;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import graphql.schema.GraphQLSchema;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment= SpringBootTest.WebEnvironment.NONE
 )
+@DirtiesContext
 public class StarwarsSchemaBuildWithDistinctTest {
     @SpringBootApplication
     static class TestConfiguration {
