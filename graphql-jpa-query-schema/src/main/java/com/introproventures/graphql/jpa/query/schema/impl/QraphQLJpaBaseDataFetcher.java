@@ -128,7 +128,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         return getQuery(environment, environment.getField(), true).getResultList();
     }
 
-    protected TypedQuery<?> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
+    protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> query = cb.createQuery((Class<?>) entityType.getJavaType());
         Root<?> from = query.from(entityType);
@@ -148,7 +148,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         // optionally add default ordering
         mayBeAddDefaultOrderBy(query, from, cb);
 
-        return entityManager.createQuery(query.distinct(isDistinct));
+        return (TypedQuery<T>) entityManager.createQuery(query.distinct(isDistinct));
     }
     
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {

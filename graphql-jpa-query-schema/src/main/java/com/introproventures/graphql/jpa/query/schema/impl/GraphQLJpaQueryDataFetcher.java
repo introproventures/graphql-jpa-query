@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -58,6 +59,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+    
 
     private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
         super(entityManager, entityType, toManyDefaultOptional);
@@ -88,6 +90,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         Optional<Field> pagesSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME);
         Optional<Field> totalSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME);
         Optional<Field> recordsSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME);
+        
 
         Optional<Argument> pageArgument = getPageArgument(field);
         Page page = extractPageArgument(environment, pageArgument);
@@ -115,7 +118,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             
             queryField = new Field(fieldName, field.getArguments(), recordsSelection.get().getSelectionSet());
             
-            TypedQuery<?> query = getQuery(queryEnvironment, queryField, isDistinct);
+            TypedQuery<Object> query = getQuery(queryEnvironment, queryField, isDistinct);
             
             // Let's apply page only if present
             if(pageArgument.isPresent()) {
@@ -126,7 +129,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             
             // Let' try reduce overhead and disable all caching
             query.setHint(ORG_HIBERNATE_READ_ONLY, true);
-            query.setHint(ORG_HIBERNATE_FETCH_SIZE, 1000);
+            query.setHint(ORG_HIBERNATE_FETCH_SIZE, 100); // TODO override via arguments
             query.setHint(ORG_HIBERNATE_CACHEABLE, false);
             
             // Let's not pass distinct if enabled to have better performance
@@ -137,16 +140,12 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                 logger.info("\nGraphQL JPQL Query String:\n    {}", getJPQLQueryString(query));
             }
 
-            // Let's execute query 
-            List<?> resultList = query.getResultList(); 
-                            
-            // Let's remove any duplicate references for root entities 
-            if(isDistinct) {
-                resultList = resultList.stream()
-                                       .distinct()
-                                       .collect(Collectors.toList());
-            }
-                
+            // Let's execute query and get results via stream 
+            Stream<Object> resultStream = query.getResultStream();
+            
+            // Let's wrap stream iterator into lazy list to pass it downstream
+            List<Object> resultList = ResultList.wrap(resultStream);
+            
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, resultList);
         }
         
@@ -278,4 +277,5 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         
         return null;
     }
+    
 }
