@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.persistence.EntityManager;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
+
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 
 @RunWith(SpringRunner.class)
@@ -75,6 +76,45 @@ public class GraphQLExecutorListCriteriaTests {
                 "        genre: {IN: NOVEL}" + 
                 "        title: {LIKE: \"War\"}" +
                 "      }]" +
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}"
+                + "]"
+                + "}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsWithExplictANDEXISTS() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" + 
+                "        AND: [{ "+
+                "          genre: {IN: NOVEL}" + 
+                "          title: {LIKE: \"War\"}" +
+                "        }]" +
+                "      }" + 
                 "    }" + 
                 "  }) {" + 
                 "    select {" + 
@@ -437,8 +477,8 @@ public class GraphQLExecutorListCriteriaTests {
 
         String expected = "{Authors={select=["
                 + "{id=1, name=Leo Tolstoy, books=["
-                +   "{id=2, title=War and Peace}, "
-                +   "{id=3, title=Anna Karenina}]}"
+                +   "{id=2, title=War and Peace}"
+                + "]}"
                 + "]}}";
 
         //when:
@@ -479,7 +519,8 @@ public class GraphQLExecutorListCriteriaTests {
         String expected = "{Authors={select=["
                 + "{id=1, name=Leo Tolstoy, books=["
                 +   "{id=2, title=War and Peace}, "
-                +   "{id=3, title=Anna Karenina}]}"
+                +   "{id=3, title=Anna Karenina}]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //when:

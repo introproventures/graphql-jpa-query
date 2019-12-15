@@ -30,6 +30,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OrderBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(exclude={"appearsIn","friends"}) // Fixes NPE in Hibernate when initializing loaded collections #1
+@EqualsAndHashCode(exclude={"appearsIn","friends", "friendsOf"}) // Fixes NPE in Hibernate when initializing loaded collections #1
 public abstract class Character {
 
     @Id
@@ -58,6 +59,10 @@ public abstract class Character {
     @OrderBy("name ASC")
     Set<Character> friends; 
 
+    @ManyToMany(fetch=FetchType.LAZY, mappedBy = "friends")
+    @OrderBy("name ASC")
+    Set<Character> friendsOf;     
+    
     @GraphQLDescription("What Star Wars episodes does this character appear in")
     @ElementCollection(targetClass = Episode.class, fetch=FetchType.LAZY)
     @Enumerated(EnumType.ORDINAL)

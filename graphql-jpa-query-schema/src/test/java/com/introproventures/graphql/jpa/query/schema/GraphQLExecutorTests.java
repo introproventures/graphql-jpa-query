@@ -384,7 +384,7 @@ public class GraphQLExecutorTests {
                 + "}";
         
         String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=[{id=3, title=Anna Karenina, genre=NOVEL}, "
+                + "{id=1, name=Leo Tolstoy, books=["
                 + "{id=2, title=War and Peace, genre=NOVEL}]}"
                 + "]}}";
 
@@ -394,7 +394,43 @@ public class GraphQLExecutorTests {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+       
+    @Test
+    public void queryAuthorBooksWithExplictOptionalEXISTS() {
+        //given
+        String query = "query { "
+                + "Authors(" + 
+                "    where: {" +
+                "      EXISTS: {" +
+                "        books: {" + 
+                "          title: {LIKE: \"War\"}" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  ) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books(optional: true) {" + 
+                "        id" + 
+                "        title(orderBy: ASC)" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }"
+                + "}";
         
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=[{id=3, title=Anna Karenina, genre=NOVEL}, "
+                + "{id=2, title=War and Peace, genre=NOVEL}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
     @Test
     public void queryAuthorBooksWithIsNullId() {
         //given
@@ -418,7 +454,7 @@ public class GraphQLExecutorTests {
                 "  }"
                 + "}";
         
-        String expected = "{Authors={select=[]}}";
+        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -827,7 +863,8 @@ public class GraphQLExecutorTests {
                 + "{id=4, name=Anton Chekhov, books=["
                 +   "{id=5, title=The Cherry Orchard}, "
                 +   "{id=6, title=The Seagull}, "
-                +   "{id=7, title=Three Sisters}]}"
+                +   "{id=7, title=Three Sisters}]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //when
@@ -901,7 +938,8 @@ public class GraphQLExecutorTests {
                 + "{id=4, name=Anton Chekhov, books=["
                 +   "{id=5, title=The Cherry Orchard}, "
                 +   "{id=6, title=The Seagull}, "
-                +   "{id=7, title=Three Sisters}]}"
+                +   "{id=7, title=Three Sisters}]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //when
@@ -1009,6 +1047,45 @@ public class GraphQLExecutorTests {
                 +   "id=1, "
                 +   "name=Leo Tolstoy, "
                 +   "books=["
+                +       "{id=2, title=War and Peace, genre=NOVEL}"
+                +   "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsImplicitANDWithEXISTS() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" + 
+                "    EXISTS: {" +
+                "      books: {" +
+                "        genre: {IN: NOVEL}" + 
+                "        title: {LIKE: \"War\"}" + 
+                "      }" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=[{"
+                +   "id=1, "
+                +   "name=Leo Tolstoy, "
+                +   "books=["
                 +       "{id=2, title=War and Peace, genre=NOVEL}, "
                 +       "{id=3, title=Anna Karenina, genre=NOVEL}"
                 +   "]}"
@@ -1031,6 +1108,45 @@ public class GraphQLExecutorTests {
                 "        genre: {IN: NOVEL}" + 
                 "        title: {LIKE: \"War\"}" +
                 "      }" +
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "      books {" + 
+                "        id" + 
+                "        title" + 
+                "        genre" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Authors={select=["
+                + "{id=1, name=Leo Tolstoy, books=["
+                +   "{id=2, title=War and Peace, genre=NOVEL}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideOneToManyRelationsWithExplictANDEXISTS() {
+        //given:
+        String query = "query { "
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" + 
+                "        AND: { "+
+                "          genre: {IN: NOVEL}" + 
+                "          title: {LIKE: \"War\"}" +
+                "        }" +
+                "      }" + 
                 "    }" + 
                 "  }) {" + 
                 "    select {" + 
@@ -1183,6 +1299,54 @@ public class GraphQLExecutorTests {
                 "    author: {" + 
                 "      name:{LIKE: \"Leo\"}" + 
                 "      books: {title: {LIKE: \"Anna\"}}" + 
+                "    }" + 
+                "  }) {" + 
+                "    select {" + 
+                "      id" + 
+                "      title" + 
+                "      genre" + 
+                "      author {" + 
+                "        id" + 
+                "        name" + 
+                "        books {" + 
+                "          id" + 
+                "          title" + 
+                "          genre" + 
+                "        }" + 
+                "      }" + 
+                "    }" + 
+                "  }" +
+                "}";
+
+        String expected = "{Books={select=[{"
+                + "id=2, "
+                + "title=War and Peace, genre=NOVEL, "
+                + "author={"
+                +   "id=1, "
+                +   "name=Leo Tolstoy, "
+                +   "books=["
+                +       "{id=3, title=Anna Karenina, genre=NOVEL}"
+                +   "]}"
+                + "}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    public void queryWithWhereInsideManyToOneNestedRelationsWithOnToManyCollectionFilterEXISTS() {
+        //given:
+        String query = "query { " +
+                "  Books(where: {" + 
+                "    title:{LIKE: \"War\"}" + 
+                "    EXISTS: {" +
+                "      author: {" + 
+                "        name:{LIKE: \"Leo\"}" + 
+                "        books: {title: {LIKE: \"Anna\"}}" + 
+                "      }" + 
                 "    }" + 
                 "  }) {" + 
                 "    select {" + 

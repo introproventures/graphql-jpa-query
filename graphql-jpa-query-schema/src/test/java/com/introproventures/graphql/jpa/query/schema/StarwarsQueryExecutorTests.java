@@ -38,6 +38,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -84,6 +86,41 @@ public class StarwarsQueryExecutorTests {
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(13);
+    }
+    
+    @Test
+    @Transactional
+    public void queryManyToManyTester() {
+        // given:
+        Query query = em.createQuery("select distinct droid from Droid as droid "
+                                   + "left join fetch droid.friends as generatedAlias0 "
+                                   + "inner join fetch generatedAlias0.friendsOf as generatedAlias1 "
+                                   + "where generatedAlias1.name='Luke Skywalker' "
+                                   + "order by droid.id asc");
+
+        query.setHint("hibernate.query.passDistinctThrough", false);
+
+        // when:
+        List<Droid> result = query.getResultList();
+
+        // then:
+        assertThat(result).hasSize(2);
+
+        assertThat(result.get(0).getName()).isEqualTo("C-3PO");
+        assertThat(result.get(0).getFriends()).hasSize(3);
+        assertThat(result.get(0).getFriends()).extracting(Character::getName)
+                                              .containsOnly("Han Solo", "Leia Organa", "R2-D2"); 
+        assertThat(result.get(0).getFriends()).flatExtracting(Character::getFriendsOf)
+                                              .extracting(Character::getName)
+                                              .containsOnly("Luke Skywalker");
+        
+        assertThat(result.get(1).getName()).isEqualTo("R2-D2");
+        assertThat(result.get(1).getFriends()).hasSize(2);
+        assertThat(result.get(1).getFriends()).extracting(Character::getName)
+                                              .containsOnly("Han Solo", "Leia Organa");
+        assertThat(result.get(1).getFriends()).flatExtracting(Character::getFriendsOf)
+                                              .extracting(Character::getName)
+                                              .containsOnly("Luke Skywalker");
     }
 
     @Test
@@ -1079,6 +1116,55 @@ public class StarwarsQueryExecutorTests {
                 +   "}"
                 + "}, "
                 + "friends=["
+                +   "{name=Leia Organa}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryFilterNestedManyToManyRelationCriteriaWithEXISTS() {
+        //given:
+        String query = "query {" +
+                "    Humans(where: {" +
+                "      EXISTS: {" +
+                "        friends: { name: { LIKE: \"Leia\" } } " + 
+                "        favoriteDroid: { primaryFunction: { function: { EQ: \"Protocol\" } } }" +
+                "      }"+
+                "    }) {" + 
+                "      select {" + 
+                "        id" + 
+                "        name" + 
+                "        homePlanet" + 
+                "        favoriteDroid {" + 
+                "          name" + 
+                "          primaryFunction {" + 
+                "            function" + 
+                "          }" + 
+                "        }" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    }  " +
+                "}";
+
+        String expected = "{Humans={select=[{"
+                + "id=1000, "
+                + "name=Luke Skywalker, "
+                + "homePlanet=Tatooine, "
+                + "favoriteDroid={"
+                +   "name=C-3PO, "
+                +   "primaryFunction={"
+                +       "function=Protocol"
+                +   "}"
+                + "}, "
+                + "friends=["
                 +   "{name=C-3PO}, "
                 +   "{name=Han Solo}, "
                 +   "{name=Leia Organa}, "
@@ -1278,8 +1364,7 @@ public class StarwarsQueryExecutorTests {
                 + "{id=1000, name=Luke Skywalker}, "
                 + "{id=1001, name=Darth Vader}, "
                 + "{id=1002, name=Han Solo}, "
-                + "{id=1003, name=Leia Organa}, "
-                + "{id=1004, name=Wilhuff Tarkin}"
+                + "{id=1003, name=Leia Organa}"
                 + "]}}";
 
         //when:
@@ -1323,7 +1408,7 @@ public class StarwarsQueryExecutorTests {
                 "  Humans {" + 
                 "    select {" + 
                 "      name" + 
-                "      friends(where: {appearsIn: {EQ: [THE_FORCE_AWAKENS]}}) {" + 
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
                 "        name" + 
                 "      }" + 
                 "    }" + 
@@ -1430,7 +1515,7 @@ public class StarwarsQueryExecutorTests {
                 "  Humans {" + 
                 "    select {" + 
                 "      name" + 
-                "      friends(where: {appearsIn: {NE: [THE_FORCE_AWAKENS]}}) {" + 
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
                 "        name" + 
                 "      }" + 
                 "    }" + 
@@ -1502,5 +1587,230 @@ public class StarwarsQueryExecutorTests {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }       
+
+    @Test
+    public void queryEmbeddedWhereWithPluralAssociations() {
+        
+        //given:
+        String query = "{ "
+                + "Droids {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where:{" + 
+                "        NOT_EXISTS:{ friends:{name:{EQ:\"R2-D2\"}}}" + 
+                "      }) {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=R2-D2, friends=["
+                +       "{name=Han Solo}, "
+                +       "{name=Leia Organa}, "
+                +       "{name=Luke Skywalker}"
+                +   "]}"
+                + "]}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
     
+    @Test
+    public void queryEmbeddedWhereWithPluralAssociationsNOT_EXISTS() {
+        
+        //given:
+        String query = "{" + 
+                "  Humans {" + 
+                "    select {" + 
+                "      name" + 
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
+                "        name" + 
+                "      }" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }       
+        
+    @Test
+    public void queryEmbeddedWhereWithNestedPluralAssociationsNOT_EXISTS() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends(where:{" + 
+                "         NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}" + 
+                "      }) {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  }" + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Leia Organa, friends=["
+                +       "{name=C-3PO}, "
+                +       "{name=Han Solo}, "
+                +       "{name=Luke Skywalker}, "
+                +       "{name=R2-D2}"
+                +   "]}]}, "
+                + "{name=R2-D2, friends=["
+                +   "{name=Leia Organa, friends=["
+                +       "{name=C-3PO}, "
+                +       "{name=Han Solo}, "
+                +       "{name=Luke Skywalker}, "
+                +       "{name=R2-D2}]}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }      
+    
+    @Test
+    public void queryEmbeddedWhereWithRecursivePluralAssociationsNOT_EXISTS() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids(where: {" + 
+                "    friends: {NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}" + 
+                "  }) {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends {" + 
+                "        name" + 
+                "        friends {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  }" + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Leia Organa, friends=["
+                +       "{name=C-3PO}, "
+                +       "{name=Han Solo}, "
+                +       "{name=Luke Skywalker}, "
+                +       "{name=R2-D2}"
+                +   "]}]}, "
+                + "{name=R2-D2, friends=["
+                +   "{name=Leia Organa, friends=["
+                +       "{name=C-3PO}, "
+                +       "{name=Han Solo}, "
+                +       "{name=Luke Skywalker}, "
+                +       "{name=R2-D2}]}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }   
+    
+    @Test
+    public void queryEmbeddedWhereWithManyToManyAssociations() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids(where: {" + 
+                "    friends: {friendsOf:{name:{EQ:\"Leia Organa\"}}}" + 
+                "  }) {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends {" + 
+                "        name" + 
+                "        friendsOf {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Han Solo, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=R2-D2, friendsOf=[{name=Leia Organa}]}"
+                + "]}, "
+                + "{name=R2-D2, friends=["
+                +   "{name=Han Solo, friendsOf=[{name=Leia Organa}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=Leia Organa}]}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }  
+    
+    @Test
+    public void queryEmbeddedWhereWithManyToManyAssociationsUsingEXISTS() {
+        
+        //given:
+        String query = "{" + 
+                "  Droids {" + 
+                "     select {" + 
+                "      name" + 
+                "      friends(where: {EXISTS: {friendsOf:{name:{EQ:\"Leia Organa\"}}}}) {" + 
+                "        name" + 
+                "        friendsOf {" + 
+                "          name" + 
+                "        }" + 
+                "      }" + 
+                "    } " + 
+                "  } " + 
+                "}";
+
+        String expected = "{Droids={select=["
+                + "{name=C-3PO, friends=["
+                +   "{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                +   "{name=R2-D2, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=Luke Skywalker}]}"
+                + "]}, "
+                +   "{name=R2-D2, friends=[{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
+                + "]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }      
 }
