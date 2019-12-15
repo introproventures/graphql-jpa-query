@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.3.37-SNAPSHOT
+## 0.3.37
+* feat(GH-226): Support logging of the generated JPQL query string with debug log level  (#227) [ad1d404](https://github.com/introproventures/graphql-jpa-query/commit/ad1d40484692411f8b568d3bfdfc1724c017d447)
+* fix(GH-225): Configure shared entity manager for multiple data sources example (#228) [b235ee8](https://github.com/introproventures/graphql-jpa-query/commit/b235ee89a6fc9024e7f2ce3bd34a8d92233e355c)
+* fix(GH-220): Cannot nest multiple queries on the same table (#222) [38bfb17](https://github.com/introproventures/graphql-jpa-query/commit/38bfb17d4a734dfedece78d4a8ba75894dabfed9)
 * fixGH-215): Cannot query set of enums within select clause (#218) [5705b95](https://github.com/introproventures/graphql-jpa-query/commit/5705b95809e81b49756a822a28598c5b77700433)
 * fix(GH-216): One-to-many queries joins the same tables twice (#217) [6e204fc](https://github.com/introproventures/graphql-jpa-query/commit/6e204fcb224d1032f49e9e2a0ddc441b10e6c20e)
 * a couple of minor typos (#212) [0151eec](https://github.com/introproventures/graphql-jpa-query/commit/0151eec406be5d30e4e179c0c645671b7c4904e6)
