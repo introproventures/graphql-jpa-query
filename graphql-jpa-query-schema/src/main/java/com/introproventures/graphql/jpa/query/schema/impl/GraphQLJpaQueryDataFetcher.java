@@ -144,7 +144,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             Stream<Object> resultStream = query.getResultStream();
             
             // Let's wrap stream iterator into lazy list to pass it downstream
-            List<Object> resultList = ResultList.wrap(resultStream);
+            List<Object> resultList = ResultStreamWrapper.wrap(resultStream);
             
             result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, resultList);
         }
