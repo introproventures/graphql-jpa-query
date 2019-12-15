@@ -133,7 +133,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                 query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
             }
             if (logger.isDebugEnabled()) {
-                logger.info("JPQL Query String: {}", getJPQLQueryString(query));
+                logger.info("\nGraphQL JPQL Query String:\n    {}", getJPQLQueryString(query));
             }
 
             // Let's execute query 
