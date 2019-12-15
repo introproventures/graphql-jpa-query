@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +45,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
 @TestPropertySource({"classpath:hibernate.properties"})
 @DirtiesContext
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class GraphQLEnumVariableBindingsTests {
     
     @SpringBootApplication

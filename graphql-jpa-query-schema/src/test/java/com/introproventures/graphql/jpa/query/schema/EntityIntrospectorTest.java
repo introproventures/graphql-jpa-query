@@ -18,6 +18,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -34,6 +36,7 @@ import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCu
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
 @TestPropertySource({"classpath:hibernate.properties"})
 @DirtiesContext
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class EntityIntrospectorTest {
 
     @SpringBootApplication

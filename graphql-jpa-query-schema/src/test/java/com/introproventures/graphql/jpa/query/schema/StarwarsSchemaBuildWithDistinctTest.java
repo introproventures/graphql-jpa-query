@@ -12,6 +12,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,6 +29,7 @@ import graphql.schema.GraphQLSchema;
         webEnvironment= SpringBootTest.WebEnvironment.NONE
 )
 @DirtiesContext
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class StarwarsSchemaBuildWithDistinctTest {
     @SpringBootApplication
     static class TestConfiguration {

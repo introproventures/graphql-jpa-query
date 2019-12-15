@@ -2,12 +2,17 @@ package com.introproventures.graphql.jpa.query.localdatetime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.TimeZone;
+
 import javax.persistence.EntityManager;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,6 +29,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
         properties = "spring.datasource.data=LocalDatetTmeData.sql")
 @TestPropertySource({"classpath:hibernate.properties"})
 @DirtiesContext
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class GraphQLLocalDateTimeTest {
 
     @SpringBootApplication
@@ -47,6 +53,11 @@ public class GraphQLLocalDateTimeTest {
     @Autowired
     private EntityManager entityManager;
 
+    @BeforeClass
+    public static void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+    
     @Test
     public void queryLocalDateWithEqualTest() {
         //given

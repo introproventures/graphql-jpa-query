@@ -29,6 +29,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,7 @@ import graphql.schema.GraphQLSchema;
     webEnvironment=WebEnvironment.NONE
 )
 @DirtiesContext
+@AutoConfigureTestDatabase(replace = Replace.ANY)
 public class BooksSchemaBuildTest {
 
     @SpringBootApplication
