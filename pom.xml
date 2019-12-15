@@ -221,6 +221,7 @@
                     <systemPropertyVariables>
                         <slf4j.version>${slf4j.version}</slf4j.version>
                         <log4j.version>${log4j.version}</log4j.version>
+                        <user.timezone>UTC</user.timezone>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
