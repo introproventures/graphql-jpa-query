@@ -114,8 +114,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean isUseDistinctParameter = false;
     private boolean isDefaultDistinct = true;
     // the many end is a collection, and it is always optional by default (empty collection)
-    private boolean toManyDefaultOptional = true;
-    private boolean isShouldClearContext = true;
+    private boolean toManyDefaultOptional = true; 
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -207,8 +206,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, 
                                                             entityType, 
                                                             isDefaultDistinct, 
-                                                            toManyDefaultOptional,
-                                                            isShouldClearContext))
+                                                            toManyDefaultOptional))
                 .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
         if (isUseDistinctParameter) {
@@ -1164,10 +1162,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
         this.toManyDefaultOptional = toManyDefaultOptional;
-    }
-
-    public void setShouldClearContext(boolean isShouldClearContext) {
-        this.isShouldClearContext = isShouldClearContext;
     }
     
 }
