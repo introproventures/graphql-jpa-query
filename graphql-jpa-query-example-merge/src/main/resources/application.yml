@@ -31,3 +31,7 @@ books:
   username: sa
   password: 
   driverClassName: org.h2.Driver
+
+logging:
+  level:
+    com.introproventures.graphql.jpa.query.schema: DEBUG
