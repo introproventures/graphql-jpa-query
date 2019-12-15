@@ -30,6 +30,11 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
+
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
@@ -44,6 +49,8 @@ import graphql.schema.GraphQLObjectType;
  *
  */
 class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
+    
+    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
 
     private boolean defaultDistinct = true;
 	
@@ -124,6 +131,9 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             // Let's not pass distinct if enabled to have better performance
             if(isDistinct) {
                 query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+            }
+            if (logger.isDebugEnabled()) {
+                logger.info("JPQL Query String: {}", getJPQLQueryString(query));
             }
 
             // Let's execute query 
@@ -239,4 +249,22 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         }
     }
 
+    protected String getJPQLQueryString(TypedQuery<?> query) {
+        try {
+            Object queryImpl = query.unwrap(TypedQuery.class);
+            
+            java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
+                                                                               "queryString");
+                                                    
+            if(!queryStringField.canAccess(queryImpl)) {        
+                ReflectionUtil.forceAccess(queryStringField);
+            }
+            
+            return String.class.cast(queryStringField.get(queryImpl));
+        } catch (Exception ignored) {
+            logger.error("Error getting JPQL string", ignored);
+        }
+        
+        return null;
+    }
 }
