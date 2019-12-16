@@ -41,6 +41,7 @@ public class BooksSchemaConfiguration {
     }    
      
     @Bean
+    @Qualifier("bookEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory(
             EntityManagerFactoryBuilder builder) {
         Map<String, Object> properties = new HashMap<>();
@@ -73,8 +74,9 @@ public class BooksSchemaConfiguration {
     }
     
     
-    @Bean 
-    public SharedEntityManagerBean bookEntityManager(EntityManagerFactory bookEntityManagerFactory) {
+    @Bean
+    @Qualifier("bookEntityManager")
+    public SharedEntityManagerBean bookEntityManager(@Qualifier("bookEntityManagerFactory") EntityManagerFactory bookEntityManagerFactory) {
         SharedEntityManagerBean bean =  new SharedEntityManagerBean();
         bean.setEntityManagerFactory(bookEntityManagerFactory);
         
@@ -89,7 +91,7 @@ public class BooksSchemaConfiguration {
         @Autowired
         private GraphQLJpaQueryProperties properties;
 
-        public GraphQLJpaQuerySchemaConfigurer(EntityManager bookEntityManager) {
+        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("bookEntityManager") EntityManager bookEntityManager) {
             this.entityManager = bookEntityManager;
         }
 
