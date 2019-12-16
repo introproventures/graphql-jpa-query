@@ -32,8 +32,15 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.transaction.Transactional;
 
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.converter.model.JsonEntity;
 import com.introproventures.graphql.jpa.query.converter.model.TaskEntity;
 import com.introproventures.graphql.jpa.query.converter.model.TaskVariableEntity;
@@ -42,22 +49,10 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=WebEnvironment.NONE, 
-                properties = "spring.datasource.data=GraphQLJpaConverterTests.sql")
-@TestPropertySource({"classpath:hibernate.properties"})
-public class GraphQLJpaConverterTests {
+@SpringBootTest(properties = "spring.datasource.data=GraphQLJpaConverterTests.sql")
+public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     
     @SpringBootApplication
     static class Application {

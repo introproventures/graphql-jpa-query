@@ -26,21 +26,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.persistence.EntityManager;
 
 import org.assertj.core.util.Maps;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
@@ -51,10 +50,8 @@ import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=WebEnvironment.NONE)
-@TestPropertySource({"classpath:hibernate.properties"})
-public class GraphQLExecutorTests {
+@SpringBootTest
+public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     
     @SpringBootApplication
     static class Application {
@@ -75,6 +72,11 @@ public class GraphQLExecutorTests {
     
     @Autowired
     private GraphQLExecutor executor;
+
+    @BeforeClass
+    public static void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
     
     @Test
     public void contextLoads() {

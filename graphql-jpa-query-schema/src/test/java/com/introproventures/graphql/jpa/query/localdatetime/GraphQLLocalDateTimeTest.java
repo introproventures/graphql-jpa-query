@@ -1,27 +1,24 @@
 package com.introproventures.graphql.jpa.query.localdatetime;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import javax.persistence.EntityManager;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.persistence.EntityManager;
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        properties = "spring.datasource.data=LocalDatetTmeData.sql")
-@TestPropertySource({"classpath:hibernate.properties"})
-public class GraphQLLocalDateTimeTest {
+@SpringBootTest(properties = "spring.datasource.data=LocalDatetTmeData.sql")
+public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     static class Application {
@@ -44,6 +41,11 @@ public class GraphQLLocalDateTimeTest {
     @Autowired
     private EntityManager entityManager;
 
+    @BeforeClass
+    public static void init() {
+        //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+    
     @Test
     public void queryLocalDateWithEqualTest() {
         //given
