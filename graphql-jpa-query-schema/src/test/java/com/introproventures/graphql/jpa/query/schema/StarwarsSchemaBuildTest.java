@@ -22,17 +22,12 @@ import javax.persistence.EntityManager;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.Scalars;
@@ -40,13 +35,8 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment=WebEnvironment.NONE
-)
-@DirtiesContext
-@AutoConfigureTestDatabase(replace = Replace.ANY)
-public class StarwarsSchemaBuildTest {
+@SpringBootTest
+public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     static class TestConfiguration {

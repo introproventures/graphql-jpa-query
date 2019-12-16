@@ -33,19 +33,13 @@ import javax.persistence.EntityManager;
 import org.assertj.core.util.Maps;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
@@ -56,12 +50,8 @@ import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=WebEnvironment.NONE)
-@TestPropertySource({"classpath:hibernate.properties"})
-@DirtiesContext
-@AutoConfigureTestDatabase(replace = Replace.ANY)
-public class GraphQLExecutorTests {
+@SpringBootTest
+public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     
     @SpringBootApplication
     static class Application {

@@ -14,17 +14,12 @@ import javax.persistence.metamodel.ManagedType;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
@@ -32,12 +27,8 @@ import com.introproventures.graphql.jpa.query.schema.model.calculated.Calculated
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.NONE)
-@TestPropertySource({"classpath:hibernate.properties"})
-@DirtiesContext
-@AutoConfigureTestDatabase(replace = Replace.ANY)
-public class EntityIntrospectorTest {
+@SpringBootTest
+public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     static class Application {
