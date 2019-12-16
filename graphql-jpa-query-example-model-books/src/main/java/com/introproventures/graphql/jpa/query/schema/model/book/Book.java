@@ -27,6 +27,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
@@ -60,6 +62,7 @@ public class Book {
 	@Enumerated(EnumType.STRING)
 	Genre genre;
 	
+	@Temporal(TemporalType.DATE)
     Date publicationDate;
 
     @Transient
