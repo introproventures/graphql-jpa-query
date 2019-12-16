@@ -40,7 +40,7 @@ public class StarwarsSchemaConfiguration {
     }    
      
     @Bean
-    public DataSourceInitializer starWarsDataSourceInitializer(DataSource starWarsDataSource) {
+    public DataSourceInitializer starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
         DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
         ResourceLoader resourceLoader = new DefaultResourceLoader();
         
@@ -56,6 +56,7 @@ public class StarwarsSchemaConfiguration {
     
     @Bean
     @Primary
+    @Qualifier("starWarsEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean starWarsEntityManagerFactory(
             EntityManagerFactoryBuilder builder) {
         
@@ -75,7 +76,8 @@ public class StarwarsSchemaConfiguration {
     }    
 
     @Bean 
-    public SharedEntityManagerBean starWarsEntityManager(EntityManagerFactory entityManager) {
+    @Qualifier("starWarsEntityManager")
+    public SharedEntityManagerBean starWarsEntityManager(@Qualifier("starWarsEntityManagerFactory") EntityManagerFactory entityManager) {
         SharedEntityManagerBean bean =  new SharedEntityManagerBean();
         bean.setEntityManagerFactory(entityManager);
         
@@ -86,7 +88,7 @@ public class StarwarsSchemaConfiguration {
 
         private final EntityManager entityManager;
 
-        public GraphQLJpaQuerySchemaConfigurer(EntityManager starWarsEntityManager) {
+        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManager starWarsEntityManager) {
             this.entityManager = starWarsEntityManager;
         }
 
