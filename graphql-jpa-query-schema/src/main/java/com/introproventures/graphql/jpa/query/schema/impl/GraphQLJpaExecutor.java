@@ -18,6 +18,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
@@ -64,10 +65,12 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.REQUIRES_NEW)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
+        Map<String, Object> variables = Optional.ofNullable(arguments)
+                                                .orElseGet(Collections::emptyMap);
     	
     	ExecutionInput executionInput = ExecutionInput.newExecutionInput()
     			.query(query)
-    			.variables(arguments)
+    			.variables(variables)
     			.build();
     	
         return graphQL.execute(executionInput);

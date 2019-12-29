@@ -14,17 +14,14 @@
       <artifactId>graphql-java</artifactId>
       <optional>true</optional>
     </dependency>
-    
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
-    
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>    
     </dependency>
-      
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
@@ -34,6 +31,18 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.github.graphql-java</groupId>
+      <artifactId>graphql-java-annotations</artifactId>
+      <version>7.2.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.11</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   

@@ -19,18 +19,28 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Month;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Test;
+
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
+
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
-import org.junit.Test;
 
 public class JavaScalarsTest {
 
@@ -196,7 +206,10 @@ public class JavaScalarsTest {
     @Test
     public void testRegisterJavaScalarWithObjectCoercing() {
         //given
-        JavaScalars.register(Map.class, new GraphQLScalarType("Map", "Map Object Type", new GraphQLObjectCoercing()));
+        GraphQLScalarType graphQLScalarType = JavaScalars.newScalarType("Map", 
+                                                                        "Map Object Type", 
+                                                                        new GraphQLObjectCoercing());
+        JavaScalars.register(Map.class, graphQLScalarType);
 
         //when
         GraphQLScalarType scalarType = JavaScalars.of(Map.class);

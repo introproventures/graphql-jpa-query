@@ -15,6 +15,8 @@
  */
 package com.introproventures.graphql.jpa.query.schema;
 
+import static graphql.schema.GraphQLScalarType.newScalar;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -107,29 +109,36 @@ public class JavaScalars {
 
         scalarsRegistry.put(BigDecimal.class, Scalars.GraphQLBigDecimal);
 
-        scalarsRegistry.put(LocalDateTime.class, new GraphQLScalarType("LocalDateTime", "LocalDateTime type", new GraphQLLocalDateTimeCoercing()));
-        scalarsRegistry.put(LocalDate.class, new GraphQLScalarType("LocalDate", "LocalDate type", new GraphQLLocalDateCoercing()));
-        scalarsRegistry.put(LocalTime.class, new GraphQLScalarType("LocalTime", "LocalTime type", new GraphQLLocalTimeCoercing()));
-        scalarsRegistry.put(Date.class, new GraphQLScalarType("Date", "Date type", new GraphQLDateCoercing()));
-        scalarsRegistry.put(UUID.class, new GraphQLScalarType("UUID", "UUID type", new GraphQLUUIDCoercing()));
-        scalarsRegistry.put(Object.class, new GraphQLScalarType("Object", "Object type", new GraphQLObjectCoercing()));
-        scalarsRegistry.put(java.sql.Date.class, new GraphQLScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
-        scalarsRegistry.put(java.sql.Timestamp.class, new GraphQLScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
-        scalarsRegistry.put(Byte[].class, new GraphQLScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
-        scalarsRegistry.put(Instant.class, new GraphQLScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
-        scalarsRegistry.put(ZonedDateTime.class, new GraphQLScalarType("ZonedDateTime", "ZonedDateTime type", new GraphQLZonedDateTimeCoercing()));
-        scalarsRegistry.put(OffsetDateTime.class, new GraphQLScalarType("OffsetDateTime", "OffsetDateTime type", new GraphQLOffsetDateTimeCoercing()));
+        scalarsRegistry.put(LocalDateTime.class, newScalarType("LocalDateTime", "LocalDateTime type", new GraphQLLocalDateTimeCoercing()));
+        scalarsRegistry.put(LocalDate.class, newScalarType("LocalDate", "LocalDate type", new GraphQLLocalDateCoercing()));
+        scalarsRegistry.put(LocalTime.class, newScalarType("LocalTime", "LocalTime type", new GraphQLLocalTimeCoercing()));
+        scalarsRegistry.put(Date.class, newScalarType("Date", "Date type", new GraphQLDateCoercing()));
+        scalarsRegistry.put(UUID.class, newScalarType("UUID", "UUID type", new GraphQLUUIDCoercing()));
+        scalarsRegistry.put(Object.class, newScalarType("Object", "Object type", new GraphQLObjectCoercing()));
+        scalarsRegistry.put(java.sql.Date.class, newScalarType("SqlDate", "SQL Date type", new GraphQLSqlDateCoercing()));
+        scalarsRegistry.put(java.sql.Timestamp.class, newScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing()));
+        scalarsRegistry.put(Byte[].class, newScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
+        scalarsRegistry.put(Instant.class, newScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
+        scalarsRegistry.put(ZonedDateTime.class, newScalarType("ZonedDateTime", "ZonedDateTime type", new GraphQLZonedDateTimeCoercing()));
+        scalarsRegistry.put(OffsetDateTime.class, newScalarType("OffsetDateTime", "OffsetDateTime type", new GraphQLOffsetDateTimeCoercing()));
     }
 
     public static GraphQLScalarType of(Class<?> key) {
         return scalarsRegistry.computeIfAbsent(key, JavaScalars::computeGraphQLScalarType);
     }
-    
+
     protected static GraphQLScalarType computeGraphQLScalarType(Class<?> key) {
         String typeName = key.getSimpleName();
         String description = typeName+" Scalar Object Type";
         
-        return new GraphQLScalarType(typeName, description, new GraphQLObjectCoercing());
+        return newScalarType(typeName, description ,new GraphQLObjectCoercing());
+    }
+
+    public static <T extends Coercing> GraphQLScalarType newScalarType(String name, String description, T coercing) {
+        return newScalar().name(name)
+                          .description(description)
+                          .coercing(coercing)
+                          .build();
     }
 
     public static JavaScalars register(Class<?> key, GraphQLScalarType value) {

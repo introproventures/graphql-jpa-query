@@ -69,31 +69,25 @@ import graphql.language.Argument;
 import graphql.language.ArrayValue;
 import graphql.language.AstValueHelper;
 import graphql.language.BooleanValue;
-import graphql.language.Comment;
 import graphql.language.EnumValue;
 import graphql.language.Field;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
-import graphql.language.Node;
-import graphql.language.NodeVisitor;
+import graphql.language.NullValue;
 import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
 import graphql.language.SelectionSet;
-import graphql.language.SourceLocation;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentBuilder;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import graphql.util.TraversalControl;
-import graphql.util.TraverserContext;
 
 /**
  * Provides base implemetation for GraphQL JPA Query Data Fetchers
@@ -131,7 +125,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        return getQuery(environment, environment.getFields().iterator().next(), true).getResultList();
+        return getQuery(environment, environment.getField(), true).getResultList();
     }
 
     protected TypedQuery<?> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
@@ -235,7 +229,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     // Let's build join fetch graph to avoid Hibernate error: 
                     // "query specified join fetching, but the owner of the fetched association was not present in the select list"
                     if(selectedField.getSelectionSet() != null && fetch != null) {
-                        Map<String, Object> variables = environment.getExecutionContext().getVariables();
+                        Map<String, Object> variables = environment.getVariables();
                         
                         GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
                                                                              this.getObjectType(environment),
@@ -365,7 +359,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
                 From<?,?> join = getCompoundJoin(path, argument.getName(), true);
                 Argument where = new Argument(WHERE,  argument.getValue());
-                Map<String, Object> variables = environment.getExecutionContext().getVariables();
+                Map<String, Object> variables = environment.getVariables();
 
                 GraphQLFieldDefinition fieldDef = getFieldDef(
                     environment.getGraphQLSchema(),
@@ -412,8 +406,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     }
 
     private Object getVariableReferenceValue(VariableReference variableReference, DataFetchingEnvironment env) {
-        return env.getExecutionContext()
-                .getVariables()
+        return env.getVariables()
                 .get(variableReference.getName());
     }
 
@@ -882,7 +875,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
         if (value instanceof NullValue) {
-            return null;
+            return value;
         } else if (value instanceof StringValue) {
             Object convertedValue =  environment.getArgument(argument.getName());
             if (convertedValue != null) {
@@ -895,8 +888,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
         else if (value instanceof VariableReference) {
             Class javaType = getJavaType(environment, argument);
-            Object argumentValue = environment.getExecutionContext()
-                                              .getVariables()
+            Object argumentValue = environment.getVariables()
                                               .get(VariableReference.class.cast(value).getName());
             if(javaType.isEnum()) {
                 if(argumentValue instanceof Collection) {
@@ -1081,7 +1073,6 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * Resolve GraphQL object type from Argument output type.
      *
      * @param environment
-     * @param argument
      * @return resolved GraphQL object type or null if no output type is provided
      */
     private GraphQLObjectType getObjectType(DataFetchingEnvironment environment) {
@@ -1172,8 +1163,8 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
 
     @SuppressWarnings( "unchecked" )
     protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
-        return (R) getObjectField(objectValue, fieldName).map(it-> it.getValue())
-                                                         .orElse(new NullValue());
+        return (R) getObjectField(objectValue, fieldName).map(ObjectField::getValue)
+                                                         .orElse(NullValue.Null);
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1182,12 +1173,11 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         
         if(VariableReference.class.isInstance(value)) {
             return (T)
-                environment.getExecutionContext()
-                           .getVariables()
+                environment.getVariables()
                            .get(VariableReference.class.cast(value).getName());
         }
         else if (BooleanValue.class.isInstance(value)) {
-            return (T) new Boolean(BooleanValue.class.cast(value).isValue());
+            return (T) Boolean.valueOf(BooleanValue.class.cast(value).isValue());
         }
         else if (IntValue.class.isInstance(value)) {
             return (T) IntValue.class.cast(value).getValue();
@@ -1245,45 +1235,4 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                   String attributeName) {
         return !isPersistent(entityType, attributeName);
     }
-    
-
-    @SuppressWarnings("rawtypes")
-    class NullValue implements Value {
-        
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public List<Node> getChildren() {
-            return new ArrayList<>();
-        }
-
-        @Override
-        public SourceLocation getSourceLocation() {
-            return new SourceLocation(0, 0);
-        }
-
-        @Override
-        public List<Comment> getComments() {
-            return new ArrayList<>();
-        }
-
-        @Override
-        public boolean isEqualTo(Node node) {
-            return node instanceof NullValue;
-        }
-
-		@Override
-		public TraversalControl accept(TraverserContext context, NodeVisitor visitor) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public Value deepCopy() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-    }
-
-
 }

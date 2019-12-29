@@ -39,7 +39,6 @@ import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentBuilder;
 import graphql.schema.GraphQLObjectType;
 
 /**
@@ -82,7 +81,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        Field field = environment.getFields().iterator().next();
+        Field field = environment.getField();
         Map<String, Object> result = new LinkedHashMap<>();
 
         // See which fields we're requesting
@@ -91,7 +90,9 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         Optional<Field> recordsSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME);
 
         Optional<Argument> pageArgument = getPageArgument(field);
-        Page page = extractPageArgument(environment, field);
+        Page page = extractPageArgument(environment, pageArgument);
+        field = removeArgument(field, pageArgument);
+
         Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(defaultDistinct));
         
         boolean isDistinct = ((BooleanValue) distinctArg.getValue()).isValue();
@@ -208,12 +209,9 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 	}
 
     
-    private Page extractPageArgument(DataFetchingEnvironment environment, Field field) {
-        Optional<Argument> paginationRequest = getPageArgument(field);
-        
+    private Page extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest) {
+
         if (paginationRequest.isPresent()) {
-            field.getArguments()
-                .remove(paginationRequest.get());
 
             Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
             
@@ -224,6 +222,19 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         }
 
         return new Page(1, Integer.MAX_VALUE);
+    }
+
+    private Field removeArgument(Field field, Optional<Argument> argument) {
+
+      if (!argument.isPresent()) {
+        return field;
+      }
+
+      List<Argument> newArguments = field.getArguments().stream()
+          .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
+
+      return field.transform(builder -> builder.arguments(newArguments));
+
     }
 
     private Boolean isWhereArgument(Argument argument) {
