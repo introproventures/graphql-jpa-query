@@ -76,7 +76,8 @@ public class GraphQLController {
         this.mapper = mapper;
     }
     
-    @GetMapping(value = "/graphql/sse",
+    @GetMapping(value = PATH,
+                consumes = MediaType.TEXT_EVENT_STREAM_VALUE,
                 produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter getEventStream(@RequestParam(name = "query") final String query,
                                      @RequestParam(name = "variables", required = false) final String variables) throws IOException {
@@ -84,7 +85,7 @@ public class GraphQLController {
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
         
-        SseEmitter sseEmitter = new SseEmitter(180_000L);
+        SseEmitter sseEmitter = new SseEmitter(180_000L); // FIXME need to add parameter
         sseEmitter.onTimeout(sseEmitter::complete);
         
         if(!executionResult.getErrors().isEmpty()) {
