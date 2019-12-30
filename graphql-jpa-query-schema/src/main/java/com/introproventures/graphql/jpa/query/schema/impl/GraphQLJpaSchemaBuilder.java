@@ -38,6 +38,9 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
@@ -46,7 +49,9 @@ import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+
 import graphql.Assert;
+import graphql.Directives;
 import graphql.Scalars;
 import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
@@ -64,9 +69,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -126,6 +128,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     public GraphQLSchema build() {
         return GraphQLSchema.newSchema()
             .query(getQueryType())
+            .subscription(getSubscriptionType())
+            .additionalDirective(Directives.DeferDirective)
             .build();
     }
 
@@ -154,6 +158,23 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return queryType.build();
     }
 
+    private GraphQLObjectType getSubscriptionType() {
+        GraphQLObjectType.Builder queryType = 
+            GraphQLObjectType.newObject()
+                .name(this.name+"Subscription")
+                .description(this.description);
+
+        queryType.fields(
+            entityManager.getMetamodel()
+                .getEntities().stream()
+                .filter(this::isNotIgnored)
+                .map(this::getQueryFieldStreamDefinition)
+                .collect(Collectors.toList())
+        );
+
+        return queryType.build();
+    }
+    
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
         return GraphQLFieldDefinition.newFieldDefinition()
                 .name(entityType.getName())
@@ -214,6 +235,27 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         return fdBuilder.build();
     }
+    
+    private GraphQLFieldDefinition getQueryFieldStreamDefinition(EntityType<?> entityType) {
+        
+        GraphQLFieldDefinition.Builder fdBuilder =  GraphQLFieldDefinition.newFieldDefinition()
+                .name(namingStrategy.pluralize(entityType.getName()))
+                .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
+                    + "Use query request arguments to specify query filter criterias. "
+                    + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
+                .type(getObjectType(entityType))
+                .dataFetcher(new GraphQLJpaStreamDataFetcher(entityManager, 
+                                                             entityType, 
+                                                             isDefaultDistinct, 
+                                                             toManyDefaultOptional))
+                .argument(paginationArgument)
+                .argument(getWhereArgument(entityType));
+        if (isUseDistinctParameter) {
+                fdBuilder.argument(distinctArgument(entityType));
+        }
+
+        return fdBuilder.build();
+    }    
 
     private Map<Class<?>, GraphQLArgument> whereArgumentsMap = new HashMap<>();
 

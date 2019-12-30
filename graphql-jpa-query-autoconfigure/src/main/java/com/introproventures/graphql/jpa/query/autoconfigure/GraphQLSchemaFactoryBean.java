@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +18,7 @@ import graphql.Internal;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLFieldsContainer;
 import graphql.schema.GraphQLInterfaceType;
@@ -116,6 +118,16 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
+        Set<GraphQLDirective> directives = Stream.of(managedGraphQLSchemas)
+            .map(GraphQLSchema::getDirectives)
+            .flatMap(Collection::stream)
+            .distinct()
+            .collect(Collectors.toSet());
+
+        if(!directives.isEmpty()) {
+            schemaBuilder.additionalDirectives(directives);
+        }
+        
         if(!mutations.isEmpty())
             schemaBuilder.mutation(GraphQLObjectType.newObject()
                                                     .name(this.mutationName)

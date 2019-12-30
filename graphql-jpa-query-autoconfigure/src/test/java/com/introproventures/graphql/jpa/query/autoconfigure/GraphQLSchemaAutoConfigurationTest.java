@@ -27,6 +27,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
 
+import graphql.Directives;
 import graphql.GraphQL;
 import graphql.Scalars;
 import graphql.annotations.AnnotationsSchemaCreator;
@@ -36,6 +37,7 @@ import graphql.annotations.annotationTypes.GraphQLName;
 import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -201,6 +203,7 @@ public class GraphQLSchemaAutoConfigurationTest {
                 GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
                                                            .query(query)
                                                            .codeRegistry(codeRegistry)
+                                                           .additionalDirective(Directives.DeferDirective)
                                                            .build();
                 
                 registry.register(graphQLSchema);
@@ -214,6 +217,14 @@ public class GraphQLSchemaAutoConfigurationTest {
                 .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
         	
+    }
+    
+    @Test
+    public void directivesSupport() {
+        assertThat(graphQLSchema.getDirectives())
+                .extracting(GraphQLDirective::getName)
+                .containsExactly("include", "skip", "defer");
+            
     }
     
     @Test
