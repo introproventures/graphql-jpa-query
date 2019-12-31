@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -113,14 +114,9 @@ public class GraphQLController {
                 subscription.request(1);
 
                 try {
-                    Map<String, Object> result = executionResult.getData();
-                    String name = result.keySet().iterator().next();
-                    Object data = result.values().iterator().next();
+                    SseEventBuilder event = wrap(executionResult);
                     
-                    sseEmitter.send(SseEmitter.event()
-                                              .id((id++).toString())
-                                              .name(name)
-                                              .data(data, MediaType.APPLICATION_JSON));
+                    sseEmitter.send(event);
                 } catch (IOException e) {
                     sseEmitter.completeWithError(e);
                 }
@@ -134,6 +130,17 @@ public class GraphQLController {
             @Override
             public void onComplete() {
                 sseEmitter.complete();
+            }
+            
+            SseEventBuilder wrap(ExecutionResult executionResult) {
+                Map<String, Object> result = executionResult.getData();
+                String name = result.keySet().iterator().next();
+                
+                return SseEmitter.event()
+                                 .id((id++).toString())
+                                 .name(name)
+                                 .data(result, MediaType.APPLICATION_JSON);
+                
             }
         });        
         
