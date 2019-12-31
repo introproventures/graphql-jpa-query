@@ -100,6 +100,7 @@ public class GraphQLController {
         // of deferred values
         deferredResults.subscribe(new Subscriber<ExecutionResult>() {
             Subscription subscription;
+            Long id = 0L;
 
             @Override
             public void onSubscribe(Subscription s) {
@@ -112,8 +113,14 @@ public class GraphQLController {
                 subscription.request(1);
 
                 try {
-                    sseEmitter.send(executionResult.toSpecification(), 
-                                    MediaType.APPLICATION_JSON);
+                    Map<String, Object> result = executionResult.getData();
+                    String name = result.keySet().iterator().next();
+                    Object data = result.values().iterator().next();
+                    
+                    sseEmitter.send(SseEmitter.event()
+                                              .id((id++).toString())
+                                              .name(name)
+                                              .data(data, MediaType.APPLICATION_JSON));
                 } catch (IOException e) {
                     sseEmitter.completeWithError(e);
                 }
