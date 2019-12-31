@@ -25,6 +25,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.ExecutionResult;
+import graphql.GraphQL;
 
 @SpringBootTest
 @Transactional
@@ -51,7 +52,7 @@ public class GraphQLExecutorDeferredTests extends AbstractSpringBootTestSupport 
     private GraphQLExecutor executor;
 
     @Test
-    public void queryDeferredResult() throws InterruptedException {
+    public void querySubscriptionStream() throws InterruptedException {
         //given
         String query = "subscription { Books { id title genre author {name} } }";
         
@@ -110,6 +111,71 @@ public class GraphQLExecutorDeferredTests extends AbstractSpringBootTestSupport 
                 + "{id=5, title=The Cherry Orchard, genre=PLAY, author={name=Anton Chekhov}}, "
                 + "{id=6, title=The Seagull, genre=PLAY, author={name=Anton Chekhov}}, "
                 + "{id=7, title=Three Sisters, genre=PLAY, author={name=Anton Chekhov}}]");
-    }    
+    }
+    
+    @Test
+    public void queryDeferStream() throws InterruptedException {
+        //given
+        String query = "query { Books { select @defer { id title genre author {name} } } }";
+        
+        //when
+        ExecutionResult initialResult = executor.execute(query);
+        
+        //then
+        assertThat(initialResult.getErrors()).isEmpty();
+        assertThat(initialResult.getData().toString()).isEqualTo("{Books={select=null}}");
+        
+        //when
+        List<Object> resultList = new ArrayList<>();
+
+        Publisher<ExecutionResult> deferredResultStream = (Publisher<ExecutionResult>) initialResult.getExtensions().get(GraphQL.DEFERRED_RESULTS);
+
+        CountDownLatch doneORCancelled = new CountDownLatch(1);
+        
+        Subscriber<ExecutionResult> subscriber = new Subscriber<ExecutionResult>() {
+
+            Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                subscription = s;
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(ExecutionResult executionResult) {
+                subscription.request(1);
+                
+                // Contains fully resolved list in memory :(
+                resultList.addAll(executionResult.getData());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                doneORCancelled.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+                doneORCancelled.countDown();
+            }
+        };
+
+        deferredResultStream.subscribe(subscriber);
+
+        doneORCancelled.await(1, TimeUnit.SECONDS);
+        
+        // then
+        assertThat(resultList).hasSize(5);
+        
+        assertThat(resultList.toString()).isEqualTo("["
+                + "{id=2, title=War and Peace, genre=NOVEL, author={name=Leo Tolstoy}}, "
+                + "{id=3, title=Anna Karenina, genre=NOVEL, author={name=Leo Tolstoy}}, "
+                + "{id=5, title=The Cherry Orchard, genre=PLAY, author={name=Anton Chekhov}}, "
+                + "{id=6, title=The Seagull, genre=PLAY, author={name=Anton Chekhov}}, "
+                + "{id=7, title=Three Sisters, genre=PLAY, author={name=Anton Chekhov}}]");
+    }
+    
+
     
 }
