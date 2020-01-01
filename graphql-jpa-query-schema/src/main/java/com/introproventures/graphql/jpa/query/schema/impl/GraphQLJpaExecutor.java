@@ -82,12 +82,14 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
+        Map<String, Object> variables = Optional.ofNullable(arguments)
+                                                .orElseGet(Collections::emptyMap);
         
         GraphQLExecutorContext executorContext = contextFactory.newExecutorContext();
 
         ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
                                                                .query(query)
-                                                               .variables(arguments);        
+                                                               .variables(variables);        
         
         GraphQLSchema schema = executorContext.schemaBuilder(graphQLSchema)
                                               .map(graphQLSchema::transform)

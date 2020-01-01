@@ -27,3 +27,5 @@ target/
 # Scala
 .cache-main
 .cache-tests
+
+.sts4-cache
