@@ -72,8 +72,8 @@ public class GraphQLJpaQueryAutoConfiguration {
         @Bean 
         @ConditionalOnMissingBean
         public GraphQLExecutorContextFactory graphQLExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
-                                                                           ObjectProvider<GraphqlFieldVisibility> graphqlFieldVisibility,
-                                                                           ObjectProvider<Instrumentation> instrumentation,
+                                                                           ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
+                                                                           ObjectProvider<Supplier<Instrumentation>> instrumentation,
                                                                            ObjectProvider<Supplier<GraphQLContext>> graphqlContext) {
             GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
             

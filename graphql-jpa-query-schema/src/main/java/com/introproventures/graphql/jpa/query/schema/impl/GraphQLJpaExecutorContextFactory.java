@@ -32,8 +32,8 @@ import graphql.schema.visibility.GraphqlFieldVisibility;
 public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextFactory {
     
     private GraphQLExecutionInputFactory executionInputFactory = new GraphQLExecutionInputFactory() {};
-    private GraphqlFieldVisibility graphqlFieldVisibility = DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
-    private Instrumentation instrumentation = new SimpleInstrumentation();
+    private Supplier<GraphqlFieldVisibility> graphqlFieldVisibility = () -> DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
+    private Supplier<Instrumentation> instrumentation = () -> new SimpleInstrumentation();
     private Supplier<GraphQLContext> graphqlContext = () -> GraphQLContext.newContext().build();
     
     public GraphQLJpaExecutorContextFactory() {
@@ -50,13 +50,13 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
                                         .build();
     }
 
-    public GraphQLJpaExecutorContextFactory withGraphqlFieldVisibility(GraphqlFieldVisibility graphqlFieldVisibility) {
+    public GraphQLJpaExecutorContextFactory withGraphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility) {
         this.graphqlFieldVisibility = graphqlFieldVisibility;
         return this;
     }
 
     
-    public GraphQLJpaExecutorContextFactory withInstrumentation(Instrumentation instrumentation) {
+    public GraphQLJpaExecutorContextFactory withInstrumentation(Supplier<Instrumentation> instrumentation) {
         this.instrumentation = instrumentation;
         return this;
     }
@@ -76,11 +76,11 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         return executionInputFactory;
     }
     
-    public GraphqlFieldVisibility getGraphqlFieldVisibility() {
+    public Supplier<GraphqlFieldVisibility> getGraphqlFieldVisibility() {
         return graphqlFieldVisibility;
     }
 
-    public Instrumentation getInstrumentation() {
+    public Supplier<Instrumentation> getInstrumentation() {
         return instrumentation;
     }
 

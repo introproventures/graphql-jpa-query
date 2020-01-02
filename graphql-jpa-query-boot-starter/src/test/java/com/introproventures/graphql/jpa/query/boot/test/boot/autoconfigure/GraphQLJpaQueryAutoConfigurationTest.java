@@ -55,10 +55,10 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         private GraphQLExecutionInputFactory mockExecutionInputFactory;
 
         @MockBean
-        private Instrumentation mockInstrumentation;
+        private Supplier<Instrumentation> mockInstrumentation;
 
         @MockBean
-        private GraphqlFieldVisibility mockGraphqlFieldVisibility;
+        private Supplier<GraphqlFieldVisibility> mockGraphqlFieldVisibility;
         
         @MockBean
         private Supplier<GraphQLContext> graphqlContext;

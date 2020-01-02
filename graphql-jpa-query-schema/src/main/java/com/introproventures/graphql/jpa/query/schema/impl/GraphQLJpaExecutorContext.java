@@ -33,8 +33,8 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     
     private final GraphQLSchema graphQLSchema;
     private final GraphQLExecutionInputFactory executionInputFactory;
-    private final GraphqlFieldVisibility graphqlFieldVisibility;
-    private final Instrumentation instrumentation;
+    private final Supplier<GraphqlFieldVisibility> graphqlFieldVisibility;
+    private final Supplier<Instrumentation> instrumentation;
     private final Supplier<GraphQLContext> graphqlContext;
 
     private GraphQLJpaExecutorContext(Builder builder) {
@@ -54,13 +54,13 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     @Override
     public GraphQL.Builder newGraphQL() {
         return GraphQL.newGraphQL(graphQLSchema)
-                      .instrumentation(instrumentation);
+                      .instrumentation(instrumentation.get());
     }
     
     @Override
     public GraphQLSchema getGraphQLSchema() {
         GraphQLCodeRegistry codeRegistry = graphQLSchema.getCodeRegistry()
-                                                        .transform(builder -> builder.fieldVisibility(graphqlFieldVisibility));
+                                                        .transform(builder -> builder.fieldVisibility(graphqlFieldVisibility.get()));
                 
         return graphQLSchema.transform(builder -> builder.codeRegistry(codeRegistry));
     }
@@ -82,9 +82,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
         public IBuildStage executionInputFactory(GraphQLExecutionInputFactory executionInputFactory);
 
-        public IBuildStage graphqlFieldVisibility(GraphqlFieldVisibility graphqlFieldVisibility);
+        public IBuildStage graphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility);
 
-        public IBuildStage instrumentation(Instrumentation instrumentation);
+        public IBuildStage instrumentation(Supplier<Instrumentation> instrumentation);
         
         public IBuildStage graphqlContext(Supplier<GraphQLContext> graphqlContext);
 
@@ -98,8 +98,8 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
         private GraphQLSchema graphQLSchema;
         private GraphQLExecutionInputFactory executionInputFactory;
-        private GraphqlFieldVisibility graphqlFieldVisibility;
-        private Instrumentation instrumentation;
+        private Supplier<GraphqlFieldVisibility> graphqlFieldVisibility;
+        private Supplier<Instrumentation> instrumentation;
         private Supplier<GraphQLContext> graphqlContext;
 
         private Builder() {
@@ -118,13 +118,13 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         }
 
         @Override
-        public IBuildStage graphqlFieldVisibility(GraphqlFieldVisibility graphqlFieldVisibility) {
+        public IBuildStage graphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility) {
             this.graphqlFieldVisibility = graphqlFieldVisibility;
             return this;
         }
 
         @Override
-        public IBuildStage instrumentation(Instrumentation instrumentation) {
+        public IBuildStage instrumentation(Supplier<Instrumentation> instrumentation) {
             this.instrumentation = instrumentation;
             return this;
         }
