@@ -19,15 +19,17 @@ import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.context.annotation.ApplicationScope;
 import org.springframework.web.context.annotation.RequestScope;
 
 import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.execution.instrumentation.tracing.TracingInstrumentation;
 
 /**
@@ -41,6 +43,8 @@ import graphql.execution.instrumentation.tracing.TracingInstrumentation;
 @SpringBootApplication
 @EnableTransactionManagement
 public class Application {
+    
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -51,13 +55,16 @@ public class Application {
     public Supplier<GraphQLContext> graphqlContext(HttpServletRequest request) {
         return () -> GraphQLContext.newContext()
                                    .of("request", request)
+                                   .of("user", request)
                                    .build();
     }
 
     @Bean
-    @ApplicationScope
-    public Supplier<Instrumentation> instrumentation() {
-        return () -> new TracingInstrumentation();
+    @RequestScope
+    public Supplier<Instrumentation> instrumentation(HttpServletRequest request) {
+        return () -> logger.isDebugEnabled() 
+                           ? new TracingInstrumentation() 
+                           : SimpleInstrumentation.INSTANCE;
     }
     
 }
