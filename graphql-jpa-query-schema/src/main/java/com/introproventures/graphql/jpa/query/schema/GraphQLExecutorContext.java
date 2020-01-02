@@ -16,23 +16,16 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-
 import graphql.ExecutionInput;
-import graphql.execution.instrumentation.Instrumentation;
+import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 
 public interface GraphQLExecutorContext {
     
     ExecutionInput.Builder newExecutionInput();
 
-    default Optional<Consumer<GraphQLSchema.Builder>> schemaBuilder(GraphQLSchema schema) {
-        return Optional.empty();
-    }
-    
-    default Optional<Instrumentation> instrumentation() {
-        return Optional.empty();
-    }
+    GraphQL.Builder newGraphQL();
+
+    GraphQLSchema getGraphQLSchema();
     
 }

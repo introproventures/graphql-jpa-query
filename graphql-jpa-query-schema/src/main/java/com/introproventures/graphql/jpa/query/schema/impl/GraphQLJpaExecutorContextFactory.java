@@ -20,21 +20,49 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactor
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.visibility.DefaultGraphqlFieldVisibility;
+import graphql.schema.visibility.GraphqlFieldVisibility;
+
 public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextFactory {
     
-    private final GraphQLExecutionInputFactory factory;
+    private GraphQLExecutionInputFactory executionInputFactory = new GraphQLExecutionInputFactory() {};
+    private GraphqlFieldVisibility graphqlFieldVisibility = DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
+    private Instrumentation instrumentation = new SimpleInstrumentation();
     
     public GraphQLJpaExecutorContextFactory() {
-        this(new GraphQLExecutionInputFactory() {});
-    }
-    
-    public GraphQLJpaExecutorContextFactory(GraphQLExecutionInputFactory factory) {
-        this.factory = factory;
     }
     
     @Override
-    public GraphQLExecutorContext newExecutorContext() {
-        return new GraphQLJpaExecutorContext(factory);
+    public GraphQLExecutorContext newExecutorContext(GraphQLSchema graphQLSchema) {
+        return GraphQLJpaExecutorContext.builder()
+                                        .graphQLSchema(graphQLSchema)
+                                        .executionInputFactory(executionInputFactory)
+                                        .graphqlFieldVisibility(graphqlFieldVisibility)
+                                        .instrumentation(instrumentation)
+                                        .build();
+    }
+
+    public GraphQLJpaExecutorContextFactory withGraphqlFieldVisibility(GraphqlFieldVisibility graphqlFieldVisibility) {
+        this.graphqlFieldVisibility = graphqlFieldVisibility;
+        
+        return this;
+    }
+
+    
+    public GraphQLJpaExecutorContextFactory withInstrumentation(Instrumentation instrumentation) {
+        this.instrumentation = instrumentation;
+        
+        return this;
+    }
+
+    
+    public GraphQLJpaExecutorContextFactory withExecutionInputFactory(GraphQLExecutionInputFactory executionInputFactory) {
+        this.executionInputFactory = executionInputFactory;
+        
+        return this;
     };
     
 }

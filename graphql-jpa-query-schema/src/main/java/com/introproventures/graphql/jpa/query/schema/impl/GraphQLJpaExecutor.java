@@ -85,20 +85,13 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
         Map<String, Object> variables = Optional.ofNullable(arguments)
                                                 .orElseGet(Collections::emptyMap);
         
-        GraphQLExecutorContext executorContext = contextFactory.newExecutorContext();
+        GraphQLExecutorContext executorContext = contextFactory.newExecutorContext(graphQLSchema);
 
         ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
                                                                .query(query)
                                                                .variables(variables);        
-        
-        GraphQLSchema schema = executorContext.schemaBuilder(graphQLSchema)
-                                              .map(graphQLSchema::transform)
-                                              .orElse(graphQLSchema);
 
-        GraphQL.Builder graphQL = GraphQL.newGraphQL(schema);
-        
-        executorContext.instrumentation()
-                       .ifPresent(graphQL::instrumentation);
+        GraphQL.Builder graphQL = executorContext.newGraphQL();
         
         return graphQL.build()
                       .execute(executionInput);

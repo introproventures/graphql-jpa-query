@@ -15,12 +15,8 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import graphql.schema.GraphQLSchema;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -37,11 +33,6 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-    }
-    
-    @Bean
-    public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema) {
-        return new GraphQLJpaExecutor(graphQLSchema);
     }
     
 }
