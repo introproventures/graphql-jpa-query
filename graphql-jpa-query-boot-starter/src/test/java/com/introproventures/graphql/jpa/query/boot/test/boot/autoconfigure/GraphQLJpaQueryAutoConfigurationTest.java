@@ -78,10 +78,10 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     private ObjectProvider<GraphQLExecutionInputFactory> executionInputFactory;   
 
     @Autowired
-    private ObjectProvider<Instrumentation> instrumentation;   
+    private ObjectProvider<Supplier<Instrumentation>> instrumentation;   
     
     @Autowired
-    private ObjectProvider<GraphqlFieldVisibility> graphqlFieldVisibility;   
+    private ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility;   
 
     @Autowired
     private ObjectProvider<Supplier<GraphQLContext>> graphqlContext;   
