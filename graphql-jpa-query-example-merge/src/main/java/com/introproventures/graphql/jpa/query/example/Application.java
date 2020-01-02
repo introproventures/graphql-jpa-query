@@ -23,9 +23,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.context.annotation.ApplicationScope;
 import org.springframework.web.context.annotation.RequestScope;
 
 import graphql.GraphQLContext;
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.tracing.TracingInstrumentation;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
@@ -49,6 +52,12 @@ public class Application {
         return () -> GraphQLContext.newContext()
                                    .of("request", request)
                                    .build();
+    }
+
+    @Bean
+    @ApplicationScope
+    public Supplier<Instrumentation> instrumentation() {
+        return () -> new TracingInstrumentation();
     }
     
 }
