@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.introproventures.graphql.jpa.query.starter.model;
+package com.introproventures.graphql.jpa.query.boot.test.starter.model;
 
 import java.util.Collection;
 

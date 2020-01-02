@@ -15,18 +15,22 @@
  */
 package com.introproventures.graphql.jpa.query.boot.autoconfigure;
 
-import javax.persistence.EntityManager;
+import java.util.function.Supplier;
+
 import javax.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
@@ -35,6 +39,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutorCont
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 import graphql.GraphQL;
+import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
@@ -42,37 +47,40 @@ import graphql.schema.visibility.GraphqlFieldVisibility;
 @Configuration
 @ConditionalOnClass(GraphQL.class)
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@AutoConfigureAfter(HibernateJpaAutoConfiguration.class)
 public class GraphQLJpaQueryAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnSingleCandidate(EntityManagerFactory.class)
-    public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManagerFactory entityManagerFactory) {
-        return new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
-    }
-    
-    @Bean
-    @ConditionalOnMissingBean
-    public GraphQLSchemaConfigurer graphQLJpaQuerySchemaConfigurer(GraphQLSchemaBuilder graphQLSchemaBuilder) {
-        
-        return (registry) -> {
-            registry.register(graphQLSchemaBuilder.build());
-        };
-    }    
-    
     @Configuration
     public static class DefaultGraphQLJpaQueryConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnSingleCandidate(EntityManagerFactory.class)
+        public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManagerFactory entityManagerFactory) {
+            return new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
+        }
+        
+        @Bean
+        @ConditionalOnMissingBean
+        public GraphQLSchemaConfigurer graphQLJpaQuerySchemaConfigurer(GraphQLSchemaBuilder graphQLSchemaBuilder) {
+            
+            return (registry) -> {
+                registry.register(graphQLSchemaBuilder.build());
+            };
+        }
         
         @Bean 
         @ConditionalOnMissingBean
         public GraphQLExecutorContextFactory graphQLExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
                                                                            ObjectProvider<GraphqlFieldVisibility> graphqlFieldVisibility,
-                                                                           ObjectProvider<Instrumentation> instrumentation) {
+                                                                           ObjectProvider<Instrumentation> instrumentation,
+                                                                           ObjectProvider<Supplier<GraphQLContext>> graphqlContext) {
             GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
             
             graphQLExecutionInputFactory.ifAvailable(bean::withExecutionInputFactory);
             graphqlFieldVisibility.ifAvailable(bean::withGraphqlFieldVisibility);
             instrumentation.ifAvailable(bean::withInstrumentation);
+            graphqlContext.ifAvailable(bean::withGraphqlContext);
             
             return bean;
         }
@@ -85,11 +93,5 @@ public class GraphQLJpaQueryAutoConfiguration {
                                           graphQLExecutorContextFactory);
         }
         
-        @Bean
-        @ConditionalOnMissingBean(GraphQLSchemaConfigurer.class)
-        public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            return new GraphQLJpaSchemaBuilder(entityManager);
-        }
-
     }
 }

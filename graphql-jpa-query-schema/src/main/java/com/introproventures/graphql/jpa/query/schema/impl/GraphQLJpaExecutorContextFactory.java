@@ -16,10 +16,13 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.function.Supplier;
+
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 
+import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.schema.GraphQLSchema;
@@ -31,6 +34,7 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
     private GraphQLExecutionInputFactory executionInputFactory = new GraphQLExecutionInputFactory() {};
     private GraphqlFieldVisibility graphqlFieldVisibility = DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
     private Instrumentation instrumentation = new SimpleInstrumentation();
+    private Supplier<GraphQLContext> graphqlContext = () -> GraphQLContext.newContext().build();
     
     public GraphQLJpaExecutorContextFactory() {
     }
@@ -42,27 +46,47 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
                                         .executionInputFactory(executionInputFactory)
                                         .graphqlFieldVisibility(graphqlFieldVisibility)
                                         .instrumentation(instrumentation)
+                                        .graphqlContext(graphqlContext)
                                         .build();
     }
 
     public GraphQLJpaExecutorContextFactory withGraphqlFieldVisibility(GraphqlFieldVisibility graphqlFieldVisibility) {
         this.graphqlFieldVisibility = graphqlFieldVisibility;
-        
         return this;
     }
 
     
     public GraphQLJpaExecutorContextFactory withInstrumentation(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
-        
         return this;
     }
 
     
     public GraphQLJpaExecutorContextFactory withExecutionInputFactory(GraphQLExecutionInputFactory executionInputFactory) {
         this.executionInputFactory = executionInputFactory;
-        
+        return this;
+    }
+
+    public GraphQLJpaExecutorContextFactory withGraphqlContext(Supplier<GraphQLContext> graphqlContext) {
+        this.graphqlContext = graphqlContext;
         return this;
     };
     
+    public GraphQLExecutionInputFactory getExecutionInputFactory() {
+        return executionInputFactory;
+    }
+    
+    public GraphqlFieldVisibility getGraphqlFieldVisibility() {
+        return graphqlFieldVisibility;
+    }
+
+    public Instrumentation getInstrumentation() {
+        return instrumentation;
+    }
+
+    
+    public Supplier<GraphQLContext> getGraphqlContext() {
+        return graphqlContext;
+    }
+
 }

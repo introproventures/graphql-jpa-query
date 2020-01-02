@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.starter;
+package com.introproventures.graphql.jpa.query.boot.test.starter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.introproventures.graphql.jpa.query.starter.Result.GraphQLError;
+import com.introproventures.graphql.jpa.query.boot.test.starter.Result.GraphQLError;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
 
 @RunWith(SpringRunner.class)

@@ -15,9 +15,17 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
+import java.util.function.Supplier;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.context.annotation.RequestScope;
+
+import graphql.GraphQLContext;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
@@ -33,6 +41,14 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    @RequestScope
+    public Supplier<GraphQLContext> graphqlContext(HttpServletRequest request) {
+        return () -> GraphQLContext.newContext()
+                                   .of("request", request)
+                                   .build();
     }
     
 }
