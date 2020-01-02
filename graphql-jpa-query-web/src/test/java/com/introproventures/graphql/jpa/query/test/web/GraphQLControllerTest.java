@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.web;
+package com.introproventures.graphql.jpa.query.test.web;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.web.GraphQLController;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
 
 import graphql.ExecutionResultImpl;

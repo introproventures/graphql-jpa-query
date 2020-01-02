@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.web.autoconfigure;
+package com.introproventures.graphql.jpa.query.test.web.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,13 +14,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT)
-public class GraphQLControllerAutoConfigurationTest {
+@SpringBootTest(webEnvironment=WebEnvironment.NONE)
+public class GraphQLControllerAutoConfigurationWebNoneTest {
     
     @MockBean
     private GraphQLExecutor graphQLExecutor;
     
-    @Autowired
+    @Autowired(required=false)
     private GraphQLController graphQLController;
     
     @SpringBootApplication
@@ -30,7 +30,7 @@ public class GraphQLControllerAutoConfigurationTest {
     
     @Test
     public void contextLoads() {
-        assertThat(graphQLController).isNotNull();
+        assertThat(graphQLController).isNull();
     }
 
 }
