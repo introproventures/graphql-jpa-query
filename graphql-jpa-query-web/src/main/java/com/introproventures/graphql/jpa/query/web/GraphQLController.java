@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -31,6 +30,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,7 +56,7 @@ import graphql.GraphQL;
  *
  */
 @RestController
-@Transactional
+@Transactional(readOnly = true)
 public class GraphQLController {
 
     private static final String PATH = "${spring.graphql.jpa.query.path:/graphql}";
@@ -158,7 +158,7 @@ public class GraphQLController {
      * }
      * </pre>
      * @param queryRequest object
-     * @return {@link ExecutionResult} response
+     * @param httpServletResponse object
      * @throws IOException exception
      */
     @PostMapping(value = PATH,
@@ -182,7 +182,7 @@ public class GraphQLController {
      *
      * @param query encoded JSON string
      * @param variables encoded JSON string
-     * @return {@link ExecutionResult} response
+     * @param httpServletResponse object
      * @throws IOException exception
      */
     @GetMapping(value = PATH,
@@ -208,7 +208,7 @@ public class GraphQLController {
 
      * @param query encoded JSON string
      * @param variables encoded JSON string
-     * @return {@link ExecutionResult} response
+     * @param httpServletResponse object
      * @throws IOException exception
      */
     @PostMapping(value = PATH,
@@ -230,7 +230,7 @@ public class GraphQLController {
      *
      *
      * @param query a valid {@link GraphQLQueryRequest} input argument
-     * @return {@link ExecutionResult} response
+     * @param httpServletResponse object
      * @throws IOException exception
      */
     @PostMapping(value = PATH,
