@@ -4,11 +4,16 @@ import static graphql.Assert.assertTrue;
 import static graphql.schema.FieldCoordinates.coordinates;
 import static graphql.util.TraversalControl.CONTINUE;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,11 +126,21 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         Set<GraphQLDirective> directives = Stream.of(managedGraphQLSchemas)
             .map(GraphQLSchema::getDirectives)
             .flatMap(Collection::stream)
-            .distinct()
+            .filter(distinctByKeys(GraphQLDirective::getName))
             .collect(Collectors.toSet());
 
         if(!directives.isEmpty()) {
             schemaBuilder.additionalDirectives(directives);
+        }
+        
+        Set<GraphQLType> types = Stream.of(managedGraphQLSchemas)
+                                       .map(GraphQLSchema::getAdditionalTypes)
+                                       .flatMap(Collection::stream)
+                                       .filter(distinctByKeys(GraphQLType::getName))
+                                       .distinct()
+                                       .collect(Collectors.toSet());
+        if (!types.isEmpty()) {
+            schemaBuilder.additionalTypes(types);
         }
         
         if(!mutations.isEmpty())
@@ -148,6 +163,19 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         
         return schemaBuilder.codeRegistry(codeRegistryBuilder.build())
                             .build();
+    }
+    
+    @SafeVarargs
+    private static <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
+        final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
+
+        return t -> {
+            final List<?> keys = Arrays.stream(keyExtractors)
+                                       .map(ke -> ke.apply(t))
+                                       .collect(Collectors.toList());
+
+            return seen.putIfAbsent(keys, Boolean.TRUE) == null;
+        };
     }
 
     @Override
