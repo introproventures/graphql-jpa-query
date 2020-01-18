@@ -25,6 +25,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -160,7 +162,7 @@ abstract class GraphQLJpaBaseDataFetcher {
             .filter(it -> it != null)
             .collect(Collectors.toList());
         
-        query.where(predicates.toArray(new Predicate[predicates.size()]));
+        query.where(predicates.toArray(new Predicate[0]));
 
         return entityManager.createQuery(query);
     }
@@ -176,14 +178,23 @@ abstract class GraphQLJpaBaseDataFetcher {
                                                                                  .root(query)
                                                                                  .localContext(Boolean.FALSE)
                                                                                  .build();
-        query.select(from.get(idAttributeName()));
+        if(entityType.getIdType() != null) {
+            query.select(from.get(idAttributeName()));
+        } else {
+            List<Selection<?>> selection = entityType.getIdClassAttributes()
+                                                     .stream()
+                                                     .map(SingularAttribute::getName)
+                                                     .map(name -> from.get(name))
+                                                     .collect(Collectors.toList());
+            query.multiselect(selection);
+        }
         
         List<Predicate> predicates = field.getArguments().stream()
             .map(it -> getPredicate(cb, from, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
         
-        query.where(predicates.toArray(new Predicate[predicates.size()]));
+        query.where(predicates.toArray(new Predicate[0]));
 
         GraphQLSupport.fields(field.getSelectionSet())
                       .filter(it -> isPersistent(environment, it.getName()))
@@ -248,18 +259,59 @@ abstract class GraphQLJpaBaseDataFetcher {
         List<Predicate> predicates =  getFieldPredicates(field, query, cb, from, from, queryEnvironment);
 
         if(keys.length > 0) {
-            predicates.add(from.get(idAttributeName()).in(keys));
+            if(entityType.getIdType() != null) {
+                predicates.add(from.get(idAttributeName()).in(keys));
+            } // array of idClass attributes 
+            else {
+                Map<String, List<Object>> idKeys = entityType.getIdClassAttributes()
+                                                             .stream()
+                                                             .map(attribute -> new AbstractMap.SimpleEntry<String, List<Object>>(attribute.getName(),
+                                                                                                                                 new ArrayList<>()))
+                                                             .collect(Collectors.toMap(SimpleEntry::getKey,
+                                                                                       SimpleEntry::getValue));
+                
+                List<SingularAttribute<?, ?>> attributes = entityType.getIdClassAttributes()
+                                                                     .stream()
+                                                                     .collect(Collectors.toList());
+                
+
+                IntStream.range(0, keys.length)
+                         .mapToObj(i -> Arrays.asList((Object[]) keys[i]))
+                         .forEach(values -> {
+                             IntStream.range(0, values.size())
+                                      .forEach(i -> {
+                                          idKeys.get(attributes.get(i).getName()).add(values.get(i));
+                                      });        
+                         });
+                
+                List<Predicate> idPredicates = entityType.getIdClassAttributes()
+                        .stream()
+                        .map(SingularAttribute::getName)
+                        .map(name -> {
+                            return from.get(name).in(idKeys.get(name).toArray(new Object[0]));  
+                        })
+                        .collect(Collectors.toList());
+                
+                predicates.add(cb.and(idPredicates.toArray(new Predicate[0]))); 
+            }
         }
         
         // Use AND clause to filter results
         if(!predicates.isEmpty())
-            query.where(predicates.toArray(new Predicate[predicates.size()]));
+            query.where(predicates.toArray(new Predicate[0]));
 
         // optionally add default ordering
         mayBeAddDefaultOrderBy(query, from, cb);
 
         return query.distinct(isDistinct);
     }
+    
+    <A,B,C>  Stream<C> zipped(List<A> lista, List<B> listb, BiFunction<A,B,C> zipper){
+        int shortestLength = Math.min(lista.size(),listb.size());
+        return IntStream.range(0,shortestLength).mapToObj( i -> {
+             return zipper.apply(lista.get(i), listb.get(i));
+        });        
+   }  
     
     protected void mayBeAddOrderBy(Field selectedField, CriteriaQuery<?> query, CriteriaBuilder cb, Path<?> fieldPath, DataFetchingEnvironment environment) {
         // Singular attributes only
@@ -396,7 +448,16 @@ abstract class GraphQLJpaBaseDataFetcher {
                                                                                                   .filter(AttributePropertyDescriptor::hasDefaultOrderBy)
                                                                                                   .findFirst();
             if(!attributePropertyDescriptor.isPresent()) {
-                query.orderBy(cb.asc(from.get(idAttributeName())));
+                if(entityType.getIdType() != null) {
+                    query.orderBy(cb.asc(from.get(idAttributeName())));
+                } else {
+                    List<Order> orders = entityType.getIdClassAttributes()
+                                                   .stream()
+                                                   .map(SingularAttribute::getName)
+                                                   .map(name -> cb.asc(from.get(name)))
+                                                   .collect(Collectors.toList());
+                    query.orderBy(orders);
+                }
             } else {
                 AttributePropertyDescriptor attribute =  attributePropertyDescriptor.get();
                 
@@ -855,8 +916,8 @@ abstract class GraphQLJpaBaseDataFetcher {
         }
         
         return  (logical == Logical.OR)
-                ? cb.or(predicates.toArray(new Predicate[predicates.size()]))
-                : cb.and(predicates.toArray(new Predicate[predicates.size()]));
+                ? cb.or(predicates.toArray(new Predicate[0]))
+                : cb.and(predicates.toArray(new Predicate[0]));
     }
 
 	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
