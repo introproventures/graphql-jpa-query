@@ -15,17 +15,13 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -34,11 +30,10 @@ import javax.persistence.metamodel.EntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
-
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
+import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLObjectType;
 
@@ -48,18 +43,20 @@ import graphql.schema.GraphQLObjectType;
  * @author Igor Dianov
  *
  */
-class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
+class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
 
     private boolean defaultDistinct = true;
+    private int defaultMaxResults = 100;
+    private int defaultFetchSize = 100;
+    private int defaultPageLimitSize = 100;
 	
     protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
-    
 
     private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
         super(entityManager, entityType, toManyDefaultOptional);
@@ -83,21 +80,17 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        Field field = environment.getField();
-        Map<String, Object> result = new LinkedHashMap<>();
+        final SelectResult.Builder<Object> result = SelectResult.builder();
+        final Optional<Argument> pageArgument = getPageArgument(environment.getField());
+        final Field field = removeArgument(environment.getField(), pageArgument);
+        final Page page = extractPageArgument(environment, pageArgument, defaultPageLimitSize);
 
-        // See which fields we're requesting
+        // Let's see which fields we're requesting
         Optional<Field> pagesSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME);
         Optional<Field> totalSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME);
         Optional<Field> recordsSelection = getSelectionField(field, GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME);
-        
-
-        Optional<Argument> pageArgument = getPageArgument(field);
-        Page page = extractPageArgument(environment, pageArgument);
-        field = removeArgument(field, pageArgument);
 
         Argument distinctArg = extractArgument(environment, field, GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME, new BooleanValue(defaultDistinct));
-        
         boolean isDistinct = ((BooleanValue) distinctArg.getValue()).isValue();
         
         DataFetchingEnvironment queryEnvironment = environment;
@@ -108,7 +101,7 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
             String fieldName = recordsSelection.get().getName();
             
             queryEnvironment = 
-                Optional.of(getFieldDef(environment.getGraphQLSchema(), (GraphQLObjectType)environment.getParentType(), field))
+                Optional.of(getFieldDefinition(environment.getGraphQLSchema(), (GraphQLObjectType)environment.getParentType(), field))
                     .map(it -> (GraphQLObjectType) it.getType())
                     .map(it -> it.getFieldDefinition(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME))
                     .map(it -> DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -121,53 +114,83 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
                               .directives(recordsSelection.get().getDirectives())
                               .build();
             
-            TypedQuery<Object> query = getQuery(queryEnvironment, queryField, isDistinct);
-            
-            // Let's apply page only if present
-            if(pageArgument.isPresent()) {
-            	query
-            		.setMaxResults(page.size)
-                	.setFirstResult((page.page - 1) * page.size);
-            }
-            
-            // Let' try reduce overhead and disable all caching
-            query.setHint(ORG_HIBERNATE_READ_ONLY, true);
-            query.setHint(ORG_HIBERNATE_FETCH_SIZE, 100); // TODO override via arguments
-            query.setHint(ORG_HIBERNATE_CACHEABLE, false);
-            
-            // Let's not pass distinct if enabled to have better performance
-            if(isDistinct) {
-                query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
-            }
-            if (logger.isDebugEnabled()) {
-                logger.info("\nGraphQL JPQL Query String:\n    {}", getJPQLQueryString(query));
-            }
+            final List<Object> keys = queryKeys(queryEnvironment, queryField, pageArgument);
 
-            // Let's execute query and get results via stream 
-            Stream<Object> resultStream = query.getResultStream();
-            
-            // Let's wrap stream iterator into lazy list to pass it downstream
-            List<Object> resultList = ResultStreamWrapper.wrap(resultStream);
-            
-            result.put(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME, resultList);
+            if(!keys.isEmpty()) {
+                // Let's execute query and get result as stream
+                Stream<Object> resultStream = queryResultStream(queryEnvironment, queryField, isDistinct, page, keys);
+    
+                // Let's wrap stream into lazy list to pass it downstream
+                List<Object> resultList = ResultStreamWrapper.wrap(resultStream.peek(entityManager::detach), 
+                                                                   page.getLimit());
+                
+                result.withSelect(resultList);
+            }
         }
         
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            final DataFetchingEnvironment countQueryEnvironment = queryEnvironment;
-            final Field countQueryField = queryField;
-            
-            final Long total = recordsSelection
-                    .map(contentField -> getCountQuery(countQueryEnvironment, countQueryField).getSingleResult())
-                    // if no "content" was selected an empty Field can be used
-                    .orElseGet(() -> getCountQuery(environment, new Field("count")).getSingleResult());
+            final Long total = queryTotalCount(queryEnvironment, queryField, recordsSelection);
+            final Long pages = ((Double) Math.ceil(total / (double) page.getLimit())).longValue();
 
-            result.put(GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME, total);
-            result.put(GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME, ((Double) Math.ceil(total / (double) page.size)).longValue());
+            result.withPages(pages)
+                  .withTotal(total);
         }
 
-        return result;
+        return result.build();
     }
 
+    protected List<Object> queryKeys(DataFetchingEnvironment queryEnvironment, Field queryField, Optional<Argument> pageArgument ) {
+        Page page = extractPageArgument(queryEnvironment, pageArgument, defaultPageLimitSize);
+        
+        TypedQuery<Object> keysQuery = getKeysQuery(queryEnvironment, queryField);
+
+        // Let's apply page only if present
+        if(pageArgument.isPresent()) {
+            keysQuery
+                .setMaxResults(page.getLimit())
+                .setFirstResult((page.getStart() - 1) * page.getLimit());
+        } // Limit max results to avoid OoM 
+        else {
+            keysQuery.setMaxResults(defaultMaxResults); 
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Keys Query String:\n    {}", getJPQLQueryString(keysQuery));
+        }
+        
+        return keysQuery.getResultList();
+    }
+    
+    protected Stream<Object> queryResultStream(DataFetchingEnvironment queryEnvironment, Field queryField, Boolean isDistinct, Page page, List<Object> keys) {
+        TypedQuery<Object> query = getQuery(queryEnvironment, queryField, isDistinct, keys.toArray()); 
+        // Let' try reduce overhead and disable all caching
+        query.setHint(ORG_HIBERNATE_READ_ONLY, true);
+        query.setHint(ORG_HIBERNATE_FETCH_SIZE, Integer.min(page.getLimit(), defaultFetchSize)); 
+        query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+        
+        // Let's not pass distinct if enabled to have better performance
+        if(isDistinct) {
+            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
+        }
+
+        // Let's execute query and get wrap result into stream
+        return query.getResultStream();                
+    }
+    
+    protected Long queryTotalCount(DataFetchingEnvironment queryEnvironment, Field queryField, Optional<Field> recordsSelection) {
+
+        TypedQuery<Long> countQuery = recordsSelection.map(contentField -> getCountQuery(queryEnvironment, queryField))
+                                                      .orElseGet(() -> getCountQuery(queryEnvironment, new Field("total")));
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+        }
+        
+        return countQuery.getSingleResult();
+    }
     
     @Override
     protected Predicate getPredicate(CriteriaBuilder cb, Root<?> root, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
@@ -179,106 +202,29 @@ class GraphQLJpaQueryDataFetcher extends QraphQLJpaBaseDataFetcher {
         
         return super.getPredicate(cb, root, path, environment, argument);
     }
-
     
-    private TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-        Root<?> root = query.from(entityType);
-
-        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
-                                                                                 .root(query)
-                                                                                 .build();
-        
-        query.select(cb.count(root));
-        
-        List<Predicate> predicates = field.getArguments().stream()
-            .map(it -> getPredicate(cb, root, null, queryEnvironment, it))
-            .filter(it -> it != null)
-            .collect(Collectors.toList());
-        
-        query.where(predicates.toArray(new Predicate[predicates.size()]));
-
-        return entityManager.createQuery(query);
-    }
-
-    
-    private Optional<Argument> getPageArgument(Field field) {
-	    return field.getArguments()
-		    .stream()
-		    .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
-		    .findFirst();
-	}
-
-    
-    private Page extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest) {
-
-        if (paginationRequest.isPresent()) {
-
-            Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
-            
-            Integer start = pagex.get(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME);
-            Integer limit = pagex.get(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME);
-
-            return new Page(start, limit);
-        }
-
-        return new Page(1, Integer.MAX_VALUE);
-    }
-
-    private Field removeArgument(Field field, Optional<Argument> argument) {
-
-      if (!argument.isPresent()) {
-        return field;
-      }
-
-      List<Argument> newArguments = field.getArguments().stream()
-          .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
-
-      return field.transform(builder -> builder.arguments(newArguments));
-
-    }
-
-    private Boolean isWhereArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
-        
-    }
-
-    private Boolean isLogicalArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.QUERY_LOGICAL_PARAM_NAME.equals(argument.getName());
-    }
-
-    private Boolean isDistinctArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME.equals(argument.getName());
+    public int getDefaultMaxResults() {
+        return defaultMaxResults;
     }
     
-    private static final class Page {
-        public Integer page;
-        public Integer size;
-
-        public Page(Integer page, Integer size) {
-            this.page = page;
-            this.size = size;
-        }
+    public void setDefaultMaxResults(int defaultMaxResults) {
+        this.defaultMaxResults = defaultMaxResults;
     }
 
-    protected String getJPQLQueryString(TypedQuery<?> query) {
-        try {
-            Object queryImpl = query.unwrap(TypedQuery.class);
-            
-            java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
-                                                                               "queryString");
-                                                    
-            ReflectionUtil.forceAccess(queryStringField);
-            
-            return queryStringField.get(queryImpl)
-                                   .toString();
-            
-        } catch (Exception ignored) {
-            logger.error("Error getting JPQL string", ignored);
-        }
-        
-        return null;
+    public int getDefaultFetchSize() {
+        return defaultFetchSize;
+    }
+
+    public void setDefaultFetchSize(int defaultFetchSize) {
+        this.defaultFetchSize = defaultFetchSize;
+    }
+
+    public int getDefaultPageLimitSize() {
+        return defaultPageLimitSize;
     }
     
-}
+    public void setDefaultPageLimitSize(int defaultPageLimitSize) {
+        this.defaultPageLimitSize = defaultPageLimitSize;
+    }
+}    
+

@@ -53,6 +53,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criter
 import graphql.Assert;
 import graphql.Directives;
 import graphql.Scalars;
+import graphql.relay.Relay;
 import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
@@ -115,8 +116,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean isUseDistinctParameter = false;
     private boolean isDefaultDistinct = true;
     // the many end is a collection, and it is always optional by default (empty collection)
-    private boolean toManyDefaultOptional = true; 
-
+    private boolean toManyDefaultOptional = true;
+    // experimental
+    private boolean enableSubscription = false;
+    private boolean enableDeferDirective = false;
+    private boolean enableRelay = false;
+    private int defaultMaxResults = 100;
+    private int defaultFetchSize = 100;
+    private int defaultPageLimitSize = 100;
+    
+    private final Relay relay = new Relay();
+    
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -126,17 +136,28 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
      */
     @Override
     public GraphQLSchema build() {
-        return GraphQLSchema.newSchema()
-            .query(getQueryType())
-            .subscription(getSubscriptionType())
-            .additionalDirective(Directives.DeferDirective)
-            .build();
+        GraphQLSchema.Builder schema = GraphQLSchema.newSchema()
+                                                    .query(getQueryType());
+        
+        if(enableSubscription) {
+            schema.subscription(getSubscriptionType());
+        }
+
+        if(enableDeferDirective) {
+            schema.additionalDirective(Directives.DeferDirective);
+        }
+        
+        if(enableRelay) {
+            schema.additionalType(Relay.pageInfoType);
+        }
+        
+        return schema.build();
     }
 
     private GraphQLObjectType getQueryType() {
         GraphQLObjectType.Builder queryType = 
             GraphQLObjectType.newObject()
-                .name(this.name)
+                .name(this.name  + "Query")
                 .description(this.description);
 
         queryType.fields(
@@ -161,7 +182,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private GraphQLObjectType getSubscriptionType() {
         GraphQLObjectType.Builder queryType = 
             GraphQLObjectType.newObject()
-                .name(this.name+"Subscription")
+                .name(this.name + "Subscription")
                 .description(this.description);
 
         queryType.fields(
@@ -192,8 +213,37 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }    
 
     private GraphQLFieldDefinition getQueryFieldSelectDefinition(EntityType<?> entityType) {
+        GraphQLObjectType selectResultType = selectResultType(entityType);
         
-        GraphQLObjectType pageType = GraphQLObjectType.newObject()
+        // TODO explore relay connection
+//        GraphQLObjectType edgeType = relay.edgeType(selectObjectType.getName(), objectType, null, Collections.emptyList());
+//        GraphQLObjectType connectionType = relay.connectionType(selectObjectType.getName(), edgeType, Collections.emptyList());
+
+        GraphQLFieldDefinition.Builder fdBuilder =  GraphQLFieldDefinition.newFieldDefinition()
+                .name(namingStrategy.pluralize(entityType.getName()))
+                .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
+                    + "Use query request arguments to specify query filter criterias. "
+                    + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
+                    + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
+                .type(selectResultType)
+                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, 
+                                                            entityType, 
+                                                            isDefaultDistinct, 
+                                                            toManyDefaultOptional))
+                .argument(paginationArgument)
+                .argument(getWhereArgument(entityType));
+        
+        if (isUseDistinctParameter) {
+                fdBuilder.argument(distinctArgument(entityType));
+        }
+
+        return fdBuilder.build();
+    }
+    
+    private GraphQLObjectType selectResultType(EntityType<?> entityType) {
+        GraphQLObjectType selectObjectType = getObjectType(entityType);
+        
+        GraphQLObjectType selectPagedResultType = GraphQLObjectType.newObject()
                 .name(namingStrategy.pluralize(entityType.getName()))
                 .description("Query response wrapper object for " + entityType.getName() + ".  When page is requested, this object will be returned with query metadata.")
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -211,29 +261,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME)
                     .description("The queried records container")
-                    .type(new GraphQLList(getObjectType(entityType)))
+                    .type(new GraphQLList(selectObjectType))
                     .build()
                 )
-                .build();
-
-        GraphQLFieldDefinition.Builder fdBuilder =  GraphQLFieldDefinition.newFieldDefinition()
-                .name(namingStrategy.pluralize(entityType.getName()))
-                .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
-                    + "Use query request arguments to specify query filter criterias. "
-                    + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
-                    + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
-                .type(pageType)
-                .dataFetcher(new GraphQLJpaQueryDataFetcher(entityManager, 
-                                                            entityType, 
-                                                            isDefaultDistinct, 
-                                                            toManyDefaultOptional))
-                .argument(paginationArgument)
-                .argument(getWhereArgument(entityType));
-        if (isUseDistinctParameter) {
-                fdBuilder.argument(distinctArgument(entityType));
-        }
-
-        return fdBuilder.build();
+                .build();        
+        
+        return selectPagedResultType;
     }
     
     private GraphQLFieldDefinition getQueryFieldStreamDefinition(EntityType<?> entityType) {
@@ -1079,11 +1112,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                         .field(GraphQLInputObjectField.newInputObjectField()
                             .name(PAGE_START_PARAM_NAME)
                             .description("Start page that should be returned. Page numbers start with 1 (1-indexed)")
+                            .defaultValue(1)
                             .type(Scalars.GraphQLInt).build()
                         )
                         .field(GraphQLInputObjectField.newInputObjectField()
                             .name(PAGE_LIMIT_PARAM_NAME).description("Limit how many results should this page contain")
                             .type(Scalars.GraphQLInt)
+                            .defaultValue(100) // FIXME Add configuration 
                             .build()
                         )
                         .build()
@@ -1176,9 +1211,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         public Object parseLiteral(Object input) {
             return input;
         }
-
     }
-
 
     @Override
     public GraphQLSchemaBuilder entityPath(String path) {
@@ -1194,15 +1227,73 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         
         return this;
     }
-
     
     public boolean isToManyDefaultOptional() {
         return toManyDefaultOptional;
     }
 
-    
     public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
         this.toManyDefaultOptional = toManyDefaultOptional;
+    }
+    
+    public boolean isEnableSubscription() {
+        return enableSubscription;
+    }
+
+    public GraphQLJpaSchemaBuilder setEnableSubscription(boolean enableSubscription) {
+        this.enableSubscription = enableSubscription;
+
+        return this;
+    }
+
+    public boolean isEnableDeferDirective() {
+        return enableDeferDirective;
+    }
+    
+    public GraphQLJpaSchemaBuilder setEnableDeferDirective(boolean enableDeferDirective) {
+        this.enableDeferDirective = enableDeferDirective;
+
+        return this;
+    }
+    
+    public boolean isEnableRelay() {
+        return enableRelay;
+    }
+    
+    public GraphQLJpaSchemaBuilder setEnableRelay(boolean enableRelay) {
+        this.enableRelay = enableRelay;
+
+        return this;
+    }
+    
+    public int getDefaultMaxResults() {
+        return defaultMaxResults;
+    }
+
+    public GraphQLJpaSchemaBuilder setDefaultMaxResults(int defaultMaxResults) {
+        this.defaultMaxResults = defaultMaxResults;
+
+        return this;
+    }
+
+    public int getDefaultPageLimitSize() {
+        return defaultPageLimitSize;
+    }
+    
+    public GraphQLJpaSchemaBuilder setDefaultPageLimitSize(int defaultPageLimitSize) {
+        this.defaultPageLimitSize = defaultPageLimitSize;
+
+        return this;
+    }
+
+    public int getDefaultFetchSize() {
+        return defaultFetchSize;
+    }
+    
+    public GraphQLJpaSchemaBuilder setDefaultFetchSize(int defaultFetchSize) {
+        this.defaultFetchSize = defaultFetchSize;
+
+        return this;
     }
     
 }

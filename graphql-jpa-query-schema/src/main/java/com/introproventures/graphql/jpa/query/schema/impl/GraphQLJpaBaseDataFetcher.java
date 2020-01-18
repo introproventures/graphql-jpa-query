@@ -23,6 +23,7 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -60,8 +62,14 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
+import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 
 import graphql.GraphQLException;
 import graphql.execution.ValuesResolver;
@@ -80,7 +88,6 @@ import graphql.language.SelectionSet;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
@@ -95,9 +102,11 @@ import graphql.schema.GraphQLType;
  * @author Igor Dianov
  *
  */
-class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
+abstract class GraphQLJpaBaseDataFetcher {
 
-    private static final String WHERE = "where";
+    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaBaseDataFetcher.class);
+    
+    protected static final String WHERE = "where";
 
     protected static final String OPTIONAL = "optional";
 
@@ -115,7 +124,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      * @param entityManager
      * @param entityType
      */
-    public QraphQLJpaBaseDataFetcher(EntityManager entityManager, 
+    public GraphQLJpaBaseDataFetcher(EntityManager entityManager, 
                                      EntityType<?> entityType, 
                                      boolean toManyDefaultOptional) {
         this.entityManager = entityManager;
@@ -123,14 +132,111 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         this.toManyDefaultOptional = toManyDefaultOptional;
     }
 
-    @Override
-    public Object get(DataFetchingEnvironment environment) {
-        return getQuery(environment, environment.getField(), true).getResultList();
-    }
+    protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .localContext(Boolean.TRUE) // Fetch mode
+                                                                                 .build();
+        
+        CriteriaQuery<T> criteriaQuery = getCriteriaQuery(queryEnvironment, field, isDistinct, keys);
 
-    protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
+        return entityManager.createQuery(criteriaQuery);
+    }
+    
+    protected TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<?> query = cb.createQuery((Class<?>) entityType.getJavaType());
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<?> root = query.from(entityType);
+
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .root(query)
+                                                                                 .localContext(Boolean.FALSE) // Join mode
+                                                                                 .build();
+        root.alias("root");
+        
+        query.select(cb.count(root));
+        
+        List<Predicate> predicates = field.getArguments().stream()
+            .map(it -> getPredicate(cb, root, null, queryEnvironment, it))
+            .filter(it -> it != null)
+            .collect(Collectors.toList());
+        
+        query.where(predicates.toArray(new Predicate[predicates.size()]));
+
+        return entityManager.createQuery(query);
+    }
+    
+    protected TypedQuery<Object> getKeysQuery(DataFetchingEnvironment environment, Field field) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object> query = cb.createQuery(Object.class);
+        Root<?> from = query.from(entityType);
+        
+        from.alias("root");
+
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .root(query)
+                                                                                 .localContext(Boolean.FALSE)
+                                                                                 .build();
+        query.select(from.get(idAttributeName()));
+        
+        List<Predicate> predicates = field.getArguments().stream()
+            .map(it -> getPredicate(cb, from, null, queryEnvironment, it))
+            .filter(it -> it != null)
+            .collect(Collectors.toList());
+        
+        query.where(predicates.toArray(new Predicate[predicates.size()]));
+
+        GraphQLSupport.fields(field.getSelectionSet())
+                      .filter(it -> isPersistent(environment, it.getName()))
+                      .forEach(selection -> {
+                          Path<?> selectionPath = from.get(selection.getName());
+
+                          // Process the orderBy clause
+                          mayBeAddOrderBy(selection, query, cb, selectionPath, queryEnvironment);
+                      });
+        
+        mayBeAddDefaultOrderBy(query, from, cb);
+        
+        return entityManager.createQuery(query);
+    }
+    
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    protected TypedQuery<Object> getCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
+        
+        Object source = environment.getSource();
+        
+        SingularAttribute parentIdAttribute = entityType.getId(Object.class);
+        
+        Object parentIdValue = getAttributeValue(source, parentIdAttribute);
+        
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
+        Root<?> from = query.from(entityType);
+        
+        from.alias("owner");
+        
+        // Must use inner join in parent context
+        Join join = from.join(field.getName())
+                        .on(cb.in(from.get(parentIdAttribute.getName()))
+                              .value(parentIdValue));
+        
+        query.select(join.alias(field.getName()));
+        
+        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, environment);
+
+        query.where(
+            predicates.toArray(new Predicate[0])
+        );
+        
+        // optionally add default ordering 
+        mayBeAddDefaultOrderBy(query, join, cb);
+        
+        return entityManager.createQuery(query.distinct(isDistinct));
+    }
+    
+    @SuppressWarnings("unchecked")
+    protected <T> CriteriaQuery<T> getCriteriaQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery((Class<T>) entityType.getJavaType());
         Root<?> from = query.from(entityType);
 
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -139,8 +245,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         from.alias(from.getModel().getName().toLowerCase());
 
         // Build predicates from query arguments
-        List<Predicate> predicates =  getFieldPredicates(field, query, cb,from, from, queryEnvironment);
+        List<Predicate> predicates =  getFieldPredicates(field, query, cb, from, from, queryEnvironment);
 
+        if(keys.length > 0) {
+            predicates.add(from.get(idAttributeName()).in(keys));
+        }
+        
         // Use AND clause to filter results
         if(!predicates.isEmpty())
             query.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -148,7 +258,29 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         // optionally add default ordering
         mayBeAddDefaultOrderBy(query, from, cb);
 
-        return (TypedQuery<T>) entityManager.createQuery(query.distinct(isDistinct));
+        return query.distinct(isDistinct);
+    }
+    
+    protected void mayBeAddOrderBy(Field selectedField, CriteriaQuery<?> query, CriteriaBuilder cb, Path<?> fieldPath, DataFetchingEnvironment environment) {
+        // Singular attributes only
+        if (fieldPath.getModel() instanceof SingularAttribute) {
+            selectedField.getArguments()
+                         .stream()
+                         .filter(this::isOrderByArgument)
+                         .findFirst()
+                         .map(argument -> getOrderByValue(argument, environment))
+                         .ifPresent(orderBy -> {
+                             List<Order> orders = new ArrayList<>(query.getOrderList());
+                             
+                             if ("DESC".equals(orderBy.getName())) {
+                                 orders.add(cb.desc(fieldPath));
+                             } else {
+                                 orders.add(cb.asc(fieldPath));
+                             }
+                             
+                             query.orderBy(orders);
+                         });
+        }
     }
     
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
@@ -157,105 +289,90 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         List<Predicate> predicates = new ArrayList<>();
 
         // Loop through all of the fields being requested
-        field.getSelectionSet().getSelections().forEach(selection -> {
-            if (selection instanceof Field) {
-                Field selectedField = (Field) selection;
-                
-                // "__typename" is part of the graphql introspection spec and has to be ignored by jpa
-                if(isPersistent(environment, selectedField.getName())) {
+        GraphQLSupport.fields(field.getSelectionSet())
+                      .filter(selection -> isPersistent(environment, selection.getName()))
+                      .forEach(selection -> {
+                          
+            Path<?> fieldPath = from.get(selection.getName());
+            From<?,?> fetch = null;
+            Optional<Argument> optionalArgument = getArgument(selection, OPTIONAL);
+            Optional<Argument> whereArgument = getArgument(selection, WHERE);
+            Boolean isOptional = null;
 
-                    Path<?> fieldPath = from.get(selectedField.getName());
-                    From<?,?> fetch = null;
-                    Optional<Argument> optionalArgument = getArgument(selectedField, OPTIONAL);
-                    Optional<Argument> whereArgument = getArgument(selectedField, WHERE);
-                    Boolean isOptional = null;
+            // Build predicate arguments for singular attributes only
+            if(fieldPath.getModel() instanceof SingularAttribute) {
+                // Process the orderBy clause
+                mayBeAddOrderBy(selection, query, cb, fieldPath, environment);
 
-                    // Build predicate arguments for singular attributes only
-                    if(fieldPath.getModel() instanceof SingularAttribute) {
-                        // Process the orderBy clause
-                        selectedField.getArguments().stream()
-                                .filter(this::isOrderByArgument)
-                                .findFirst()
-                                .map(a -> getOrderByValue(a, environment))
-                                .ifPresent(orderBy -> {
-                                    if ("DESC".equals(orderBy.getName())) {
-                                        query.orderBy(cb.desc(fieldPath));
-                                    } else {
-                                        query.orderBy(cb.asc(fieldPath));
-                                    }
-                                });
+                // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
+                SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
+                if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
+                    || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
+                ) {
+                   // Let's do fugly conversion 
+                   isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
+                                                        .orElse(attribute.isOptional());
 
-                        // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
-                        SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
-                        if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
-                            || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
-                        ) {
-                           // Let's do fugly conversion 
-                           isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                                .orElse(attribute.isOptional());
-
-                           // Let's apply left outer join to retrieve optional associations
-                           fetch = reuseFetch(from, selectedField.getName(), isOptional);
-                        } else if(attribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED) {
-                            // Process where arguments clauses.
-                            arguments.addAll(selectedField.getArguments()
-                                                          .stream()
-                                                          .filter(it -> !isOrderByArgument(it) && !isOptionalArgument(it))
-                                                          .map(it -> new Argument(selectedField.getName() + "." + it.getName(),
-                                                                                  it.getValue()))
-                                                          .collect(Collectors.toList()));
-                                
-                        }
-                    } else {
-                        // We must add plural attributes with explicit join fetch 
-                        // Let's do fugly conversion 
-                        // the many end is a collection, and it is always optional by default (empty collection)
-                        isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                     .orElse(toManyDefaultOptional);
-
-                        GraphQLObjectType objectType = getObjectType(environment);
-                        EntityType<?> entityType = getEntityType(objectType);
-
-                        PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selectedField.getName());
+                   // Let's apply left outer join to retrieve optional associations
+                   fetch = reuseFetch(from, selection.getName(), isOptional);
+                } else if(attribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED) {
+                    // Process where arguments clauses.
+                    arguments.addAll(selection.getArguments()
+                                                  .stream()
+                                                  .filter(this::isPredicateArgument)
+                                                  .map(it -> new Argument(selection.getName() + "." + it.getName(),
+                                                                          it.getValue()))
+                                                  .collect(Collectors.toList()));
                         
-                        // Let's join fetch element collections to avoid filtering their values used where search criteria
-                        if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
-                            from.fetch(selectedField.getName(), JoinType.LEFT);
-                        } else {
-                            // Let's apply fetch join to retrieve associated plural attributes
-                            fetch = reuseFetch(from, selectedField.getName(), isOptional);
-                        }
-                    }
-                    // Let's build join fetch graph to avoid Hibernate error: 
-                    // "query specified join fetching, but the owner of the fetched association was not present in the select list"
-                    if(selectedField.getSelectionSet() != null && fetch != null) {
-                        Map<String, Object> variables = environment.getVariables();
-                        
-                        GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
-                                                                             this.getObjectType(environment),
-                                                                             selectedField);  
-                        
-                        List<Argument> values = whereArgument.map(Collections::singletonList)
-                                                             .orElse(Collections.emptyList());
-                        
-                        Map<String, Object> fieldArguments = new ValuesResolver().getArgumentValues(fieldDefinition.getArguments(),
-                                                                                                    values,
-                                                                                                    variables);
-                        
-                        DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, 
-                                                                                             fieldDefinition, 
-                                                                                             fieldArguments);
-                        
-                        predicates.addAll(getFieldPredicates(selectedField, query, cb, root, fetch, fieldEnvironment));
-                    }
                 }
+            } else {
+                // We must add plural attributes with explicit join fetch 
+                // Let's do fugly conversion 
+                // the many end is a collection, and it is always optional by default (empty collection)
+                isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
+                                             .orElse(toManyDefaultOptional);
+
+                GraphQLObjectType objectType = getObjectType(environment);
+                EntityType<?> entityType = getEntityType(objectType);
+
+                PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selection.getName());
+                
+                // Let's join fetch element collections to avoid filtering their values used where search criteria
+                if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
+                    from.fetch(selection.getName(), JoinType.LEFT);
+                } else {
+                    // Let's apply fetch join to retrieve associated plural attributes
+                    fetch = reuseFetch(from, selection.getName(), isOptional);
+                }
+            }
+            // Let's build join fetch graph to avoid Hibernate error: 
+            // "query specified join fetching, but the owner of the fetched association was not present in the select list"
+            if(selection.getSelectionSet() != null && fetch != null) {
+                Map<String, Object> variables = environment.getVariables();
+                
+                GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
+                                                                     this.getObjectType(environment),
+                                                                     selection);  
+                
+                List<Argument> values = whereArgument.map(Collections::singletonList)
+                                                     .orElse(Collections.emptyList());
+                
+                Map<String, Object> fieldArguments = new ValuesResolver().getArgumentValues(fieldDefinition.getArguments(),
+                                                                                            values,
+                                                                                            variables);
+                
+                DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, 
+                                                                                     fieldDefinition, 
+                                                                                     fieldArguments);
+                
+                predicates.addAll(getFieldPredicates(selection, query, cb, root, fetch, fieldEnvironment));
             }
         });
         
         arguments.addAll(field.getArguments());
 
         arguments.stream()
-                 .filter(it -> !isOrderByArgument(it) && !isOptionalArgument(it))
+                 .filter(this::isPredicateArgument)
                  .map(it -> getPredicate(cb, root, from, environment, it))
                  .filter(it -> it != null)
                  .forEach(predicates::add);
@@ -273,48 +390,30 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
      */
     protected void mayBeAddDefaultOrderBy(CriteriaQuery<?> query, From<?,?> from, CriteriaBuilder cb) {
         if (query.getOrderList() == null || query.getOrderList().isEmpty()) {
-            EntityType<?> fromEntityType = entityType;
-            try {
-                java.lang.reflect.Field sortField = getSortAnnotation(fromEntityType.getBindableJavaType());
-                if (sortField == null)
-                    query.orderBy(cb.asc(from.get(fromEntityType.getId(fromEntityType.getIdType().getJavaType()).getName())));
-                else {
-                    GraphQLDefaultOrderBy order = sortField.getAnnotation(GraphQLDefaultOrderBy.class);
-                    if (order.asc()) {
-                        query.orderBy(cb.asc(from.get(sortField.getName())));
-                    } else {
-                        query.orderBy(cb.desc(from.get(sortField.getName())));
-                    }
-
+            Optional<AttributePropertyDescriptor> attributePropertyDescriptor = EntityIntrospector.introspect(entityType)
+                                                                                                  .getPersistentPropertyDescriptors()
+                                                                                                  .stream()
+                                                                                                  .filter(AttributePropertyDescriptor::hasDefaultOrderBy)
+                                                                                                  .findFirst();
+            if(!attributePropertyDescriptor.isPresent()) {
+                query.orderBy(cb.asc(from.get(idAttributeName())));
+            } else {
+                AttributePropertyDescriptor attribute =  attributePropertyDescriptor.get();
+                
+                GraphQLDefaultOrderBy order = attribute.getDefaultOrderBy().get();
+                if (order.asc()) {
+                    query.orderBy(cb.asc(from.get(attribute.getName())));
+                } else {
+                    query.orderBy(cb.desc(from.get(attribute.getName())));
                 }
-            } catch (Exception ex) {
-                //log.warn("In" + this.getClass().getName(), ex);
             }
         }
     }
 
-    /**
-     * Get sorting field with annotation
-     *
-     * @param clazz
-     * @return
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     */
-    private java.lang.reflect.Field getSortAnnotation(Class<?> clazz) throws IllegalArgumentException, IllegalAccessException {
-        for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
-            if (f.getAnnotation(GraphQLDefaultOrderBy.class) != null) {
-                return f;
-            }
-        }
-        //if not found, search in superclass. todo recursive search
-        for (java.lang.reflect.Field f : clazz.getSuperclass().getDeclaredFields()) {
-            if (f.getAnnotation(GraphQLDefaultOrderBy.class) != null) {
-                return f;
-            }
-        }
-        return null;
+    protected boolean isPredicateArgument(Argument argument) {
+        return !isOrderByArgument(argument) && !isOptionalArgument(argument);
     }
+    
     protected boolean isOrderByArgument(Argument argument) {
         return GraphQLJpaSchemaBuilder.ORDER_BY_PARAM_NAME.equals(argument.getName());
     }
@@ -344,7 +443,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             // If the argument is a list, let's assume we need to join and do an 'in' clause
             if (argumentEntityAttribute instanceof PluralAttribute) {
                 // Apply left outer join to retrieve optional associations
-                return reuseFetch(from, argument.getName(), false)
+                Boolean isFetch = environment.getLocalContext();
+                
+                return (isFetch ? reuseFetch(from, argument.getName(), false) : reuseJoin(from, argument.getName(), false))
                     .in(convertValue(environment, argument, argument.getValue()));
             }
 
@@ -361,7 +462,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 Argument where = new Argument(WHERE,  argument.getValue());
                 Map<String, Object> variables = environment.getVariables();
 
-                GraphQLFieldDefinition fieldDef = getFieldDef(
+                GraphQLFieldDefinition fieldDef = getFieldDefinition(
                     environment.getGraphQLSchema(),
                     this.getObjectType(environment),
                     new Field(fieldName)
@@ -486,11 +587,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
             Attribute<?,?> attribute = getAttribute(environment, arg);
             
             if(attribute.isAssociation()) {
-                GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+                GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                      this.getObjectType(environment),
                                                                      new Field(it.getName()));
-                
-                Boolean isOptional = false;
                 
                 if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
                     AbstractQuery<?> query = environment.getRoot();
@@ -517,8 +616,10 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                 }
                 
                 AbstractQuery<?> query = environment.getRoot();
+                Boolean isFetch = environment.getLocalContext();
+                Boolean isOptional = isOptionalAttribute(attribute);
                 
-                From<?,?> context = (isSubquery(query) || isCountQuery(query))
+                From<?,?> context = (isSubquery(query) || isCountQuery(query) || !isFetch)
                                         ? reuseJoin(from, it.getName(), isOptional)
                                         : reuseFetch(from, it.getName(), isOptional);
                             
@@ -707,7 +808,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                           .stream()
                           .anyMatch(it -> !Logical.names().contains(it.getName()) && !Criteria.names().contains(it.getName())))
         {
-            GraphQLFieldDefinition fieldDefinition = getFieldDef(environment.getGraphQLSchema(),
+            GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                  this.getObjectType(environment),
                                                                  new Field(fieldName));
             Map<String, Object> args = new LinkedHashMap<>();
@@ -1042,6 +1143,9 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         if(SingularAttribute.class.isInstance(attribute)) {
             return SingularAttribute.class.cast(attribute).isOptional();
         }
+        else if(PluralAttribute.class.isInstance(attribute)) {
+            return true;
+        }
         
         return false;
     }
@@ -1099,7 +1203,7 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                     .orElse(new Argument(argumentName, defaultValue));
     }
 
-    protected GraphQLFieldDefinition getFieldDef(GraphQLSchema schema, GraphQLObjectType parentType, Field field) {
+    protected GraphQLFieldDefinition getFieldDefinition(GraphQLSchema schema, GraphQLObjectType parentType, Field field) {
         if (schema.getQueryType() == parentType) {
             if (field.getName().equals(SchemaMetaFieldDef.getName())) {
                 return SchemaMetaFieldDef;
@@ -1113,10 +1217,12 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
         }
 
         GraphQLFieldDefinition fieldDefinition = parentType.getFieldDefinition(field.getName());
-        if (fieldDefinition == null) {
-            throw new GraphQLException("unknown field " + field.getName());
+        
+        if (fieldDefinition != null) {
+            return fieldDefinition;
         }
-        return fieldDefinition;
+        
+        throw new GraphQLException("unknown field " + field.getName());
     }
     
     protected final boolean isManagedType(Attribute<?,?> attribute) {
@@ -1235,4 +1341,147 @@ class QraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
                                   String attributeName) {
         return !isPersistent(entityType, attributeName);
     }
+    
+    protected Optional<Argument> getPageArgument(Field field) {
+        return field.getArguments()
+            .stream()
+            .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
+            .findFirst();
+    }
+
+    
+    protected Page extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest, int defaultPageLimitSize) {
+
+        if (paginationRequest.isPresent()) {
+
+            Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
+            
+            Integer start = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME, 1);
+            Integer limit = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME, defaultPageLimitSize);
+
+            return new Page(start, limit);
+        }
+
+        return new Page(1, defaultPageLimitSize);
+    }
+    
+    static final class Page {
+        private int start;
+        private int limit;
+
+        public Page(Integer start, Integer limit) {
+            this.start = start;
+            this.limit = limit;
+        }
+
+        
+        public int getStart() {
+            return start;
+        }
+
+        
+        public int getLimit() {
+            return limit;
+        }
+    }    
+
+    protected Field removeArgument(Field field, Optional<Argument> argument) {
+
+        if (!argument.isPresent()) {
+          return field;
+        }
+
+        List<Argument> newArguments = field.getArguments().stream()
+            .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
+
+        return field.transform(builder -> builder.arguments(newArguments));
+
+      }
+    
+    protected Boolean isWhereArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
+    }
+
+    protected Boolean isPageArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(argument.getName());
+    }
+    
+    protected Boolean isLogicalArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.QUERY_LOGICAL_PARAM_NAME.equals(argument.getName());
+    }
+
+    protected Boolean isDistinctArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME.equals(argument.getName());
+    }
+    
+    protected String getJPQLQueryString(TypedQuery<?> query) {
+        try {
+            Object queryImpl = query.unwrap(TypedQuery.class);
+            
+            java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
+                                                                               "queryString");
+                                                    
+            ReflectionUtil.forceAccess(queryStringField);
+            
+            return queryStringField.get(queryImpl)
+                                   .toString();
+            
+        } catch (Exception ignored) {
+            logger.error("Error getting JPQL string", ignored);
+        }
+        
+        return null;
+    }
+    
+    protected String idAttributeName() {
+        return entityType.getId(entityType.getIdType()
+                                          .getJavaType()).getName();
+    }
+    
+    /**
+     * Fetches the value of the given SingularAttribute on the given
+     * entity.
+     *
+     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     */
+    @SuppressWarnings("unchecked")
+    protected <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
+        try {
+            Member member = field.getJavaMember();
+            if (member instanceof Method) {
+                // this should be a getter method:
+                return (FieldType) ((Method)member).invoke(entity);
+            } else if (member instanceof java.lang.reflect.Field) {
+                return (FieldType) ((java.lang.reflect.Field)member).get(entity);
+            } else {
+                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }    
+
+    /**
+     * Fetches the value of the given SingularAttribute on the given
+     * entity.
+     *
+     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     */
+    @SuppressWarnings("unchecked")
+    protected <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
+        try {
+            Member member = field.getJavaMember();
+            if (member instanceof Method) {
+                // this should be a getter method:
+                return (FieldType) ((Method)member).invoke(entity);
+            } else if (member instanceof java.lang.reflect.Field) {
+                return (FieldType) ((java.lang.reflect.Field)member).get(entity);
+            } else {
+                throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }     
+    
 }
