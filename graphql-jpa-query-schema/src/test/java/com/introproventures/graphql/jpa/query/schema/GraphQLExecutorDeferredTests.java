@@ -44,8 +44,8 @@ public class GraphQLExecutorDeferredTests extends AbstractSpringBootTestSupport 
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
-                .setEnableSubscription(true)
-                .setEnableDeferDirective(true);
+                .enableSubscription(true)
+                .enableDeferDirective(true);
         }
         
     }

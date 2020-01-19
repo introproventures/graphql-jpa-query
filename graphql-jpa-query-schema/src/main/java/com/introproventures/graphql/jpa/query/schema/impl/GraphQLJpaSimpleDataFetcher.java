@@ -37,12 +37,12 @@ import graphql.schema.DataFetchingEnvironment;
 class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaSimpleDataFetcher.class);
 
-    public GraphQLJpaSimpleDataFetcher(EntityManager entityManager, 
-                                       EntityType<?> entityType,
-                                       boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
+    private GraphQLJpaSimpleDataFetcher(Builder builder) {
+        super(builder.entityManager, 
+              builder.entityType, 
+              builder.toManyDefaultOptional);
     }
-    
+
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
@@ -88,4 +88,68 @@ class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher implements D
 		
 		return field.transform(builder -> builder.arguments(argumentsWhereObjectsAreFlattened));
 	}
+
+    /**
+     * Creates builder to build {@link GraphQLJpaSimpleDataFetcher}.
+     * @return created builder
+     */
+    public static IEntityManagerStage builder() {
+        return new Builder();
+    }
+
+    public interface IEntityManagerStage {
+
+        public IEntityTypeStage withEntityManager(EntityManager entityManager);
+    }
+
+    public interface IEntityTypeStage {
+
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType);
+    }
+
+    public interface IToManyDefaultOptionalStage {
+
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
+    }
+
+    public interface IBuildStage {
+
+        public GraphQLJpaSimpleDataFetcher build();
+    }
+
+    /**
+     * Builder to build {@link GraphQLJpaSimpleDataFetcher}.
+     */
+    public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IToManyDefaultOptionalStage, IBuildStage {
+
+        private EntityManager entityManager;
+        private EntityType<?> entityType;
+        private boolean toManyDefaultOptional;
+
+        private Builder() {
+        }
+
+        @Override
+        public IEntityTypeStage withEntityManager(EntityManager entityManager) {
+            this.entityManager = entityManager;
+            return this;
+        }
+
+        @Override
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional) {
+            this.toManyDefaultOptional = toManyDefaultOptional;
+            return this;
+        }
+
+        @Override
+        public GraphQLJpaSimpleDataFetcher build() {
+            return new GraphQLJpaSimpleDataFetcher(this);
+        }
+    }
 }

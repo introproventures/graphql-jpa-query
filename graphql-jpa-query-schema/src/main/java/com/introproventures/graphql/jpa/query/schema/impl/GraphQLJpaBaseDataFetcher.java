@@ -109,16 +109,13 @@ abstract class GraphQLJpaBaseDataFetcher {
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaBaseDataFetcher.class);
     
     protected static final String WHERE = "where";
-
     protected static final String OPTIONAL = "optional";
-
     // "__typename" is part of the graphql introspection spec and has to be ignored
     private static final String TYPENAME = "__typename";
 
     protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
-    
-    private boolean toManyDefaultOptional = true;
+    private final boolean toManyDefaultOptional;
 
     /**
      * Creates JPA entity DataFetcher instance
@@ -126,7 +123,7 @@ abstract class GraphQLJpaBaseDataFetcher {
      * @param entityManager
      * @param entityType
      */
-    public GraphQLJpaBaseDataFetcher(EntityManager entityManager, 
+    protected GraphQLJpaBaseDataFetcher(EntityManager entityManager, 
                                      EntityType<?> entityType, 
                                      boolean toManyDefaultOptional) {
         this.entityManager = entityManager;

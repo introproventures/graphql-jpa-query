@@ -43,38 +43,24 @@ import reactor.core.publisher.Flux;
  *
  */
 class GraphQLJpaStreamDataFetcher extends GraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
-    
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaStreamDataFetcher.class);
 
-    private boolean defaultDistinct = true;
-	
     protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
     
+    private final boolean defaultDistinct;
 
-    private GraphQLJpaStreamDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
+    private GraphQLJpaStreamDataFetcher(Builder builder) {
+        super(builder.entityManager, 
+              builder.entityType, 
+              builder.toManyDefaultOptional);
+        
+        this.defaultDistinct = builder.defaultDistinct;
     }
-
-    public GraphQLJpaStreamDataFetcher(EntityManager entityManager, 
-                                      EntityType<?> entityType, 
-                                      boolean defaultDistinct,
-                                      boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
-        this.defaultDistinct = defaultDistinct;
-    }
-
-    public boolean isDefaultDistinct() {
-        return defaultDistinct;
-    }
-
-    public void setDefaultDistinct(boolean defaultDistinct) {
-        this.defaultDistinct = defaultDistinct;
-    }
-
+    
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
@@ -122,6 +108,125 @@ class GraphQLJpaStreamDataFetcher extends GraphQLJpaBaseDataFetcher implements D
             return getWherePredicate(cb, root, path, argumentEnvironment(environment, argument), argument);
         
         return super.getPredicate(cb, root, path, environment, argument);
+    }
+    
+    public boolean isDefaultDistinct() {
+        return defaultDistinct;
+    }
+
+    /**
+     * Creates builder to build {@link GraphQLJpaStreamDataFetcher}.
+     * @return created builder
+     */
+    public static IEntityManagerStage builder() {
+        return new Builder();
+    }
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IEntityManagerStage {
+
+        /**
+        * Builder method for entityManager parameter.
+        * @param entityManager field to set
+        * @return builder
+        */
+        public IEntityTypeStage withEntityManager(EntityManager entityManager);
+    }
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IEntityTypeStage {
+
+        /**
+        * Builder method for entityType parameter.
+        * @param entityType field to set
+        * @return builder
+        */
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType);
+    }
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IToManyDefaultOptionalStage {
+
+        /**
+        * Builder method for toManyDefaultOptional parameter.
+        * @param toManyDefaultOptional field to set
+        * @return builder
+        */
+        public IDefaultDistinctStage withToManyDefaultOptional(boolean toManyDefaultOptional);
+    }
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IDefaultDistinctStage {
+
+        /**
+        * Builder method for defaultDistinct parameter.
+        * @param defaultDistinct field to set
+        * @return builder
+        */
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct);
+    }
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IBuildStage {
+
+        /**
+        * Builder method of the builder.
+        * @return built class
+        */
+        public GraphQLJpaStreamDataFetcher build();
+    }
+
+    /**
+     * Builder to build {@link GraphQLJpaStreamDataFetcher}.
+     */
+    public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IToManyDefaultOptionalStage, IDefaultDistinctStage, IBuildStage {
+
+        private EntityManager entityManager;
+        private EntityType<?> entityType;
+        private boolean toManyDefaultOptional;
+        private boolean defaultDistinct;
+
+        private Builder() {
+        }
+
+        @Override
+        public IEntityTypeStage withEntityManager(EntityManager entityManager) {
+            this.entityManager = entityManager;
+            return this;
+        }
+
+        @Override
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public IDefaultDistinctStage withToManyDefaultOptional(boolean toManyDefaultOptional) {
+            this.toManyDefaultOptional = toManyDefaultOptional;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct) {
+            this.defaultDistinct = defaultDistinct;
+            return this;
+        }
+
+        @Override
+        public GraphQLJpaStreamDataFetcher build() {
+            return new GraphQLJpaStreamDataFetcher(this);
+        }
     }
 
 }

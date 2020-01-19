@@ -47,10 +47,10 @@ class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher implements Da
     
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
 
-    private boolean defaultDistinct = true;
-    private int defaultMaxResults = 100;
-    private int defaultFetchSize = 100;
-    private int defaultPageLimitSize = 100;
+    private final boolean defaultDistinct;
+    private final int defaultMaxResults;
+    private final int defaultFetchSize;
+    private final int defaultPageLimitSize;
 	
     protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
@@ -58,24 +58,19 @@ class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher implements Da
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
-    private GraphQLJpaQueryDataFetcher(EntityManager entityManager, EntityType<?> entityType, boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
-    }
-
-    public GraphQLJpaQueryDataFetcher(EntityManager entityManager, 
-                                      EntityType<?> entityType, 
-                                      boolean defaultDistinct,
-                                      boolean toManyDefaultOptional) {
-        super(entityManager, entityType, toManyDefaultOptional);
-        this.defaultDistinct = defaultDistinct;
+    private GraphQLJpaQueryDataFetcher(Builder builder) {
+        super(builder.entityManager, 
+              builder.entityType, 
+              builder.toManyDefaultOptional);
+        
+        this.defaultDistinct = builder.defaultDistinct;
+        this.defaultMaxResults = builder.defaultMaxResults;
+        this.defaultFetchSize = builder.defaultFetchSize;
+        this.defaultPageLimitSize = builder.defaultPageLimitSize;
     }
 
     public boolean isDefaultDistinct() {
         return defaultDistinct;
-    }
-
-    public void setDefaultDistinct(boolean defaultDistinct) {
-        this.defaultDistinct = defaultDistinct;
     }
 
     @Override
@@ -207,24 +202,113 @@ class GraphQLJpaQueryDataFetcher extends GraphQLJpaBaseDataFetcher implements Da
         return defaultMaxResults;
     }
     
-    public void setDefaultMaxResults(int defaultMaxResults) {
-        this.defaultMaxResults = defaultMaxResults;
-    }
-
     public int getDefaultFetchSize() {
         return defaultFetchSize;
-    }
-
-    public void setDefaultFetchSize(int defaultFetchSize) {
-        this.defaultFetchSize = defaultFetchSize;
     }
 
     public int getDefaultPageLimitSize() {
         return defaultPageLimitSize;
     }
-    
-    public void setDefaultPageLimitSize(int defaultPageLimitSize) {
-        this.defaultPageLimitSize = defaultPageLimitSize;
+
+    /**
+     * Creates builder to build {@link GraphQLJpaQueryDataFetcher}.
+     * @return created builder
+     */
+    public static IEntityManagerStage builder() {
+        return new Builder();
     }
+
+    public interface IEntityManagerStage {
+
+        public IEntityTypeStage withEntityManager(EntityManager entityManager);
+    }
+
+    public interface IEntityTypeStage {
+
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType);
+    }
+
+    public interface IToManyDefaultOptionalStage {
+
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
+    }
+
+    public interface IBuildStage {
+
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct);
+
+        public IBuildStage withDefaultMaxResults(int defaultMaxResults);
+
+        public IBuildStage withDefaultFetchSize(int defaultFetchSize);
+
+        public IBuildStage withDefaultPageLimitSize(int defaultPageLimitSize);
+
+        public GraphQLJpaQueryDataFetcher build();
+    }
+
+    /**
+     * Builder to build {@link GraphQLJpaQueryDataFetcher}.
+     */
+    public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IToManyDefaultOptionalStage, IBuildStage {
+
+        private EntityManager entityManager;
+        private EntityType<?> entityType;
+        private boolean toManyDefaultOptional;
+        private boolean defaultDistinct;
+        private int defaultMaxResults;
+        private int defaultFetchSize;
+        private int defaultPageLimitSize;
+
+        private Builder() {
+        }
+
+        @Override
+        public IEntityTypeStage withEntityManager(EntityManager entityManager) {
+            this.entityManager = entityManager;
+            return this;
+        }
+
+        @Override
+        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional) {
+            this.toManyDefaultOptional = toManyDefaultOptional;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct) {
+            this.defaultDistinct = defaultDistinct;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultMaxResults(int defaultMaxResults) {
+            this.defaultMaxResults = defaultMaxResults;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultFetchSize(int defaultFetchSize) {
+            this.defaultFetchSize = defaultFetchSize;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultPageLimitSize(int defaultPageLimitSize) {
+            this.defaultPageLimitSize = defaultPageLimitSize;
+            return this;
+        }
+
+        @Override
+        public GraphQLJpaQueryDataFetcher build() {
+            return new GraphQLJpaQueryDataFetcher(this);
+        }
+    }
+    
 }    
 
