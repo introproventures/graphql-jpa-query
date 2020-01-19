@@ -178,9 +178,9 @@ abstract class GraphQLJpaBaseDataFetcher {
                                                                                  .root(query)
                                                                                  .localContext(Boolean.FALSE)
                                                                                  .build();
-        if(entityType.getIdType() != null) {
+        if(hasIdAttribute()) {
             query.select(from.get(idAttributeName()));
-        } else {
+        } else if(hasIdClassAttribue()) {
             List<Selection<?>> selection = Stream.of(idClassAttributeNames())
                                                  .map(from::get)
                                                  .collect(Collectors.toList());
@@ -256,11 +256,11 @@ abstract class GraphQLJpaBaseDataFetcher {
         // Build predicates from query arguments
         List<Predicate> predicates =  getFieldPredicates(field, query, cb, from, from, queryEnvironment);
 
-        if(keys.length > 0) {
-            if(entityType.getIdType() != null) {
+        if (keys.length > 0) {
+            if(hasIdAttribute()) {
                 predicates.add(from.get(idAttributeName()).in(keys));
             } // array of idClass attributes 
-            else {
+            else if (hasIdClassAttribue()) {
                 String[] names = idClassAttributeNames();
                 Map<String, List<Object>> idKeys = new HashMap<>();
 
@@ -436,10 +436,10 @@ abstract class GraphQLJpaBaseDataFetcher {
                                                                                                   .stream()
                                                                                                   .filter(AttributePropertyDescriptor::hasDefaultOrderBy)
                                                                                                   .findFirst();
-            if(!attributePropertyDescriptor.isPresent()) {
-                if(entityType.getIdType() != null) {
+            if (!attributePropertyDescriptor.isPresent()) {
+                if (hasIdAttribute()) {
                     query.orderBy(cb.asc(from.get(idAttributeName())));
-                } else {
+                } else if (hasIdClassAttribue()) {
                     List<Order> orders = Stream.of(idClassAttributeNames())
                                                .map(name -> cb.asc(from.get(name)))
                                                .collect(Collectors.toList());
@@ -1480,12 +1480,20 @@ abstract class GraphQLJpaBaseDataFetcher {
         
         return null;
     }
+
+    protected boolean hasIdAttribute() {
+        return entityType.getIdType() != null;
+    }
     
     protected String idAttributeName() {
         return entityType.getId(entityType.getIdType()
                                           .getJavaType()).getName();
     }
 
+    protected boolean hasIdClassAttribue() {
+        return entityType.getIdClassAttributes() != null;
+    }
+    
     protected String[] idClassAttributeNames() {
         return entityType.getIdClassAttributes()
                          .stream()
