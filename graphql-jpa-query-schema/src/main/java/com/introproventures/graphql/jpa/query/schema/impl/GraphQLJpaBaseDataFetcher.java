@@ -627,17 +627,17 @@ abstract class GraphQLJpaBaseDataFetcher {
                                                 CriteriaBuilder cb, 
                                                 From<?,?> from, 
                                                 Logical logical,
-                                                ObjectField it, 
-                                                Argument arg, 
-                                                Map<String, Object> args
+                                                ObjectField objectField, 
+                                                Argument argument, 
+                                                Map<String, Object> arguments
                                                  ) {
         if(isEntityType(environment)) {
-            Attribute<?,?> attribute = getAttribute(environment, arg);
+            Attribute<?,?> attribute = getAttribute(environment, argument);
             
             if(attribute.isAssociation()) {
                 GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                      this.getObjectType(environment),
-                                                                     new Field(it.getName()));
+                                                                     new Field(objectField.getName()));
                 
                 if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
                     AbstractQuery<?> query = environment.getRoot();
@@ -645,7 +645,7 @@ abstract class GraphQLJpaBaseDataFetcher {
                     From<?,?> correlation = Root.class.isInstance(from) ? subquery.correlate((Root<?>) from)
                                                                         : subquery.correlate((Join<?,?>) from);
                     
-                    Join<?,?> correlationJoin = correlation.join(it.getName());
+                    Join<?,?> correlationJoin = correlation.join(objectField.getName());
                     
                     DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                               .root(subquery)
@@ -653,8 +653,8 @@ abstract class GraphQLJpaBaseDataFetcher {
                     
                     Predicate restriction = getArgumentPredicate(cb,
                                                                  correlationJoin,
-                                                                 wherePredicateEnvironment(existsEnvironment, fieldDefinition, args),
-                                                                 arg);
+                                                                 wherePredicateEnvironment(existsEnvironment, fieldDefinition, arguments),
+                                                                 argument);
                     
                     
                     Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
@@ -668,21 +668,22 @@ abstract class GraphQLJpaBaseDataFetcher {
                 Boolean isOptional = isOptionalAttribute(attribute);
                 
                 From<?,?> context = (isSubquery(query) || isCountQuery(query) || !isFetch)
-                                        ? reuseJoin(from, it.getName(), isOptional)
-                                        : reuseFetch(from, it.getName(), isOptional);
+                                        ? reuseJoin(from, objectField.getName(), isOptional)
+                                        : reuseFetch(from, objectField.getName(), isOptional);
                             
-                return getArgumentPredicate(cb, context,  
-                                            wherePredicateEnvironment(environment, fieldDefinition, args),
-                                            arg);
+                return getArgumentPredicate(cb, 
+                                            context,
+                                            wherePredicateEnvironment(environment, fieldDefinition, arguments),
+                                            argument);
             }
         }
 
-        return getLogicalPredicate(it.getName(),
-                                 cb,
-                                 from,
-                                 it,
-                                 argumentEnvironment(environment, args),
-                                 arg);        
+        return getLogicalPredicate(objectField.getName(),
+                                   cb,
+                                   from,
+                                   objectField,
+                                   argumentEnvironment(environment, arguments),
+                                   argument);
     }
 
     protected boolean isSubquery(AbstractQuery<?> query) {
