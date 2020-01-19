@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -249,7 +248,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(selectResultType)
                 .dataFetcher(dataFetcher)
-                .argument(paginationArgument(defaultPageLimitSize))
+                .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
         
         if (isUseDistinctParameter) {
@@ -303,7 +302,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
                 .type(getObjectType(entityType))
                 .dataFetcher(dataFetcher)
-                .argument(paginationArgument(defaultPageLimitSize))
+                .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
         
         if (isUseDistinctParameter) {
@@ -1126,29 +1125,22 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         }
     }
     
-    private GraphQLArgument paginationArgument = null;
-
-    private GraphQLArgument paginationArgument(int pageLimitSize) {
-        return Optional.ofNullable(paginationArgument)
-                       .orElseGet(() -> 
-                                   paginationArgument = newArgument()
-                                        .name(PAGE_PARAM_NAME)
-                                        .description("Page object for pageble requests, specifying the requested start page and limit size.")
-                                        .type(newInputObject().name("Page")
-                                                              .description("Page fields for pageble requests.")
-                                                              .field(newInputObjectField().name(PAGE_START_PARAM_NAME)
-                                                                                          .description("Start page that should be returned. Page numbers start with 1 (1-indexed)")
-                                                                                          .defaultValue(1)
-                                                                                          .type(Scalars.GraphQLInt)
-                                                                                          .build())
-                                                              .field(newInputObjectField().name(PAGE_LIMIT_PARAM_NAME)
-                                                                                          .description("Limit how many results should this page contain")
-                                                                                          .type(Scalars.GraphQLInt)
-                                                                                          .defaultValue(pageLimitSize)
-                                                                                          .build())
-                                                              .build())
-                                        .build());
-    }
+    private static final GraphQLArgument paginationArgument = 
+            newArgument().name(PAGE_PARAM_NAME)
+                         .description("Page object for pageble requests, specifying the requested start page and limit size.")
+                         .type(newInputObject().name("Page")
+                                               .description("Page fields for pageble requests.")
+                                               .field(newInputObjectField().name(PAGE_START_PARAM_NAME)
+                                                                           .description("Start page that should be returned. Page numbers start with 1 (1-indexed)")
+                                                                           .defaultValue(1)
+                                                                           .type(Scalars.GraphQLInt)
+                                                                           .build())
+                                               .field(newInputObjectField().name(PAGE_LIMIT_PARAM_NAME)
+                                                                           .description("Limit how many results should this page contain")
+                                                                           .type(Scalars.GraphQLInt)
+                                                                           .build())
+                                               .build())
+                         .build();
 
     private static final GraphQLEnumType orderByDirectionEnum =
             GraphQLEnumType.newEnum()
