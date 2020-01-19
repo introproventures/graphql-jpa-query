@@ -25,13 +25,13 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,11 +181,9 @@ abstract class GraphQLJpaBaseDataFetcher {
         if(entityType.getIdType() != null) {
             query.select(from.get(idAttributeName()));
         } else {
-            List<Selection<?>> selection = entityType.getIdClassAttributes()
-                                                     .stream()
-                                                     .map(SingularAttribute::getName)
-                                                     .map(name -> from.get(name))
-                                                     .collect(Collectors.toList());
+            List<Selection<?>> selection = Stream.of(idClassAttributeNames())
+                                                 .map(from::get)
+                                                 .collect(Collectors.toList());
             query.multiselect(selection);
         }
         
@@ -263,34 +261,25 @@ abstract class GraphQLJpaBaseDataFetcher {
                 predicates.add(from.get(idAttributeName()).in(keys));
             } // array of idClass attributes 
             else {
-                Map<String, List<Object>> idKeys = entityType.getIdClassAttributes()
-                                                             .stream()
-                                                             .map(attribute -> new AbstractMap.SimpleEntry<String, List<Object>>(attribute.getName(),
-                                                                                                                                 new ArrayList<>()))
-                                                             .collect(Collectors.toMap(SimpleEntry::getKey,
-                                                                                       SimpleEntry::getValue));
-                
-                List<SingularAttribute<?, ?>> attributes = entityType.getIdClassAttributes()
-                                                                     .stream()
-                                                                     .collect(Collectors.toList());
-                
+                String[] names = idClassAttributeNames();
+                Map<String, List<Object>> idKeys = new HashMap<>();
 
                 IntStream.range(0, keys.length)
-                         .mapToObj(i -> Arrays.asList((Object[]) keys[i]))
+                         .mapToObj(i -> (Object[]) keys[i])
                          .forEach(values -> {
-                             IntStream.range(0, values.size())
+                             IntStream.range(0, values.length)
                                       .forEach(i -> {
-                                          idKeys.get(attributes.get(i).getName()).add(values.get(i));
+                                          idKeys.computeIfAbsent(names[i], key -> new ArrayList<>())
+                                                .add(values[i]);
                                       });        
                          });
                 
-                List<Predicate> idPredicates = entityType.getIdClassAttributes()
-                        .stream()
-                        .map(SingularAttribute::getName)
-                        .map(name -> {
-                            return from.get(name).in(idKeys.get(name).toArray(new Object[0]));  
-                        })
-                        .collect(Collectors.toList());
+                List<Predicate> idPredicates = Stream.of(names)
+                                                     .map(name -> {
+                                                         return from.get(name)
+                                                                    .in(idKeys.get(name).toArray(new Object[0]));
+                                                     })
+                                                     .collect(Collectors.toList());
                 
                 predicates.add(cb.and(idPredicates.toArray(new Predicate[0]))); 
             }
@@ -451,11 +440,9 @@ abstract class GraphQLJpaBaseDataFetcher {
                 if(entityType.getIdType() != null) {
                     query.orderBy(cb.asc(from.get(idAttributeName())));
                 } else {
-                    List<Order> orders = entityType.getIdClassAttributes()
-                                                   .stream()
-                                                   .map(SingularAttribute::getName)
-                                                   .map(name -> cb.asc(from.get(name)))
-                                                   .collect(Collectors.toList());
+                    List<Order> orders = Stream.of(idClassAttributeNames())
+                                               .map(name -> cb.asc(from.get(name)))
+                                               .collect(Collectors.toList());
                     query.orderBy(orders);
                 }
             } else {
@@ -1497,6 +1484,15 @@ abstract class GraphQLJpaBaseDataFetcher {
     protected String idAttributeName() {
         return entityType.getId(entityType.getIdType()
                                           .getJavaType()).getName();
+    }
+
+    protected String[] idClassAttributeNames() {
+        return entityType.getIdClassAttributes()
+                         .stream()
+                         .map(SingularAttribute::getName)
+                         .sorted()
+                         .collect(Collectors.toList())
+                         .toArray(new String[0]);
     }
     
     /**
