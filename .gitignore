@@ -29,3 +29,5 @@ target/
 .cache-tests
 
 .sts4-cache
+
+*.versionsBackup
