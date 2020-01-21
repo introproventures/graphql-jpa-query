@@ -1547,7 +1547,7 @@ public final class GraphQLJpaQueryFactory {
      * Fetches the value of the given SingularAttribute on the given
      * entity.
      *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     * http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
      */
     @SuppressWarnings("unchecked")
     protected <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
@@ -1570,7 +1570,7 @@ public final class GraphQLJpaQueryFactory {
      * Fetches the value of the given SingularAttribute on the given
      * entity.
      *
-     * @see http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
+     * http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
      */
     @SuppressWarnings("unchecked")
     protected <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, PluralAttribute<EntityType, ?, FieldType> field) {
