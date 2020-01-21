@@ -56,9 +56,9 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     
     /**
      * Creates instance using GraphQLSchema and GraphQLJpaExecutorContextFactory
-     *  
-     * @param graphQLSchema instance
-     * @param GraphQLExecutorContextFactory contextFactory
+     * 
+     * @param graphQLSchema schema
+     * @param contextFactory factory
      */
     public GraphQLJpaExecutor(GraphQLSchema graphQLSchema,
                               GraphQLExecutorContextFactory contextFactory) {
