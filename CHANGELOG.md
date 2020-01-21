@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.0
+## 0.4.1-SNAPSHOT
 * fix(Javadoc): corrected more Javadoc errors [a6508f0](https://github.com/introproventures/graphql-jpa-query/commit/a6508f0c71966c87a5bf7a71a04616b2e184ebbc)
 * fix(Javadoc): Corrected Javadoc Maven plugin errros [7465e71](https://github.com/introproventures/graphql-jpa-query/commit/7465e717e0206b5266a4352513ef572907cd0282)
 * fix(version): update project version to 0.4.0-SNAPSHOT [3763ed7](https://github.com/introproventures/graphql-jpa-query/commit/3763ed719f659b3618fa48fdcc366bb1e344d286)
