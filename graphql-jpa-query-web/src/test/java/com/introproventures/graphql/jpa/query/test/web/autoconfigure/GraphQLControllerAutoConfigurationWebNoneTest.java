@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.web.autoconfigure;
+package com.introproventures.graphql.jpa.query.test.web.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

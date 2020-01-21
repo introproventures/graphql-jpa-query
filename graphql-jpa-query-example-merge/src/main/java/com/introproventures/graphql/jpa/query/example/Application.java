@@ -15,13 +15,22 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import graphql.schema.GraphQLSchema;
+import java.util.function.Supplier;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.context.annotation.RequestScope;
+
+import graphql.GraphQLContext;
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.tracing.TracingInstrumentation;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
@@ -34,14 +43,28 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableTransactionManagement
 public class Application {
+    
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    
+
     @Bean
-    public GraphQLExecutor graphQLExecutor(GraphQLSchema graphQLSchema) {
-        return new GraphQLJpaExecutor(graphQLSchema);
+    @RequestScope
+    public Supplier<GraphQLContext> graphqlContext(HttpServletRequest request) {
+        return () -> GraphQLContext.newContext()
+                                   .of("request", request)
+                                   .of("user", request)
+                                   .build();
+    }
+
+    @Bean
+    @RequestScope
+    public Supplier<Instrumentation> instrumentation(HttpServletRequest request) {
+        return () -> logger.isDebugEnabled() 
+                           ? new TracingInstrumentation() 
+                           : SimpleInstrumentation.INSTANCE;
     }
     
 }
