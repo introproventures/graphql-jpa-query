@@ -15,7 +15,6 @@ spring:
         name: BooksRelay
         description: GraphQL Jpa Query Books Relay Example
         enable-relay: true
-        enabled: true
 
 logging:
   level:
