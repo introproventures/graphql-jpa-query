@@ -16,31 +16,22 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.metamodel.EntityType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import graphql.language.Argument;
 import graphql.language.Field;
-import graphql.language.ObjectValue;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 
-class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher implements DataFetcher<Object> {
+class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaSimpleDataFetcher.class);
+    
+    private final GraphQLJpaQueryFactory queryFactory;
 
     private GraphQLJpaSimpleDataFetcher(Builder builder) {
-        super(builder.entityManager, 
-              builder.entityType, 
-              builder.toManyDefaultOptional);
+        this.queryFactory = builder.queryFactory;
     }
 
     @Override
@@ -48,10 +39,9 @@ class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher implements D
         Field field = environment.getField();
 
         if(!field.getArguments().isEmpty()) {
-            field = flattenEmbeddedIdArguments(field);
             
             try {
-                return querySingleResult(environment, field);
+                return queryFactory.querySingleResult(environment);
             } catch (NoResultException ignored) {
                 // do nothing
             }
@@ -60,90 +50,52 @@ class GraphQLJpaSimpleDataFetcher extends GraphQLJpaBaseDataFetcher implements D
         return null;
     }
     
-    protected Object querySingleResult(DataFetchingEnvironment environment, Field field) {
-        TypedQuery<Object> query = getQuery(environment, field, true);
-        
-        if (logger.isDebugEnabled()) {
-            logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
-        }
-        
-        return query.getSingleResult();
-    }
-
-	private Field flattenEmbeddedIdArguments(Field field) {
-		// manage object arguments (EmbeddedId)
-		final List<Argument> argumentsWhereObjectsAreFlattened = field.getArguments()
-				.stream()
-				.flatMap(argument -> {
-					if (!isWhereArgument(argument) && !isPageArgument(argument) &&
-							argument.getValue() instanceof ObjectValue) {
-						return ((ObjectValue) argument.getValue()).getObjectFields()
-								.stream()
-								.map(objectField -> new Argument(argument.getName() + "." + objectField.getName(), objectField.getValue()));
-					} else {
-						return Stream.of(argument);
-					}
-				})
-				.collect(Collectors.toList());
-		
-		return field.transform(builder -> builder.arguments(argumentsWhereObjectsAreFlattened));
-	}
-
     /**
      * Creates builder to build {@link GraphQLJpaSimpleDataFetcher}.
      * @return created builder
      */
-    public static IEntityManagerStage builder() {
+    public static IQueryFactoryStage builder() {
         return new Builder();
     }
 
-    public interface IEntityManagerStage {
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IQueryFactoryStage {
 
-        public IEntityTypeStage withEntityManager(EntityManager entityManager);
+        /**
+        * Builder method for queryFactory parameter.
+        * @param queryFactory field to set
+        * @return builder
+        */
+        public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory);
     }
 
-    public interface IEntityTypeStage {
-
-        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType);
-    }
-
-    public interface IToManyDefaultOptionalStage {
-
-        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
-    }
-
+    /**
+     * Definition of a stage for staged builder.
+     */
     public interface IBuildStage {
 
+        /**
+        * Builder method of the builder.
+        * @return built class
+        */
         public GraphQLJpaSimpleDataFetcher build();
     }
 
     /**
      * Builder to build {@link GraphQLJpaSimpleDataFetcher}.
      */
-    public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IToManyDefaultOptionalStage, IBuildStage {
+    public static final class Builder implements IQueryFactoryStage, IBuildStage {
 
-        private EntityManager entityManager;
-        private EntityType<?> entityType;
-        private boolean toManyDefaultOptional;
+        private GraphQLJpaQueryFactory queryFactory;
 
         private Builder() {
         }
 
         @Override
-        public IEntityTypeStage withEntityManager(EntityManager entityManager) {
-            this.entityManager = entityManager;
-            return this;
-        }
-
-        @Override
-        public IToManyDefaultOptionalStage withEntityType(EntityType<?> entityType) {
-            this.entityType = entityType;
-            return this;
-        }
-
-        @Override
-        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional) {
-            this.toManyDefaultOptional = toManyDefaultOptional;
+        public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory) {
+            this.queryFactory = queryFactory;
             return this;
         }
 

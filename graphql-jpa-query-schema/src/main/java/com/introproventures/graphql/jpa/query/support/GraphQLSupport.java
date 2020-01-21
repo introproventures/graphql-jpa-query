@@ -1,9 +1,29 @@
 package com.introproventures.graphql.jpa.query.support;
 
+import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME;
+import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME;
+
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.impl.PageArgument;
+
+import graphql.language.Argument;
 import graphql.language.Field;
+import graphql.language.ObjectField;
+import graphql.language.ObjectValue;
 import graphql.language.SelectionSet;
+import graphql.schema.DataFetchingEnvironment;
 
 public class GraphQLSupport {
 
@@ -14,5 +34,116 @@ public class GraphQLSupport {
                            .map(Field.class::cast);
         
     }
+
+    public static Optional<Field> searchByFieldName(Field root, String fieldName) {
+        Predicate<Field> matcher = (field) -> fieldName.equals(field.getName());
+
+        return search(root, matcher);
+    }    
+
+    
+    public static Optional<Field> search(Field root, Predicate<Field> predicate) {
+        Queue<Field> queue = new ArrayDeque<>();
+        queue.add(root);
+
+        Field currentNode;
+        while (!queue.isEmpty()) {
+            currentNode = queue.remove();
+
+            if (predicate.test(currentNode)) {
+                return Optional.of(currentNode);
+            } else {
+                queue.addAll(selections(currentNode));
+            }
+        }
+
+        return Optional.empty();
+    }    
+
+    public static final Collection<Field> selections(Field field) {
+        SelectionSet selectionSet = Optional.ofNullable(field.getSelectionSet())
+                                            .map(Function.identity())
+                                            .orElseGet(() -> new SelectionSet(Collections.emptyList()));
+
+        return fields(selectionSet).collect(Collectors.toList());
+    }
+    
+    public static  Optional<Argument> getPageArgument(Field field) {
+        return field.getArguments()
+            .stream()
+            .filter(it -> PAGE_PARAM_NAME.equals(it.getName()))
+            .findFirst();
+    }
+
+    public static  Optional<Argument> getWhereArgument(Field field) {
+        return field.getArguments()
+            .stream()
+            .filter(it -> QUERY_WHERE_PARAM_NAME.equals(it.getName()))
+            .findFirst();
+    }
+    
+    public static  PageArgument extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest, int defaultPageLimitSize) {
+
+        if (paginationRequest.isPresent()) {
+
+            Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
+            
+            Integer start = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME, 1);
+            Integer limit = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME, defaultPageLimitSize);
+
+            return new PageArgument(start, limit);
+        }
+
+        return new PageArgument(1, defaultPageLimitSize);
+    }
+    
+    public static  Field removeArgument(Field field, Optional<Argument> argument) {
+
+        if (!argument.isPresent()) {
+          return field;
+        }
+
+        List<Argument> newArguments = field.getArguments().stream()
+            .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
+
+        return field.transform(builder -> builder.arguments(newArguments));
+
+      }
+    
+    public static Boolean isWhereArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
+    }
+
+    public static Boolean isPageArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(argument.getName());
+    }
+
+    public static Boolean isFirstArgument(Argument argument) {
+        return "first".equals(argument.getName());
+    }
+
+    public static Boolean isAfterArgument(Argument argument) {
+        return "after".equals(argument.getName());
+    }
+    
+    public static Boolean isLogicalArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.QUERY_LOGICAL_PARAM_NAME.equals(argument.getName());
+    }
+
+    public static Boolean isDistinctArgument(Argument argument) {
+        return GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME.equals(argument.getName());
+    }
+    
+    public static final Optional<ObjectField> getObjectField(ObjectValue objectValue, String fieldName) {
+        return objectValue.getObjectFields().stream()
+                                            .filter(it -> fieldName.equals(it.getName()))
+                                            .findFirst();
+    }
+
+    public static final Optional<Field> getSelectionField(Field field, String fieldName) {
+        return GraphQLSupport.fields(field.getSelectionSet())
+                             .filter(it -> fieldName.equals(it.getName()))
+                             .findFirst();
+    }    
     
 }

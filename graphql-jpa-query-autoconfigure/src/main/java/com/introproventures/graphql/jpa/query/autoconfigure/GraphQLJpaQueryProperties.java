@@ -50,6 +50,11 @@ public class GraphQLJpaQueryProperties {
      * Set default value for optional argument for join fetch collections.
      */
     private boolean toManyDefaultOptional = true;
+
+    /**
+     * Enable or disable GraphQL Relay Connection support. Default is false
+     */
+    private boolean enableRelay = false;
     
     /**
      * Enable or disable QraphQL module services.
@@ -157,6 +162,16 @@ public class GraphQLJpaQueryProperties {
     
     public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
         this.toManyDefaultOptional = toManyDefaultOptional;
+    }
+
+    
+    public boolean isEnableRelay() {
+        return enableRelay;
+    }
+
+    
+    public void setEnableRelay(boolean enableRelay) {
+        this.enableRelay = enableRelay;
     }
     
 }

@@ -15,6 +15,14 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
 import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
@@ -74,6 +82,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criter
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 
 import graphql.GraphQLException;
+import graphql.execution.MergedField;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
 import graphql.language.ArrayValue;
@@ -99,37 +108,148 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 
 /**
- * Provides base implemetation for GraphQL JPA Query Data Fetchers
+ * Provides implemetation for GraphQL JPA Query Factory
  *
  * @author Igor Dianov
  *
  */
-abstract class GraphQLJpaBaseDataFetcher {
+public final class GraphQLJpaQueryFactory {
 
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaBaseDataFetcher.class);
+    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
     
     protected static final String WHERE = "where";
     protected static final String OPTIONAL = "optional";
-    // "__typename" is part of the graphql introspection spec and has to be ignored
-    private static final String TYPENAME = "__typename";
+    
+    protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
+    protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+    protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
+    protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
+    protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
     protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
     private final boolean toManyDefaultOptional;
+    private final boolean defaultDistinct;
+    private final String selectNodeName;
+    private final GraphQLObjectType entityObjectType;
+    private final int defaultFetchSize;
 
-    /**
-     * Creates JPA entity DataFetcher instance
-     *
-     * @param entityManager
-     * @param entityType
-     */
-    protected GraphQLJpaBaseDataFetcher(EntityManager entityManager, 
-                                     EntityType<?> entityType, 
-                                     boolean toManyDefaultOptional) {
-        this.entityManager = entityManager;
-        this.entityType = entityType;
-        this.toManyDefaultOptional = toManyDefaultOptional;
+    private GraphQLJpaQueryFactory(Builder builder) {
+        this.entityManager = builder.entityManager;
+        this.entityType = builder.entityType;
+        this.entityObjectType = builder.entityObjectType;
+        this.selectNodeName = builder.selectNodeName;
+        this.toManyDefaultOptional = builder.toManyDefaultOptional;
+        this.defaultDistinct = builder.defaultDistinct;
+        this.defaultFetchSize = builder.defaultFetchSize;
     }
+
+    public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment,
+                                                       MergedField queryField) {
+        
+        // Override query environment with associated entity object type and select field 
+        return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                             .fieldType(getEntityObjectType())
+                                             .mergedField(queryField)
+                                             .build();
+    }
+    
+    public List<Object> queryKeys(DataFetchingEnvironment environment, 
+                                     int firstResult, 
+                                     int maxResults) {
+        MergedField queryField = resolveQueryField(environment.getField());
+
+        // Override query environment with associated entity object type and 
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
+                                                                             queryField);
+        
+        TypedQuery<Object> keysQuery = getKeysQuery(queryEnvironment, 
+                                                    queryEnvironment.getField());
+        
+        keysQuery.setFirstResult(firstResult)
+                 .setMaxResults(maxResults);
+
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Keys Query String:\n    {}", getJPQLQueryString(keysQuery));
+        }
+        
+        return keysQuery.getResultList();
+    }
+
+    public List<Object> queryResultList(DataFetchingEnvironment environment,
+                                           int maxResults,
+                                           List<Object> keys) {
+        // Let's execute query and get result as stream
+        Stream<Object> resultStream = queryResultStream(environment,
+                                                        maxResults,
+                                                        keys);
+        // Let's wrap stream into lazy list to pass it downstream
+        return ResultStreamWrapper.wrap(resultStream,
+                                        maxResults);
+
+    }
+    
+    protected Stream<Object> queryResultStream(DataFetchingEnvironment environment,
+                                               int maxResults,
+                                               List<Object> keys) {
+        MergedField queryField = resolveQueryField(environment.getField());
+        
+        // Override query environment with associated entity object type and 
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
+                                                                             queryField);
+        final int fetchSize = Integer.min(maxResults, defaultFetchSize);
+        final boolean isDistinct = resolveDistinctArgument(queryEnvironment.getField());
+        
+        final TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), isDistinct, keys.toArray());
+        
+        // Let' try reduce overhead and disable all caching
+        query.setHint(ORG_HIBERNATE_READ_ONLY, true);
+        query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize); 
+        query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+        
+        // Let's not pass distinct if enabled to have better performance
+        if(isDistinct) {
+            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
+        }
+
+        // Let's execute query and get wrap result into stream
+        return query.getResultStream()
+                    .peek(entityManager::detach);                
+    }
+    
+    protected Object querySingleResult(final DataFetchingEnvironment environment) {
+        final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
+        
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
+                                                                             queryField);
+        
+        TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), true);
+        
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
+        }
+        
+        return query.getSingleResult();
+    }    
+    
+    public Long queryTotalCount(DataFetchingEnvironment environment) {
+        final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
+
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
+                                                                             queryField);
+                
+        TypedQuery<Long> countQuery = getCountQuery(queryEnvironment, queryEnvironment.getField());
+        
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+        }
+        
+        return countQuery.getSingleResult();
+    }    
 
     protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -481,8 +601,15 @@ abstract class GraphQLJpaBaseDataFetcher {
  
     @SuppressWarnings( "unchecked" )
     protected Predicate getPredicate(CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-
-        if(!argument.getName().contains(".")) {
+        if(isLogicalArgument(argument) || 
+            isDistinctArgument(argument) || isPageArgument(argument) || 
+            isAfterArgument(argument) || isFirstArgument(argument) ) {
+            return null;
+        } 
+        else if(isWhereArgument(argument)) { 
+            return getWherePredicate(cb, from, path, argumentEnvironment(environment, argument), argument);
+        } 
+        else if(!argument.getName().contains(".")) {
             Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument);
 
             // If the argument is a list, let's assume we need to join and do an 'in' clause
@@ -1237,15 +1364,15 @@ abstract class GraphQLJpaBaseDataFetcher {
         return null;
     }
 
-    protected Optional<Argument> extractArgument(DataFetchingEnvironment environment, Field field, String argumentName) {
+    protected Optional<Argument> extractArgument(Field field, String argumentName) {
         return field.getArguments().stream()
                                    .filter(it -> argumentName.equals(it.getName()))
                                    .findFirst();
     }
 
 
-    protected Argument extractArgument(DataFetchingEnvironment environment, Field field, String argumentName, Value defaultValue) {
-        return extractArgument(environment, field, argumentName)
+    protected Argument extractArgument(Field field, String argumentName, Value defaultValue) {
+        return extractArgument(field, argumentName)
                     .orElse(new Argument(argumentName, defaultValue));
     }
 
@@ -1347,20 +1474,6 @@ abstract class GraphQLJpaBaseDataFetcher {
         throw new IllegalArgumentException("Not supported");
     }
 
-    protected final Optional<ObjectField> getObjectField(ObjectValue objectValue, String fieldName) {
-        return objectValue.getObjectFields().stream()
-                                            .filter(it -> fieldName.equals(it.getName()))
-                                            .findFirst();
-    }
-
-    protected final Optional<Field> getSelectionField(Field field, String fieldName) {
-        return field.getSelectionSet().getSelections().stream()
-                                                      .filter(it -> it instanceof Field)
-                                                      .map(it -> (Field) it)
-                                                      .filter(it -> fieldName.equals(it.getName()))
-                                                      .findFirst();
-    }
-    
     protected boolean isPersistent(DataFetchingEnvironment environment,
                                    String attributeName) {
         GraphQLObjectType objectType = getObjectType(environment);
@@ -1388,77 +1501,6 @@ abstract class GraphQLJpaBaseDataFetcher {
         return !isPersistent(entityType, attributeName);
     }
     
-    protected Optional<Argument> getPageArgument(Field field) {
-        return field.getArguments()
-            .stream()
-            .filter(it -> GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(it.getName()))
-            .findFirst();
-    }
-
-    
-    protected Page extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest, int defaultPageLimitSize) {
-
-        if (paginationRequest.isPresent()) {
-
-            Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
-            
-            Integer start = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME, 1);
-            Integer limit = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_LIMIT_PARAM_NAME, defaultPageLimitSize);
-
-            return new Page(start, limit);
-        }
-
-        return new Page(1, defaultPageLimitSize);
-    }
-    
-    static final class Page {
-        private int start;
-        private int limit;
-
-        public Page(Integer start, Integer limit) {
-            this.start = start;
-            this.limit = limit;
-        }
-
-        
-        public int getStart() {
-            return start;
-        }
-
-        
-        public int getLimit() {
-            return limit;
-        }
-    }    
-
-    protected Field removeArgument(Field field, Optional<Argument> argument) {
-
-        if (!argument.isPresent()) {
-          return field;
-        }
-
-        List<Argument> newArguments = field.getArguments().stream()
-            .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
-
-        return field.transform(builder -> builder.arguments(newArguments));
-
-      }
-    
-    protected Boolean isWhereArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
-    }
-
-    protected Boolean isPageArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME.equals(argument.getName());
-    }
-    
-    protected Boolean isLogicalArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.QUERY_LOGICAL_PARAM_NAME.equals(argument.getName());
-    }
-
-    protected Boolean isDistinctArgument(Argument argument) {
-        return GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME.equals(argument.getName());
-    }
     
     protected String getJPQLQueryString(TypedQuery<?> query) {
         try {
@@ -1545,6 +1587,230 @@ abstract class GraphQLJpaBaseDataFetcher {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }     
+    }
     
+    protected boolean resolveDistinctArgument(Field field) {
+        Argument distinctArg = extractArgument(field, 
+                                               SELECT_DISTINCT_PARAM_NAME, 
+                                               new BooleanValue(defaultDistinct));
+        
+        return BooleanValue.class.cast(distinctArg.getValue())
+                                 .isValue();
+    }
+    
+    public boolean isDefaultDistinct() {
+        return defaultDistinct;
+    }
+    
+    public String getSelectNodeName() {
+        return selectNodeName;
+    }
+
+    public MergedField resolveQueryField(Field rootNode) {
+        Optional<Field> recordsSelection = GraphQLSupport.searchByFieldName(rootNode, getSelectNodeName());
+        
+        Field queryField = recordsSelection.map(selectNode -> Field.newField(selectNode.getName())
+                                                                   .selectionSet(selectNode.getSelectionSet())
+                                                                   .arguments(rootNode.getArguments())
+                                                                   .directives(selectNode.getDirectives())
+                                                                   .build())
+                                           .orElse(rootNode);    
+
+        return MergedField.newMergedField(queryField)
+                          .build();
+    }
+
+    
+    public GraphQLObjectType getEntityObjectType() {
+        return entityObjectType;
+    }
+
+    
+    public int getDefaultFetchSize() {
+        return defaultFetchSize;
+    }
+    
+    private MergedField flattenEmbeddedIdArguments(Field field) {
+        // manage object arguments (EmbeddedId)
+        final List<Argument> argumentsWhereObjectsAreFlattened = field.getArguments()
+                .stream()
+                .flatMap(argument -> {
+                    if (!isWhereArgument(argument) && !isPageArgument(argument) &&
+                            argument.getValue() instanceof ObjectValue) {
+                        return ((ObjectValue) argument.getValue()).getObjectFields()
+                                .stream()
+                                .map(objectField -> new Argument(argument.getName() + "." + objectField.getName(), objectField.getValue()));
+                    } else {
+                        return Stream.of(argument);
+                    }
+                })
+                .collect(Collectors.toList());
+        
+        return MergedField.newMergedField(field.transform(builder -> builder.arguments(argumentsWhereObjectsAreFlattened)))
+                          .build();
+    }
+    
+
+    /**
+     * Creates builder to build {@link GraphQLJpaQueryFactory}.
+     * @return created builder
+     */
+    public static IEntityManagerStage builder() {
+        return new Builder();
+    }
+
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IEntityManagerStage {
+
+        /**
+        * Builder method for entityManager parameter.
+        * @param entityManager field to set
+        * @return builder
+        */
+        public IEntityTypeStage withEntityManager(EntityManager entityManager);
+    }
+
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IEntityTypeStage {
+
+        /**
+        * Builder method for entityType parameter.
+        * @param entityType field to set
+        * @return builder
+        */
+        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType);
+    }
+
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IEntityObjectTypeStage {
+
+        /**
+        * Builder method for entityObjectType parameter.
+        * @param entityObjectType field to set
+        * @return builder
+        */
+        public ISelectNodeNameStage withEntityObjectType(GraphQLObjectType entityObjectType);
+    }
+
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface ISelectNodeNameStage {
+
+        /**
+        * Builder method for selectNodeName parameter.
+        * @param selectNodeName field to set
+        * @return builder
+        */
+        public IBuildStage withSelectNodeName(String selectNodeName);
+    }
+
+
+    /**
+     * Definition of a stage for staged builder.
+     */
+    public interface IBuildStage {
+
+        /**
+        * Builder method for toManyDefaultOptional parameter.
+        * @param toManyDefaultOptional field to set
+        * @return builder
+        */
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
+
+        /**
+        * Builder method for defaultDistinct parameter.
+        * @param defaultDistinct field to set
+        * @return builder
+        */
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct);
+
+        /**
+        * Builder method for defaultFetchSize parameter.
+        * @param defaultFetchSize field to set
+        * @return builder
+        */
+        public IBuildStage withDefaultFetchSize(int defaultFetchSize);
+
+        /**
+        * Builder method of the builder.
+        * @return built class
+        */
+        public GraphQLJpaQueryFactory build();
+    }
+
+
+    /**
+     * Builder to build {@link GraphQLJpaQueryFactory}.
+     */
+    public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
+
+        private EntityManager entityManager;
+        private EntityType<?> entityType;
+        private GraphQLObjectType entityObjectType;
+        private String selectNodeName;
+        private boolean toManyDefaultOptional = true;
+        private boolean defaultDistinct = true;
+        private int defaultFetchSize = 100;
+
+        private Builder() {
+        }
+
+        @Override
+        public IEntityTypeStage withEntityManager(EntityManager entityManager) {
+            this.entityManager = entityManager;
+            return this;
+        }
+
+        @Override
+        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public ISelectNodeNameStage withEntityObjectType(GraphQLObjectType entityObjectType) {
+            this.entityObjectType = entityObjectType;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withSelectNodeName(String selectNodeName) {
+            this.selectNodeName = selectNodeName;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional) {
+            this.toManyDefaultOptional = toManyDefaultOptional;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultDistinct(boolean defaultDistinct) {
+            this.defaultDistinct = defaultDistinct;
+            return this;
+        }
+
+        @Override
+        public IBuildStage withDefaultFetchSize(int defaultFetchSize) {
+            this.defaultFetchSize = defaultFetchSize;
+            return this;
+        }
+
+        @Override
+        public GraphQLJpaQueryFactory build() {
+            return new GraphQLJpaQueryFactory(this);
+        }
+    }        
 }
