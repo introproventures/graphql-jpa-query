@@ -20,6 +20,7 @@ import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 
+import java.beans.Introspector;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -54,6 +55,7 @@ import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+import com.introproventures.graphql.jpa.query.schema.relay.GraphQLJpaRelayDataFetcher;
 
 import graphql.Assert;
 import graphql.Directives;
@@ -84,6 +86,7 @@ import graphql.schema.PropertyDataFetcher;
  */
 public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
+    private static final String NODE = "node";
     public static final String PAGE_PARAM_NAME = "page";
     public static final String PAGE_TOTAL_PARAM_NAME = "total";
     public static final String PAGE_PAGES_PARAM_NAME = "pages";
@@ -198,15 +201,25 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
+        GraphQLObjectType entityObjectType = getObjectType(entityType);
+        
+        GraphQLJpaQueryFactory queryFactory = GraphQLJpaQueryFactory.builder()
+                                                                    .withEntityManager(entityManager)
+                                                                    .withEntityType(entityType)
+                                                                    .withEntityObjectType(entityObjectType)
+                                                                    .withSelectNodeName(entityObjectType.getName())
+                                                                    .withToManyDefaultOptional(toManyDefaultOptional)
+                                                                    .build();
+        
         DataFetcher<Object> dataFetcher = GraphQLJpaSimpleDataFetcher.builder()
-                                                                     .withEntityManager(entityManager)
-                                                                     .withEntityType(entityType)
-                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
+                                                                     .withQueryFactory(queryFactory)
                                                                      .build();
+        String fieldName = entityType.getName();
+        
         return GraphQLFieldDefinition.newFieldDefinition()
-                .name(entityType.getName())
+                .name(enableRelay ? Introspector.decapitalize(fieldName) : fieldName)
                 .description(getSchemaDescription(entityType))
-                .type(getObjectType(entityType))
+                .type(entityObjectType)
                 .dataFetcher(dataFetcher)
                 .arguments(entityType.getAttributes().stream()
                     .filter(this::isValidInput)
@@ -218,36 +231,54 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
     
-    // TODO experiment with Relay Connection Type
-    private GraphQLObjectType toConnectionType(GraphQLObjectType nodeType) {
+    private GraphQLObjectType getConnectionType(GraphQLObjectType nodeType) {
         GraphQLObjectType edgeType = relay.edgeType(nodeType.getName(), nodeType, null, Collections.emptyList());
         
         return relay.connectionType(nodeType.getName(), edgeType, Collections.emptyList());
     }
 
     private GraphQLFieldDefinition getQueryFieldSelectDefinition(EntityType<?> entityType) {
-        GraphQLObjectType selectResultType = selectResultType(entityType);
+        final GraphQLObjectType entityObjectType = getObjectType(entityType);
+        final GraphQLObjectType outputType = enableRelay ? getConnectionType(entityObjectType) : getSelectType(entityType);
+
+        final DataFetcher<? extends Object> dataFetcher;
         
-        DataFetcher<Object> dataFetcher = GraphQLJpaQueryDataFetcher.builder()
+        GraphQLJpaQueryFactory queryFactory = GraphQLJpaQueryFactory.builder()
                                                                     .withEntityManager(entityManager)
                                                                     .withEntityType(entityType)
+                                                                    .withEntityObjectType(entityObjectType)
+                                                                    .withSelectNodeName(enableRelay ? NODE : QUERY_SELECT_PARAM_NAME)
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
                                                                     .withDefaultDistinct(isDefaultDistinct)
-                                                                    .withDefaultMaxResults(defaultMaxResults)
-                                                                    .withDefaultPageLimitSize(defaultPageLimitSize)
                                                                     .withDefaultFetchSize(defaultFetchSize)
                                                                     .build();
+        
+        if(enableRelay) {
+            dataFetcher = GraphQLJpaRelayDataFetcher.builder()
+                                                    .withQueryFactory(queryFactory)
+                                                    .withDefaultMaxResults(defaultMaxResults)
+                                                    .withDefaultFirstSize(defaultPageLimitSize)
+                                                    .build();
+        } else {
+            dataFetcher = GraphQLJpaQueryDataFetcher.builder()
+                                                    .withQueryFactory(queryFactory)
+                                                    .withDefaultMaxResults(defaultMaxResults)
+                                                    .withDefaultPageLimitSize(defaultPageLimitSize)
+                                                    .build();
+        }
 
+        String fieldName = namingStrategy.pluralize(entityType.getName());
+        
         GraphQLFieldDefinition.Builder fieldDefinition = GraphQLFieldDefinition.newFieldDefinition()
-                .name(namingStrategy.pluralize(entityType.getName()))
+                .name(enableRelay ? Introspector.decapitalize(fieldName) : fieldName)
                 .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
                     + "Use query request arguments to specify query filter criterias. "
                     + "Use the '"+QUERY_SELECT_PARAM_NAME+"' field to request actual fields. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
-                .type(selectResultType)
+                .type(outputType)
                 .dataFetcher(dataFetcher)
-                .argument(paginationArgument)
-                .argument(getWhereArgument(entityType));
+                .argument(getWhereArgument(entityType))
+                .arguments(enableRelay ? relay.getForwardPaginationConnectionFieldArguments() : Collections.singletonList(paginationArgument));
         
         if (isUseDistinctParameter) {
                 fieldDefinition.argument(distinctArgument(entityType));
@@ -256,7 +287,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return fieldDefinition.build();
     }
     
-    private GraphQLObjectType selectResultType(EntityType<?> entityType) {
+    private GraphQLObjectType getSelectType(EntityType<?> entityType) {
         GraphQLObjectType selectObjectType = getObjectType(entityType);
         
         GraphQLObjectType selectPagedResultType = GraphQLObjectType.newObject()
@@ -286,11 +317,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private GraphQLFieldDefinition getQueryFieldStreamDefinition(EntityType<?> entityType) {
+        GraphQLObjectType entityObjectType = getObjectType(entityType);
+        
+        GraphQLJpaQueryFactory queryFactory = GraphQLJpaQueryFactory.builder()
+                                                                    .withEntityManager(entityManager)
+                                                                    .withEntityType(entityType)
+                                                                    .withEntityObjectType(entityObjectType)
+                                                                    .withSelectNodeName(SELECT_DISTINCT_PARAM_NAME)
+                                                                    .withToManyDefaultOptional(toManyDefaultOptional)
+                                                                    .withDefaultDistinct(isDefaultDistinct)
+                                                                    .build();                    
+        
         DataFetcher<Object> dataFetcher = GraphQLJpaStreamDataFetcher.builder()
-                                                                     .withEntityManager(entityManager)
-                                                                     .withEntityType(entityType)
-                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
-                                                                     .withDefaultDistinct(isDefaultDistinct)
+                                                                     .withQueryFactory(queryFactory)
                                                                      .build();
 
         GraphQLFieldDefinition.Builder fieldDefinition =  GraphQLFieldDefinition.newFieldDefinition()
@@ -298,7 +337,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .description("Query request wrapper for " + entityType.getName() + " to request paginated data. "
                     + "Use query request arguments to specify query filter criterias. "
                     + "Use the '"+ORDER_BY_PARAM_NAME+"' on a field to specify sort order for each field. ")
-                .type(getObjectType(entityType))
+                .type(entityObjectType)
                 .dataFetcher(dataFetcher)
                 .argument(paginationArgument)
                 .argument(getWhereArgument(entityType));
