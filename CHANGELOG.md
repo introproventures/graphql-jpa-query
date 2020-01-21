@@ -1,6 +1,15 @@
 # Change Log
 
-## 0.3.38-SNAPSHOT
+## 0.4.0
+* fix(Javadoc): corrected more Javadoc errors [a6508f0](https://github.com/introproventures/graphql-jpa-query/commit/a6508f0c71966c87a5bf7a71a04616b2e184ebbc)
+* fix(Javadoc): Corrected Javadoc Maven plugin errros [7465e71](https://github.com/introproventures/graphql-jpa-query/commit/7465e717e0206b5266a4352513ef572907cd0282)
+* fix(version): update project version to 0.4.0-SNAPSHOT [3763ed7](https://github.com/introproventures/graphql-jpa-query/commit/3763ed719f659b3618fa48fdcc366bb1e344d286)
+* feat: add support for per request schema transformation and instrumentation (#163) [ae541cb](https://github.com/introproventures/graphql-jpa-query/commit/ae541cb6ee62d7c741ff09d1f7af4b7acc9c0c84)
+* feat(GH-235): added Relay Connection support (#236) [36703f0](https://github.com/introproventures/graphql-jpa-query/commit/36703f07a590f6698f9832be41c321282666191a)
+* fix(GH-224): HHH000104: firstResult/maxResults specified with collection fetch; applying in memory (#229) [3db0e51](https://github.com/introproventures/graphql-jpa-query/commit/3db0e51c30e291a2eff431badf0252cf25c99c2e)
+* Upgrade graphql-java version to 13.0  (#209) [09dd88c](https://github.com/introproventures/graphql-jpa-query/commit/09dd88cf8e3d745787f52b097f731ddcbb4c5351)
+* fix(versions): upgrade spring-boot-dependencies to 2.1.11.RELEASE (#187) [5ce95b5](https://github.com/introproventures/graphql-jpa-query/commit/5ce95b5e9750616e684b4fad3edaf31a61873370)
+* fix(GH-225): Fixed regression with missing &#96;@Qualifier&#96; on EntityManager (#230) [deafe11](https://github.com/introproventures/graphql-jpa-query/commit/deafe11d3e484bd4f9ba1f7a7d100320c3aaa09f)
 * feat(GH-226): Support logging of the generated JPQL query string with debug log level  (#227) [ad1d404](https://github.com/introproventures/graphql-jpa-query/commit/ad1d40484692411f8b568d3bfdfc1724c017d447)
 * fix(GH-225): Configure shared entity manager for multiple data sources example (#228) [b235ee8](https://github.com/introproventures/graphql-jpa-query/commit/b235ee89a6fc9024e7f2ce3bd34a8d92233e355c)
 * fix(GH-220): Cannot nest multiple queries on the same table (#222) [38bfb17](https://github.com/introproventures/graphql-jpa-query/commit/38bfb17d4a734dfedece78d4a8ba75894dabfed9)
