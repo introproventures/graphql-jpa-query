@@ -54,7 +54,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String)
      */
     @Override
-    @Transactional(TxType.REQUIRES_NEW)
+    @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query) {
         return execute(query, Collections.emptyMap());
     }
@@ -63,7 +63,7 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String, java.util.Map)
      */
     @Override
-    @Transactional(TxType.REQUIRES_NEW)
+    @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
         Map<String, Object> variables = Optional.ofNullable(arguments)
                                                 .orElseGet(Collections::emptyMap);

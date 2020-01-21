@@ -936,7 +936,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
                 "  }"+
                 "}";
 
-        String expected = "{Authors={total=3, pages=1, select=["
+        String expected = "{Authors={total=4, pages=1, select=["
                 + "{id=4, name=Anton Chekhov, books=["
                 +   "{id=5, title=The Cherry Orchard}, "
                 +   "{id=6, title=The Seagull}, "

@@ -27,6 +27,11 @@
             <groupId>org.atteo</groupId>
             <artifactId>evo-inflector</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

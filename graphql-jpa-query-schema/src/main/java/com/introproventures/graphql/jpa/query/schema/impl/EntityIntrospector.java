@@ -27,6 +27,7 @@ import javax.persistence.metamodel.ManagedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.introspection.ClassDescriptor;
@@ -283,6 +284,14 @@ public class EntityIntrospector {
             
             public boolean hasSchemaDescription() {
                 return getSchemaDescription().isPresent();
+            }
+
+            public boolean hasDefaultOrderBy() {
+                return getDefaultOrderBy().isPresent();
+            }
+            
+            public Optional<GraphQLDefaultOrderBy> getDefaultOrderBy() {
+                return getAnnotation(GraphQLDefaultOrderBy.class);
             }
             
             public boolean isTransient() {
