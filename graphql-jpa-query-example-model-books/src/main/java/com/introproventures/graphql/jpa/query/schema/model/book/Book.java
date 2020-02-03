@@ -50,6 +50,9 @@ public class Book {
 	@GraphQLIgnoreFilter
 	String description;
 	
+	@GraphQLDescription("The price of the book visible only by authorized users")
+	Double price;
+	
 	@ElementCollection(fetch = FetchType.LAZY)
 	@GraphQLDescription("A set of user-defined tags")
 	private Set<String> tags = new LinkedHashSet<>();	
