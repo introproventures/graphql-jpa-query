@@ -53,7 +53,7 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
     @Override
     public GraphQL.Builder newGraphQL() {
-        return GraphQL.newGraphQL(graphQLSchema)
+        return GraphQL.newGraphQL(getGraphQLSchema())
                       .instrumentation(instrumentation.get());
     }
     
