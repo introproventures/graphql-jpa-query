@@ -1,14 +1,14 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.util.Lists.list;
 
-import java.util.TimeZone;
+import java.util.Collections;
 import java.util.function.Supplier;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +25,11 @@ import graphql.ExecutionResult;
 import graphql.GraphQLContext;
 import graphql.Scalars;
 import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.execution.instrumentation.tracing.TracingInstrumentation;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.StaticDataFetcher;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import graphql.validation.ValidationErrorType;
@@ -39,15 +41,20 @@ public class GraphQLJpaExecutorContextFactoryTest {
 
     @Autowired
     private GraphQLExecutor executor;
+    
+    private static boolean isBlockFields; 
 
+    private static boolean isTracingInstrumentation; 
+    
     @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
     static class Application {
         
         @Bean
         public Supplier<GraphqlFieldVisibility> graphqlFieldVisibility() {
-            return () -> BlockedFields.newBlock()
-                                      .addPattern("Book.price")
-                                      .build(); 
+            return () -> isBlockFields ? BlockedFields.newBlock()
+                                                      .addPattern("Book.price")
+                                                      .build() 
+                                       : DEFAULT_FIELD_VISIBILITY;
         }
         
         @Bean
@@ -59,7 +66,8 @@ public class GraphQLJpaExecutorContextFactoryTest {
         
         @Bean
         public Supplier<Instrumentation> instrumentation() {
-            return () -> new TracingInstrumentation();
+            return () -> isTracingInstrumentation ? new TracingInstrumentation() 
+                                                  : SimpleInstrumentation.INSTANCE;
         }        
 
         @Bean
@@ -93,10 +101,11 @@ public class GraphQLJpaExecutorContextFactoryTest {
                                                                                   })
                                                        )
                                                        .field(newFieldDefinition().name("Books")
+                                                                                  .dataFetcher(new StaticDataFetcher(Collections.singletonMap("price", 10.0)))
                                                                                   .type(GraphQLObjectType.newObject()
                                                                                                          .name("Book")
                                                                                                          .field(newFieldDefinition().name("price")
-                                                                                                                                    .type(Scalars.GraphQLBigDecimal)))
+                                                                                                                                    .type(Scalars.GraphQLFloat)))
                                                        )
                                                        .build();
             
@@ -106,11 +115,6 @@ public class GraphQLJpaExecutorContextFactoryTest {
         }
     }
 
-    @BeforeClass
-    public static void init() {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    }
-    
     @Test
     public void contextLoads() {
         // success
@@ -119,6 +123,7 @@ public class GraphQLJpaExecutorContextFactoryTest {
     @Test
     public void testGraphqlFieldVisibility() {
         //given
+        isBlockFields = true;
         String query = "{ Books { price } }";
         
         //when
@@ -129,6 +134,24 @@ public class GraphQLJpaExecutorContextFactoryTest {
                                       .extracting("validationErrorType", "queryPath")
                                       .containsOnly(tuple(ValidationErrorType.FieldUndefined,
                                                           list("Books", "price")));
+    }
+
+    @Test
+    public void testGraphqlFieldVisibilityDisabled() {
+        //given
+        isBlockFields = false;
+        String query = "{ Books { price } }";
+        
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        
+        String data = result.getData()
+                            .toString();
+        
+        assertThat(data).isEqualTo("{Books={price=10.0}}");
     }
     
     @Test
@@ -150,6 +173,8 @@ public class GraphQLJpaExecutorContextFactoryTest {
     @Test
     public void testInstrumentation() {
         //given
+        isTracingInstrumentation = true;
+        
         String query = "{ hello }";
         
         //when
@@ -157,7 +182,23 @@ public class GraphQLJpaExecutorContextFactoryTest {
 
         // then
         assertThat(result.getExtensions()).isNotEmpty();
+        
+        assertThat(result.getExtensions()
+                         .get("tracing")).isNotNull();
     }
 
+    @Test
+    public void testInstrumentationDisabled() {
+        //given
+        isTracingInstrumentation = false;
+        
+        String query = "{ hello }";
+        
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getExtensions()).isNull();
+    }
     
 }
