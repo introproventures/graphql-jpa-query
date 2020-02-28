@@ -35,6 +35,8 @@ import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
+import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperAuthor;
+import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperBook;
 import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 
 import graphql.schema.GraphQLFieldDefinition;
@@ -51,8 +53,10 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("BooksExampleSchema")
                 .entityPath(Book.class.getName())
+                .entityPath(SuperBook.class.getName())
+                .entityPath(SuperAuthor.class.getName())
                 .entityPath(Author.class.getName())
-                .entityPath(Thing.class.getPackageName())
+                .entityPath(Thing.class.getPackage().getName())
                 .description("Books Example Schema");
         }
     }
@@ -106,7 +110,7 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         
         assertThat(schema.getQueryType()
                          .getFieldDefinitions()).extracting(GraphQLFieldDefinition::getName)
-                                                .containsOnly("Book", "Books", "Author", "Authors", "Thing", "Things");
+                                                .containsOnly("Book", "Books", "Author", "Authors", "Thing", "Things", "SuperBook", "SuperBooks", "SuperAuthor", "SuperAuthors");
     }    
     
     @Test
