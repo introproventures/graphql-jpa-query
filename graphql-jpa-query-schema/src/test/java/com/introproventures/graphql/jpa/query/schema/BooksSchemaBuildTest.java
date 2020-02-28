@@ -33,6 +33,11 @@ import org.springframework.context.annotation.Bean;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Author;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
+import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperAuthor;
+import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperBook;
+import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
@@ -44,9 +49,14 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
     @SpringBootApplication
     static class TestConfiguration {
         @Bean
-        public GraphQLJpaSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
+        public GraphQLSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("BooksExampleSchema")
+                .entityPath(Book.class.getName())
+                .entityPath(SuperBook.class.getName())
+                .entityPath(SuperAuthor.class.getName())
+                .entityPath(Author.class.getName())
+                .entityPath(Thing.class.getPackage().getName())
                 .description("Books Example Schema");
         }
     }
@@ -88,6 +98,21 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
             .isNotNull();
     }
 
+    @Test
+    public void correctlyBuildsSchemaForEntitiesWithEntityPath() {
+        //when
+        GraphQLSchema schema = builder.build();
+
+        // then
+        assertThat(schema)
+            .describedAs("Ensure the result is returned")
+            .isNotNull();
+        
+        assertThat(schema.getQueryType()
+                         .getFieldDefinitions()).extracting(GraphQLFieldDefinition::getName)
+                                                .containsOnly("Book", "Books", "Author", "Authors", "Thing", "Things", "SuperBook", "SuperBooks", "SuperAuthor", "SuperAuthors");
+    }    
+    
     @Test
     public void correctlyDerivesToManyOptionalFromGivenEntities() {
         //when

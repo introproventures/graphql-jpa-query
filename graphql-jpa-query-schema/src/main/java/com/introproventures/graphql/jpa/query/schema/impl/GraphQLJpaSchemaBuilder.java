@@ -131,6 +131,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     
     private final Relay relay = new Relay();
     
+    private final List<String> entityPaths = new ArrayList<>();
+    
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
@@ -1064,7 +1066,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
     
     private boolean isNotIgnored(EntityType<?> entityType) {
-        return isNotIgnored(entityType.getJavaType());
+        return isNotIgnored(entityType.getJavaType()) && isNotIgnored(entityType.getJavaType().getName());
+    }
+    
+    private boolean isNotIgnored(String name) {
+        return entityPaths.isEmpty() || entityPaths.stream()
+                                                   .anyMatch(prefix -> name.startsWith(prefix));
     }
 
     private boolean isNotIgnored(Member member) {
@@ -1276,13 +1283,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     @Override
-    public GraphQLSchemaBuilder entityPath(String path) {
+    public GraphQLJpaSchemaBuilder entityPath(String path) {
         Assert.assertNotNull(path, "path is null");
+        
+        entityPaths.add(path);
+        
         return this;
     }
 
     @Override
-    public GraphQLSchemaBuilder namingStrategy(NamingStrategy instance) {
+    public GraphQLJpaSchemaBuilder namingStrategy(NamingStrategy instance) {
         Assert.assertNotNull(instance, "instance is null");
         
         this.namingStrategy = instance;
