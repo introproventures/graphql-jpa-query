@@ -52,7 +52,6 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
                 .name("BooksExampleSchema")
                 .entityPath(Book.class.getName())
                 .entityPath(Author.class.getName())
-                .entityPath(Author.class.getName())
                 .entityPath(Thing.class.getPackageName())
                 .description("Books Example Schema");
         }
