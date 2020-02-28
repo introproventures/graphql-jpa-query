@@ -10,13 +10,14 @@ import java.util.function.Supplier;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 
@@ -32,8 +33,9 @@ import graphql.schema.visibility.GraphqlFieldVisibility;
 import graphql.validation.ValidationErrorType;
 
 
+@RunWith(SpringRunner.class)
 @SpringBootTest
-public class GraphQLJpaExecutorContextFactoryTest extends AbstractSpringBootTestSupport {
+public class GraphQLJpaExecutorContextFactoryTest {
 
     @Autowired
     private GraphQLExecutor executor;
