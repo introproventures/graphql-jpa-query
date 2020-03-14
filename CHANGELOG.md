@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.2
+## 0.4.3-SNAPSHOT
 * fix(pom.xml): added graphiql to dependency management (#246) [a3e8bcf](https://github.com/introproventures/graphql-jpa-query/commit/a3e8bcf79c833b3c70264c9e1194d9564f5ac353)
 * fix(version): update maven-javadoc-plugin to 3.1.0 [c472996](https://github.com/introproventures/graphql-jpa-query/commit/c47299664c9255a7dc09cb6aeb66f25faf39ed39)
 * feat(GH-224): Added support for entity path class name prefix in GraphQLJpaSchemaBuilder (#245) [866a5ec](https://github.com/introproventures/graphql-jpa-query/commit/866a5ec51291990eb364d8c8552aa3c87088293b)
