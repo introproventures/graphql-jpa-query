@@ -229,7 +229,10 @@
             <!-- Required: javadoc JAR -->
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.1.0</version>
+                <configuration>
+                  <source>8</source>
+                </configuration>                
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
