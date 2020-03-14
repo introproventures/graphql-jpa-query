@@ -1,6 +1,8 @@
 # Change Log
 
-## 0.4.2-SNAPSHOT
+## 0.4.2
+* fix(pom.xml): added graphiql to dependency management (#246) [a3e8bcf](https://github.com/introproventures/graphql-jpa-query/commit/a3e8bcf79c833b3c70264c9e1194d9564f5ac353)
+* fix(version): update maven-javadoc-plugin to 3.1.0 [c472996](https://github.com/introproventures/graphql-jpa-query/commit/c47299664c9255a7dc09cb6aeb66f25faf39ed39)
 * feat(GH-224): Added support for entity path class name prefix in GraphQLJpaSchemaBuilder (#245) [866a5ec](https://github.com/introproventures/graphql-jpa-query/commit/866a5ec51291990eb364d8c8552aa3c87088293b)
 * fix(GH-239): Added GraphQLFieldVisibility supplier support in GraphQL request (#240) [e60eb50](https://github.com/introproventures/graphql-jpa-query/commit/e60eb504e25d0f2e701ebd6e5be339d0a9d54668)
 * fix(README): updated description [ci skip] [510c5bf](https://github.com/introproventures/graphql-jpa-query/commit/510c5bf392a0a3911b98d70fac85e4ea26befc47)
