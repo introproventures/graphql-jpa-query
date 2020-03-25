@@ -2,8 +2,18 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.introproventures</groupId>
-    <artifactId>graphql-jpa-query</artifactId>
+    <artifactId>graphql-jpa-query-build</artifactId>
     <version>0.4.3-SNAPSHOT</version>
+    <relativePath>../graphql-jpa-query-build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-graphiql</artifactId>
+  
+  <dependencies>
+  	<dependency>
+  		<groupId>org.springframework.boot</groupId>
+  		<artifactId>spring-boot-starter-web</artifactId>
+  		<optional>true</optional>
+  	</dependency>
+  </dependencies>
+  
 </project>
