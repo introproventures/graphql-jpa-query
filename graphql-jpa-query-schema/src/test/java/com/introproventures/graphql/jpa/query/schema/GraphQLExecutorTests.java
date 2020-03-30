@@ -2049,11 +2049,13 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
         
         String expected1 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=[]}, "
                 +   "{id=4, name=Anton Chekhov, books=["
                 +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
                 +       "{id=6, title=The Seagull, genre=PLAY}, "
                 +       "{id=7, title=Three Sisters, genre=PLAY}"
-                +   "]}"
+                +   "]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //then:
@@ -2066,7 +2068,9 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
                 +   "{id=1, name=Leo Tolstoy, books=["
                 +       "{id=2, title=War and Peace, genre=NOVEL}, "
                 +       "{id=3, title=Anna Karenina, genre=NOVEL}"
-                +   "]}"
+                +   "]}, "
+                +   "{id=4, name=Anton Chekhov, books=[]}, "
+                +   "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //then:

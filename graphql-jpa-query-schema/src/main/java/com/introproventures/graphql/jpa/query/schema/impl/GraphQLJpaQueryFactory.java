@@ -275,7 +275,7 @@ public final class GraphQLJpaQueryFactory {
         query.select(cb.count(root));
         
         List<Predicate> predicates = field.getArguments().stream()
-            .map(it -> getPredicate(cb, root, null, queryEnvironment, it))
+            .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
         
@@ -305,7 +305,7 @@ public final class GraphQLJpaQueryFactory {
         }
         
         List<Predicate> predicates = field.getArguments().stream()
-            .map(it -> getPredicate(cb, from, null, queryEnvironment, it))
+            .map(it -> getPredicate(field, cb, from, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
         
@@ -456,6 +456,7 @@ public final class GraphQLJpaQueryFactory {
             Optional<Argument> optionalArgument = getArgument(selection, OPTIONAL);
             Optional<Argument> whereArgument = getArgument(selection, WHERE);
             Boolean isOptional = null;
+            Boolean isFetchOn = false;
 
             // Build predicate arguments for singular attributes only
             if(fieldPath.getModel() instanceof SingularAttribute) {
@@ -502,6 +503,8 @@ public final class GraphQLJpaQueryFactory {
                     // Let's apply fetch join to retrieve associated plural attributes
                     fetch = reuseFetch(from, selection.getName(), isOptional);
                 }
+                
+                isFetchOn = true;
             }
             // Let's build join fetch graph to avoid Hibernate error: 
             // "query specified join fetching, but the owner of the fetched association was not present in the select list"
@@ -522,8 +525,17 @@ public final class GraphQLJpaQueryFactory {
                 DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, 
                                                                                      fieldDefinition, 
                                                                                      fieldArguments);
-                
-                predicates.addAll(getFieldPredicates(selection, query, cb, root, fetch, fieldEnvironment));
+                if(isFetchOn) {
+                    Predicate[] fetchPredicates = getFieldPredicates(selection, 
+                                                                     query, 
+                                                                     cb, 
+                                                                     root, 
+                                                                     fetch, 
+                                                                     fieldEnvironment).toArray(new Predicate[] {});
+                    ((Join<?,?>) fetch).on(fetchPredicates);
+                } else {
+                    predicates.addAll(getFieldPredicates(selection, query, cb, root, fetch, fieldEnvironment));
+                }
             }
         });
         
@@ -531,7 +543,7 @@ public final class GraphQLJpaQueryFactory {
 
         arguments.stream()
                  .filter(this::isPredicateArgument)
-                 .map(it -> getPredicate(cb, root, from, environment, it))
+                 .map(it -> getPredicate(field, cb, root, from, environment, it))
                  .filter(it -> it != null)
                  .forEach(predicates::add);
 
@@ -600,17 +612,17 @@ public final class GraphQLJpaQueryFactory {
     }
  
     @SuppressWarnings( "unchecked" )
-    protected Predicate getPredicate(CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
+    protected Predicate getPredicate(Field field, CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
         if(isLogicalArgument(argument) || 
             isDistinctArgument(argument) || isPageArgument(argument) || 
             isAfterArgument(argument) || isFirstArgument(argument) ) {
             return null;
         } 
-        else if(isWhereArgument(argument)) { 
+        else if(isWhereArgument(argument)) {
             return getWherePredicate(cb, from, path, argumentEnvironment(environment, argument), argument);
         } 
         else if(!argument.getName().contains(".")) {
-            Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument);
+            Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument.getName());
 
             // If the argument is a list, let's assume we need to join and do an 'in' clause
             if (argumentEntityAttribute instanceof PluralAttribute) {
@@ -624,9 +636,9 @@ public final class GraphQLJpaQueryFactory {
             return cb.equal(path.get(argument.getName()), convertValue(environment, argument, argument.getValue()));
         } else {
             if(!argument.getName().endsWith(".where")) {
-                Path<?> field = getCompoundJoinedPath(path, argument.getName(), false);
+                Path<?> argumentPath = getCompoundJoinedPath(path, argument.getName(), false);
 
-                return cb.equal(field, convertValue(environment, argument, argument.getValue()));
+                return cb.equal(argumentPath, convertValue(environment, argument, argument.getValue()));
             } else {
                 String fieldName = argument.getName().split("\\.")[0];
 
@@ -698,7 +710,7 @@ public final class GraphQLJpaQueryFactory {
                                                                                                  .arguments(predicateArguments)
                                                                                                  .build();
         Argument predicateArgument = new Argument(logical.name(), whereValue);
-
+        
         return getArgumentPredicate(cb, (path != null) ? path : root, predicateDataFetchingEnvironment, predicateArgument);
     }
 
@@ -756,7 +768,7 @@ public final class GraphQLJpaQueryFactory {
                                                 Map<String, Object> arguments
                                                  ) {
         if(isEntityType(environment)) {
-            Attribute<?,?> attribute = getAttribute(environment, argument);
+            Attribute<?,?> attribute = getAttribute(environment, argument.getName());
             
             if(attribute.isAssociation()) {
                 GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
@@ -993,7 +1005,7 @@ public final class GraphQLJpaQueryFactory {
             } else {
                 args.put(logical.name(), environment.getArgument(fieldName));
 
-                isOptional = isOptionalAttribute(getAttribute(environment, argument));
+                isOptional = isOptionalAttribute(getAttribute(environment, argument.getName()));
             }
             
             return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
@@ -1290,7 +1302,7 @@ public final class GraphQLJpaQueryFactory {
      * @return Java class type
      */
     protected Class<?> getJavaType(DataFetchingEnvironment environment, Argument argument) {
-        Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument);
+        Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument.getName());
 
         if (argumentEntityAttribute instanceof PluralAttribute)
             return ((PluralAttribute<?,?,?>) argumentEntityAttribute).getElementType().getJavaType();
@@ -1305,12 +1317,14 @@ public final class GraphQLJpaQueryFactory {
      * @param argument
      * @return JPA model attribute
      */
-    private Attribute<?,?> getAttribute(DataFetchingEnvironment environment, Argument argument) {
+    private Attribute<?,?> getAttribute(DataFetchingEnvironment environment, String argument) {
         GraphQLObjectType objectType = getObjectType(environment);
         EntityType<?> entityType = getEntityType(objectType);
 
-        return entityType.getAttribute(argument.getName());
+        return entityType.getAttribute(argument);
     }
+    
+    
 
     private boolean isOptionalAttribute(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute)) {

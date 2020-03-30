@@ -118,6 +118,31 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                                               .extracting(Character::getName)
                                               .containsOnly("Luke Skywalker");
     }
+    
+    @Test
+    @Transactional
+    public void queryOneToManyTesterLeftOuterJoinTester() {
+        // given:
+        Query query = em.createQuery("select distinct author from Author as author \n" + 
+                "left join fetch author.books as books on books.title like '%War%' \n" + 
+                "where ( author.id in (1L, 4L, 8L) ) \n" + 
+                "order by author.id asc");
+        
+        String qu = "select d1 from Department d1 left join fetch d1.manager where exists \n" + 
+        "(select d2 from Department d2 where d2.manager is null and d1 = d2)";
+        
+        query.setHint("hibernate.query.passDistinctThrough", false);
+        
+        
+
+        // when:
+        List<Droid> result = query.getResultList();
+        
+        assertThat(result).isNotEmpty();
+    }
+        
+        
+        
 
     @Test
     public void getsNamesOfAllDroids() {
@@ -1029,7 +1054,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //when:
         Object result = executor.execute(query).getData();
-
+        
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
@@ -1386,8 +1411,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         String expected = "{Humans={select=["
                 + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Darth Vader, friends=[]}, "
                 + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Wilhuff Tarkin, friends=[]}"
                 + "]}}";
 
         //when:
@@ -1413,8 +1440,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         String expected = "{Humans={select=["
                 + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Darth Vader, friends=[]}, "
                 + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Wilhuff Tarkin, friends=[]}"
                 + "]}}";
 
         //when:
@@ -1440,8 +1469,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         String expected = "{Humans={select=["
                 + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Darth Vader, friends=[]}, "
                 + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Wilhuff Tarkin, friends=[]}"
                 + "]}}";
 
         //when:
@@ -1467,8 +1498,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         String expected = "{Humans={select=["
                 + "{name=Luke Skywalker, friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Darth Vader, friends=[]}, "
                 + "{name=Han Solo, friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "{name=Leia Organa, friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
+                + "{name=Wilhuff Tarkin, friends=[]}"
                 + "]}}";
 
         //when:
@@ -1493,7 +1526,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
                 + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
 
@@ -1519,10 +1555,13 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
                 + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
-
+        
         //when:
         Object result = executor.execute(query).getData();
 
@@ -1546,7 +1585,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
                 + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
 
@@ -1573,7 +1615,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
                 + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
 
@@ -1593,10 +1638,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "    select {" + 
                 "      name" + 
                 "      friends(where:{" + 
-                "        NOT_EXISTS:{ friends:{name:{EQ:\"R2-D2\"}}}" + 
+                "        NOT_EXISTS:{ friendsOf: {name:{EQ:\"R2-D2\"}}}" + 
                 "      }) {" + 
                 "        name" + 
-                "        friends {" + 
+                "        friendsOf {" + 
                 "          name" + 
                 "        }" + 
                 "      }" + 
@@ -1606,13 +1651,16 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         String expected = "{Droids={select=["
                 + "{name=C-3PO, friends=["
-                +   "{name=R2-D2, friends=["
+                +   "{name=R2-D2, friendsOf=["
+                +       "{name=C-3PO}, "
                 +       "{name=Han Solo}, "
                 +       "{name=Leia Organa}, "
                 +       "{name=Luke Skywalker}"
                 +   "]}"
-                + "]}]}}";
-
+                + "]}, "
+                + "{name=R2-D2, friends=[]}"
+                + "]}}";
+        
         //when:
         Object result = executor.execute(query).getData();
 
@@ -1636,7 +1684,10 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
                 + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
 
