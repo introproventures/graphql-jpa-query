@@ -80,7 +80,6 @@ import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
-
 import graphql.GraphQLException;
 import graphql.execution.MergedField;
 import graphql.execution.ValuesResolver;
@@ -116,10 +115,10 @@ import graphql.schema.GraphQLType;
 public final class GraphQLJpaQueryFactory {
 
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
-    
+
     protected static final String WHERE = "where";
     protected static final String OPTIONAL = "optional";
-    
+
     protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
@@ -146,33 +145,33 @@ public final class GraphQLJpaQueryFactory {
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment,
                                                        MergedField queryField) {
-        
-        // Override query environment with associated entity object type and select field 
+
+        // Override query environment with associated entity object type and select field
         return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .fieldType(getEntityObjectType())
                                              .mergedField(queryField)
                                              .build();
     }
-    
-    public List<Object> queryKeys(DataFetchingEnvironment environment, 
-                                     int firstResult, 
+
+    public List<Object> queryKeys(DataFetchingEnvironment environment,
+                                     int firstResult,
                                      int maxResults) {
         MergedField queryField = resolveQueryField(environment.getField());
 
-        // Override query environment with associated entity object type and 
+        // Override query environment with associated entity object type and
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
-        
-        TypedQuery<Object> keysQuery = getKeysQuery(queryEnvironment, 
+
+        TypedQuery<Object> keysQuery = getKeysQuery(queryEnvironment,
                                                     queryEnvironment.getField());
-        
+
         keysQuery.setFirstResult(firstResult)
                  .setMaxResults(maxResults);
 
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Keys Query String:\n    {}", getJPQLQueryString(keysQuery));
         }
-        
+
         return keysQuery.getResultList();
     }
 
@@ -188,25 +187,25 @@ public final class GraphQLJpaQueryFactory {
                                         maxResults);
 
     }
-    
+
     protected Stream<Object> queryResultStream(DataFetchingEnvironment environment,
                                                int maxResults,
                                                List<Object> keys) {
         MergedField queryField = resolveQueryField(environment.getField());
-        
-        // Override query environment with associated entity object type and 
+
+        // Override query environment with associated entity object type and
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
         final int fetchSize = Integer.min(maxResults, defaultFetchSize);
         final boolean isDistinct = resolveDistinctArgument(queryEnvironment.getField());
-        
+
         final TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), isDistinct, keys.toArray());
-        
+
         // Let' try reduce overhead and disable all caching
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
-        query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize); 
+        query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
-        
+
         // Let's not pass distinct if enabled to have better performance
         if(isDistinct) {
             query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
@@ -218,49 +217,49 @@ public final class GraphQLJpaQueryFactory {
 
         // Let's execute query and get wrap result into stream
         return query.getResultStream()
-                    .peek(entityManager::detach);                
+                    .peek(entityManager::detach);
     }
-    
+
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
-        
+
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
-        
+
         TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), true);
-        
+
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
         }
-        
+
         return query.getSingleResult();
-    }    
-    
+    }
+
     public Long queryTotalCount(DataFetchingEnvironment environment) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
 
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
-                
+
         TypedQuery<Long> countQuery = getCountQuery(queryEnvironment, queryEnvironment.getField());
-        
+
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
         }
-        
+
         return countQuery.getSingleResult();
-    }    
+    }
 
     protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                  .localContext(Boolean.TRUE) // Fetch mode
                                                                                  .build();
-        
+
         CriteriaQuery<T> criteriaQuery = getCriteriaQuery(queryEnvironment, field, isDistinct, keys);
 
         return entityManager.createQuery(criteriaQuery);
     }
-    
+
     protected TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
@@ -271,24 +270,24 @@ public final class GraphQLJpaQueryFactory {
                                                                                  .localContext(Boolean.FALSE) // Join mode
                                                                                  .build();
         root.alias("root");
-        
+
         query.select(cb.count(root));
-        
+
         List<Predicate> predicates = field.getArguments().stream()
             .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
-        
+
         query.where(predicates.toArray(new Predicate[0]));
 
         return entityManager.createQuery(query);
     }
-    
+
     protected TypedQuery<Object> getKeysQuery(DataFetchingEnvironment environment, Field field) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery(Object.class);
         Root<?> from = query.from(entityType);
-        
+
         from.alias("root");
 
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -303,12 +302,12 @@ public final class GraphQLJpaQueryFactory {
                                                  .collect(Collectors.toList());
             query.multiselect(selection);
         }
-        
+
         List<Predicate> predicates = field.getArguments().stream()
             .map(it -> getPredicate(field, cb, from, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
-        
+
         query.where(predicates.toArray(new Predicate[0]));
 
         GraphQLSupport.fields(field.getSelectionSet())
@@ -319,46 +318,51 @@ public final class GraphQLJpaQueryFactory {
                           // Process the orderBy clause
                           mayBeAddOrderBy(selection, query, cb, selectionPath, queryEnvironment);
                       });
-        
+
         mayBeAddDefaultOrderBy(query, from, cb);
-        
+
         return entityManager.createQuery(query);
     }
-    
+
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     protected TypedQuery<Object> getCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
-        
+
         Object source = environment.getSource();
-        
+
         SingularAttribute parentIdAttribute = entityType.getId(Object.class);
-        
+
         Object parentIdValue = getAttributeValue(source, parentIdAttribute);
-        
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
         Root<?> from = query.from(entityType);
-        
+
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .root(query)
+                                                                                 .localContext(Boolean.TRUE)
+                                                                                 .build();
+
         from.alias("owner");
-        
+
         // Must use inner join in parent context
         Join join = from.join(field.getName())
                         .on(cb.in(from.get(parentIdAttribute.getName()))
                               .value(parentIdValue));
-        
+
         query.select(join.alias(field.getName()));
-        
-        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, environment);
+
+        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, queryEnvironment);
 
         query.where(
             predicates.toArray(new Predicate[0])
         );
-        
-        // optionally add default ordering 
+
+        // optionally add default ordering
         mayBeAddDefaultOrderBy(query, join, cb);
-        
+
         return entityManager.createQuery(query.distinct(isDistinct));
     }
-    
+
     @SuppressWarnings("unchecked")
     protected <T> CriteriaQuery<T> getCriteriaQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -376,7 +380,7 @@ public final class GraphQLJpaQueryFactory {
         if (keys.length > 0) {
             if(hasIdAttribute()) {
                 predicates.add(from.get(idAttributeName()).in(keys));
-            } // array of idClass attributes 
+            } // array of idClass attributes
             else if (hasIdClassAttribue()) {
                 String[] names = idClassAttributeNames();
                 Map<String, List<Object>> idKeys = new HashMap<>();
@@ -388,20 +392,20 @@ public final class GraphQLJpaQueryFactory {
                                       .forEach(i -> {
                                           idKeys.computeIfAbsent(names[i], key -> new ArrayList<>())
                                                 .add(values[i]);
-                                      });        
+                                      });
                          });
-                
+
                 List<Predicate> idPredicates = Stream.of(names)
                                                      .map(name -> {
                                                          return from.get(name)
                                                                     .in(idKeys.get(name).toArray(new Object[0]));
                                                      })
                                                      .collect(Collectors.toList());
-                
-                predicates.add(cb.and(idPredicates.toArray(new Predicate[0]))); 
+
+                predicates.add(cb.and(idPredicates.toArray(new Predicate[0])));
             }
         }
-        
+
         // Use AND clause to filter results
         if(!predicates.isEmpty())
             query.where(predicates.toArray(new Predicate[0]));
@@ -411,14 +415,14 @@ public final class GraphQLJpaQueryFactory {
 
         return query.distinct(isDistinct);
     }
-    
+
     <A,B,C>  Stream<C> zipped(List<A> lista, List<B> listb, BiFunction<A,B,C> zipper){
         int shortestLength = Math.min(lista.size(),listb.size());
         return IntStream.range(0,shortestLength).mapToObj( i -> {
              return zipper.apply(lista.get(i), listb.get(i));
-        });        
-   }  
-    
+        });
+   }
+
     protected void mayBeAddOrderBy(Field selectedField, CriteriaQuery<?> query, CriteriaBuilder cb, Path<?> fieldPath, DataFetchingEnvironment environment) {
         // Singular attributes only
         if (fieldPath.getModel() instanceof SingularAttribute) {
@@ -429,18 +433,18 @@ public final class GraphQLJpaQueryFactory {
                          .map(argument -> getOrderByValue(argument, environment))
                          .ifPresent(orderBy -> {
                              List<Order> orders = new ArrayList<>(query.getOrderList());
-                             
+
                              if ("DESC".equals(orderBy.getName())) {
                                  orders.add(cb.desc(fieldPath));
                              } else {
                                  orders.add(cb.asc(fieldPath));
                              }
-                             
+
                              query.orderBy(orders);
                          });
         }
     }
-    
+
     protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
@@ -450,13 +454,12 @@ public final class GraphQLJpaQueryFactory {
         GraphQLSupport.fields(field.getSelectionSet())
                       .filter(selection -> isPersistent(environment, selection.getName()))
                       .forEach(selection -> {
-                          
+
             Path<?> fieldPath = from.get(selection.getName());
             From<?,?> fetch = null;
             Optional<Argument> optionalArgument = getArgument(selection, OPTIONAL);
             Optional<Argument> whereArgument = getArgument(selection, WHERE);
             Boolean isOptional = null;
-            Boolean isFetchOn = false;
 
             // Build predicate arguments for singular attributes only
             if(fieldPath.getModel() instanceof SingularAttribute) {
@@ -468,7 +471,7 @@ public final class GraphQLJpaQueryFactory {
                 if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
                     || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                 ) {
-                   // Let's do fugly conversion 
+                   // Let's do fugly conversion
                    isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
                                                         .orElse(attribute.isOptional());
 
@@ -482,11 +485,11 @@ public final class GraphQLJpaQueryFactory {
                                                   .map(it -> new Argument(selection.getName() + "." + it.getName(),
                                                                           it.getValue()))
                                                   .collect(Collectors.toList()));
-                        
+
                 }
             } else {
-                // We must add plural attributes with explicit join fetch 
-                // Let's do fugly conversion 
+                // We must add plural attributes with explicit join fetch
+                // Let's do fugly conversion
                 // the many end is a collection, and it is always optional by default (empty collection)
                 isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
                                              .orElse(toManyDefaultOptional);
@@ -495,50 +498,45 @@ public final class GraphQLJpaQueryFactory {
                 EntityType<?> entityType = getEntityType(objectType);
 
                 PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selection.getName());
-                
+                Optional<Argument> whereArg = GraphQLSupport.getWhereArgument(selection);
+
                 // Let's join fetch element collections to avoid filtering their values used where search criteria
                 if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
                     from.fetch(selection.getName(), JoinType.LEFT);
-                } else {
+                } else if(!whereArg.isPresent()) {
                     // Let's apply fetch join to retrieve associated plural attributes
                     fetch = reuseFetch(from, selection.getName(), isOptional);
                 }
-                
-                isFetchOn = true;
             }
-            // Let's build join fetch graph to avoid Hibernate error: 
+            // Let's build join fetch graph to avoid Hibernate error:
             // "query specified join fetching, but the owner of the fetched association was not present in the select list"
             if(selection.getSelectionSet() != null && fetch != null) {
                 Map<String, Object> variables = environment.getVariables();
-                
+
                 GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                      this.getObjectType(environment),
-                                                                     selection);  
-                
+                                                                     selection);
+
                 List<Argument> values = whereArgument.map(Collections::singletonList)
                                                      .orElse(Collections.emptyList());
-                
+
                 Map<String, Object> fieldArguments = new ValuesResolver().getArgumentValues(fieldDefinition.getArguments(),
                                                                                             values,
                                                                                             variables);
-                
-                DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment, 
-                                                                                     fieldDefinition, 
+
+                DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment,
+                                                                                     fieldDefinition,
                                                                                      fieldArguments);
-                if(isFetchOn) {
-                    Predicate[] fetchPredicates = getFieldPredicates(selection, 
-                                                                     query, 
-                                                                     cb, 
-                                                                     root, 
-                                                                     fetch, 
-                                                                     fieldEnvironment).toArray(new Predicate[] {});
-                    ((Join<?,?>) fetch).on(fetchPredicates);
-                } else {
-                    predicates.addAll(getFieldPredicates(selection, query, cb, root, fetch, fieldEnvironment));
-                }
+
+                predicates.addAll(getFieldPredicates(selection,
+                                                     query,
+                                                     cb,
+                                                     root,
+                                                     fetch,
+                                                     fieldEnvironment));
             }
         });
-        
+
         arguments.addAll(field.getArguments());
 
         arguments.stream()
@@ -576,7 +574,7 @@ public final class GraphQLJpaQueryFactory {
                 }
             } else {
                 AttributePropertyDescriptor attribute =  attributePropertyDescriptor.get();
-                
+
                 GraphQLDefaultOrderBy order = attribute.getDefaultOrderBy().get();
                 if (order.asc()) {
                     query.orderBy(cb.asc(from.get(attribute.getName())));
@@ -590,7 +588,7 @@ public final class GraphQLJpaQueryFactory {
     protected boolean isPredicateArgument(Argument argument) {
         return !isOrderByArgument(argument) && !isOptionalArgument(argument);
     }
-    
+
     protected boolean isOrderByArgument(Argument argument) {
         return GraphQLJpaSchemaBuilder.ORDER_BY_PARAM_NAME.equals(argument.getName());
     }
@@ -598,29 +596,29 @@ public final class GraphQLJpaQueryFactory {
     protected boolean isOptionalArgument(Argument argument) {
         return OPTIONAL.equals(argument.getName());
     }
-    
+
     protected Optional<Argument> getArgument(Field selectedField, String argumentName) {
         return selectedField.getArguments()
                              .stream()
                              .filter(it -> it.getName()
                                              .equals(argumentName))
-                             .findFirst();        
+                             .findFirst();
     }
-    
+
     protected <R extends Attribute<?,?>> R getAttribute(String attributeName) {
         return (R) entityType.getAttribute(attributeName);
     }
- 
+
     @SuppressWarnings( "unchecked" )
     protected Predicate getPredicate(Field field, CriteriaBuilder cb, Root<?> from, From<?,?> path, DataFetchingEnvironment environment, Argument argument) {
-        if(isLogicalArgument(argument) || 
-            isDistinctArgument(argument) || isPageArgument(argument) || 
+        if(isLogicalArgument(argument) ||
+            isDistinctArgument(argument) || isPageArgument(argument) ||
             isAfterArgument(argument) || isFirstArgument(argument) ) {
             return null;
-        } 
+        }
         else if(isWhereArgument(argument)) {
             return getWherePredicate(cb, from, path, argumentEnvironment(environment, argument), argument);
-        } 
+        }
         else if(!argument.getName().contains(".")) {
             Attribute<?,?> argumentEntityAttribute = getAttribute(environment, argument.getName());
 
@@ -628,7 +626,7 @@ public final class GraphQLJpaQueryFactory {
             if (argumentEntityAttribute instanceof PluralAttribute) {
                 // Apply left outer join to retrieve optional associations
                 Boolean isFetch = environment.getLocalContext();
-                
+
                 return (isFetch ? reuseFetch(from, argument.getName(), false) : reuseJoin(from, argument.getName(), false))
                     .in(convertValue(environment, argument, argument.getValue()));
             }
@@ -660,23 +658,23 @@ public final class GraphQLJpaQueryFactory {
             }
         }
     }
-    
-    
+
+
 
     @SuppressWarnings( "unchecked" )
     private <R extends Value<?>> R getValue(Argument argument, DataFetchingEnvironment environment) {
         Value<?> value = argument.getValue();
-        
+
         if(VariableReference.class.isInstance(value)) {
             Object variableValue = getVariableReferenceValue((VariableReference) value, environment);
-            
+
             GraphQLArgument graphQLArgument = environment.getExecutionStepInfo()
                                                 .getFieldDefinition()
                                                 .getArgument(argument.getName());
-            
+
             return (R) AstValueHelper.astFromValue(variableValue, graphQLArgument.getType());
         }
-        
+
         return (R) value;
     }
 
@@ -700,17 +698,17 @@ public final class GraphQLJpaQueryFactory {
 
         if(whereValue.getChildren().isEmpty())
             return cb.conjunction();
-        
+
         Logical logical = extractLogical(argument);
-        
+
         Map<String, Object> predicateArguments = new LinkedHashMap<>();
         predicateArguments.put(logical.name(), environment.getArguments());
-        
+
         DataFetchingEnvironment predicateDataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                                  .arguments(predicateArguments)
                                                                                                  .build();
         Argument predicateArgument = new Argument(logical.name(), whereValue);
-        
+
         return getArgumentPredicate(cb, (path != null) ? path : root, predicateDataFetchingEnvironment, predicateArgument);
     }
 
@@ -720,23 +718,23 @@ public final class GraphQLJpaQueryFactory {
         ObjectValue whereValue = getValue(argument, environment);
 
         if (whereValue.getChildren().isEmpty())
-            return cb.disjunction(); 
-        
+            return cb.disjunction();
+
         Logical logical = extractLogical(argument);
 
         List<Predicate> predicates = new ArrayList<>();
 
         whereValue.getObjectFields().stream()
             .filter(it -> Logical.names().contains(it.getName()))
-            .map(it -> { 
+            .map(it -> {
                 Map<String, Object> arguments = getFieldArguments(environment, it, argument);
-                
+
                 if(it.getValue() instanceof ArrayValue) {
                     return getArgumentsPredicate(cb, from,
                                                 argumentEnvironment(environment, arguments),
                                                 new Argument(it.getName(), it.getValue()));
                 }
-                
+
                 return getArgumentPredicate(cb, from,
                                             argumentEnvironment(environment, arguments),
                                             new Argument(it.getName(), it.getValue()));
@@ -757,57 +755,57 @@ public final class GraphQLJpaQueryFactory {
 
         return getCompoundPredicate(cb, predicates, logical);
     }
-    
-    
-    protected Predicate getObjectFieldPredicate(DataFetchingEnvironment environment, 
-                                                CriteriaBuilder cb, 
-                                                From<?,?> from, 
+
+
+    protected Predicate getObjectFieldPredicate(DataFetchingEnvironment environment,
+                                                CriteriaBuilder cb,
+                                                From<?,?> from,
                                                 Logical logical,
-                                                ObjectField objectField, 
-                                                Argument argument, 
+                                                ObjectField objectField,
+                                                Argument argument,
                                                 Map<String, Object> arguments
                                                  ) {
         if(isEntityType(environment)) {
             Attribute<?,?> attribute = getAttribute(environment, argument.getName());
-            
+
             if(attribute.isAssociation()) {
                 GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                      this.getObjectType(environment),
                                                                      new Field(objectField.getName()));
-                
+
                 if(Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) ) {
                     AbstractQuery<?> query = environment.getRoot();
                     Subquery<?> subquery = query.subquery(attribute.getJavaType());
                     From<?,?> correlation = Root.class.isInstance(from) ? subquery.correlate((Root<?>) from)
                                                                         : subquery.correlate((Join<?,?>) from);
-                    
+
                     Join<?,?> correlationJoin = correlation.join(objectField.getName());
-                    
+
                     DataFetchingEnvironment existsEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                               .root(subquery)
-                                                                                              .build();                                                                                                  
-                    
+                                                                                              .build();
+
                     Predicate restriction = getArgumentPredicate(cb,
                                                                  correlationJoin,
                                                                  wherePredicateEnvironment(existsEnvironment, fieldDefinition, arguments),
                                                                  argument);
-                    
-                    
+
+
                     Predicate exists = cb.exists(subquery.select((Join) correlationJoin)
                                                          .where(restriction));
-                    
+
                     return logical == Logical.EXISTS ? exists : cb.not(exists);
                 }
-                
+
                 AbstractQuery<?> query = environment.getRoot();
                 Boolean isFetch = environment.getLocalContext();
                 Boolean isOptional = isOptionalAttribute(attribute);
-                
+
                 From<?,?> context = (isSubquery(query) || isCountQuery(query) || !isFetch)
                                         ? reuseJoin(from, objectField.getName(), isOptional)
                                         : reuseFetch(from, objectField.getName(), isOptional);
-                            
-                return getArgumentPredicate(cb, 
+
+                return getArgumentPredicate(cb,
                                             context,
                                             wherePredicateEnvironment(environment, fieldDefinition, arguments),
                                             argument);
@@ -825,7 +823,7 @@ public final class GraphQLJpaQueryFactory {
     protected boolean isSubquery(AbstractQuery<?> query) {
         return Subquery.class.isInstance(query);
     }
-    
+
     protected boolean isCountQuery(AbstractQuery<?> query) {
         return Optional.ofNullable(query.getSelection())
                        .map(Selection::getJavaType)
@@ -845,13 +843,13 @@ public final class GraphQLJpaQueryFactory {
         Logical logical = extractLogical(argument);
 
         List<Predicate> predicates = new ArrayList<>();
-        
+
         List<Map<String,Object>> arguments = environment.getArgument(logical.name());
         List<ObjectValue> values =  whereValue.getValues()
                 .stream()
                 .map(ObjectValue.class::cast).collect(Collectors.toList());
-        
-        List<SimpleEntry<ObjectValue, Map<String, Object>>> tuples = 
+
+        List<SimpleEntry<ObjectValue, Map<String, Object>>> tuples =
                 IntStream.range(0, values.size())
                          .mapToObj(i -> new SimpleEntry<ObjectValue, Map<String, Object>>(values.get(i),
                                                                                           arguments.get(i)))
@@ -865,19 +863,19 @@ public final class GraphQLJpaQueryFactory {
                              .map(it -> {
                                  Map<String, Object> args = e.getValue();
                                  Argument arg = new Argument(it.getName(), it.getValue());
-                                 
+
                                  if(ArrayValue.class.isInstance(it.getValue())) {
                                      return getArgumentsPredicate(cb,
                                                                  from,
                                                                  argumentEnvironment(environment, args),
                                                                  arg);
                                  }
-                                 
+
                                  return getArgumentPredicate(cb,
                                                              from,
                                                              argumentEnvironment(environment, args),
                                                              arg);
-                                 
+
                              }))
               .forEach(predicates::add);
 
@@ -889,18 +887,18 @@ public final class GraphQLJpaQueryFactory {
                              .map(it -> {
                                  Map<String, Object> args = e.getValue();
                                  Argument arg = new Argument(it.getName(), it.getValue());
-                                 
+
                                  return getObjectFieldPredicate(environment, cb, from, logical, it, arg, args);
                              }))
               .filter(predicate -> predicate != null)
               .forEach(predicates::add);
-        
+
         return getCompoundPredicate(cb, predicates, logical);
     }
-    
+
     private Map<String, Object> getFieldArguments(DataFetchingEnvironment environment, ObjectField field, Argument argument) {
         Map<String, Object> arguments;
-        
+
         if (environment.getArgument(argument.getName()) instanceof Collection) {
             Collection<Map<String,Object>> list = environment.getArgument(argument.getName());
 
@@ -911,10 +909,10 @@ public final class GraphQLJpaQueryFactory {
         } else {
             arguments = environment.getArgument(argument.getName());
         }
-        
+
         return arguments;
     }
-    
+
     private Logical extractLogical(Argument argument) {
         return Optional.of(argument.getName())
                 .filter(it -> Logical.names().contains(it))
@@ -941,7 +939,7 @@ public final class GraphQLJpaQueryFactory {
              .map(it -> {
                  Map<String, Object> args = getFieldArguments(environment, it, argument);
                  Argument arg = new Argument(it.getName(), it.getValue());
-                 
+
                  return getLogicalPredicate(it.getName(),
                                           cb,
                                           path,
@@ -952,14 +950,14 @@ public final class GraphQLJpaQueryFactory {
              .forEach(predicates::add);
 
         return getCompoundPredicate(cb, predicates, logical);
-    }    
-    
+    }
+
     private Predicate getLogicalPredicate(String fieldName, CriteriaBuilder cb, From<?,?> path, ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         ObjectValue expressionValue;
-        
+
         if(objectField.getValue() instanceof ObjectValue)
             expressionValue = (ObjectValue) objectField.getValue();
-        else 
+        else
             expressionValue = new ObjectValue(Arrays.asList(objectField));
 
         if(expressionValue.getChildren().isEmpty())
@@ -972,22 +970,22 @@ public final class GraphQLJpaQueryFactory {
         // Let's parse logical expressions, i.e. AND, OR
         expressionValue.getObjectFields().stream()
             .filter(it -> Logical.names().contains(it.getName()))
-            .map(it -> { 
+            .map(it -> {
                 Map<String, Object> args = getFieldArguments(environment, it, argument);
                 Argument arg = new Argument(it.getName(), it.getValue());
-                
+
                 if(it.getValue() instanceof ArrayValue) {
                     return getLogicalPredicates(fieldName, cb, path, it,
                                                   argumentEnvironment(environment, args),
                                                   arg);
                 }
-                
+
                 return getLogicalPredicate(fieldName, cb, path, it,
                                          argumentEnvironment(environment, args),
                                          arg);
             })
             .forEach(predicates::add);
-        
+
         // Let's parse relation criteria expressions if present, i.e. books, author, etc.
         if(expressionValue.getObjectFields()
                           .stream()
@@ -999,7 +997,7 @@ public final class GraphQLJpaQueryFactory {
             Map<String, Object> args = new LinkedHashMap<>();
             Argument arg = new Argument(logical.name(), expressionValue);
             boolean isOptional = false;
-            
+
             if(Logical.names().contains(argument.getName())) {
                 args.put(logical.name(), environment.getArgument(argument.getName()));
             } else {
@@ -1007,13 +1005,13 @@ public final class GraphQLJpaQueryFactory {
 
                 isOptional = isOptionalAttribute(getAttribute(environment, argument.getName()));
             }
-            
-            return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),  
+
+            return getArgumentPredicate(cb, reuseJoin(path, fieldName, isOptional),
                                         wherePredicateEnvironment(environment, fieldDefinition, args),
                                         arg);
         }
-        
-        // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc. 
+
+        // Let's parse simple Criteria expressions, i.e. EQ, LIKE, etc.
         JpaPredicateBuilder pb = new JpaPredicateBuilder(cb);
 
         expressionValue.getObjectFields()
@@ -1030,15 +1028,15 @@ public final class GraphQLJpaQueryFactory {
         return getCompoundPredicate(cb, predicates, logical);
 
     }
-    
+
     private Predicate getCompoundPredicate(CriteriaBuilder cb, List<Predicate> predicates, Logical logical) {
         if(predicates.isEmpty())
             return cb.disjunction();
-        
+
         if(predicates.size() == 1) {
             return predicates.get(0);
         }
-        
+
         return  (logical == Logical.OR)
                 ? cb.or(predicates.toArray(new Predicate[0]))
                 : cb.and(predicates.toArray(new Predicate[0]));
@@ -1047,16 +1045,16 @@ public final class GraphQLJpaQueryFactory {
 	private PredicateFilter getPredicateFilter(ObjectField objectField, DataFetchingEnvironment environment, Argument argument) {
         EnumSet<PredicateFilter.Criteria> options =
             EnumSet.of(PredicateFilter.Criteria.valueOf(argument.getName()));
-        
+
         Map<String, Object> valueArguments = new LinkedHashMap<String,Object>();
         valueArguments.put(objectField.getName(), environment.getArgument(argument.getName()));
-        
+
         DataFetchingEnvironment dataFetchingEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                                                                         .arguments(valueArguments)
                                                                                         .build();
-        
+
         Argument dataFetchingArgument = new Argument(objectField.getName(), argument.getValue());
-        
+
         Object filterValue = convertValue( dataFetchingEnvironment, dataFetchingArgument, argument.getValue() );
 
         return new PredicateFilter(objectField.getName(), filterValue, options );
@@ -1067,10 +1065,10 @@ public final class GraphQLJpaQueryFactory {
                                              .arguments(arguments)
                                              .build();
     }
-	
+
     protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment, Argument argument) {
         Map<String, Object> arguments = environment.getArgument(argument.getName());
-        
+
         return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .build();
@@ -1083,7 +1081,7 @@ public final class GraphQLJpaQueryFactory {
                                              .fieldType(fieldDefinition.getType())
                                              .build();
     }
-    
+
     /**
      * @param fieldName
      * @return Path of compound field to the primitive type
@@ -1146,7 +1144,7 @@ public final class GraphQLJpaQueryFactory {
         }
         return outer ? from.join(fieldName, JoinType.LEFT) : from.join(fieldName);
     }
-    
+
     // trying to find already existing fetch joins to reuse
     private From<?,?> reuseFetch(From<?, ?> from, String fieldName, boolean outer) {
 
@@ -1156,8 +1154,8 @@ public final class GraphQLJpaQueryFactory {
             }
         }
         return outer ? (From<?,?>) from.fetch(fieldName, JoinType.LEFT) : (From<?,?>) from.fetch(fieldName);
-    }    
-    
+    }
+
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected Object convertValue(DataFetchingEnvironment environment, Argument argument, Value value) {
         if (value instanceof NullValue) {
@@ -1179,15 +1177,15 @@ public final class GraphQLJpaQueryFactory {
             if(javaType.isEnum()) {
                 if(argumentValue instanceof Collection) {
                     List<Enum> values = new ArrayList<>();
-                    
+
                     Collection.class.cast(argumentValue)
-                                    .forEach(it -> values.add(Enum.valueOf(javaType, it.toString()))); 
+                                    .forEach(it -> values.add(Enum.valueOf(javaType, it.toString())));
                     return values;
                 } else {
                     return Enum.valueOf(javaType, argumentValue.toString());
                 }
-            } 
-            else {    
+            }
+            else {
                 // Get resolved variable in environment arguments
                 return argumentValue;
             }
@@ -1201,28 +1199,28 @@ public final class GraphQLJpaQueryFactory {
                     arrayValue = Collection.class.cast(arrayValue.iterator()
                                                                  .next());
                 }
-                
+
                 // Let's convert enum types, i.e. array of strings or EnumValue into Java type
                 if(getJavaType(environment, argument).isEnum()) {
                     Function<Object, Value> objectValue = (obj) -> Value.class.isInstance(obj)
                                                                               ? Value.class.cast(obj)
                                                                               : new EnumValue(obj.toString());
-                    // Return real typed resolved array values converted into Java enums 
+                    // Return real typed resolved array values converted into Java enums
                     return arrayValue.stream()
-                                     .map((it) -> convertValue(environment, 
-                                                               argument, 
+                                     .map((it) -> convertValue(environment,
+                                                               argument,
                                                                objectValue.apply(it)))
                                      .collect(Collectors.toList());
-                } 
-                // Let's try handle Ast Value types 
+                }
+                // Let's try handle Ast Value types
                 else if(arrayValue.stream()
                                   .anyMatch(it->it instanceof Value)) {
                         return arrayValue.stream()
-                                         .map(it -> convertValue(environment, 
-                                                                 argument, 
+                                         .map(it -> convertValue(environment,
+                                                                 argument,
                                                                  Value.class.cast(it)))
                                          .collect(Collectors.toList());
-                } 
+                }
                 // Return real typed resolved array value, i.e. Date, UUID, Long
                 else {
                     return arrayValue;
@@ -1247,7 +1245,7 @@ public final class GraphQLJpaQueryFactory {
         } else if (value instanceof ObjectValue) {
             Class javaType = getJavaType(environment, argument);
             Map<String, Object> values = environment.getArgument(argument.getName());
-            
+
             try {
                 return getJavaBeanValue(javaType, values);
             } catch (Exception cause) {
@@ -1257,13 +1255,13 @@ public final class GraphQLJpaQueryFactory {
 
         return value;
     }
-    
+
     private Object getJavaBeanValue(Class<?> javaType, Map<String, Object> values) throws Exception {
         Constructor<?> constructor = javaType.getConstructor();
         constructor.setAccessible(true);
 
         Object javaBean = constructor.newInstance();
-        
+
         values.entrySet()
               .stream()
               .forEach(entry -> {
@@ -1271,11 +1269,11 @@ public final class GraphQLJpaQueryFactory {
                                    entry.getKey(),
                                    entry.getValue());
               });
-        
+
         return javaBean;
     }
-    
-    private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) { 
+
+    private void setPropertyValue(Object javaBean, String propertyName, Object propertyValue) {
         try {
             BeanInfo bi = Introspector.getBeanInfo(javaBean.getClass());
             PropertyDescriptor pds[] = bi.getPropertyDescriptors();
@@ -1283,7 +1281,7 @@ public final class GraphQLJpaQueryFactory {
                 if (pd.getName().equals(propertyName)) {
                     Method setter = pd.getWriteMethod();
                     setter.setAccessible(true);
-                    
+
                     if (setter != null) {
                         setter.invoke(javaBean, new Object[] {propertyValue} );
                     }
@@ -1323,8 +1321,8 @@ public final class GraphQLJpaQueryFactory {
 
         return entityType.getAttribute(argument);
     }
-    
-    
+
+
 
     private boolean isOptionalAttribute(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute)) {
@@ -1333,10 +1331,10 @@ public final class GraphQLJpaQueryFactory {
         else if(PluralAttribute.class.isInstance(attribute)) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Resolve JPA model entity type from GraphQL objectType
      *
@@ -1352,13 +1350,13 @@ public final class GraphQLJpaQueryFactory {
                                           .findFirst()
                                           .get();
     }
-    
+
     private boolean isEntityType(DataFetchingEnvironment environment) {
         GraphQLObjectType objectType = getObjectType(environment);
         return entityManager.getMetamodel()
                             .getEntities().stream()
                                           .anyMatch(it -> it.getName().equals(objectType.getName()));
-    }    
+    }
 
     /**
      * Resolve GraphQL object type from Argument output type.
@@ -1404,16 +1402,16 @@ public final class GraphQLJpaQueryFactory {
         }
 
         GraphQLFieldDefinition fieldDefinition = parentType.getFieldDefinition(field.getName());
-        
+
         if (fieldDefinition != null) {
             return fieldDefinition;
         }
-        
+
         throw new GraphQLException("unknown field " + field.getName());
     }
-    
+
     protected final boolean isManagedType(Attribute<?,?> attribute) {
-    	return attribute.getPersistentAttributeType() != PersistentAttributeType.EMBEDDED 
+    	return attribute.getPersistentAttributeType() != PersistentAttributeType.EMBEDDED
     			&& attribute.getPersistentAttributeType() != PersistentAttributeType.BASIC
     			&& attribute.getPersistentAttributeType() != PersistentAttributeType.ELEMENT_COLLECTION;
     }
@@ -1463,7 +1461,7 @@ public final class GraphQLJpaQueryFactory {
     @SuppressWarnings( "unchecked" )
     protected final <T> T getArgumentValue(DataFetchingEnvironment environment, Argument argument, Class<T> type) {
         Value<?> value = argument.getValue();
-        
+
         if(VariableReference.class.isInstance(value)) {
             return (T)
                 environment.getVariables()
@@ -1484,7 +1482,7 @@ public final class GraphQLJpaQueryFactory {
         else if (NullValue.class.isInstance(value)) {
             return (T) null;
         }
-        
+
         throw new IllegalArgumentException("Not supported");
     }
 
@@ -1492,7 +1490,7 @@ public final class GraphQLJpaQueryFactory {
                                    String attributeName) {
         GraphQLObjectType objectType = getObjectType(environment);
         EntityType<?> entityType = getEntityType(objectType);
-        
+
         return isPersistent(entityType, attributeName);
     }
 
@@ -1500,11 +1498,11 @@ public final class GraphQLJpaQueryFactory {
                                    String attributeName) {
         try {
             return entityType.getAttribute(attributeName) != null;
-        } catch (Exception ignored) { } 
-        
+        } catch (Exception ignored) { }
+
         return false;
     }
-    
+
     protected boolean isTransient(DataFetchingEnvironment environment,
                                   String attributeName) {
         return !isPersistent(environment, attributeName);
@@ -1514,31 +1512,31 @@ public final class GraphQLJpaQueryFactory {
                                   String attributeName) {
         return !isPersistent(entityType, attributeName);
     }
-    
-    
+
+
     protected String getJPQLQueryString(TypedQuery<?> query) {
         try {
             Object queryImpl = query.unwrap(TypedQuery.class);
-            
+
             java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
                                                                                "queryString");
-                                                    
+
             ReflectionUtil.forceAccess(queryStringField);
-            
+
             return queryStringField.get(queryImpl)
                                    .toString();
-            
+
         } catch (Exception ignored) {
             logger.error("Error getting JPQL string", ignored);
         }
-        
+
         return null;
     }
 
     protected boolean hasIdAttribute() {
         return entityType.getIdType() != null;
     }
-    
+
     protected String idAttributeName() {
         return entityType.getId(entityType.getIdType()
                                           .getJavaType()).getName();
@@ -1547,7 +1545,7 @@ public final class GraphQLJpaQueryFactory {
     protected boolean hasIdClassAttribue() {
         return entityType.getIdClassAttributes() != null;
     }
-    
+
     protected String[] idClassAttributeNames() {
         return entityType.getIdClassAttributes()
                          .stream()
@@ -1556,7 +1554,7 @@ public final class GraphQLJpaQueryFactory {
                          .collect(Collectors.toList())
                          .toArray(new String[0]);
     }
-    
+
     /**
      * Fetches the value of the given SingularAttribute on the given
      * entity.
@@ -1578,7 +1576,7 @@ public final class GraphQLJpaQueryFactory {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }    
+    }
 
     /**
      * Fetches the value of the given SingularAttribute on the given
@@ -1602,48 +1600,48 @@ public final class GraphQLJpaQueryFactory {
             throw new RuntimeException(e);
         }
     }
-    
+
     protected boolean resolveDistinctArgument(Field field) {
-        Argument distinctArg = extractArgument(field, 
-                                               SELECT_DISTINCT_PARAM_NAME, 
+        Argument distinctArg = extractArgument(field,
+                                               SELECT_DISTINCT_PARAM_NAME,
                                                new BooleanValue(defaultDistinct));
-        
+
         return BooleanValue.class.cast(distinctArg.getValue())
                                  .isValue();
     }
-    
+
     public boolean isDefaultDistinct() {
         return defaultDistinct;
     }
-    
+
     public String getSelectNodeName() {
         return selectNodeName;
     }
 
     public MergedField resolveQueryField(Field rootNode) {
         Optional<Field> recordsSelection = GraphQLSupport.searchByFieldName(rootNode, getSelectNodeName());
-        
+
         Field queryField = recordsSelection.map(selectNode -> Field.newField(selectNode.getName())
                                                                    .selectionSet(selectNode.getSelectionSet())
                                                                    .arguments(rootNode.getArguments())
                                                                    .directives(selectNode.getDirectives())
                                                                    .build())
-                                           .orElse(rootNode);    
+                                           .orElse(rootNode);
 
         return MergedField.newMergedField(queryField)
                           .build();
     }
 
-    
+
     public GraphQLObjectType getEntityObjectType() {
         return entityObjectType;
     }
 
-    
+
     public int getDefaultFetchSize() {
         return defaultFetchSize;
     }
-    
+
     private MergedField flattenEmbeddedIdArguments(Field field) {
         // manage object arguments (EmbeddedId)
         final List<Argument> argumentsWhereObjectsAreFlattened = field.getArguments()
@@ -1659,11 +1657,11 @@ public final class GraphQLJpaQueryFactory {
                     }
                 })
                 .collect(Collectors.toList());
-        
+
         return MergedField.newMergedField(field.transform(builder -> builder.arguments(argumentsWhereObjectsAreFlattened)))
                           .build();
     }
-    
+
 
     /**
      * Creates builder to build {@link GraphQLJpaQueryFactory}.
@@ -1826,5 +1824,5 @@ public final class GraphQLJpaQueryFactory {
         public GraphQLJpaQueryFactory build() {
             return new GraphQLJpaQueryFactory(this);
         }
-    }        
+    }
 }

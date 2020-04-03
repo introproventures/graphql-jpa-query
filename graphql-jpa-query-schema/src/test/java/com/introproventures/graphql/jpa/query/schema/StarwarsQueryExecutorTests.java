@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -83,7 +84,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(13);
     }
-    
+
     @Test
     @Transactional
     public void queryManyToManyTester() {
@@ -105,11 +106,11 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.get(0).getName()).isEqualTo("C-3PO");
         assertThat(result.get(0).getFriends()).hasSize(3);
         assertThat(result.get(0).getFriends()).extracting(Character::getName)
-                                              .containsOnly("Han Solo", "Leia Organa", "R2-D2"); 
+                                              .containsOnly("Han Solo", "Leia Organa", "R2-D2");
         assertThat(result.get(0).getFriends()).flatExtracting(Character::getFriendsOf)
                                               .extracting(Character::getName)
                                               .containsOnly("Luke Skywalker");
-        
+
         assertThat(result.get(1).getName()).isEqualTo("R2-D2");
         assertThat(result.get(1).getFriends()).hasSize(2);
         assertThat(result.get(1).getFriends()).extracting(Character::getName)
@@ -118,31 +119,32 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                                               .extracting(Character::getName)
                                               .containsOnly("Luke Skywalker");
     }
-    
+
     @Test
     @Transactional
+    @Ignore
     public void queryOneToManyTesterLeftOuterJoinTester() {
         // given:
-        Query query = em.createQuery("select distinct author from Author as author \n" + 
-                "left join fetch author.books as books on books.title like '%War%' \n" + 
-                "where ( author.id in (1L, 4L, 8L) ) \n" + 
+        Query query = em.createQuery("select distinct author from Author as author \n" +
+                "left join fetch author.books as books on books.title like '%War%' \n" +
+                "where ( author.id in (1L, 4L, 8L) ) \n" +
                 "order by author.id asc");
-        
-        String qu = "select d1 from Department d1 left join fetch d1.manager where exists \n" + 
+
+        String qu = "select d1 from Department d1 left join fetch d1.manager where exists \n" +
         "(select d2 from Department d2 where d2.manager is null and d1 = d2)";
-        
+
         query.setHint("hibernate.query.passDistinctThrough", false);
-        
-        
+
+
 
         // when:
         List<Droid> result = query.getResultList();
-        
+
         assertThat(result).isNotEmpty();
     }
-        
-        
-        
+
+
+
 
     @Test
     public void getsNamesOfAllDroids() {
@@ -294,7 +296,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
                 + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
                 + "]}}";
-                
+
         //when:
         Object result = executor.execute(query).getData();
 
@@ -314,7 +316,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
                 + "]"
                 + "}]}}";
-        
+
         //when:
         Object result = executor.execute(query).getData();
 
@@ -365,7 +367,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
             put("limit", 2);
         }};
 
-        
+
         String expected = "{Humans={pages=3, total=5, select=[{name=Luke Skywalker}, {name=Darth Vader}]}}";
 
         //when:
@@ -374,7 +376,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryPaginationWithoutRecords() {
         //given:
@@ -592,14 +594,14 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, "
                 + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, "
                 + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}], __typename=Droid}}";
-        
+
         //when:
         Object result = executor.execute(query).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithTypenameSimple() {
         //given:
@@ -615,7 +617,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithStringBetweenPredicate() {
         //given:
@@ -649,24 +651,24 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryWithWhereInsideManyToOneRelations() {
         //given:
-        String query = "query {" + 
-                "  Humans(where: {" + 
-                "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "        appearsIn" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query {" +
+                "  Humans(where: {" +
+                "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "        appearsIn" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -679,24 +681,24 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryWithWhereInsideManyToOneRelationsNotExisting() {
         //given:
-        String query = "query {" + 
-                "  Humans(where: {" + 
-                "    favoriteDroid: {appearsIn: {IN: [PHANTOM_MENACE]}}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "        appearsIn" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query {" +
+                "  Humans(where: {" +
+                "    favoriteDroid: {appearsIn: {IN: [PHANTOM_MENACE]}}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "        appearsIn" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=[]}}";
@@ -706,30 +708,30 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideOneToManyRelationsNotExisting() {
         //given:
-        String query = "query {" + 
-                " Humans(where: {" + 
-                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "        primaryFunction { function }" + 
-                "        appearsIn" + 
-                "      }" + 
-                "      friends {" + 
-                "        id" + 
-                "        name" + 
-                "        appearsIn" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query {" +
+                " Humans(where: {" +
+                "    friends: {appearsIn: {EQ: PHANTOM_MENACE}}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "        primaryFunction { function }" +
+                "        appearsIn" +
+                "      }" +
+                "      friends {" +
+                "        id" +
+                "        name" +
+                "        appearsIn" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=[]}}";
@@ -739,40 +741,35 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering() {
         //given:
-        String query = "query {" + 
-                "  Characters(where: {" + 
-                "    friends: {appearsIn: {IN: A_NEW_HOPE}}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      appearsIn" + 
-                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
-                "        id" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query {" +
+                "  Characters(where: {" +
+                "    friends: {appearsIn: {IN: A_NEW_HOPE}}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      appearsIn" +
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" +
+                "        id" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Characters={select=["
-                + "{id=1000, name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=["
-                +   "{id=1003, name=Leia Organa}"
-                + "]}, "
-                + "{id=1002, name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=["
-                +   "{id=1003, name=Leia Organa}"
-                + "]}, "
-                + "{id=2000, name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=["
-                +   "{id=1003, name=Leia Organa}"
-                + "]}, "
-                + "{id=2001, name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=["
-                +   "{id=1003, name=Leia Organa}"
-                + "]}"
+                +   "{id=1000, name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{id=1003, name=Leia Organa}]}, "
+                +   "{id=1001, name=Darth Vader, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI], friends=[]}, "
+                +   "{id=1002, name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{id=1003, name=Leia Organa}]}, "
+                +   "{id=1003, name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[]}, "
+                +   "{id=1004, name=Wilhuff Tarkin, appearsIn=[A_NEW_HOPE], friends=[]}, "
+                +   "{id=2000, name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{id=1003, name=Leia Organa}]}, "
+                +   "{id=2001, name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{id=1003, name=Leia Organa}]}"
                 + "]}}";
 
         //when:
@@ -780,32 +777,32 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
-    
+    }
+
     @Test
     public void queryWithWhereInsideCompositeRelationsAndCollectionFiltering2() {
         //given:
-        String query = "query {" + 
-                "  Humans(where: {" + 
-                "    favoriteDroid: { id: {EQ: \"2000\"}}" + 
-                "    friends: {" + 
-                "      appearsIn: {IN: A_NEW_HOPE}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        id" + 
-                "        name" + 
-                "        primaryFunction { function }" + 
-                "      }" + 
-                "      friends(where: {name: {LIKE: \"Leia\"}}) {" + 
-                "        id" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }  " + 
+        String query = "query {" +
+                "  Humans(where: {" +
+                "    favoriteDroid: { id: {EQ: \"2000\"}}" +
+                "    friends: {" +
+                "      appearsIn: {IN: A_NEW_HOPE}" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        id" +
+                "        name" +
+                "        primaryFunction { function }" +
+                "      }" +
+                "      friends(where: {name: {LIKE: \"Leia\"}}) {" +
+                "        id" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }  " +
                 "}";
 
         String expected = "{Humans={select=["
@@ -817,25 +814,25 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
-    
-    
+    }
+
+
     @Test
     public void queryWithWhereInsideOneToManyRelations() {
         //given:
         String query = "query { "
-                + " Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "      friends {" + 
-                "        name" + 
-                "        appearsIn" + 
-                "      }" + 
-                "    }" + 
+                + " Humans(where: {friends: {appearsIn: {IN: A_NEW_HOPE}} }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "      friends {" +
+                "        name" +
+                "        appearsIn" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -880,21 +877,21 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryHumansWithFavoriteDroidDefaultOptionalTrue() {
         //given:
         String query = "query { "
-                + "Humans {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+                + "Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -911,21 +908,21 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-        
+
     @Test
     public void queryHumansWittFavorideDroidExplicitOptionalFalse() {
         //given:
         String query = "query { "
-                + "Humans {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid(optional: false) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+                + "Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid(optional: false) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -939,23 +936,23 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryHumansWittFavorideDroidExplicitOptionalFalseParameterBinding() {
         //given:
         String query = "query($optional: Boolean) { "
-                + "Humans {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid(optional: $optional) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+                + "Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid(optional: $optional) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
-        
+
         Map<String, Object> variables = Collections.singletonMap("optional", false);
 
         String expected = "{Humans={select=["
@@ -968,8 +965,8 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryFilterManyToOneEmbdeddedCriteria() {
         //given:
@@ -979,7 +976,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                             "select=[{" +
                               "name=R2-D2, " +
                               "primaryFunction={function=Astromech}" +
-                            "}]" + 
+                            "}]" +
                           "}}";
 
         //when:
@@ -993,13 +990,13 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
     public void queryFilterManyToOnRelationCriteria() {
         //given:
         String query = "query { " +
-                "    Droids(where: {primaryFunction: { function: {EQ:\"Astromech\"}}}) { " + 
-                "      select {" + 
-                "        name " + 
-                "        primaryFunction {" + 
-                "          function" + 
-                "        }" + 
-                "      }" + 
+                "    Droids(where: {primaryFunction: { function: {EQ:\"Astromech\"}}}) { " +
+                "      select {" +
+                "        name " +
+                "        primaryFunction {" +
+                "          function" +
+                "        }" +
+                "      }" +
                 "    }"
                 + "}";
 
@@ -1007,7 +1004,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                             "select=[{" +
                               "name=R2-D2, " +
                               "primaryFunction={function=Astromech}" +
-                            "}]" + 
+                            "}]" +
                           "}}";
 
         //when:
@@ -1016,7 +1013,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryFilterNestedManyToOneToDo() {
         //given:
@@ -1054,11 +1051,11 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //when:
         Object result = executor.execute(query).getData();
-        
+
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryFilterNestedManyToOneRelationCriteria() {
         //given:
@@ -1100,29 +1097,29 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryFilterNestedManyToManyRelationCriteria() {
         //given:
         String query = "query {" +
-                "    Humans(where: {" + 
-                "      friends: { name: { LIKE: \"Leia\" } } " + 
-                "      favoriteDroid: { primaryFunction: { function: { EQ: \"Protocol\" } } }" + 
-                "    }) {" + 
-                "      select {" + 
-                "        id" + 
-                "        name" + 
-                "        homePlanet" + 
-                "        favoriteDroid {" + 
-                "          name" + 
-                "          primaryFunction {" + 
-                "            function" + 
-                "          }" + 
-                "        }" + 
-                "        friends {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
+                "    Humans(where: {" +
+                "      friends: { name: { LIKE: \"Leia\" } } " +
+                "      favoriteDroid: { primaryFunction: { function: { EQ: \"Protocol\" } } }" +
+                "    }) {" +
+                "      select {" +
+                "        id" +
+                "        name" +
+                "        homePlanet" +
+                "        favoriteDroid {" +
+                "          name" +
+                "          primaryFunction {" +
+                "            function" +
+                "          }" +
+                "        }" +
+                "        friends {" +
+                "          name" +
+                "        }" +
+                "      }" +
                 "    }  " +
                 "}";
 
@@ -1154,24 +1151,24 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         String query = "query {" +
                 "    Humans(where: {" +
                 "      EXISTS: {" +
-                "        friends: { name: { LIKE: \"Leia\" } } " + 
+                "        friends: { name: { LIKE: \"Leia\" } } " +
                 "        favoriteDroid: { primaryFunction: { function: { EQ: \"Protocol\" } } }" +
                 "      }"+
-                "    }) {" + 
-                "      select {" + 
-                "        id" + 
-                "        name" + 
-                "        homePlanet" + 
-                "        favoriteDroid {" + 
-                "          name" + 
-                "          primaryFunction {" + 
-                "            function" + 
-                "          }" + 
-                "        }" + 
-                "        friends {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
+                "    }) {" +
+                "      select {" +
+                "        id" +
+                "        name" +
+                "        homePlanet" +
+                "        favoriteDroid {" +
+                "          name" +
+                "          primaryFunction {" +
+                "            function" +
+                "          }" +
+                "        }" +
+                "        friends {" +
+                "          name" +
+                "        }" +
+                "      }" +
                 "    }  " +
                 "}";
 
@@ -1200,26 +1197,26 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
-    
+
     @Test
     public void queryWithWhereInsideOneToManyRelationsShouldApplyFilterCriterias() {
         //given:
         String query = "query { "
                 + " Humans(where: {"
                 +      "friends: {appearsIn: {IN: A_NEW_HOPE}} "
-                +      "favoriteDroid: {name: {EQ: \"C-3PO\"}} "  
-                +   "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "      friends {" + 
-                "        name" + 
-                "        appearsIn" + 
-                "      }" + 
-                "    }" + 
+                +      "favoriteDroid: {name: {EQ: \"C-3PO\"}} "
+                +   "}) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "      friends {" +
+                "        name" +
+                "        appearsIn" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1240,20 +1237,20 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-        
+
     @Test
     public void queryWithOneToManyRelationsShouldUseLeftOuterJoin() {
         //given:
         String query = "query { " +
-                "  Humans {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1271,21 +1268,21 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-    
+
+
     @Test
     public void queryWithWhereOneToManyRelationsShouldUseLeftOuterJoinAndApplyCriteria() {
         //given:
         String query = "query { " +
-                "  Humans(where: {favoriteDroid: {name: {EQ: \"C-3PO\"}}}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
+                "  Humans(where: {favoriteDroid: {name: {EQ: \"C-3PO\"}}}) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1304,14 +1301,14 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
     public void queryWithNestedWhereSearchCriteriaShouldFetchElementCollectionsAttributes() {
         //given:
         String query = "query { " +
-                "  Characters (where: {" + 
-                "    appearsIn :{IN: THE_FORCE_AWAKENS}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id, " + 
-                "      name," + 
-                "      appearsIn" + 
-                "    }" + 
+                "  Characters (where: {" +
+                "    appearsIn :{IN: THE_FORCE_AWAKENS}" +
+                "  }) {" +
+                "    select {" +
+                "      id, " +
+                "      name," +
+                "      appearsIn" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1329,25 +1326,25 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-        
-    
+
+
     @Test
     public void queryWithNestedWhereCompoundSearchCriteriaShouldFetchElementCollectionsAttributes() {
         //given:
         String query = "query { " +
-                "  Humans(where:{" + 
-                "    favoriteDroid: {name: {EQ: \"C-3PO\"}} " + 
-                "    appearsIn: {IN: [THE_FORCE_AWAKENS]}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      homePlanet" + 
-                "      favoriteDroid {" + 
-                "        name" + 
-                "      }" + 
-                "      appearsIn" + 
-                "    }" + 
+                "  Humans(where:{" +
+                "    favoriteDroid: {name: {EQ: \"C-3PO\"}} " +
+                "    appearsIn: {IN: [THE_FORCE_AWAKENS]}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid {" +
+                "        name" +
+                "      }" +
+                "      appearsIn" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1365,19 +1362,19 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-     
+
 
     @Test
     public void queryShouldReturnDistictResultsByDefault() {
         //given:
         String query = "query { " +
-                "  Humans (where: { " + 
-                "    appearsIn: {IN: [A_NEW_HOPE, EMPIRE_STRIKES_BACK]}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "    }" + 
+                "  Humans (where: { " +
+                "    appearsIn: {IN: [A_NEW_HOPE, EMPIRE_STRIKES_BACK]}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1394,19 +1391,19 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseEQ() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" +
+                "        name(orderBy: ASC)" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1422,20 +1419,20 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseEQArray() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {EQ: THE_FORCE_AWAKENS}}) {" +
+                "        name(orderBy: ASC)" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1451,20 +1448,20 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseIN() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {IN: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {IN: THE_FORCE_AWAKENS}}) {" +
+                "        name(orderBy: ASC)" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1481,19 +1478,19 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseINArray() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {IN: [THE_FORCE_AWAKENS]}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {IN: [THE_FORCE_AWAKENS]}}) {" +
+                "        name(orderBy: ASC)" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1509,20 +1506,20 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }   
-    
+    }
+
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseNE() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1533,55 +1530,25 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
                 + "]}}";
 
-        //when:
-        Object result = executor.execute(query).getData();
-
-        //then:
-        assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
-    @Test
-    public void querySetOfEnumsWithinEmbeddedSelectClauseNEArray() {
-        //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
-                "}";
-
-        String expected = "{Humans={select=["
-                + "{name=Luke Skywalker, friends=[]}, "
-                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
-                + "{name=Han Solo, friends=[]}, "
-                + "{name=Leia Organa, friends=[]}, "
-                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
-                + "]}}";
-        
         //when:
         Object result = executor.execute(query).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
-    public void querySetOfEnumsWithinEmbeddedSelectClauseNIN() {
-        
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNEArray() {
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {NIN: THE_FORCE_AWAKENS}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {NE: THE_FORCE_AWAKENS}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1597,21 +1564,51 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
+    }
+
+    @Test
+    public void querySetOfEnumsWithinEmbeddedSelectClauseNIN() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {NIN: THE_FORCE_AWAKENS}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{name=Luke Skywalker, friends=[]}, "
+                + "{name=Darth Vader, friends=[{name=Wilhuff Tarkin}]}, "
+                + "{name=Han Solo, friends=[]}, "
+                + "{name=Leia Organa, friends=[]}, "
+                + "{name=Wilhuff Tarkin, friends=[{name=Darth Vader}]}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 
     @Test
     public void querySetOfEnumsWithinEmbeddedSelectClauseNINArray() {
-        
+
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1627,26 +1624,26 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
+    }
 
     @Test
     public void queryEmbeddedWhereWithPluralAssociations() {
-        
+
         //given:
         String query = "{ "
-                + "Droids {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where:{" + 
-                "        NOT_EXISTS:{ friendsOf: {name:{EQ:\"R2-D2\"}}}" + 
-                "      }) {" + 
-                "        name" + 
-                "        friendsOf {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    } " + 
-                "  } " + 
+                + "Droids {" +
+                "    select {" +
+                "      name" +
+                "      friends(where:{" +
+                "        NOT_EXISTS:{ friendsOf: {name:{EQ:\"R2-D2\"}}}" +
+                "      }) {" +
+                "        name" +
+                "        friendsOf {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    } " +
+                "  } " +
                 "}";
 
         String expected = "{Droids={select=["
@@ -1660,27 +1657,27 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 + "]}, "
                 + "{name=R2-D2, friends=[]}"
                 + "]}}";
-        
+
         //when:
         Object result = executor.execute(query).getData();
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
-    
+    }
+
     @Test
     public void queryEmbeddedWhereWithPluralAssociationsNOT_EXISTS() {
-        
+
         //given:
-        String query = "{" + 
-                "  Humans {" + 
-                "    select {" + 
-                "      name" + 
-                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      friends(where: {appearsIn: {NIN: [THE_FORCE_AWAKENS]}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Humans={select=["
@@ -1696,26 +1693,26 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }       
-        
+    }
+
     @Test
     public void queryEmbeddedWhereWithNestedPluralAssociationsNOT_EXISTS() {
-        
+
         //given:
-        String query = "{" + 
-                "  Droids {" + 
-                "     select {" + 
-                "      name" + 
-                "      friends(where:{" + 
-                "         NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}" + 
-                "      }) {" + 
-                "        name" + 
-                "        friends {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    } " + 
-                "  }" + 
+        String query = "{" +
+                "  Droids {" +
+                "     select {" +
+                "      name" +
+                "      friends(where:{" +
+                "         NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}" +
+                "      }) {" +
+                "        name" +
+                "        friends {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    } " +
+                "  }" +
                 "}";
 
         String expected = "{Droids={select=["
@@ -1740,26 +1737,26 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }      
-    
+    }
+
     @Test
     public void queryEmbeddedWhereWithRecursivePluralAssociationsNOT_EXISTS() {
-        
+
         //given:
-        String query = "{" + 
-                "  Droids(where: {" + 
-                "    friends: {NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}" + 
-                "  }) {" + 
-                "     select {" + 
-                "      name" + 
-                "      friends {" + 
-                "        name" + 
-                "        friends {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    } " + 
-                "  }" + 
+        String query = "{" +
+                "  Droids(where: {" +
+                "    friends: {NOT_EXISTS: {friends:{name:{EQ:\"Leia Organa\"}}}}" +
+                "  }) {" +
+                "     select {" +
+                "      name" +
+                "      friends {" +
+                "        name" +
+                "        friends {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    } " +
+                "  }" +
                 "}";
 
         String expected = "{Droids={select=["
@@ -1784,26 +1781,26 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }   
-    
+    }
+
     @Test
     public void queryEmbeddedWhereWithManyToManyAssociations() {
-        
+
         //given:
-        String query = "{" + 
-                "  Droids(where: {" + 
-                "    friends: {friendsOf:{name:{EQ:\"Leia Organa\"}}}" + 
-                "  }) {" + 
-                "     select {" + 
-                "      name" + 
-                "      friends {" + 
-                "        name" + 
-                "        friendsOf {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    } " + 
-                "  } " + 
+        String query = "{" +
+                "  Droids(where: {" +
+                "    friends: {friendsOf:{name:{EQ:\"Leia Organa\"}}}" +
+                "  }) {" +
+                "     select {" +
+                "      name" +
+                "      friends {" +
+                "        name" +
+                "        friendsOf {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    } " +
+                "  } " +
                 "}";
 
         String expected = "{Droids={select=["
@@ -1823,34 +1820,35 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }  
-    
+    }
+
     @Test
     public void queryEmbeddedWhereWithManyToManyAssociationsUsingEXISTS() {
-        
+
         //given:
-        String query = "{" + 
-                "  Droids {" + 
-                "     select {" + 
-                "      name" + 
-                "      friends(where: {EXISTS: {friendsOf:{name:{EQ:\"Leia Organa\"}}}}) {" + 
-                "        name" + 
-                "        friendsOf {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    } " + 
-                "  } " + 
+        String query = "{" +
+                "  Droids {" +
+                "     select {" +
+                "      name" +
+                "      friends(where: {EXISTS: {friendsOf:{name:{EQ:\"Leia Organa\"}}}}) {" +
+                "        name" +
+                "        friendsOf {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    } " +
+                "  } " +
                 "}";
 
         String expected = "{Droids={select=["
                 + "{name=C-3PO, friends=["
-                +   "{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
                 +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                +   "{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
                 +   "{name=R2-D2, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=Luke Skywalker}]}"
                 + "]}, "
-                +   "{name=R2-D2, friends=[{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
+                + "{name=R2-D2, friends=["
+                +   "{name=Luke Skywalker, friendsOf=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                +   "{name=Han Solo, friendsOf=[{name=C-3PO}, {name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}"
                 + "]}"
                 + "]}}";
 
@@ -1859,5 +1857,5 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }      
+    }
 }
