@@ -22,9 +22,6 @@ import java.util.stream.Stream;
 import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.PluralAttribute;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 import graphql.language.Argument;
 import graphql.language.Field;
@@ -38,8 +35,6 @@ import graphql.schema.DataFetchingEnvironment;
  *
  */
 class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
-
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaOneToManyDataFetcher.class);
 
     private final PluralAttribute<Object,Object,Object> attribute;
     private final GraphQLJpaQueryFactory queryFactory;
@@ -59,7 +54,8 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
         boolean isDistinct = true;
         int fetchSize = 100;
 
-        // Resolve collection query if where argument is present or any field in selection has orderBy argument
+        // Resolve collection query if where argument is present
+        // TODO or any field in selection has orderBy argument
         if (whereArg.isPresent()) {
             TypedQuery<Object> query = queryFactory.getCollectionQuery(environment,
                                                                        field, isDistinct);
