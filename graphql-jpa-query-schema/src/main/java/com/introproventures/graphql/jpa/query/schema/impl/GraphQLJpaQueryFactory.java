@@ -201,6 +201,14 @@ public final class GraphQLJpaQueryFactory {
 
         final TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), isDistinct, keys.toArray());
 
+        // Let's execute query and get wrap result into stream
+        return getResultStream(query, fetchSize, isDistinct);
+    }
+
+    protected Stream<Object> getResultStream(TypedQuery<Object> query,
+                                             int fetchSize,
+                                             boolean isDistinct) {
+
         // Let' try reduce overhead and disable all caching
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
@@ -219,6 +227,7 @@ public final class GraphQLJpaQueryFactory {
         return query.getResultStream()
                     .peek(entityManager::detach);
     }
+
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());

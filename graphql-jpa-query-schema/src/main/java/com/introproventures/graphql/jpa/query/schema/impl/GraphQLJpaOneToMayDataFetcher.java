@@ -17,9 +17,13 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.PluralAttribute;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 import graphql.language.Argument;
@@ -34,6 +38,8 @@ import graphql.schema.DataFetchingEnvironment;
  *
  */
 class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
+
+    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaOneToManyDataFetcher.class);
 
     private final PluralAttribute<Object,Object,Object> attribute;
     private final GraphQLJpaQueryFactory queryFactory;
@@ -50,16 +56,25 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
 
         Object source = environment.getSource();
         Optional<Argument> whereArg = GraphQLSupport.getWhereArgument(field);
+        boolean isDistinct = true;
+        int fetchSize = 100;
 
         // Resolve collection query if where argument is present or any field in selection has orderBy argument
         if (whereArg.isPresent()) {
-            TypedQuery<Object> query = queryFactory.getCollectionQuery(environment, field, true);
+            TypedQuery<Object> query = queryFactory.getCollectionQuery(environment,
+                                                                       field, isDistinct);
 
-            return query.getResultList();
+            Stream<Object> resultStream = queryFactory.getResultStream(query,
+                                                                       fetchSize,
+                                                                       isDistinct);
+
+            return ResultStreamWrapper.wrap(resultStream,
+                                            fetchSize);
         }
 
         // Let hibernate resolve collection query
-        return queryFactory.getAttributeValue(source, attribute);
+        return queryFactory.getAttributeValue(source,
+                                              attribute);
     }
 
 }
