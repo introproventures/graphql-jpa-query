@@ -498,6 +498,66 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     }
 
     @Test
+    public void queryAuthorBooksByAlliasesWithInlineCollections() {
+        //given
+        String query = "query { "
+                + " Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      War: books(where: {title: {LIKE: \"War\"}}) {" +
+                "        title" +
+                "      }" +
+                "      Anna: books(where: {title: {LIKE: \"Anna\"}}) {" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, War=[{title=War and Peace}], Anna=[{title=Anna Karenina}]}, "
+                +   "{id=4, name=Anton Chekhov, War=[], Anna=[]}, "
+                +   "{id=8, name=Igor Dianov, War=[], Anna=[]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksByAlliasesWithInlineWhereSearch() {
+        //given
+        String query = "query { "
+                + " Authors(where: {name: {LIKE: \"Leo\"}}) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      War: books(where: {title: {LIKE: \"War\"}}) {" +
+                "        title" +
+                "      }" +
+                "      Anna: books(where: {title: {LIKE: \"Anna\"}}) {" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, War=[{title=War and Peace}], Anna=[{title=Anna Karenina}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryAuthorBooksWithIsNullId() {
         //given
         String query = "query { "

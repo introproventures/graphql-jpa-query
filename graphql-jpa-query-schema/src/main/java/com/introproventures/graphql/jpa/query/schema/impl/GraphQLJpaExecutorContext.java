@@ -63,9 +63,13 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     public ExecutionInput.Builder newExecutionInput() {
         DataLoaderRegistry dataLoaderRegistry = newDataLoaderRegistry();
 
+        GraphQLContext context = graphqlContext.get();
+
+        context.put("dataLoaderRegistry", dataLoaderRegistry);
+
         return executionInputFactory.create()
                                     .dataLoaderRegistry(dataLoaderRegistry)
-                                    .context(graphqlContext.get());
+                                    .context(context);
     }
 
     @Override

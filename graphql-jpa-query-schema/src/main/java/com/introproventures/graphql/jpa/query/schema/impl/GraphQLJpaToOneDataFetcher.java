@@ -22,8 +22,11 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
+import org.dataloader.MappedBatchLoaderWithContext;
 
-import graphql.language.Argument;
+import graphql.GraphQLContext;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -58,8 +61,26 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
         // Resolve collection query if where argument is present
         if (isOptional && !PersistentAttributeType.EMBEDDED.equals(attribute.getPersistentAttributeType())) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
-            String dataLoaderKey = parentType.getName() + "." + attribute.getName();
+            String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
+                                                                        .orElseGet(attribute::getName);
+            GraphQLContext context = environment.getContext();
+            DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
 
+            if (!dataLoaderRegistry.getKeys()
+                                   .contains(dataLoaderKey)) {
+                synchronized (dataLoaderRegistry) {
+                    MappedBatchLoaderWithContext<Object, Object> mappedBatchLoader = new GraphQLJpaToOneMappedBatchLoader(queryFactory);
+
+                    DataLoaderOptions options = DataLoaderOptions.newOptions()
+                                                                 .setCachingEnabled(false);
+
+                    DataLoader<Object, Object> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
+                                                                                           options);
+
+                    dataLoaderRegistry.register(dataLoaderKey, dataLoader);
+                }
+
+            }
             DataLoader<Object, Object> dataLoader = environment.getDataLoader(dataLoaderKey);
 
             return dataLoader.load(parentIdValue, environment);

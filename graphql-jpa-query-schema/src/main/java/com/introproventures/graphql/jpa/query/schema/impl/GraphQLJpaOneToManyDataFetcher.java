@@ -22,8 +22,12 @@ import java.util.Optional;
 import javax.persistence.metamodel.PluralAttribute;
 
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
+import org.dataloader.MappedBatchLoaderWithContext;
 
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
+import graphql.GraphQLContext;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
@@ -58,9 +62,28 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
         // Resolve collection query if where argument is present or any field in selection has orderBy argument
         if (whereArg.isPresent() || queryFactory.hasAnySelectionOrderBy(field)) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
-            String dataLoaderKey = parentType.getName() + "." + attribute.getName();
+            String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
+                                                                        .orElseGet(attribute::getName);
+            GraphQLContext context = environment.getContext();
+            DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
 
-            DataLoader<Object, List<Object>> dataLoader = environment.getDataLoader(dataLoaderKey);
+            if (!dataLoaderRegistry.getKeys()
+                                  .contains(dataLoaderKey)) {
+                synchronized (dataLoaderRegistry) {
+                    MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaOneToManyMappedBatchLoader(queryFactory);
+
+                    DataLoaderOptions options = DataLoaderOptions.newOptions()
+                                                                 .setCachingEnabled(false);
+
+                    DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
+                                                                                                 options);
+
+                    dataLoaderRegistry.register(dataLoaderKey, dataLoader);
+                }
+
+            }
+
+            DataLoader<Object, List<Object>> dataLoader = dataLoaderRegistry.getDataLoader(dataLoaderKey);
 
             return dataLoader.load(parentIdValue, environment);
         }
