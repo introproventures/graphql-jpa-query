@@ -339,6 +339,10 @@ public final class GraphQLJpaQueryFactory {
 
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(query));
+        }
+
         List<Object[]> resultList = query.getResultList();
 
         Map<Object, List<Object>> batch = resultList.stream()
@@ -367,6 +371,10 @@ public final class GraphQLJpaQueryFactory {
              Field field = environment.getField();
 
              TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
+
+             if (logger.isDebugEnabled()) {
+                 logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(query));
+             }
 
              List<Object[]> resultList = query.getResultList();
 
