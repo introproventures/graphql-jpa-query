@@ -172,7 +172,44 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
             put("id", "2001");
         }};
 
-        String expected = "{Humans={select=[{name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}]}}";
+        String expected = "{Humans={select=["
+                +   "{name=Luke Skywalker, homePlanet=Tatooine, favoriteDroid=null}, "
+                +   "{name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}, "
+                +   "{name=Han Solo, homePlanet=null, favoriteDroid=null}, "
+                +   "{name=Leia Organa, homePlanet=Alderaan, favoriteDroid=null}, "
+                +   "{name=Wilhuff Tarkin, homePlanet=null, favoriteDroid=null}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query,variables).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @SuppressWarnings("serial")
+    @Test
+    public void queryManyToOneJoinByIdWithVariablesOptionalFalse() {
+        //given:
+        String query = "query ($id: String!) {" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      homePlanet" +
+                "      favoriteDroid(where: {id: {EQ: $id}}, optional: false) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}" +
+                "";
+        Map<String, Object> variables = new HashMap<String, Object>() {{
+            put("id", "2001");
+        }};
+
+        String expected = "{Humans={select=["
+                +   "{name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2}}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query,variables).getData();
@@ -451,14 +488,52 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
     @Test
     public void queryByRestrictingSubObject() {
         //given:
-        String query = "query { Humans { select { name gender(where:{ code: {EQ: \"Male\"}}) { description } } } }";
+        String query = "query {" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      gender(where: {code: {EQ: \"Male\"}}) {" +
+                "        description" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
 
         String expected = "{Humans={select=["
-            + "{name=Luke Skywalker, gender={description=Male}}, "
-            + "{name=Darth Vader, gender={description=Male}}, "
-            + "{name=Han Solo, gender={description=Male}}, "
-            + "{name=Wilhuff Tarkin, gender={description=Male}}"
-            + "]}}";
+                +   "{name=Luke Skywalker, gender={description=Male}}, "
+                +   "{name=Darth Vader, gender={description=Male}}, "
+                +   "{name=Han Solo, gender={description=Male}}, "
+                +   "{name=Leia Organa, gender=null}, "
+                +   "{name=Wilhuff Tarkin, gender={description=Male}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryByRestrictingSubObjectOptionalFalse() {
+        //given:
+        String query = "query {" +
+                "  Humans {" +
+                "    select {" +
+                "      name" +
+                "      gender(where: {code: {EQ: \"Male\"}}, optional: false) {" +
+                "        description" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
+
+        String expected = "{Humans={select=["
+                +   "{name=Luke Skywalker, gender={description=Male}}, "
+                +   "{name=Darth Vader, gender={description=Male}}, "
+                +   "{name=Han Solo, gender={description=Male}}, "
+                +   "{name=Wilhuff Tarkin, gender={description=Male}}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -944,14 +1019,48 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
     @Test
     public void queryFilterManyToOneEmbdeddedCriteria() {
         //given:
-        String query = "query { Droids { select { name  primaryFunction(where: {function: {EQ:\"Astromech\"}}) { function }}}}";
+        String query = "query {" +
+                "  Droids {" +
+                "    select {" +
+                "      name" +
+                "      primaryFunction(where: {function: {EQ: \"Astromech\"}}) {" +
+                "        function" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}" +
+                "";
 
-        String expected = "{Droids={" +
-                            "select=[{" +
-                              "name=R2-D2, " +
-                              "primaryFunction={function=Astromech}" +
-                            "}]" +
-                          "}}";
+        String expected = "{Droids={select=["
+                +   "{name=C-3PO, primaryFunction=null}, "
+                +   "{name=R2-D2, primaryFunction={function=Astromech}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryFilterManyToOneEmbdeddedCriteriaOptionalFalse() {
+        //given:
+        String query = "query {" +
+                "  Droids {" +
+                "    select {" +
+                "      name" +
+                "      primaryFunction(where: {function: {EQ: \"Astromech\"}} optional: false) {" +
+                "        function" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}" +
+                "";
+
+        String expected = "{Droids={select=["
+                +   "{name=R2-D2, primaryFunction={function=Astromech}}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -1007,21 +1116,13 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "    }" +
                 "}";
 
-        String expected = "{Humans={" +
-                            "select=[" +
-                                "{" +
-                                    "id=1001, " +
-                                    "name=Darth Vader, " +
-                                    "homePlanet=Tatooine, " +
-                                    "favoriteDroid={" +
-                                        "name=R2-D2, " +
-                                        "primaryFunction={" +
-                                            "function=Astromech" +
-                                        "}" +
-                                    "}" +
-                                "}" +
-                            "]" +
-                        "}}";
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, homePlanet=Tatooine, favoriteDroid={name=C-3PO, primaryFunction=null}}, "
+                + "{id=1001, name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2, primaryFunction={function=Astromech}}}, "
+                + "{id=1002, name=Han Solo, homePlanet=null, favoriteDroid=null}, "
+                + "{id=1003, name=Leia Organa, homePlanet=Alderaan, favoriteDroid=null}, "
+                + "{id=1004, name=Wilhuff Tarkin, homePlanet=null, favoriteDroid=null}"
+                + "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -1029,6 +1130,37 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryFilterNestedManyToOneToDoOptionalFalse() {
+        //given:
+        String query = "query {" +
+                "    Humans {" +
+                "        select {" +
+                "            id" +
+                "            name" +
+                "            homePlanet" +
+                "            favoriteDroid {" +
+                "                name" +
+                "                primaryFunction(where:{function:{EQ:\"Astromech\"}}, optional: false) {" +
+                "                      function" +
+                "                }" +
+                "            }" +
+                "        }" +
+                "    }" +
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1001, name=Darth Vader, homePlanet=Tatooine, favoriteDroid={name=R2-D2, primaryFunction={function=Astromech}}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
 
     @Test
     public void queryFilterNestedManyToOneRelationCriteria() {

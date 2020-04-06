@@ -156,8 +156,8 @@ public final class GraphQLJpaQueryFactory {
     }
 
     public List<Object> queryKeys(DataFetchingEnvironment environment,
-                                     int firstResult,
-                                     int maxResults) {
+                                  int firstResult,
+                                  int maxResults) {
         MergedField queryField = resolveQueryField(environment.getField());
 
         // Override query environment with associated entity object type and
@@ -187,7 +187,6 @@ public final class GraphQLJpaQueryFactory {
         // Let's wrap stream into lazy list to pass it downstream
         return ResultStreamWrapper.wrap(resultStream,
                                         maxResults);
-
     }
 
     protected Stream<Object> queryResultStream(DataFetchingEnvironment environment,
@@ -208,8 +207,8 @@ public final class GraphQLJpaQueryFactory {
     }
 
     protected <T> Stream<T> getResultStream(TypedQuery<T> query,
-                                             int fetchSize,
-                                             boolean isDistinct) {
+                                            int fetchSize,
+                                            boolean isDistinct) {
 
         // Let' try reduce overhead and disable all caching
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
@@ -229,7 +228,6 @@ public final class GraphQLJpaQueryFactory {
         return query.getResultStream()
                     .peek(entityManager::detach);
     }
-
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
@@ -335,11 +333,11 @@ public final class GraphQLJpaQueryFactory {
         return entityManager.createQuery(query);
     }
 
-    protected Map<Object, List<Object>> loadMany(DataFetchingEnvironment environment,
+    protected Map<Object, List<Object>> loadOneToMany(DataFetchingEnvironment environment,
                                                  Set<Object> keys) {
         Field field = environment.getField();
 
-        TypedQuery<Object[]> query = getCollectionQuery(environment, field, isDefaultDistinct(), keys);
+        TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
         List<Object[]> resultList = query.getResultList();
 
@@ -364,8 +362,31 @@ public final class GraphQLJpaQueryFactory {
         return resultMap;
     }
 
+    protected Map<Object, Object> loadManyToOne(DataFetchingEnvironment environment,
+                                                Set<Object> keys) {
+             Field field = environment.getField();
+
+             TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
+
+             List<Object[]> resultList = query.getResultList();
+
+             Map<Object, Object> batch = new LinkedHashMap<>();
+
+             resultList.forEach(item -> batch.put(item[0], item[1]));
+
+             Map<Object, Object> resultMap = new LinkedHashMap<>();
+
+             keys.forEach(it -> {
+                 Object list = batch.getOrDefault(it, null);
+
+                 resultMap.put(it, list);
+             });
+
+             return resultMap;
+         }
+
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    protected TypedQuery<Object[]> getCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Set<Object> keys) {
+    protected TypedQuery<Object[]> getBatchQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Set<Object> keys) {
 
         SingularAttribute parentIdAttribute = entityType.getId(Object.class);
 
@@ -546,10 +567,12 @@ public final class GraphQLJpaQueryFactory {
                 ) {
                    // Let's do fugly conversion
                    isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                        .orElse(attribute.isOptional());
+                                                .orElse(attribute.isOptional());
 
                    // Let's apply left outer join to retrieve optional associations
-                   fetch = reuseFetch(from, selection.getName(), isOptional);
+                   if(!isOptional || !whereArgument.isPresent()) {
+                       fetch = reuseFetch(from, selection.getName(), isOptional);
+                   }
                 } else if(attribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED) {
                     // Process where arguments clauses.
                     arguments.addAll(selection.getArguments()
@@ -571,12 +594,11 @@ public final class GraphQLJpaQueryFactory {
                 EntityType<?> entityType = getEntityType(objectType);
 
                 PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selection.getName());
-                Optional<Argument> whereArg = GraphQLSupport.getWhereArgument(selection);
 
                 // Let's join fetch element collections to avoid filtering their values used where search criteria
                 if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
                     from.fetch(selection.getName(), JoinType.LEFT);
-                } else if(!whereArg.isPresent()) {
+                } else if(!whereArgument.isPresent()) {
                     // Let's apply fetch join to retrieve associated plural attributes
                     fetch = reuseFetch(from, selection.getName(), isOptional);
                 }

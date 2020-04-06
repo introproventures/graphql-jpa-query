@@ -888,6 +888,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             );
         }
 
+
         // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
         if (attribute instanceof SingularAttribute
             && attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC) {
@@ -900,6 +901,29 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // to-one end could be optional
             arguments.add(optionalArgument(singularAttribute.isOptional()));
 
+            GraphQLObjectType entityObjectType = GraphQLObjectType.newObject()
+                    .name(baseEntity.getName())
+                    .build();
+
+            GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory.builder()
+                                                                                  .withEntityManager(entityManager)
+                                                                                  .withEntityType(baseEntity)
+                                                                                  .withEntityObjectType(entityObjectType)
+                                                                                  .withSelectNodeName(entityObjectType.getName())
+                                                                                  .withDefaultDistinct(isDefaultDistinct)
+                                                                                  .build();
+
+            String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
+
+            MappedBatchLoaderWithContext<Object, Object> mappedBatchLoader = new GraphQLJpaToOneMappedBatchLoader(graphQLJpaQueryFactory);
+
+            batchLoadersRegistry.get()
+                                .registerToOne(dataLoaderKey, mappedBatchLoader);
+
+            dataFetcher = new GraphQLJpaToOneDataFetcher(graphQLJpaQueryFactory,
+                                                         (SingularAttribute) attribute);
+
+
         } //  Get Sub-Objects fields queries via DataFetcher
         else if (attribute instanceof PluralAttribute
                 && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
@@ -911,7 +935,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
-
 
             GraphQLObjectType entityObjectType = GraphQLObjectType.newObject()
                                                                   .name(baseEntity.getName())
@@ -926,10 +949,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .build();
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
+
             MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaOneToManyMappedBatchLoader(graphQLJpaQueryFactory);
 
             batchLoadersRegistry.get()
-                                .register(dataLoaderKey, mappedBatchLoader);
+                                .registerToMany(dataLoaderKey, mappedBatchLoader);
 
             dataFetcher = new GraphQLJpaOneToManyDataFetcher(graphQLJpaQueryFactory,
                                                              (PluralAttribute) attribute);
