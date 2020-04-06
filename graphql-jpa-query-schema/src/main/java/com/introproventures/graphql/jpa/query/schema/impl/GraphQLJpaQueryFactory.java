@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -554,9 +553,7 @@ public final class GraphQLJpaQueryFactory {
 
             Path<?> fieldPath = from.get(selection.getName());
             From<?,?> fetch = null;
-            Optional<Argument> optionalArgument = getArgument(selection, OPTIONAL);
             Optional<Argument> whereArgument = getArgument(selection, WHERE);
-            Boolean isOptional = null;
 
             // Build predicate arguments for singular attributes only
             if(fieldPath.getModel() instanceof SingularAttribute) {
@@ -569,8 +566,9 @@ public final class GraphQLJpaQueryFactory {
                     || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                 ) {
                    // Let's do fugly conversion
-                   isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                                .orElse(attribute.isOptional());
+                   Boolean isOptional = getOptionalArgumentValue(environment,
+                                                                 selection,
+                                                                 attribute);
 
                    // Let's apply left outer join to retrieve optional associations
                    if(!isOptional || !whereArgument.isPresent()) {
@@ -587,16 +585,16 @@ public final class GraphQLJpaQueryFactory {
 
                 }
             } else {
-                // We must add plural attributes with explicit join fetch
-                // Let's do fugly conversion
-                // the many end is a collection, and it is always optional by default (empty collection)
-                isOptional = optionalArgument.map(it -> getArgumentValue(environment, it, Boolean.class))
-                                             .orElse(toManyDefaultOptional);
-
                 GraphQLObjectType objectType = getObjectType(environment);
                 EntityType<?> entityType = getEntityType(objectType);
 
                 PluralAttribute<?, ?, ?> attribute = (PluralAttribute<?, ?, ?>) entityType.getAttribute(selection.getName());
+
+                // We must add plural attributes with explicit join fetch
+                // the many end is a collection, and it is always optional by default (empty collection)
+                Boolean isOptional = getOptionalArgumentValue(environment,
+                                                              selection,
+                                                              attribute);
 
                 // Let's join fetch element collections to avoid filtering their values used where search criteria
                 if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
@@ -646,6 +644,13 @@ public final class GraphQLJpaQueryFactory {
                  .forEach(predicates::add);
 
         return predicates;
+    }
+
+    protected Boolean getOptionalArgumentValue(DataFetchingEnvironment environment,
+                                               Field selection,
+                                               Attribute<?, ?> attribute) {
+        return getArgument(selection, OPTIONAL).map(it -> getArgumentValue(environment, it, Boolean.class))
+                                               .orElseGet(() -> isOptionalAttribute(attribute));
     }
 
     /**

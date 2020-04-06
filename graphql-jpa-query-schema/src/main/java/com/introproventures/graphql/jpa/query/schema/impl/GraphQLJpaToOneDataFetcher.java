@@ -52,12 +52,10 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
         GraphQLType parentType = environment.getParentType();
 
         Object source = environment.getSource();
-        Optional<Argument> optionalArg = queryFactory.getArgument(field, "optional");
-        Boolean isOptional = optionalArg.map(it -> queryFactory.getArgumentValue(environment, it, Boolean.class))
-                                        .orElse(attribute.isOptional());
-
+        Boolean isOptional = queryFactory.getOptionalArgumentValue(environment,
+                                                                   field,
+                                                                   attribute);
         // Resolve collection query if where argument is present
-        // TODO or any field in selection has orderBy argument
         if (isOptional && !PersistentAttributeType.EMBEDDED.equals(attribute.getPersistentAttributeType())) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
             String dataLoaderKey = parentType.getName() + "." + attribute.getName();
