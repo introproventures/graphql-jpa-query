@@ -134,7 +134,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private final List<String> entityPaths = new ArrayList<>();
 
-    private Supplier<BatchLoaderRegistry> batchLoadersMapProvider = () -> {
+    private Supplier<BatchLoaderRegistry> batchLoadersRegistry = () -> {
         return BatchLoaderRegistry.getInstance();
     };
 
@@ -925,12 +925,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .withDefaultDistinct(isDefaultDistinct)
                                                                                   .build();
 
-
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
             MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaOneToManyMappedBatchLoader(graphQLJpaQueryFactory);
 
-            batchLoadersMapProvider.get()
-                                   .register(dataLoaderKey, mappedBatchLoader);
+            batchLoadersRegistry.get()
+                                .register(dataLoaderKey, mappedBatchLoader);
 
             dataFetcher = new GraphQLJpaOneToManyDataFetcher(graphQLJpaQueryFactory,
                                                              (PluralAttribute) attribute);

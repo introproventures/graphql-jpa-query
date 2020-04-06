@@ -26,6 +26,7 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWh
 import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
+import static java.util.stream.Collectors.groupingBy;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -332,6 +333,35 @@ public final class GraphQLJpaQueryFactory {
         mayBeAddDefaultOrderBy(query, from, cb);
 
         return entityManager.createQuery(query);
+    }
+
+    protected Map<Object, List<Object>> loadMany(DataFetchingEnvironment environment,
+                                                 Set<Object> keys) {
+        Field field = environment.getField();
+
+        TypedQuery<Object[]> query = getCollectionQuery(environment, field, isDefaultDistinct(), keys);
+
+        List<Object[]> resultList = query.getResultList();
+
+        Map<Object, List<Object>> batch = resultList.stream()
+                                                    .collect(groupingBy(t -> t[0],
+                                                                        Collectors.mapping(t -> t[1],
+                                                                                           GraphQLSupport.toResultList())));
+        Map<Object, List<Object>> resultMap = new LinkedHashMap<>();
+
+        keys.forEach(it -> {
+            List<Object> list = batch.getOrDefault(it, Collections.emptyList());
+
+            if (!list.isEmpty()) {
+                list = list.stream()
+                           .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
+                           .collect(Collectors.toList());
+            }
+
+            resultMap.put(it, list);
+        });
+
+        return resultMap;
     }
 
     @SuppressWarnings( { "rawtypes", "unchecked" } )
