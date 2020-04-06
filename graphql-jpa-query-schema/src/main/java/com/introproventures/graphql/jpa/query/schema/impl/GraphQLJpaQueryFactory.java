@@ -1623,8 +1623,10 @@ public final class GraphQLJpaQueryFactory {
 
             ReflectionUtil.forceAccess(queryStringField);
 
-            return queryStringField.get(queryImpl)
-                                   .toString();
+            if(queryStringField != null) {
+                return queryStringField.get(queryImpl)
+                                       .toString();
+            }
 
         } catch (Exception ignored) {
             logger.error("Error getting JPQL string", ignored);
