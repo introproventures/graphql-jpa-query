@@ -16,17 +16,19 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import javax.persistence.TypedQuery;
 import javax.persistence.metamodel.PluralAttribute;
+
+import org.dataloader.DataLoader;
 
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLType;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes
@@ -48,24 +50,20 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
+        GraphQLType parentType = environment.getParentType();
 
         Object source = environment.getSource();
         Optional<Argument> whereArg = GraphQLSupport.getWhereArgument(field);
-        boolean isDistinct = true;
-        int fetchSize = 100;
 
         // Resolve collection query if where argument is present
         // TODO or any field in selection has orderBy argument
         if (whereArg.isPresent()) {
-            TypedQuery<Object> query = queryFactory.getCollectionQuery(environment,
-                                                                       field, isDistinct);
+            Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
+            String dataLoaderKey = parentType.getName() + "." + attribute.getName();
 
-            Stream<Object> resultStream = queryFactory.getResultStream(query,
-                                                                       fetchSize,
-                                                                       isDistinct);
+            DataLoader<Object, List<Object>> dataLoader = environment.getDataLoader(dataLoaderKey);
 
-            return ResultStreamWrapper.wrap(resultStream,
-                                            fetchSize);
+            return dataLoader.load(parentIdValue, environment);
         }
 
         // Let hibernate resolve collection query

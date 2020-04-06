@@ -27,7 +27,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -41,6 +40,7 @@ import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 
 @SpringBootTest
+@Transactional
 public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
@@ -119,32 +119,6 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                                               .extracting(Character::getName)
                                               .containsOnly("Luke Skywalker");
     }
-
-    @Test
-    @Transactional
-    @Ignore
-    public void queryOneToManyTesterLeftOuterJoinTester() {
-        // given:
-        Query query = em.createQuery("select distinct author from Author as author \n" +
-                "left join fetch author.books as books on books.title like '%War%' \n" +
-                "where ( author.id in (1L, 4L, 8L) ) \n" +
-                "order by author.id asc");
-
-        String qu = "select d1 from Department d1 left join fetch d1.manager where exists \n" +
-        "(select d2 from Department d2 where d2.manager is null and d1 = d2)";
-
-        query.setHint("hibernate.query.passDistinctThrough", false);
-
-
-
-        // when:
-        List<Droid> result = query.getResultList();
-
-        assertThat(result).isNotEmpty();
-    }
-
-
-
 
     @Test
     public void getsNamesOfAllDroids() {

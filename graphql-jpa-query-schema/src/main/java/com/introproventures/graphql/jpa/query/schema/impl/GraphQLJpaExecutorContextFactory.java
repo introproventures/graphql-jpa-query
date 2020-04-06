@@ -18,27 +18,46 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.function.Supplier;
 
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
-
 import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentationOptions;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.DefaultGraphqlFieldVisibility;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 
 public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextFactory {
-    
+    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaExecutorContext.class);
+
     private GraphQLExecutionInputFactory executionInputFactory = new GraphQLExecutionInputFactory() {};
     private Supplier<GraphqlFieldVisibility> graphqlFieldVisibility = () -> DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
     private Supplier<Instrumentation> instrumentation = () -> new SimpleInstrumentation();
     private Supplier<GraphQLContext> graphqlContext = () -> GraphQLContext.newContext().build();
-    
+    private Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions = () -> {
+        return DataLoaderDispatcherInstrumentationOptions.newOptions();
+    };
+
+    private Supplier<DataLoaderOptions> dataLoaderOptions = () -> DataLoaderOptions.newOptions();
+
+    private Supplier<DataLoaderRegistry> dataLoaderRegistry = () -> {
+        DataLoaderOptions options = dataLoaderOptions.get()
+                                                     .setCachingEnabled(false);
+
+        return BatchLoaderRegistry.newDataLoaderRegistry(options);
+    };
+
+
     public GraphQLJpaExecutorContextFactory() {
     }
-    
+
     @Override
     public GraphQLExecutorContext newExecutorContext(GraphQLSchema graphQLSchema) {
         return GraphQLJpaExecutorContext.builder()
@@ -47,6 +66,8 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
                                         .graphqlFieldVisibility(graphqlFieldVisibility)
                                         .instrumentation(instrumentation)
                                         .graphqlContext(graphqlContext)
+                                        .dataLoaderDispatcherInstrumentationOptions(dataLoaderDispatcherInstrumentationOptions)
+                                        .dataLoaderRegistry(dataLoaderRegistry)
                                         .build();
     }
 
@@ -55,13 +76,13 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         return this;
     }
 
-    
+
     public GraphQLJpaExecutorContextFactory withInstrumentation(Supplier<Instrumentation> instrumentation) {
         this.instrumentation = instrumentation;
         return this;
     }
 
-    
+
     public GraphQLJpaExecutorContextFactory withExecutionInputFactory(GraphQLExecutionInputFactory executionInputFactory) {
         this.executionInputFactory = executionInputFactory;
         return this;
@@ -71,11 +92,16 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         this.graphqlContext = graphqlContext;
         return this;
     };
-    
+
+    public GraphQLJpaExecutorContextFactory withDataLoaderDispatcherInstrumentationOptions(Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions) {
+        this.dataLoaderDispatcherInstrumentationOptions = dataLoaderDispatcherInstrumentationOptions;
+        return this;
+    }
+
     public GraphQLExecutionInputFactory getExecutionInputFactory() {
         return executionInputFactory;
     }
-    
+
     public Supplier<GraphqlFieldVisibility> getGraphqlFieldVisibility() {
         return graphqlFieldVisibility;
     }
@@ -84,9 +110,13 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         return instrumentation;
     }
 
-    
+
     public Supplier<GraphQLContext> getGraphqlContext() {
         return graphqlContext;
+    }
+
+    public Supplier<DataLoaderDispatcherInstrumentationOptions> getDataLoaderDispatcherInstrumentationOptions() {
+        return dataLoaderDispatcherInstrumentationOptions;
     }
 
 }

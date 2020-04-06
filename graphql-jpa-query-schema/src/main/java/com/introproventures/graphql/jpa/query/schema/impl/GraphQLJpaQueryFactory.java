@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -205,7 +206,7 @@ public final class GraphQLJpaQueryFactory {
         return getResultStream(query, fetchSize, isDistinct);
     }
 
-    protected Stream<Object> getResultStream(TypedQuery<Object> query,
+    protected <T> Stream<T> getResultStream(TypedQuery<T> query,
                                              int fetchSize,
                                              boolean isDistinct) {
 
@@ -334,16 +335,13 @@ public final class GraphQLJpaQueryFactory {
     }
 
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    protected TypedQuery<Object> getCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct) {
-
-        Object source = environment.getSource();
+    protected TypedQuery<Object[]> getCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Set<Object> keys) {
 
         SingularAttribute parentIdAttribute = entityType.getId(Object.class);
 
-        Object parentIdValue = getAttributeValue(source, parentIdAttribute);
-
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
+        //CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
         Root<?> from = query.from(entityType);
 
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -355,8 +353,43 @@ public final class GraphQLJpaQueryFactory {
 
         // Must use inner join in parent context
         Join join = from.join(field.getName())
-                        .on(cb.in(from.get(parentIdAttribute.getName()))
-                              .value(parentIdValue));
+                        .on(from.get(parentIdAttribute.getName()).in(keys));
+
+        query.multiselect(from.get(parentIdAttribute.getName()),
+                          join.alias(field.getName()));
+
+        List<Predicate> predicates = getFieldPredicates(field, query, cb, from, join, queryEnvironment);
+
+        query.where(
+            predicates.toArray(new Predicate[0])
+        );
+
+        // optionally add default ordering
+        mayBeAddDefaultOrderBy(query, join, cb);
+
+        return entityManager.createQuery(query.distinct(isDistinct));
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    protected TypedQuery<Object> getBatchCollectionQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Set<Object> keys) {
+
+        SingularAttribute parentIdAttribute = entityType.getId(Object.class);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        //CriteriaQuery<Object> query = cb.createQuery((Class<Object>) entityType.getJavaType());
+        CriteriaQuery<Object> query = cb.createQuery();
+        Root<?> from = query.from(entityType);
+
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
+                                                                                 .root(query)
+                                                                                 .localContext(Boolean.TRUE)
+                                                                                 .build();
+
+        from.alias("owner");
+
+        // Must use inner join in parent context
+        Join join = from.join(field.getName())
+                        .on(from.get(parentIdAttribute.getName()).in(keys));
 
         query.select(join.alias(field.getName()));
 
@@ -371,6 +404,7 @@ public final class GraphQLJpaQueryFactory {
 
         return entityManager.createQuery(query.distinct(isDistinct));
     }
+
 
     @SuppressWarnings("unchecked")
     protected <T> CriteriaQuery<T> getCriteriaQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
@@ -1564,6 +1598,13 @@ public final class GraphQLJpaQueryFactory {
                          .toArray(new String[0]);
     }
 
+
+    protected <T> T getParentIdAttributeValue(T entity) {
+        SingularAttribute<?, Object> parentIdAttribute = entityType.getId(Object.class);
+
+        return (T) getAttributeValue(entity, parentIdAttribute);
+    }
+
     /**
      * Fetches the value of the given SingularAttribute on the given
      * entity.
@@ -1571,14 +1612,14 @@ public final class GraphQLJpaQueryFactory {
      * http://stackoverflow.com/questions/7077464/how-to-get-singularattribute-mapped-value-of-a-persistent-object
      */
     @SuppressWarnings("unchecked")
-    protected <EntityType, FieldType> FieldType getAttributeValue(EntityType entity, SingularAttribute<EntityType, FieldType> field) {
+    protected <E, T> T getAttributeValue(T entity, SingularAttribute<E, T> field) {
         try {
             Member member = field.getJavaMember();
             if (member instanceof Method) {
                 // this should be a getter method:
-                return (FieldType) ((Method)member).invoke(entity);
+                return (T) ((Method)member).invoke(entity);
             } else if (member instanceof java.lang.reflect.Field) {
-                return (FieldType) ((java.lang.reflect.Field)member).get(entity);
+                return (T) ((java.lang.reflect.Field)member).get(entity);
             } else {
                 throw new IllegalArgumentException("Unexpected java member type. Expecting method or field, found: " + member);
             }
