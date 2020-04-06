@@ -1964,4 +1964,158 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryWithInLineExplicitOptionalFalseForSingularAttribute() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid(optional: false, where:{name:{LIKE:\"R%\"}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  } " +
+                "}";
+
+        String expected = "{Humans={select=[{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2}}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithInLineExplicitOptionalTrueForSingularAttribute() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid(optional:true, where:{name:{LIKE:\"R%\"}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  } " +
+                "}";
+
+        String expected = "{Humans={select=["
+                +   "{id=1000, name=Luke Skywalker, favoriteDroid=null}, "
+                +   "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2}}, "
+                +   "{id=1002, name=Han Solo, favoriteDroid=null}, "
+                +   "{id=1003, name=Leia Organa, favoriteDroid=null}, "
+                +   "{id=1004, name=Wilhuff Tarkin, favoriteDroid=null}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithInLineImplictOptionalTrueForSingularAttribute() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid {" +
+                "        name" +
+                "        primaryFunction {" +
+                "          function" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  } " +
+                "}";
+
+        String expected = "{Humans={select=["
+                + "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, primaryFunction={function=Protocol}}}, "
+                + "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2, primaryFunction={function=Astromech}}}, "
+                + "{id=1002, name=Han Solo, favoriteDroid=null}, "
+                + "{id=1003, name=Leia Organa, favoriteDroid=null}, "
+                + "{id=1004, name=Wilhuff Tarkin, favoriteDroid=null}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithInLineImplictOptionalTrueForSingularAttributeAndWhereSearchCriteria() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid(where: {primaryFunction: {function: {EQ: \"Protocol\"}}}) {" +
+                "        name" +
+                "        primaryFunction {" +
+                "          function" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  } " +
+                "}";
+
+        String expected = "{Humans={select=["
+                +   "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, primaryFunction={function=Protocol}}}, "
+                +   "{id=1001, name=Darth Vader, favoriteDroid=null}, "
+                +   "{id=1002, name=Han Solo, favoriteDroid=null}, "
+                +   "{id=1003, name=Leia Organa, favoriteDroid=null}, "
+                +   "{id=1004, name=Wilhuff Tarkin, favoriteDroid=null}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithInLineExplicitOptionalFalseForSingularAttributeAndWhereSearchCriteria() {
+
+        //given:
+        String query = "{" +
+                "  Humans {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      favoriteDroid(optional: false, where: {primaryFunction: {function: {EQ: \"Protocol\"}}}) {" +
+                "        name" +
+                "        primaryFunction {" +
+                "          function" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  } " +
+                "}";
+
+        String expected = "{Humans={select=["
+                +   "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, primaryFunction={function=Protocol}}}"
+                + "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
 }
