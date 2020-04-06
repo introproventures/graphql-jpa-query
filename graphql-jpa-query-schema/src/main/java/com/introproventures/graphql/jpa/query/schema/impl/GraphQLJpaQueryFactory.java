@@ -116,6 +116,8 @@ import graphql.schema.GraphQLType;
  */
 public final class GraphQLJpaQueryFactory {
 
+    private static final String DESC = "DESC";
+
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
 
     protected static final String WHERE = "where";
@@ -340,7 +342,7 @@ public final class GraphQLJpaQueryFactory {
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
         if (logger.isDebugEnabled()) {
-            logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(query));
+            logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
         }
 
         List<Object[]> resultList = query.getResultList();
@@ -373,7 +375,7 @@ public final class GraphQLJpaQueryFactory {
              TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
              if (logger.isDebugEnabled()) {
-                 logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(query));
+                 logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
              }
 
              List<Object[]> resultList = query.getResultList();
@@ -518,13 +520,6 @@ public final class GraphQLJpaQueryFactory {
         return query.distinct(isDistinct);
     }
 
-    <A,B,C>  Stream<C> zipped(List<A> lista, List<B> listb, BiFunction<A,B,C> zipper){
-        int shortestLength = Math.min(lista.size(),listb.size());
-        return IntStream.range(0,shortestLength).mapToObj( i -> {
-             return zipper.apply(lista.get(i), listb.get(i));
-        });
-   }
-
     protected void mayBeAddOrderBy(Field selectedField, CriteriaQuery<?> query, CriteriaBuilder cb, Path<?> fieldPath, DataFetchingEnvironment environment) {
         // Singular attributes only
         if (fieldPath.getModel() instanceof SingularAttribute) {
@@ -536,7 +531,7 @@ public final class GraphQLJpaQueryFactory {
                          .ifPresent(orderBy -> {
                              List<Order> orders = new ArrayList<>(query.getOrderList());
 
-                             if ("DESC".equals(orderBy.getName())) {
+                             if (DESC.equals(orderBy.getName())) {
                                  orders.add(cb.desc(fieldPath));
                              } else {
                                  orders.add(cb.asc(fieldPath));
@@ -608,7 +603,9 @@ public final class GraphQLJpaQueryFactory {
                     from.fetch(selection.getName(), JoinType.LEFT);
                 } else if(!whereArgument.isPresent()) {
                     // Let's apply fetch join to retrieve associated plural attributes
-                    fetch = reuseFetch(from, selection.getName(), isOptional);
+                    if (!hasAnySelectionOrderBy(selection)) {
+                        fetch = reuseFetch(from, selection.getName(), isOptional);
+                    }
                 }
             }
             // Let's build join fetch graph to avoid Hibernate error:
@@ -1772,6 +1769,33 @@ public final class GraphQLJpaQueryFactory {
                           .build();
     }
 
+    protected boolean hasAnySelectionOrderBy(Field field) {
+
+        if (!hasSelectionSet(field))
+            return false;
+
+        // Loop through all of the fields being requested
+        return field.getSelectionSet()
+                    .getSelections()
+                    .stream()
+                    .filter(Field.class::isInstance)
+                    .map(Field.class::cast)
+                    .anyMatch(selectedField -> {
+
+                        // Optional orderBy argument
+                        Optional<Argument> orderBy = selectedField.getArguments()
+                                                                  .stream()
+                                                                  .filter(this::isOrderByArgument)
+                                                                  .findFirst();
+
+                        if (orderBy.isPresent()) {
+                            return true;
+                        }
+
+                        return false;
+                    });
+
+    }
 
     /**
      * Creates builder to build {@link GraphQLJpaQueryFactory}.

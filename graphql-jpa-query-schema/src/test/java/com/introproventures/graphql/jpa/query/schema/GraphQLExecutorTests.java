@@ -432,7 +432,44 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
+
+    @Test
+    public void queryAuthorBooksWithCollectionOrderBy() {
+        //given
+        String query = "query { "
+                + "Authors {" +
+                "    select {" +
+                "      id" +
+                "      name(orderBy: ASC)" +
+                "      books {" +
+                "        id" +
+                "        title(orderBy: DESC)" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=7, title=Three Sisters}, "
+                +       "{id=6, title=The Seagull}, "
+                +       "{id=5, title=The Cherry Orchard}"
+                +   "]}, "
+                +   "{id=8, name=Igor Dianov, books=[]}, "
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace}, "
+                +       "{id=3, title=Anna Karenina}"
+                +   "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @Test
     public void queryAuthorBooksWithIsNullId() {
         //given

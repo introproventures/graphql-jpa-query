@@ -55,9 +55,8 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
         Object source = environment.getSource();
         Optional<Argument> whereArg = GraphQLSupport.getWhereArgument(field);
 
-        // Resolve collection query if where argument is present
-        // TODO or any field in selection has orderBy argument
-        if (whereArg.isPresent()) {
+        // Resolve collection query if where argument is present or any field in selection has orderBy argument
+        if (whereArg.isPresent() || queryFactory.hasAnySelectionOrderBy(field)) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
             String dataLoaderKey = parentType.getName() + "." + attribute.getName();
 
