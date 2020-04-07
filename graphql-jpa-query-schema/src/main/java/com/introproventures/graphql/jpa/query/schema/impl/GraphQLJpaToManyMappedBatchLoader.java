@@ -12,11 +12,11 @@ import org.dataloader.MappedBatchLoaderWithContext;
 import graphql.schema.DataFetchingEnvironment;
 
 // a batch loader function that will be called with N or more keys for batch loading
-class GraphQLJpaOneToManyMappedBatchLoader implements MappedBatchLoaderWithContext<Object, List<Object>> {
+class GraphQLJpaToManyMappedBatchLoader implements MappedBatchLoaderWithContext<Object, List<Object>> {
 
     private final GraphQLJpaQueryFactory queryFactory;
 
-    public GraphQLJpaOneToManyMappedBatchLoader(GraphQLJpaQueryFactory queryFactory) {
+    public GraphQLJpaToManyMappedBatchLoader(GraphQLJpaQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 

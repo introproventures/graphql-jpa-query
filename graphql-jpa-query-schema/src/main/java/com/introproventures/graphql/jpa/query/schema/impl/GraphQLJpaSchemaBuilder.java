@@ -950,12 +950,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
 
-            MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaOneToManyMappedBatchLoader(graphQLJpaQueryFactory);
+            MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaToManyMappedBatchLoader(graphQLJpaQueryFactory);
 
             batchLoadersRegistry.get()
                                 .registerToMany(dataLoaderKey, mappedBatchLoader);
 
-            dataFetcher = new GraphQLJpaOneToManyDataFetcher(graphQLJpaQueryFactory,
+            dataFetcher = new GraphQLJpaToManyDataFetcher(graphQLJpaQueryFactory,
                                                              (PluralAttribute) attribute);
         }
 

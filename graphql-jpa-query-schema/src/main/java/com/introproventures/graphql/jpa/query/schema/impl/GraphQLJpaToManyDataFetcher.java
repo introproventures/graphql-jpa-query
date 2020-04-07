@@ -40,12 +40,12 @@ import graphql.schema.GraphQLType;
  * @author Igor Dianov
  *
  */
-class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
+class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
 
     private final PluralAttribute<Object,Object,Object> attribute;
     private final GraphQLJpaQueryFactory queryFactory;
 
-    public GraphQLJpaOneToManyDataFetcher(GraphQLJpaQueryFactory queryFactory,
+    public GraphQLJpaToManyDataFetcher(GraphQLJpaQueryFactory queryFactory,
                                           PluralAttribute<Object,Object,Object> attribute) {
         this.queryFactory = queryFactory;
         this.attribute = attribute;
@@ -64,26 +64,9 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
             String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
                                                                         .orElseGet(attribute::getName);
-            GraphQLContext context = environment.getContext();
-            DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
 
-            if (!dataLoaderRegistry.getKeys()
-                                  .contains(dataLoaderKey)) {
-                synchronized (dataLoaderRegistry) {
-                    MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaOneToManyMappedBatchLoader(queryFactory);
-
-                    DataLoaderOptions options = DataLoaderOptions.newOptions()
-                                                                 .setCachingEnabled(false);
-
-                    DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
-                                                                                                 options);
-
-                    dataLoaderRegistry.register(dataLoaderKey, dataLoader);
-                }
-
-            }
-
-            DataLoader<Object, List<Object>> dataLoader = dataLoaderRegistry.getDataLoader(dataLoaderKey);
+            DataLoader<Object, List<Object>> dataLoader = getDataLoader(environment,
+                                                                        dataLoaderKey);
 
             return dataLoader.load(parentIdValue, environment);
         }
@@ -91,6 +74,28 @@ class GraphQLJpaOneToManyDataFetcher implements DataFetcher<Object> {
         // Let hibernate resolve collection query
         return queryFactory.getAttributeValue(source,
                                               attribute);
+    }
+
+    protected DataLoader<Object, List<Object>> getDataLoader(DataFetchingEnvironment environment,
+                                                             String dataLoaderKey) {
+        GraphQLContext context = environment.getContext();
+        DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
+
+        if (!dataLoaderRegistry.getKeys()
+                              .contains(dataLoaderKey)) {
+            synchronized (dataLoaderRegistry) {
+                MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaToManyMappedBatchLoader(queryFactory);
+
+                DataLoaderOptions options = DataLoaderOptions.newOptions()
+                                                             .setCachingEnabled(false);
+
+                DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
+                                                                                             options);
+                dataLoaderRegistry.register(dataLoaderKey, dataLoader);
+            }
+        }
+
+        return  dataLoaderRegistry.getDataLoader(dataLoaderKey);
     }
 
 }
