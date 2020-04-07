@@ -233,17 +233,14 @@ public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSup
 		// then
 		then(executionResult.getErrors()).isEmpty();
 		Map<String, Object> result = executionResult.getData();
-		then(result)
-				.extracting("Authors")
-				.flatExtracting("select")
-				.extracting("name")
-				.containsOnly("Leo Tolstoy");
-		then(result)
-				.extracting("Authors")
-				.flatExtracting("select")
-				.flatExtracting("books")
-				.extracting("genre")
-				.containsOnly(NOVEL);
+		
+		String expected = "{Authors={select=["
+		        + "{name=Leo Tolstoy, books=[{genre=NOVEL}, {genre=NOVEL}]}, "
+		        + "{name=Anton Chekhov, books=[]}, "
+		        + "{name=Igor Dianov, books=[]}"
+		        + "]}}";
+		
+		then(result.toString()).isEqualTo(expected);
 	}
 
 	@Test

@@ -42,7 +42,6 @@ import org.springframework.util.Assert;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
 import graphql.ErrorType;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
@@ -52,7 +51,7 @@ import graphql.validation.ValidationErrorType;
 
 @SpringBootTest
 public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
-    
+
     @SpringBootApplication
     static class Application {
         @Bean
@@ -62,14 +61,14 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            
+
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema");
         }
-        
+
     }
-    
+
     @Autowired
     private GraphQLExecutor executor;
 
@@ -77,12 +76,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public static void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
-    
+
     @Test
     public void contextLoads() {
         Assert.isAssignable(GraphQLExecutor.class, executor.getClass());
     }
-    
+
     @Test
     public void GetsAllThings() {
         //given
@@ -94,14 +93,14 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-        
+
     }
 
     @Test
     public void queryForThingById() {
         //given
         String query = "query ThingByIdQuery { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
-        
+
         String expected = "{Thing={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}";
 
         //when
@@ -139,7 +138,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @SuppressWarnings( { "rawtypes", "unchecked", "serial" } )
     @Test
     public void queryWithParameterNoResult() {
@@ -221,14 +220,14 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-    
+
+
     // https://github.com/introproventures/graphql-jpa-query/issues/33
     @Test
     public void queryForElementCollection() {
         //given
         String query = "{ Author(id: 1) { id name, phoneNumbers } }";
-        
+
         String expected = "{Author={id=1, name=Leo Tolstoy, phoneNumbers=[1-123-1234, 1-123-5678]}}";
 
         //when
@@ -242,7 +241,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public void queryForEnumIn() {
         //given
         String query = "{ Books(where: {genre: {IN: PLAY}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=5, title=The Cherry Orchard, genre=PLAY}, "
         		+ "{id=6, title=The Seagull, genre=PLAY}, "
@@ -255,12 +254,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForEnumInArray() {
         //given
         String query = "{ Books(where: {genre: {IN: [NOVEL, PLAY]}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=2, title=War and Peace, genre=NOVEL}, "
         		+ "{id=3, title=Anna Karenina, genre=NOVEL}, "
@@ -280,7 +279,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public void queryForEnumNinArray() {
         //given
         String query = "{ Books(where: {genre: {NIN: [NOVEL]}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=5, title=The Cherry Orchard, genre=PLAY}, "
         		+ "{id=6, title=The Seagull, genre=PLAY}, "
@@ -293,12 +292,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForEnumEq() {
         //given
         String query = "{ Books(where: {genre: {EQ: NOVEL}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=2, title=War and Peace, genre=NOVEL}, "
         		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
@@ -315,7 +314,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public void queryForEnumNe() {
         //given
         String query = "{ Books(where: {genre: {NE: PLAY}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=2, title=War and Peace, genre=NOVEL}, "
         		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
@@ -327,12 +326,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForEnumNin() {
         //given
         String query = "{ Books(where: {genre: {NIN: PLAY}}) { select { id title, genre } }}";
-        
+
         String expected = "{Books={select=["
         		+ "{id=2, title=War and Peace, genre=NOVEL}, "
         		+ "{id=3, title=Anna Karenina, genre=NOVEL}"
@@ -344,12 +343,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-        
+
     @Test
     public void queryForParentWithEnum() {
         //given
         String query = "{ Books { select { id title, author( where: { genre: { EQ: NOVEL } }) { name } } } }";
-        
+
         String expected = "{Books={select=["
         		+ "{id=2, title=War and Peace, author={name=Leo Tolstoy}}, "
         		+ "{id=3, title=Anna Karenina, author={name=Leo Tolstoy}}"
@@ -361,32 +360,33 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryAuthorBooksWithExplictOptional() {
         //given
         String query = "query { "
-                + "Authors(" + 
-                "    where: {" + 
-                "      books: {" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  ) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books(optional: true) {" + 
-                "        id" + 
-                "        title(orderBy: ASC)" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books(optional: true) {" +
+                "        id" +
+                "        title(orderBy: ASC)" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"
                 + "}";
-        
+
         String expected = "{Authors={select=["
                 + "{id=1, name=Leo Tolstoy, books=["
+                + "{id=3, title=Anna Karenina, genre=NOVEL}, "
                 + "{id=2, title=War and Peace, genre=NOVEL}]}"
                 + "]}}";
 
@@ -396,32 +396,32 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-       
+
     @Test
     public void queryAuthorBooksWithExplictOptionalEXISTS() {
         //given
         String query = "query { "
-                + "Authors(" + 
+                + "Authors(" +
                 "    where: {" +
                 "      EXISTS: {" +
-                "        books: {" + 
-                "          title: {LIKE: \"War\"}" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
-                "  ) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books(optional: true) {" + 
-                "        id" + 
-                "        title(orderBy: ASC)" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "        books: {" +
+                "          title: {LIKE: \"War\"}" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books(optional: true) {" +
+                "        id" +
+                "        title(orderBy: ASC)" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"
                 + "}";
-        
+
         String expected = "{Authors={select=["
                 + "{id=1, name=Leo Tolstoy, books=[{id=3, title=Anna Karenina, genre=NOVEL}, "
                 + "{id=2, title=War and Peace, genre=NOVEL}]}"
@@ -432,30 +432,154 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
+
+    @Test
+    public void queryAuthorBooksWithCollectionOrderBy() {
+        //given
+        String query = "query { "
+                + "Authors {" +
+                "    select {" +
+                "      id" +
+                "      name(orderBy: ASC)" +
+                "      books {" +
+                "        id" +
+                "        title(orderBy: DESC)" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=4, name=Anton Chekhov, books=["
+                +       "{id=7, title=Three Sisters}, "
+                +       "{id=6, title=The Seagull}, "
+                +       "{id=5, title=The Cherry Orchard}"
+                +   "]}, "
+                +   "{id=8, name=Igor Dianov, books=[]}, "
+                +   "{id=1, name=Leo Tolstoy, books=["
+                +       "{id=2, title=War and Peace}, "
+                +       "{id=3, title=Anna Karenina}"
+                +   "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryBooksAuthorWithImplicitOptionalFalse() {
+        //given
+        String query = "query { "
+                + "Books {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      author(where: {name: {LIKE: \"Leo\"}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Books={select=["
+                +   "{id=2, title=War and Peace, author={name=Leo Tolstoy}}, "
+                +   "{id=3, title=Anna Karenina, author={name=Leo Tolstoy}}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksByAlliasesWithInlineCollections() {
+        //given
+        String query = "query { "
+                + " Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      War: books(where: {title: {LIKE: \"War\"}}) {" +
+                "        title" +
+                "      }" +
+                "      Anna: books(where: {title: {LIKE: \"Anna\"}}) {" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, War=[{title=War and Peace}], Anna=[{title=Anna Karenina}]}, "
+                +   "{id=4, name=Anton Chekhov, War=[], Anna=[]}, "
+                +   "{id=8, name=Igor Dianov, War=[], Anna=[]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksByAlliasesWithInlineWhereSearch() {
+        //given
+        String query = "query { "
+                + " Authors(where: {name: {LIKE: \"Leo\"}}) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      War: books(where: {title: {LIKE: \"War\"}}) {" +
+                "        title" +
+                "      }" +
+                "      Anna: books(where: {title: {LIKE: \"Anna\"}}) {" +
+                "        title" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, War=[{title=War and Peace}], Anna=[{title=Anna Karenina}]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @Test
     public void queryAuthorBooksWithIsNullId() {
         //given
         String query = "query { "
-                + "Authors(" + 
-                "    where: {" + 
-                "      books: {" + 
-                "        id: {IS_NULL: true}" + 
-                "      }" + 
-                "    }" + 
-                "  ) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {IS_NULL: true}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"
                 + "}";
-        
+
         String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
 
         //when
@@ -464,14 +588,43 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-    
+
+    @Test
+    public void queryBooksAuthorWithExplictOptionalTrue() {
+        //given
+        String query = "query { "
+                + "Books {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      author(optional: true, where: {name: {LIKE: \"Leo\"}}) {" +
+                "        name" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Books={select=["
+                +   "{id=2, title=War and Peace, author={name=Leo Tolstoy}}, "
+                +   "{id=3, title=Anna Karenina, author={name=Leo Tolstoy}}, "
+                +   "{id=5, title=The Cherry Orchard, author=null}, "
+                +   "{id=6, title=The Seagull, author=null}, "
+                +   "{id=7, title=Three Sisters, author=null}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
     public void queryForEntityWithMappedSuperclass() {
         //given
         String query = "{ Car(id: \"1\") { id brand } }";
-        
+
         String expected = "{Car={id=1, brand=Ford}}";
 
         //when
@@ -486,7 +639,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public void queryForEntityWithEmbeddedIdAndEmbeddedField() {
         //given
         String query = "{ Boat(boatId: {id: \"1\" country: \"EN\"}) { boatId {id country} engine { identification } } }";
-        
+
         String expected = "{Boat={boatId={id=1, country=EN}, engine={identification=12345}}}";
 
         //when
@@ -509,7 +662,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
- 
+
     @Test
     public void queryWithNumericBetweenPredicate() {
         //given:
@@ -578,8 +731,8 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
 
     @Test
     public void queryForEntitiesWithWithEmbeddedIdWithWhere() {
@@ -594,21 +747,21 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForBooksWithWhereAuthorById() {
         //given
         String query = "query { "
-                + "Books(where: {author: {id: {EQ: 1}}}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "      author {" + 
-                "        id" + 
-                "        name" + 
-                "      }" + 
-                "    }" + 
+                + "Books(where: {author: {id: {EQ: 1}}}) {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      genre" +
+                "      author {" +
+                "        id" +
+                "        name" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -622,20 +775,20 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryForBooksWithWhereAuthorEqIdWithVariables() {
         //given
         String query = "query($authorId: Long ) { "
-                + "  Books(where: {" + 
-                "    author: {id: {EQ: $authorId}}" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "    }" + 
+                + "  Books(where: {" +
+                "    author: {id: {EQ: $authorId}}" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      genre" +
+                "    }" +
                 "  }"+
                 "}";
         Map<String, Object> variables = new HashMap<String, Object>() {{
@@ -653,27 +806,27 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryForAuthorsWithWhereEXISTSBooksLIKETitle() {
         //given
         String query = "query { "
-                + "Authors(where: {" + 
-                "    EXISTS: {" + 
-                "      books: {" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
                 "  }) {" +
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
-                "    }" + 
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -689,28 +842,28 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
-    
+    }
+
     @Test
     public void queryForAuthorsWithWhereEXISTSBooksLIKETitleANDAuthorLIKEName() {
         //given
         String query = "query { "
-                + "Authors(where: {" + 
-                "    EXISTS: {" + 
-                "      books: {" + 
-                "        author: {name: {LIKE: \"Leo\"}}" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" +
+                "        author: {name: {LIKE: \"Leo\"}}" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -726,31 +879,31 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
 
-    
+
     @Test
     public void queryForAuthorsWithWhereEXISTSBooksLIKETitleANDEXISTSAuthorLIKEName() {
         //given
         String query = "query { "
-                + "  Authors(where: {" + 
-                "    EXISTS: {" + 
-                "      books: {" + 
-                "        EXISTS: {" + 
-                "            author: {name: {LIKE: \"Leo\"}}  " + 
-                "        }" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
-                "    }" + 
+                + "  Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" +
+                "        EXISTS: {" +
+                "            author: {name: {LIKE: \"Leo\"}}  " +
+                "        }" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -766,28 +919,28 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }  
-    
+    }
+
     @Test
     public void queryForAuthorsWithWhereEXISTSBooksLIKETitleEmpty() {
         //given
         String query = "query { "
-                + "Authors(where: {" + 
-                "    EXISTS: {" + 
-                "      books: {" + 
-                "        author: {name: {LIKE: \"Anton\"}}" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(where: {" +
+                "    EXISTS: {" +
+                "      books: {" +
+                "        author: {name: {LIKE: \"Anton\"}}" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -799,25 +952,25 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForAuthorsWithWhereNOTEXISTSBooksLIKETitleWar() {
         //given
         String query = "query { "
-                + "Authors(where: {" + 
-                "    NOT_EXISTS: {" + 
-                "      books: {" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
+                + "Authors(where: {" +
+                "    NOT_EXISTS: {" +
+                "      books: {" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
                 "    }"+
                 "  }"+
                 "}";
@@ -835,29 +988,29 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
 
     @Test
     public void queryForAuthorsWithWhereBooksNOTEXISTSAuthorLIKENameLeo() {
         //given
         String query = "query { "
-                + "  Authors(where: {" + 
-                "    books: {" + 
-                "      NOT_EXISTS: {" + 
-                "        author: {" + 
-                "          name: {LIKE: \"Leo\"}" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "      }" + 
-                "    }" + 
+                + "  Authors(where: {" +
+                "    books: {" +
+                "      NOT_EXISTS: {" +
+                "        author: {" +
+                "          name: {LIKE: \"Leo\"}" +
+                "        }" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -955,16 +1108,16 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     public void queryForAuthorssWithWhereBooksGenreEquals() {
         //given
         String query = "query { "
-                + "Authors(where: {books: {genre: {EQ: NOVEL}}}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(where: {books: {genre: {EQ: NOVEL}}}) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -980,31 +1133,31 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
-    
+    }
+
     @Test
     public void queryForAuthorssWithWhereBooksManyToOneRelationCriteria() {
         //given
         String query = "query { " +
-                "  Authors(where: {" + 
-                "    books: {" + 
-                "      author: {" + 
-                "        name: {LIKE: \"Leo\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "        author {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "  Authors(where: {" +
+                "    books: {" +
+                "      author: {" +
+                "        name: {LIKE: \"Leo\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "        author {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1020,28 +1173,28 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
-        
+    }
+
 
     @Test
     public void queryWithWhereInsideOneToManyRelationsImplicitAND() {
         //given:
         String query = "query { "
-                + "Authors(where: {" + 
-                "    books: {" + 
-                "      genre: {IN: NOVEL}" + 
-                "      title: {LIKE: \"War\"}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors(where: {" +
+                "    books: {" +
+                "      genre: {IN: NOVEL}" +
+                "      title: {LIKE: \"War\"}" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1058,29 +1211,29 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryWithWhereInsideOneToManyRelationsImplicitANDWithEXISTS() {
         //given:
         String query = "query { "
-                + "Authors(where: {" + 
+                + "Authors(where: {" +
                 "    EXISTS: {" +
                 "      books: {" +
-                "        genre: {IN: NOVEL}" + 
-                "        title: {LIKE: \"War\"}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "        genre: {IN: NOVEL}" +
+                "        title: {LIKE: \"War\"}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1098,29 +1251,29 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryWithWhereInsideOneToManyRelationsWithExplictAND() {
         //given:
         String query = "query { "
-                + "Authors(where: {" + 
-                "    books: {" + 
+                + "Authors(where: {" +
+                "    books: {" +
                 "      AND: { "+
-                "        genre: {IN: NOVEL}" + 
+                "        genre: {IN: NOVEL}" +
                 "        title: {LIKE: \"War\"}" +
                 "      }" +
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1135,31 +1288,31 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideOneToManyRelationsWithExplictANDEXISTS() {
         //given:
         String query = "query { "
                 + "Authors(where: {" +
                 "    EXISTS: {" +
-                "      books: {" + 
+                "      books: {" +
                 "        AND: { "+
-                "          genre: {IN: NOVEL}" + 
+                "          genre: {IN: NOVEL}" +
                 "          title: {LIKE: \"War\"}" +
                 "        }" +
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1174,29 +1327,29 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideOneToManyRelationsWithExplictOR() {
         //given:
         String query = "query { "
-                + "Authors(where: {" + 
-                "    books: {" + 
+                + "Authors(where: {" +
+                "    books: {" +
                 "      OR: { "+
-                "        genre: {IN: NOVEL}" + 
+                "        genre: {IN: NOVEL}" +
                 "        title: {LIKE: \"War\"}" +
                 "      }" +
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1210,32 +1363,32 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideOneToManyNestedRelationsWithManyToOneAndOR() {
         //given:
         String query = "query { " +
-                "  Authors(where: {" + 
-                "    books: {" + 
+                "  Authors(where: {" +
+                "    books: {" +
                 "      author: {name: {LIKE:\"Leo\"}}" +
                 "      AND: {" +
-                "        OR: {" + 
-                "          id: {EQ: 2}" + 
-                "          title: {LIKE: \"Anna\"}" + 
-                "        }" + 
+                "        OR: {" +
+                "          id: {EQ: 2}" +
+                "          title: {LIKE: \"Anna\"}" +
+                "        }" +
                 "      }" +
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1251,29 +1404,29 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideOneToManyNestedRelationsWithOneToManyDeepSelect() {
         //given:
         String query = "query { " +
-                "  Authors(where: {" + 
-                "    books: {" + 
-                "      author: {name: {LIKE:\"Leo\"}}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "        author {" + 
-                "          name" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "  Authors(where: {" +
+                "    books: {" +
+                "      author: {name: {LIKE:\"Leo\"}}" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "        author {" +
+                "          name" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1289,34 +1442,34 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
-    
+    }
+
+
     @Test
     public void queryWithWhereInsideManyToOneNestedRelationsWithOnToManyCollectionFilter() {
         //given:
         String query = "query { " +
-                "  Books(where: {" + 
-                "    title:{LIKE: \"War\"}" + 
-                "    author: {" + 
-                "      name:{LIKE: \"Leo\"}" + 
-                "      books: {title: {LIKE: \"Anna\"}}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "      author {" + 
-                "        id" + 
-                "        name" + 
-                "        books {" + 
-                "          id" + 
-                "          title" + 
-                "          genre" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "  Books(where: {" +
+                "    title:{LIKE: \"War\"}" +
+                "    author: {" +
+                "      name:{LIKE: \"Leo\"}" +
+                "      books: {title: {LIKE: \"Anna\"}}" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      genre" +
+                "      author {" +
+                "        id" +
+                "        name" +
+                "        books {" +
+                "          id" +
+                "          title" +
+                "          genre" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1336,35 +1489,35 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithWhereInsideManyToOneNestedRelationsWithOnToManyCollectionFilterEXISTS() {
         //given:
         String query = "query { " +
-                "  Books(where: {" + 
-                "    title:{LIKE: \"War\"}" + 
+                "  Books(where: {" +
+                "    title:{LIKE: \"War\"}" +
                 "    EXISTS: {" +
-                "      author: {" + 
-                "        name:{LIKE: \"Leo\"}" + 
-                "        books: {title: {LIKE: \"Anna\"}}" + 
-                "      }" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      genre" + 
-                "      author {" + 
-                "        id" + 
-                "        name" + 
-                "        books {" + 
-                "          id" + 
-                "          title" + 
-                "          genre" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "      author: {" +
+                "        name:{LIKE: \"Leo\"}" +
+                "        books: {title: {LIKE: \"Anna\"}}" +
+                "      }" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      genre" +
+                "      author {" +
+                "        id" +
+                "        name" +
+                "        books {" +
+                "          id" +
+                "          title" +
+                "          genre" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1385,25 +1538,25 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryWithOneToManyNestedRelationsWithManyToOneOptionalTrue() {
         //given:
         String query = "query { " +
-                "  Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "        author(optional: true) {" + 
-                "          id" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "  Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "        author(optional: true) {" +
+                "          id" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1425,25 +1578,25 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryWithOneToManyNestedRelationsWithManyToOneOptionalFalse() {
         //given:
         String query = "query { " +
-                "  Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "        author(optional: false) {" + 
-                "          id" + 
-                "        }" + 
-                "      }" + 
-                "    }" + 
+                "  Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "        author(optional: false) {" +
+                "          id" +
+                "        }" +
+                "      }" +
+                "    }" +
                 "  }" +
                 "}";
 
@@ -1464,8 +1617,8 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void ignoreFilter() {
         //given
@@ -1553,21 +1706,21 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForAuthorsWithDefaultOptionalBooks() {
         //given
         String query = "query { "
-                + "Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -1590,21 +1743,21 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryForAuthorsWithExlicitOptionalBooksFalse() {
         //given
         String query = "query { "
-                + "Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books(optional: false) {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books(optional: false) {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -1626,21 +1779,21 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
- 
+
     @Test
     public void queryForAuthorsWithExlicitOptionalBooksTrue() {
         //given
         String query = "query { "
-                + "Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books(optional: true) {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
+                + "Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books(optional: true) {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
                 "  }"+
                 "}";
 
@@ -1685,7 +1838,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
                 .extracting("validationErrorType", "queryPath")
                 .containsOnly(tuple(ValidationErrorType.FieldUndefined, list("Books", "select", "authorName")));
     }
-    
+
     @Test
     public void queryWithEQNotMatchingCase() {
         //given:
@@ -1699,7 +1852,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithEQMatchingCase() {
         //given:
@@ -1715,7 +1868,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithLOWERNotMatchingCase() {
         //given:
@@ -1731,7 +1884,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithLOWERMatchingCase() {
         //given:
@@ -1747,7 +1900,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithEQCaseInsensitive() {
         //given:
@@ -1793,7 +1946,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithNECaseInsensitive() {
         //given:
@@ -1842,7 +1995,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithLIKECaseInsensitive() {
         //given:
@@ -1888,7 +2041,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithSTARTSCaseInsensitive() {
         //given:
@@ -1934,7 +2087,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithENDSCaseInsensitive() {
         //given:
@@ -1965,7 +2118,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     public void queryWithENDSCaseSensitiveNonMatching() {
         //given:
         String query = "query { Books ( where: { title: {ENDS : \"peace\"}}) { select { id title} } }";
@@ -1977,32 +2130,32 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void shouldNotReturnStaleCacheResultsFromPreviousQueryForCollectionCriteriaExpression() {
         //given:
-        String query = "query ($genre: Genre) {" + 
-                "  Authors(where: { " + 
-                "    books: {" + 
-                "        genre: {EQ: $genre}" + 
-                "    }" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query ($genre: Genre) {" +
+                "  Authors(where: { " +
+                "    books: {" +
+                "        genre: {EQ: $genre}" +
+                "    }" +
+                "  }) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         //when: 1st query
         Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
-        
+
         String expected1 = "{Authors={select=["
                 +   "{id=4, name=Anton Chekhov, books=["
                 +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
@@ -2013,10 +2166,10 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         //then:
         assertThat(result1.toString()).isEqualTo(expected1);
-        
+
         //when: 2nd query
         Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
-        
+
         String expected2 = "{Authors={select=["
                 +   "{id=1, name=Leo Tolstoy, books=["
                 +       "{id=2, title=War and Peace, genre=NOVEL}, "
@@ -2027,51 +2180,55 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result2.toString()).isEqualTo(expected2);
     }
-    
+
     @Test
     public void shouldNotReturnStaleCacheResultsFromPreviousQueryForEmbeddedCriteriaExpression() {
         //given:
-        String query = "query ($genre: Genre) {" + 
-                "  Authors {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      books(where:{ genre: {EQ: $genre} }) {" + 
-                "        id" + 
-                "        title" + 
-                "        genre" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
+        String query = "query ($genre: Genre) {" +
+                "  Authors {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books(where:{ genre: {EQ: $genre} }) {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }" +
                 "}";
 
         //when: 1st query
         Object result1 = executor.execute(query, Collections.singletonMap("genre", "PLAY")).getData();
-        
+
         String expected1 = "{Authors={select=["
+                +   "{id=1, name=Leo Tolstoy, books=[]}, "
                 +   "{id=4, name=Anton Chekhov, books=["
                 +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
                 +       "{id=6, title=The Seagull, genre=PLAY}, "
                 +       "{id=7, title=Three Sisters, genre=PLAY}"
-                +   "]}"
+                +   "]}, "
+                + "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //then:
         assertThat(result1.toString()).isEqualTo(expected1);
-        
+
         //when: 2nd query
         Object result2 = executor.execute(query, Collections.singletonMap("genre", "NOVEL")).getData();
-        
+
         String expected2 = "{Authors={select=["
                 +   "{id=1, name=Leo Tolstoy, books=["
                 +       "{id=2, title=War and Peace, genre=NOVEL}, "
                 +       "{id=3, title=Anna Karenina, genre=NOVEL}"
-                +   "]}"
+                +   "]}, "
+                +   "{id=4, name=Anton Chekhov, books=[]}, "
+                +   "{id=8, name=Igor Dianov, books=[]}"
                 + "]}}";
 
         //then:
         assertThat(result2.toString()).isEqualTo(expected2);
-    }      
+    }
 
     @Test
     public void queryWithEnumParameterShouldExecuteWithNoError() {
@@ -2114,13 +2271,13 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
                               "War and Peace")
                 );
     }
-    
+
     // https://github.com/introproventures/graphql-jpa-query/issues/198
     @Test
     public void queryOptionalElementCollections() {
         //given
         String query = "{ Author(id: 8) { id name phoneNumbers books { id title tags } } }";
-        
+
         String expected = "{Author={id=8, name=Igor Dianov, phoneNumbers=[], books=[]}}";
 
         //when
@@ -2128,19 +2285,19 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryElementCollectionsWithWhereCriteriaExpression() {
         //given:
-        String query = "query {" + 
-                "  Books(where: {tags: {EQ: \"war\"}}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      title" + 
-                "      tags" + 
-                "    }" + 
-                "  }" + 
+        String query = "query {" +
+                "  Books(where: {tags: {EQ: \"war\"}}) {" +
+                "    select {" +
+                "      id" +
+                "      title" +
+                "      tags" +
+                "    }" +
+                "  }" +
                 "}";
 
         String expected = "{Books={select=[{id=2, title=War and Peace, tags=[piece, war]}]}}";
@@ -2151,12 +2308,12 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryWithNullVarables() {
         //given
         String query = "{ Author(id: 1) { id name } }";
-        
+
         String expected = "{Author={id=1, name=Leo Tolstoy}}";
 
         //when
@@ -2165,5 +2322,5 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
 }
