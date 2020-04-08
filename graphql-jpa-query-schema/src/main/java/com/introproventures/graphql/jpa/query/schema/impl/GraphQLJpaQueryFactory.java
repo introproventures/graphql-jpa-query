@@ -335,7 +335,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     protected Map<Object, List<Object>> loadOneToMany(DataFetchingEnvironment environment,
-                                                 Set<Object> keys) {
+                                                      Set<Object> keys) {
         Field field = environment.getField();
 
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
@@ -347,16 +347,10 @@ public final class GraphQLJpaQueryFactory {
                                                     .collect(groupingBy(t -> t[0],
                                                                         Collectors.mapping(t -> t[1],
                                                                                            GraphQLSupport.toResultList())));
-        Map<Object, List<Object>> resultMap = new LinkedHashMap<>();
+        Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
         keys.forEach(it -> {
             List<Object> list = batch.getOrDefault(it, Collections.emptyList());
-
-            if (!list.isEmpty()) {
-                list = list.stream()
-                           .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
-                           .collect(Collectors.toList());
-            }
 
             resultMap.put(it, list);
         });
@@ -372,19 +366,11 @@ public final class GraphQLJpaQueryFactory {
 
         List<Object[]> resultList = getResultList(query);
 
-        Map<Object, Object> batch = new LinkedHashMap<>();
+        Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
         resultList.stream()
                   .peek(t -> entityManager.detach(t[1]))
-                  .forEach(item -> batch.put(item[0], item[1]));
-
-        Map<Object, Object> resultMap = new LinkedHashMap<>();
-
-        keys.forEach(it -> {
-            Object list = batch.getOrDefault(it, null);
-
-            resultMap.put(it, list);
-        });
+                  .forEach(item -> resultMap.put(item[0], item[1]));
 
         return resultMap;
     }

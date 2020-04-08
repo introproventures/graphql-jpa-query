@@ -159,6 +159,11 @@ public class GraphQLSupport {
                                 left.addAll(right);
                                 return left;
                             },
+                            (list) -> {
+                                return list.stream()
+                                           .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
+                                           .collect(Collectors.toList());
+                            },
                             Collector.Characteristics.CONCURRENT);
     }
 
