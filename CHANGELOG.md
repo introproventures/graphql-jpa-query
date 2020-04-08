@@ -1,6 +1,11 @@
 # Change Log
 
-## 0.4.4-SNAPSHOT
+## 0.4.4
+* fix: add support for graphiql controller view forward request (#256) [9240884](https://github.com/introproventures/graphql-jpa-query/commit/92408841ee5c03d385f12e1fd9ec3fb23ae68365)
+* fix(GH-249): Resolve exception when using graphql-jpa with leangen (#255) [dea68a8](https://github.com/introproventures/graphql-jpa-query/commit/dea68a80470fb06670477bbba75e809c996228f9)
+* fix(GH253): Support enable/disable default max result size query pagination (#254) [1297e68](https://github.com/introproventures/graphql-jpa-query/commit/1297e6869f874d337711f9f11ed347b9b1624d67)
+* fix: improve data loader query memory usage (#252) [7cc3e57](https://github.com/introproventures/graphql-jpa-query/commit/7cc3e579ab3291e075134a5e37393f851ae74413)
+* fix(GH-233): Support Inline optional search criteria for singular and plural attributes (#251) [bb44a34](https://github.com/introproventures/graphql-jpa-query/commit/bb44a3495e0de77e30c095eeaf9d4bc640730687)
 * feat: add Spring WebMvc support for /graphiql application console (#247) [6a0970c](https://github.com/introproventures/graphql-jpa-query/commit/6a0970c14348afd242ae0a8c1b0e7651123100c8)
 * fix(pom.xml): added graphiql to dependency management (#246) [a3e8bcf](https://github.com/introproventures/graphql-jpa-query/commit/a3e8bcf79c833b3c70264c9e1194d9564f5ac353)
 * fix(version): update maven-javadoc-plugin to 3.1.0 [c472996](https://github.com/introproventures/graphql-jpa-query/commit/c47299664c9255a7dc09cb6aeb66f25faf39ed39)
