@@ -1,5 +1,6 @@
 package com.introproventures.graphql.jpa.query.graphiql;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,11 +12,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcViewControllerConfigurer {
 
     @Bean
-    public WebMvcConfigurer graphqiQLRedirectToIndex() {
+    @ConditionalOnMissingBean(name = "graphiqlViewController")
+    public WebMvcConfigurer graphiqlViewController() {
         return new WebMvcConfigurer() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
-            	registry.addRedirectViewController("/graphiql", "graphiql/index.html");
+                registry.addViewController("/graphiql")
+                        .setViewName("forward:/graphiql/index.html");
             }
         };
     }
