@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.5
+## 0.4.6-SNAPSHOT
 * fix: remove readOnly transaction attribute in GraphQLController (#257) [1f4eb90](https://github.com/introproventures/graphql-jpa-query/commit/1f4eb90e9c07de444316e5ea59ea7f1b4a9da583)
 * fix: enable include statistics on data loader dispatcher instrumentation [144c8a9](https://github.com/introproventures/graphql-jpa-query/commit/144c8a92a08c56961d57424cd104c48a88186c61)
 * fix: add support for graphiql controller view forward request (#256) [9240884](https://github.com/introproventures/graphql-jpa-query/commit/92408841ee5c03d385f12e1fd9ec3fb23ae68365)
