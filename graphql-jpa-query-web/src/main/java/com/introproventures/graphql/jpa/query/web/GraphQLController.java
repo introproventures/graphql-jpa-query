@@ -44,7 +44,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-
 import graphql.DeferredExecutionResult;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -56,7 +55,7 @@ import graphql.GraphQL;
  *
  */
 @RestController
-@Transactional(readOnly = true)
+@Transactional
 public class GraphQLController {
 
     private static final String PATH = "${spring.graphql.jpa.query.path:/graphql}";
@@ -76,7 +75,7 @@ public class GraphQLController {
         this.graphQLExecutor = graphQLExecutor;
         this.mapper = mapper;
     }
-    
+
     @GetMapping(value = PATH,
                 consumes = MediaType.TEXT_EVENT_STREAM_VALUE,
                 produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -85,18 +84,18 @@ public class GraphQLController {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
-        
+
         SseEmitter sseEmitter = new SseEmitter(180_000L); // FIXME need to add parameter
         sseEmitter.onTimeout(sseEmitter::complete);
-        
+
         if(!executionResult.getErrors().isEmpty()) {
             sseEmitter.send(executionResult.toSpecification(), MediaType.APPLICATION_JSON);
             sseEmitter.completeWithError(new RuntimeException(executionResult.getErrors().toString()));
             return sseEmitter;
         }
-        
-        Publisher<ExecutionResult> deferredResults = executionResult.getData(); 
-        
+
+        Publisher<ExecutionResult> deferredResults = executionResult.getData();
+
         // now send each deferred part which is given to us as a reactive stream
         // of deferred values
         deferredResults.subscribe(new Subscriber<ExecutionResult>() {
@@ -115,7 +114,7 @@ public class GraphQLController {
 
                 try {
                     SseEventBuilder event = wrap(executionResult);
-                    
+
                     sseEmitter.send(event);
                 } catch (IOException e) {
                     sseEmitter.completeWithError(e);
@@ -131,21 +130,21 @@ public class GraphQLController {
             public void onComplete() {
                 sseEmitter.complete();
             }
-            
+
             SseEventBuilder wrap(ExecutionResult executionResult) {
                 Map<String, Object> result = executionResult.getData();
                 String name = result.keySet().iterator().next();
-                
+
                 return SseEmitter.event()
                                  .id((id++).toString())
                                  .name(name)
                                  .data(result, MediaType.APPLICATION_JSON);
-                
+
             }
-        });        
-        
+        });
+
         return sseEmitter;
-    }    
+    }
 
     /**
      * Handle standard GraphQL POST request that consumes
@@ -191,11 +190,11 @@ public class GraphQLController {
     public void getQuery(@RequestParam(name = "query") final String query,
                          @RequestParam(name = "variables", required = false) final String variables,
                          HttpServletResponse httpServletResponse) throws IOException {
-        
+
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
-        
+
         sendResponse(httpServletResponse, executionResult);
     }
 
@@ -220,7 +219,7 @@ public class GraphQLController {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
-        
+
         sendResponse(httpServletResponse, executionResult);
     }
 
@@ -312,11 +311,11 @@ public class GraphQLController {
         }
 
     }
-    
+
     private void sendResponse(HttpServletResponse response, ExecutionResult executionResult) throws IOException {
         if (hasDeferredResults(executionResult)) {
             sendDeferredResponse(response, executionResult, executionResult.getExtensions());
-        } 
+        }
         else if (hasPublisherResults(executionResult)) {
             sendMultipartResponse(response, executionResult, executionResult.getData());
         } else {
@@ -328,8 +327,8 @@ public class GraphQLController {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(response.getOutputStream(), executionResult.toSpecification());
-    }    
-    
+    }
+
     private boolean hasDeferredResults(ExecutionResult executionResult) {
         return Optional.ofNullable(executionResult.getExtensions())
                        .map(it -> it.containsKey(GraphQL.DEFERRED_RESULTS))
@@ -339,12 +338,12 @@ public class GraphQLController {
     private boolean hasPublisherResults(ExecutionResult executionResult) {
         return Publisher.class.isInstance(executionResult.getData());
     }
-    
+
     private static final String CRLF = "\r\n";
 
     @SuppressWarnings("unchecked")
-    private void sendDeferredResponse(HttpServletResponse response, 
-                                      ExecutionResult executionResult, 
+    private void sendDeferredResponse(HttpServletResponse response,
+                                      ExecutionResult executionResult,
                                       Map<Object, Object> extensions) {
         Publisher<DeferredExecutionResult> deferredResults = (Publisher<DeferredExecutionResult>) extensions.get(GraphQL.DEFERRED_RESULTS);
         try {
@@ -354,8 +353,8 @@ public class GraphQLController {
         }
     }
 
-    private void sendMultipartResponse(HttpServletResponse response, 
-                                       ExecutionResult executionResult, 
+    private void sendMultipartResponse(HttpServletResponse response,
+                                       ExecutionResult executionResult,
                                        Publisher<? extends ExecutionResult> deferredResults) {
         // this implements this Apollo defer spec: https://github.com/apollographql/apollo-server/blob/defer-support/docs/source/defer-support.md
         // the spec says CRLF + "-----" + CRLF is needed at the end, but it works without it and with it we get client
@@ -445,6 +444,6 @@ public class GraphQLController {
                 throw new RuntimeException(e);
             }
         }
-    }    
+    }
 
 }
