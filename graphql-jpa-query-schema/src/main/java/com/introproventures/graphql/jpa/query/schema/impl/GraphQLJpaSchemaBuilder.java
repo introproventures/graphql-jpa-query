@@ -129,6 +129,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private int defaultMaxResults = 100;
     private int defaultFetchSize = 100;
     private int defaultPageLimitSize = 100;
+    private boolean enableDefaultMaxResults = true;
 
     private final Relay relay = new Relay();
 
@@ -264,12 +265,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             dataFetcher = GraphQLJpaRelayDataFetcher.builder()
                                                     .withQueryFactory(queryFactory)
                                                     .withDefaultMaxResults(defaultMaxResults)
+                                                    .withEnableDefaultMaxResults(enableDefaultMaxResults)
                                                     .withDefaultFirstSize(defaultPageLimitSize)
                                                     .build();
         } else {
             dataFetcher = GraphQLJpaQueryDataFetcher.builder()
                                                     .withQueryFactory(queryFactory)
                                                     .withDefaultMaxResults(defaultMaxResults)
+                                                    .withEnableDefaultMaxResults(enableDefaultMaxResults)
                                                     .withDefaultPageLimitSize(defaultPageLimitSize)
                                                     .build();
         }
@@ -1422,6 +1425,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public GraphQLJpaSchemaBuilder defaultFetchSize(int defaultFetchSize) {
         this.defaultFetchSize = defaultFetchSize;
+
+        return this;
+    }
+
+    public boolean isEnableDefaultMaxResults() {
+        return enableDefaultMaxResults;
+    }
+
+    public GraphQLJpaSchemaBuilder enableDefaultMaxResults(boolean enableDefaultMaxResults) {
+        this.enableDefaultMaxResults = enableDefaultMaxResults;
 
         return this;
     }

@@ -62,10 +62,7 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     @Override
     public ExecutionInput.Builder newExecutionInput() {
         DataLoaderRegistry dataLoaderRegistry = newDataLoaderRegistry();
-
-        GraphQLContext context = graphqlContext.get();
-
-        context.put("dataLoaderRegistry", dataLoaderRegistry);
+        GraphQLContext context = newGraphQLContext(dataLoaderRegistry);
 
         return executionInputFactory.create()
                                     .dataLoaderRegistry(dataLoaderRegistry)
@@ -78,6 +75,14 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
         return GraphQL.newGraphQL(getGraphQLSchema())
                       .instrumentation(instrumentation);
+    }
+
+    public GraphQLContext newGraphQLContext(DataLoaderRegistry dataLoaderRegistry) {
+        GraphQLContext context = graphqlContext.get();
+
+        context.put("dataLoaderRegistry", dataLoaderRegistry);
+
+        return context;
     }
 
     public DataLoaderRegistry newDataLoaderRegistry() {
@@ -97,7 +102,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
                                                    instrumentation.get());
 
         return new ChainedInstrumentation(list);
-
     }
 
     @Override
