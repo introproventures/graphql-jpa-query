@@ -23,6 +23,7 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getP
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,31 +36,33 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 
 /**
- * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions   
- * 
+ * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions
+ *
  * @author Igor Dianov
  *
  */
 class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
-    
+
     private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
 
     private final int defaultMaxResults;
     private final int defaultPageLimitSize;
+    private final boolean enableDefaultMaxResults;
     private final GraphQLJpaQueryFactory queryFactory;
 
     private GraphQLJpaQueryDataFetcher(Builder builder) {
         this.queryFactory = builder.queryFactory;
         this.defaultMaxResults = builder.defaultMaxResults;
         this.defaultPageLimitSize = builder.defaultPageLimitSize;
+        this.enableDefaultMaxResults = builder.enableDefaultMaxResults;
     }
-    
+
     @Override
     public PagedResult<Object> get(DataFetchingEnvironment environment) {
         final Field rootNode = environment.getField();
         final Optional<Argument> pageArgument = getPageArgument(environment.getField());
         final PageArgument page = extractPageArgument(environment, pageArgument, defaultPageLimitSize);
-        
+
         // Let's see which fields we're requesting
         Optional<Field> pagesSelection = getSelectionField(rootNode, PAGE_PAGES_PARAM_NAME);
         Optional<Field> totalSelection = getSelectionField(rootNode, PAGE_TOTAL_PARAM_NAME);
@@ -72,32 +75,32 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                                                                    .withOffset(firstResult)
                                                                    .withLimit(maxResults);
         if (recordsSelection.isPresent()) {
-            final List<Object> keys = queryFactory.queryKeys(environment,
-                                                             firstResult,
-                                                             maxResults);
-            if(!keys.isEmpty()) {
-                final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                             maxResults,
-                                                                             keys);
-                pagedResult.withSelect(resultList);
+            List<Object> keys = Collections.emptyList();
+
+            if (pageArgument.isPresent() || enableDefaultMaxResults) {
+                keys = queryFactory.queryKeys(environment, firstResult, maxResults);
             }
+
+            final List<Object> resultList = queryFactory.queryResultList(environment,
+                                                                         maxResults,
+                                                                         keys);
+            pagedResult.withSelect(resultList);
         }
-        
+
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            
             final Long total = queryFactory.queryTotalCount(environment);
 
             pagedResult.withTotal(total);
         }
-        
+
         return pagedResult.build();
     }
-    
-    
+
+
     public int getDefaultMaxResults() {
         return defaultMaxResults;
     }
-    
+
     public int getDefaultPageLimitSize() {
         return defaultPageLimitSize;
     }
@@ -133,7 +136,14 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         * @param defaultMaxResults field to set
         * @return builder
         */
-        public IDefaultPageLimitSizeStage withDefaultMaxResults(int defaultMaxResults);
+        public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults);
+
+        /**
+        * Builder method for enableDefaultMaxResults parameter.
+        * @param enableDefaultMaxResults field to set
+        * @return builder
+        */
+        public IDefaultPageLimitSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults);
     }
 
     /**
@@ -169,6 +179,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         private GraphQLJpaQueryFactory queryFactory;
         private int defaultMaxResults;
         private int defaultPageLimitSize;
+        private boolean enableDefaultMaxResults;
 
         private Builder() {
         }
@@ -180,7 +191,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         }
 
         @Override
-        public IDefaultPageLimitSizeStage withDefaultMaxResults(int defaultMaxResults) {
+        public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults) {
             this.defaultMaxResults = defaultMaxResults;
             return this;
         }
@@ -195,6 +206,12 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         public GraphQLJpaQueryDataFetcher build() {
             return new GraphQLJpaQueryDataFetcher(this);
         }
+
+        @Override
+        public IDefaultPageLimitSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults) {
+            this.enableDefaultMaxResults = enableDefaultMaxResults;
+            return this;
+        }
     }
-}    
+}
 

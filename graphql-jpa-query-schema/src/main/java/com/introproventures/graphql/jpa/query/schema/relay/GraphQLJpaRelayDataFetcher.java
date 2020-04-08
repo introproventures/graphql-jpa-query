@@ -3,6 +3,7 @@ package com.introproventures.graphql.jpa.query.schema.relay;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaQueryFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.PagedResult;
-
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -26,60 +26,64 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
 
     private final int defaultMaxResults;
     private final int defaultFirstSize;
+    private final boolean enableDefaultMaxResults;
     private final GraphQLJpaQueryFactory queryFactory;
 
     private GraphQLJpaRelayDataFetcher(Builder builder) {
         this.queryFactory = builder.queryFactory;
         this.defaultMaxResults = builder.defaultMaxResults;
         this.defaultFirstSize = builder.defaultFirstSize;
+        this.enableDefaultMaxResults = builder.enableDefaultMaxResults;
     }
-    
+
     @Override
     public Page<Object> get(DataFetchingEnvironment environment) throws Exception {
         final Field rootNode = environment.getField();
-        
+
         Optional<Field> edgesSelection = searchByFieldName(rootNode, EDGES);
         Optional<Field> pageInfoSelection = getSelectionField(rootNode, PAGE_INFO);
-        
-        final Integer first = Optional.<Integer> ofNullable(environment.getArgument(FIRST))
-                             .orElse(defaultFirstSize);
-        
-        final String after = Optional.<String>ofNullable(environment.getArgument(AFTER))
-                               .orElse(new OffsetBasedCursor(0L).toConnectionCursor()
+        Optional<Integer> firstArgument = Optional.<Integer>ofNullable(environment.getArgument(FIRST));
+        Optional<String> afterArgument = Optional.<String>ofNullable(environment.getArgument(AFTER));
+
+        final Integer first = firstArgument.orElse(defaultFirstSize);
+
+        final String after = afterArgument.orElse(new OffsetBasedCursor(0L).toConnectionCursor()
                                                                 .toString());
 
         final OffsetBasedCursor cursor = OffsetBasedCursor.fromCursor(after);
-        
+
         final int firstResult = Integer.parseInt(Long.toString(cursor.getOffset()));
         final int maxResults = Integer.min(first, defaultMaxResults);
-        
+
         final PagedResult.Builder<Object> pagedResult = PagedResult.builder()
                 .withOffset(firstResult)
                 .withLimit(maxResults);
-        
+
         if (edgesSelection.isPresent()) {
-            final List<Object> keys = queryFactory.queryKeys(environment,
-                                                             firstResult,
-                                                             maxResults);
-            if(!keys.isEmpty()) {
-                final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                             maxResults,
-                                                                             keys);
-                pagedResult.withSelect(resultList);
+            List<Object> keys = Collections.emptyList();
+
+            if (enableDefaultMaxResults || firstArgument.isPresent() || afterArgument.isPresent()) {
+                keys = queryFactory.queryKeys(environment,
+                                              firstResult,
+                                              maxResults);
             }
+
+            final List<Object> resultList = queryFactory.queryResultList(environment,
+                                                                         maxResults,
+                                                                         keys);
+            pagedResult.withSelect(resultList);
         }
-        
+
         if (pageInfoSelection.isPresent()) {
-            
             final Long total = queryFactory.queryTotalCount(environment);
 
             pagedResult.withTotal(total);
         }
-        
+
         PagedResult<Object> result = pagedResult.build();
-        
-        return PageFactory.createOffsetBasedPage(result.getSelect(), 
-                                                 result.getTotal(), 
+
+        return PageFactory.createOffsetBasedPage(result.getSelect(),
+                                                 result.getTotal(),
                                                  result.getOffset());
     }
 
@@ -114,7 +118,14 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         * @param defaultMaxResults field to set
         * @return builder
         */
-        public IDefaultFirstSizeStage withDefaultMaxResults(int defaultMaxResults);
+        public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults);
+
+        /**
+        * Builder method for enableDefaultMaxResults parameter.
+        * @param enableDefaultMaxResults field to set
+        * @return builder
+        */
+        public IDefaultFirstSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults);
     }
 
     /**
@@ -150,6 +161,7 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         private GraphQLJpaQueryFactory queryFactory;
         private int defaultMaxResults;
         private int defaultFirstSize;
+        private boolean enableDefaultMaxResults;
 
         private Builder() {
         }
@@ -161,7 +173,7 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         }
 
         @Override
-        public IDefaultFirstSizeStage withDefaultMaxResults(int defaultMaxResults) {
+        public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults) {
             this.defaultMaxResults = defaultMaxResults;
             return this;
         }
@@ -175,6 +187,12 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         @Override
         public GraphQLJpaRelayDataFetcher build() {
             return new GraphQLJpaRelayDataFetcher(this);
+        }
+
+        @Override
+        public IDefaultFirstSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults) {
+            this.enableDefaultMaxResults = enableDefaultMaxResults;
+            return this;
         }
     }
 
