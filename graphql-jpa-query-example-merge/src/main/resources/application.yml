@@ -35,3 +35,4 @@ books:
 logging:
   level:
     com.introproventures.graphql.jpa.query.schema: DEBUG
+    com.introproventures.graphql.jpa.query.example: DEBUG

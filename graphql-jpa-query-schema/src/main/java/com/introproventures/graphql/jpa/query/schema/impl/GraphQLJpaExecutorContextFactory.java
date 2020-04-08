@@ -42,7 +42,10 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
     private Supplier<Instrumentation> instrumentation = () -> new SimpleInstrumentation();
     private Supplier<GraphQLContext> graphqlContext = () -> GraphQLContext.newContext().build();
     private Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions = () -> {
-        return DataLoaderDispatcherInstrumentationOptions.newOptions();
+        DataLoaderDispatcherInstrumentationOptions options = DataLoaderDispatcherInstrumentationOptions.newOptions();
+
+        return logger.isDebugEnabled() ? options.includeStatistics(true)
+                                       : options;
     };
 
     private Supplier<DataLoaderOptions> dataLoaderOptions = () -> DataLoaderOptions.newOptions();

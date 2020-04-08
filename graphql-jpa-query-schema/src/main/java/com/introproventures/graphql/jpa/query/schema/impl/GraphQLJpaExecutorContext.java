@@ -92,10 +92,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     public Instrumentation newIstrumentation() {
         DataLoaderDispatcherInstrumentationOptions options = dataLoaderDispatcherInstrumentationOptions.get();
 
-        if (logger.isDebugEnabled()) {
-            options.includeStatistics(true);
-        }
-
         DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation(options);
 
         List<Instrumentation> list = Arrays.asList(dispatcherInstrumentation,
