@@ -335,31 +335,22 @@ public final class GraphQLJpaQueryFactory {
     }
 
     protected Map<Object, List<Object>> loadOneToMany(DataFetchingEnvironment environment,
-                                                 Set<Object> keys) {
+                                                      Set<Object> keys) {
         Field field = environment.getField();
 
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
-        if (logger.isDebugEnabled()) {
-            logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
-        }
-
-        List<Object[]> resultList = query.getResultList();
+        List<Object[]> resultList = getResultList(query);
 
         Map<Object, List<Object>> batch = resultList.stream()
+                                                    .peek(t -> entityManager.detach(t[1]))
                                                     .collect(groupingBy(t -> t[0],
                                                                         Collectors.mapping(t -> t[1],
                                                                                            GraphQLSupport.toResultList())));
-        Map<Object, List<Object>> resultMap = new LinkedHashMap<>();
+        Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
         keys.forEach(it -> {
             List<Object> list = batch.getOrDefault(it, Collections.emptyList());
-
-            if (!list.isEmpty()) {
-                list = list.stream()
-                           .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
-                           .collect(Collectors.toList());
-            }
 
             resultMap.put(it, list);
         });
@@ -369,30 +360,33 @@ public final class GraphQLJpaQueryFactory {
 
     protected Map<Object, Object> loadManyToOne(DataFetchingEnvironment environment,
                                                 Set<Object> keys) {
-             Field field = environment.getField();
+        Field field = environment.getField();
 
-             TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
+        TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
-             if (logger.isDebugEnabled()) {
-                 logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
-             }
+        List<Object[]> resultList = getResultList(query);
 
-             List<Object[]> resultList = query.getResultList();
+        Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
-             Map<Object, Object> batch = new LinkedHashMap<>();
+        resultList.stream()
+                  .peek(t -> entityManager.detach(t[1]))
+                  .forEach(item -> resultMap.put(item[0], item[1]));
 
-             resultList.forEach(item -> batch.put(item[0], item[1]));
+        return resultMap;
+    }
 
-             Map<Object, Object> resultMap = new LinkedHashMap<>();
+    protected <T> List<T> getResultList(TypedQuery<T> query) {
+        if (logger.isDebugEnabled()) {
+            logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
+        }
 
-             keys.forEach(it -> {
-                 Object list = batch.getOrDefault(it, null);
+        // Let' try reduce overhead and disable all caching
+        query.setHint(ORG_HIBERNATE_READ_ONLY, true);
+        query.setHint(ORG_HIBERNATE_FETCH_SIZE, defaultFetchSize);
+        query.setHint(ORG_HIBERNATE_CACHEABLE, false);
 
-                 resultMap.put(it, list);
-             });
-
-             return resultMap;
-         }
+        return query.getResultList();
+    }
 
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     protected TypedQuery<Object[]> getBatchQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Set<Object> keys) {
@@ -599,11 +593,8 @@ public final class GraphQLJpaQueryFactory {
                 // Let's join fetch element collections to avoid filtering their values used where search criteria
                 if(PersistentAttributeType.ELEMENT_COLLECTION == attribute.getPersistentAttributeType()) {
                     from.fetch(selection.getName(), JoinType.LEFT);
-                } else if(!whereArgument.isPresent()) {
-                    // Let's apply fetch join to retrieve associated plural attributes
-                    if (!hasAnySelectionOrderBy(selection)) {
-                        fetch = reuseFetch(from, selection.getName(), isOptional);
-                    }
+                } else if(!whereArgument.isPresent() && !hasAnySelectionOrderBy(selection)) {
+                    fetch = reuseFetch(from, selection.getName(), isOptional);
                 }
             }
             // Let's build join fetch graph to avoid Hibernate error:
