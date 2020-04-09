@@ -81,6 +81,7 @@ import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
+
 import graphql.GraphQLException;
 import graphql.execution.MergedField;
 import graphql.execution.ValuesResolver;
@@ -419,7 +420,8 @@ public final class GraphQLJpaQueryFactory {
         );
 
         // optionally add default ordering
-        mayBeAddDefaultOrderBy(query, join, cb);
+        // FIXME need to extract correct id attribute from collection entity
+        // mayBeAddDefaultOrderBy(query, join, cb);
 
         return entityManager.createQuery(query.distinct(isDistinct));
     }
@@ -1576,7 +1578,7 @@ public final class GraphQLJpaQueryFactory {
             return (T) FloatValue.class.cast(value).getValue();
         }
         else if (NullValue.class.isInstance(value)) {
-            return (T) null;
+            return null;
         }
 
         throw new IllegalArgumentException("Not supported");
