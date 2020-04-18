@@ -290,14 +290,14 @@ public class JavaScalars {
     }
 
     public static class GraphQLDateCoercing implements Coercing<Object, Object> {
-        final DateFormat df;
+        final String dateFormatString;
 
 
         /**
          * Default to pattern 'yyyy-MM-dd'
          */
         public GraphQLDateCoercing() {
-            df = new SimpleDateFormat("yyyy-MM-dd");
+        	dateFormatString = "yyyy-MM-dd";
         }
 
         /**
@@ -306,7 +306,7 @@ public class JavaScalars {
          * @param dateFormatString e.g. "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" for "2001-07-04T12:08:56.235-07:00"
          */
         public GraphQLDateCoercing(String dateFormatString) {
-            df = new SimpleDateFormat(dateFormatString);
+        	this.dateFormatString = dateFormatString;
         }
 
         @Override
@@ -340,6 +340,8 @@ public class JavaScalars {
         }
 
         private Date parseStringToDate(String input) {
+        	DateFormat df = new SimpleDateFormat(dateFormatString);
+        	
             try {
                 return df.parse(input);
             } catch (ParseException e) {
@@ -662,7 +664,7 @@ public class JavaScalars {
 
         @Override
         public Object parseLiteral(Object input) {
-            return parseLiteral((Value<?>) input, Collections.emptyMap());
+            return parseLiteral(input, Collections.emptyMap());
         }
 
         //recursively parse the input into a Map
