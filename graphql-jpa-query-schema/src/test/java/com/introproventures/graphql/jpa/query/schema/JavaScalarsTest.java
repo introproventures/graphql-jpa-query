@@ -28,7 +28,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
@@ -289,4 +293,29 @@ public class JavaScalarsTest {
         assert resultLDT.getMinute() == 15;
         assert resultLDT.getSecond() == 07;
     }
+    
+    @Test
+    public void dateCoercionThreadSafe() throws InterruptedException, ExecutionException {
+    	//given
+    	String dateLiteral = "2018-06-22T10:00:00";
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+    	
+        List<CompletableFuture<Object>> dates = new ArrayList<>();
+
+        //when
+        for(int i = 0; i < 1000; i++) {
+            CompletableFuture<Object> task = CompletableFuture.supplyAsync(() -> {
+            	return subject.serialize(dateLiteral);
+            });
+        	dates.add(task);
+        }
+        
+        CompletableFuture<Void> result = CompletableFuture.allOf(dates.toArray(new CompletableFuture[] {}));
+        
+        result.join();
+        
+        //then
+        assertThat(result.isCompletedExceptionally()).isFalse();        
+    }
+    
 }
