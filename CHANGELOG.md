@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.7
+## 0.4.8-SNAPSHOT
 * fix(GH-232):  SimpleDateFormat is not threadsafe (#261) [cecb286](https://github.com/introproventures/graphql-jpa-query/commit/cecb286ecd3ef805c56e04f95fae28c239c50fc6)
 * fix: disable default order by for batched queries (#258) [5e4c85c](https://github.com/introproventures/graphql-jpa-query/commit/5e4c85c3a991336a4889c180fad4a355ec28723d)
 * fix: remove readOnly transaction attribute in GraphQLController (#257) [1f4eb90](https://github.com/introproventures/graphql-jpa-query/commit/1f4eb90e9c07de444316e5ea59ea7f1b4a9da583)
