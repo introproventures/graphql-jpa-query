@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.8
+## 0.4.9-SNAPSHOT
 * fix: add support for server.servlet.content-path configuration (#264) [edf9a8a](https://github.com/introproventures/graphql-jpa-query/commit/edf9a8a2628de9dff5e2f0806d0dc2a1a8569463)
 * fix(GH-232):  SimpleDateFormat is not threadsafe (#261) [cecb286](https://github.com/introproventures/graphql-jpa-query/commit/cecb286ecd3ef805c56e04f95fae28c239c50fc6)
 * fix: disable default order by for batched queries (#258) [5e4c85c](https://github.com/introproventures/graphql-jpa-query/commit/5e4c85c3a991336a4889c180fad4a355ec28723d)
