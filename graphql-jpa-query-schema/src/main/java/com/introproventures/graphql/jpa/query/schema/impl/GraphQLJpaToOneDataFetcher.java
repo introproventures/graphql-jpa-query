@@ -58,9 +58,11 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
 
         Object source = environment.getSource();
         Optional<Argument> whereArgument = queryFactory.getArgument(field, "where");
-
+        Boolean isOptional = queryFactory.getOptionalArgumentValue(environment,
+                                                                   field,
+                                                                   attribute);
         // Resolve collection query if where argument is present
-        if (whereArgument.isPresent() && !EMBEDDED.equals(attribute.getPersistentAttributeType())) {
+        if ((whereArgument.isPresent() && isOptional) && !EMBEDDED.equals(attribute.getPersistentAttributeType())) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
             String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
                                                                         .orElseGet(attribute::getName);
