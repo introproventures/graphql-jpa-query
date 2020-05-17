@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.9
+## 0.4.10-SNAPSHOT
 * fix: Resolve query fetch result in memory to avoid N+1 query problems (#266) [d7163f7](https://github.com/introproventures/graphql-jpa-query/commit/d7163f7f66f018ae3635c3a0828aaf5e2f83a4bf)
 * fix: add support for server.servlet.content-path configuration (#264) [edf9a8a](https://github.com/introproventures/graphql-jpa-query/commit/edf9a8a2628de9dff5e2f0806d0dc2a1a8569463)
 * fix(GH-232):  SimpleDateFormat is not threadsafe (#261) [cecb286](https://github.com/introproventures/graphql-jpa-query/commit/cecb286ecd3ef805c56e04f95fae28c239c50fc6)
