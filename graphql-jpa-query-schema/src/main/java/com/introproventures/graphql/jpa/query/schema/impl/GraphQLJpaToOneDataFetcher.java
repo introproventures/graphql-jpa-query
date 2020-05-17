@@ -16,9 +16,10 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
+
 import java.util.Optional;
 
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.dataloader.DataLoader;
@@ -27,6 +28,7 @@ import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
 
 import graphql.GraphQLContext;
+import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -55,11 +57,10 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
         GraphQLType parentType = environment.getParentType();
 
         Object source = environment.getSource();
-        Boolean isOptional = queryFactory.getOptionalArgumentValue(environment,
-                                                                   field,
-                                                                   attribute);
+        Optional<Argument> whereArgument = queryFactory.getArgument(field, "where");
+
         // Resolve collection query if where argument is present
-        if (isOptional && !PersistentAttributeType.EMBEDDED.equals(attribute.getPersistentAttributeType())) {
+        if (whereArgument.isPresent() && !EMBEDDED.equals(attribute.getPersistentAttributeType())) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
             String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
                                                                         .orElseGet(attribute::getName);
