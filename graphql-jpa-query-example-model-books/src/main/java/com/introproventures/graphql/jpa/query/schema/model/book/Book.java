@@ -39,7 +39,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@EqualsAndHashCode(exclude= {"author", "tags"})
+@EqualsAndHashCode(exclude= {"author", "tags", "publishers"})
 public class Book {
 	@Id
 	Long id;
@@ -64,6 +64,9 @@ public class Book {
 	Genre genre;
 	
     Date publicationDate;
+    
+    @ElementCollection(fetch = FetchType.LAZY)
+    Set<Publisher> publishers;
 
     @Transient
 	@GraphQLIgnore

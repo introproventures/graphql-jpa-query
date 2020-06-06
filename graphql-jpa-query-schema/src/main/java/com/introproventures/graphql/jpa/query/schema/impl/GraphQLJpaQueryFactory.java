@@ -866,6 +866,7 @@ public final class GraphQLJpaQueryFactory {
         if(isEntityType(environment)) {
             Attribute<?,?> attribute = getAttribute(environment, argument.getName());
 
+            // TODO add support for embedded element collection, i.e. attribute.isCollection()
             if(attribute.isAssociation()) {
                 GraphQLFieldDefinition fieldDefinition = getFieldDefinition(environment.getGraphQLSchema(),
                                                                      this.getObjectType(environment),
