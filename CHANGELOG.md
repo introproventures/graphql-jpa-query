@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.10
+## 0.4.11-SNAPSHOT
 * fix(GH-38):  Support JPA @ElementCollection annotation with @Embeddable generic type (#270) [04e07c3](https://github.com/introproventures/graphql-jpa-query/commit/04e07c3ecdf6e603cafeea8ff8354735b1ed08c7)
 * fix: Resolve query fetch result in memory to avoid N+1 query problems (#266) [d7163f7](https://github.com/introproventures/graphql-jpa-query/commit/d7163f7f66f018ae3635c3a0828aaf5e2f83a4bf)
 * fix: add support for server.servlet.content-path configuration (#264) [edf9a8a](https://github.com/introproventures/graphql-jpa-query/commit/edf9a8a2628de9dff5e2f0806d0dc2a1a8569463)
