@@ -24,3 +24,7 @@ insert into author_phone_numbers(phone_number, author_id) values
 	('1-123-5678', 1),
 	('4-123-1234', 4),
 	('4-123-5678', 4);
+
+insert into book_publishers(book_id, name, country) values
+	(3, 'Independent', 'UK'), (3, 'Amazon', 'US'),
+	(2, 'Willey', 'US'), (2, 'Simon', 'EU');

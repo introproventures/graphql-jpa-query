@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
 import graphql.ErrorType;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
@@ -662,6 +663,30 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void queryForEntityWithEmbeddableElementCollection() {
+        //given
+        String query = "{ Books(where: { author: {name: {LIKE: \"Leo\"}}}) { select { id title publishers { name country } } } }";
+
+        String expected = "{Books={select=["
+                + "{id=2, title=War and Peace, publishers=["
+                +   "{name=Willey, country=US}, "
+                +   "{name=Simon, country=EU}"
+                + "]}, "
+                + "{id=3, title=Anna Karenina, publishers=["
+                +   "{name=Independent, country=UK}, "
+                +   "{name=Amazon, country=US}"
+                + "]}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
 
     @Test
     public void queryWithNumericBetweenPredicate() {

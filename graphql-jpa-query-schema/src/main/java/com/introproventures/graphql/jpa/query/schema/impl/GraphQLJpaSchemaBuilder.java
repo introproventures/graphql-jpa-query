@@ -58,6 +58,7 @@ import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.schema.relay.GraphQLJpaRelayDataFetcher;
+
 import graphql.Assert;
 import graphql.Directives;
 import graphql.Scalars;
@@ -418,6 +419,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                .map(this::getInputObjectField)
                                                .collect(Collectors.toList())
             )
+            // TODO support embedded element collections
+//            .fields(managedType.getAttributes().stream()
+//                                               .filter(Attribute::isCollection)
+//                                               .filter(this::isNotIgnored)
+//                                               .filter(this::isNotIgnoredFilter)
+//                                               .map(this::getInputObjectField)
+//                                               .collect(Collectors.toList())
+//            )
             .build();
 
         return GraphQLArgument.newArgument()
@@ -1046,6 +1055,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 GraphQLType graphQLType = getGraphQLTypeFromJavaType(foreignType.getJavaType());
 
             	return input ? graphQLType : new GraphQLList(graphQLType);
+            }
+            else if (foreignType.getPersistenceType() == Type.PersistenceType.EMBEDDABLE) {
+                EmbeddableType embeddableType = EmbeddableType.class.cast(foreignType);
+                GraphQLType graphQLType = getEmbeddableType(embeddableType, 
+                                                            input);
+                
+                return input ?  graphQLType : new GraphQLList(graphQLType);
             }
         }
 
