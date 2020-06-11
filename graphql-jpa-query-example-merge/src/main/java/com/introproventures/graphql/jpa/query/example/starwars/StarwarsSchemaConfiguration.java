@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
@@ -34,32 +35,33 @@ public class StarwarsSchemaConfiguration {
     @Bean
     @Primary
     @ConfigurationProperties(prefix = "starwars")    
-    @Qualifier("starWarsDataSource")     
+    @Qualifier("starWarsDataSource")
     public DataSource starWarsDataSource() {
         return DataSourceBuilder.create().build();
     }    
      
     @Bean
-    public DataSourceInitializer starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
-        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        
-        ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
-        databasePopulator.addScript(resourceLoader.getResource("starwars.sql"));
-        
-        dataSourceInitializer.setDataSource(starWarsDataSource);
-        dataSourceInitializer.setDatabasePopulator(databasePopulator);
-        
-        return dataSourceInitializer;
+    public ApplicationRunner  starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
+        return (args) -> {
+            DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
+            ResourceLoader resourceLoader = new DefaultResourceLoader();
+            
+            ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
+            databasePopulator.addScript(resourceLoader.getResource("starwars.sql"));
+            
+            dataSourceInitializer.setDataSource(starWarsDataSource);
+            dataSourceInitializer.setDatabasePopulator(databasePopulator);
+            
+            dataSourceInitializer.afterPropertiesSet();
+        };
     }
     
     
     @Bean
     @Primary
     @Qualifier("starWarsEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean starWarsEntityManagerFactory(
-            EntityManagerFactoryBuilder builder) {
-        
+    public LocalContainerEntityManagerFactoryBean starWarsEntityManagerFactory(EntityManagerFactoryBuilder builder,
+                                                                               @Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
         properties.put(AvailableSettings.HBM2DLL_CREATE_SCHEMAS, "true");
@@ -68,7 +70,7 @@ public class StarwarsSchemaConfiguration {
         properties.put(AvailableSettings.FORMAT_SQL, "true");
         
         return builder
-                .dataSource(starWarsDataSource())
+                .dataSource(starWarsDataSource)
                 .packages(Droid.class)
                 .persistenceUnit("starwars")
                 .properties(properties)
@@ -88,7 +90,8 @@ public class StarwarsSchemaConfiguration {
 
         private final EntityManager entityManager;
 
-        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManager starWarsEntityManager) {
+        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManager starWarsEntityManager,
+                                               @Qualifier("starWarsEntityManager") EntityManager starWarsEntit) {
             this.entityManager = starWarsEntityManager;
         }
 

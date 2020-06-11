@@ -11,6 +11,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
@@ -43,7 +44,8 @@ public class BooksSchemaConfiguration {
     @Bean
     @Qualifier("bookEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory(
-            EntityManagerFactoryBuilder builder) {
+            EntityManagerFactoryBuilder builder,
+            @Qualifier("bookDataSource") DataSource bookDataSource) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
         properties.put(AvailableSettings.HBM2DLL_CREATE_SCHEMAS, "true");
@@ -52,7 +54,7 @@ public class BooksSchemaConfiguration {
         properties.put(AvailableSettings.FORMAT_SQL, "true");
 
         return builder
-                .dataSource(bookDataSource())
+                .dataSource(bookDataSource)
                 .packages(Book.class)
                 .persistenceUnit("books")
                 .properties(properties)
@@ -60,17 +62,20 @@ public class BooksSchemaConfiguration {
     }
     
     @Bean
-    public DataSourceInitializer booksDataSourceInitializer(@Qualifier("bookDataSource")  DataSource bookDataSource) {
-        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        
-        ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
-        databasePopulator.addScript(resourceLoader.getResource("books.sql"));
-        
-        dataSourceInitializer.setDataSource(bookDataSource);
-        dataSourceInitializer.setDatabasePopulator(databasePopulator);
-        
-        return dataSourceInitializer;
+    public ApplicationRunner booksDataSourceInitializer(@Qualifier("bookDataSource")  DataSource bookDataSource) {
+        return (args) -> {
+            DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
+            ResourceLoader resourceLoader = new DefaultResourceLoader();
+            
+            ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
+            databasePopulator.addScript(resourceLoader.getResource("books.sql"));
+            
+            dataSourceInitializer.setDataSource(bookDataSource);
+            dataSourceInitializer.setDatabasePopulator(databasePopulator);
+            
+            
+            dataSourceInitializer.afterPropertiesSet();
+        };
     }
     
     
