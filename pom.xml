@@ -61,7 +61,6 @@
         </repository>
     </distributionManagement>
 
-
     <scm>
         <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
         <developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
