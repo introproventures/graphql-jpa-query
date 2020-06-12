@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.support.SharedEntityManagerBean;
@@ -64,17 +63,12 @@ public class BooksSchemaConfiguration {
     @Bean
     public ApplicationRunner booksDataSourceInitializer(@Qualifier("bookDataSource")  DataSource bookDataSource) {
         return (args) -> {
-            DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
             ResourceLoader resourceLoader = new DefaultResourceLoader();
             
             ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
             databasePopulator.addScript(resourceLoader.getResource("books.sql"));
             
-            dataSourceInitializer.setDataSource(bookDataSource);
-            dataSourceInitializer.setDatabasePopulator(databasePopulator);
-            
-            
-            dataSourceInitializer.afterPropertiesSet();
+            databasePopulator.execute(bookDataSource);
         };
     }
     

@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.support.SharedEntityManagerBean;
@@ -43,16 +42,12 @@ public class StarwarsSchemaConfiguration {
     @Bean
     public ApplicationRunner  starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
         return (args) -> {
-            DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
             ResourceLoader resourceLoader = new DefaultResourceLoader();
             
             ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
             databasePopulator.addScript(resourceLoader.getResource("starwars.sql"));
             
-            dataSourceInitializer.setDataSource(starWarsDataSource);
-            dataSourceInitializer.setDatabasePopulator(databasePopulator);
-            
-            dataSourceInitializer.afterPropertiesSet();
+            databasePopulator.execute(starWarsDataSource);
         };
     }
     
