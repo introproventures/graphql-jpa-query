@@ -22,7 +22,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 
 @SpringBootTest(properties = "spring.datasource.data=RestrictedKeysProviderTests.sql")
-public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
+public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     @EntityScan(basePackageClasses = Thing.class)
@@ -39,6 +39,7 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
+                .enableDefaultMaxResults(false)
                 .restrictedKeysProvider(new SpringSecurityRestrictedKeysProvider(entityManager.getMetamodel()));
         }
     }
