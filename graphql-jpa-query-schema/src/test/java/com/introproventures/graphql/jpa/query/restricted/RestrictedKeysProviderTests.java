@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.restricted;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,18 +63,24 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
                 String entityName = metamodel.entity(entityDescriptor.getEntity())
                                              .getName();
                 
-                List<Object> ids = token.getAuthorities()
-                                        .stream()
-                                        .map(GrantedAuthority::getAuthority)
-                                        .map(authority -> authority.split(":"))
-                                        .filter(permission -> entityName.equals(permission[0]))
-                                        .filter(permission -> "read".equals(permission[1]))
-                                        .map(permission -> permission[2])
-                                        .collect(Collectors.toList());
+                List<Object> keys = resolveKeys(entityName, token.getAuthorities());
                 
-                return ids.isEmpty() ? Optional.empty()  // restrict query if no permissions exists 
-                                     : Optional.of(ids); // execute query with restricted keys
+                return keys.isEmpty() ? Optional.empty()  // restrict query if no permissions exists 
+                                      : Optional.of(keys); // execute query with restricted keys
             };
+        }
+
+        private List<Object> resolveKeys(String entityName, Collection<? extends GrantedAuthority> grantedAuthorities) {
+            return grantedAuthorities.stream()
+                                     .filter(GrantedAuthority.class::isInstance)
+                                     .map(GrantedAuthority.class::cast)
+                                     .map(GrantedAuthority::getAuthority)
+                                     .map(authority -> authority.split(":"))
+                                     .filter(permission -> entityName.equals(permission[0]))
+                                     .filter(permission -> "read".equals(permission[1]))
+                                     .map(permission -> permission[2])
+                                     .collect(Collectors.toList());
+            
         }
     }
     
@@ -118,8 +125,8 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     }    
 
     @Test
-    @WithMockUser(value = "spring", authorities = "NotThing:*")
-    public void testRestrictAllThingQuery() {
+    @WithMockUser(value = "spring", authorities = "OtherThing:*")
+    public void testRestrictAllOtherThingQuery() {
         //given
         String query = "query RestrictedThingQuery { Things { select {id type } } }";
         String expected = "{Things={select=[]}}";

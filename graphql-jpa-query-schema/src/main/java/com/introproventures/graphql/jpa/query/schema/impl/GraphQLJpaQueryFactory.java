@@ -171,7 +171,7 @@ public final class GraphQLJpaQueryFactory {
           Optional<List<Object>> restrictedKeys = restrictedKeysProvider.apply(entityDescriptor);
           List<Object> restrictedKeysValues = new ArrayList<>(); 
           
-          if (restrictedKeys.isPresent() && hasIdAttribute()) {
+          if (restrictedKeys.isPresent()) {
               restrictedKeys.get()
                             .stream()
                             .filter(key -> !"*".equals(key))
