@@ -85,6 +85,9 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                                                             firstResult,
                                                             maxResults,
                                                             restrictedKeys.get()));
+                } 
+                else {
+                    queryKeys.addAll(restrictedKeys.get());
                 }
     
                 final List<Object> resultList = queryFactory.queryResultList(environment,

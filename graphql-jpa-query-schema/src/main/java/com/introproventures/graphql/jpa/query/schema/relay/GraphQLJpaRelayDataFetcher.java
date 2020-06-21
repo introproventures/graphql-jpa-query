@@ -72,6 +72,9 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
                                                             maxResults,
                                                             restrictedKeys.get()));
                 }
+                else {
+                    queryKeys.addAll(restrictedKeys.get());
+                }
     
                 final List<Object> resultList = queryFactory.queryResultList(environment,
                                                                              maxResults,

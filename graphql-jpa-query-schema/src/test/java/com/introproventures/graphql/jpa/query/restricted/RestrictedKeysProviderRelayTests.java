@@ -22,7 +22,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 
 @SpringBootTest(properties = "spring.datasource.data=RestrictedKeysProviderTests.sql")
-public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
+public class RestrictedKeysProviderRelayTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     @EntityScan(basePackageClasses = Thing.class)
@@ -39,6 +39,7 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
+                .enableRelay(true)
                 .restrictedKeysProvider(new SpringSecurityRestrictedKeysProvider(entityManager.getMetamodel()));
         }
     }
@@ -55,8 +56,8 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1")
     public void testRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}]}}";
+        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
+        String expected = "{things={edges=[{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -69,11 +70,11 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     @WithMockUser(value = "spring", authorities = "Thing:read:*")
     public void testNonRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=["
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, "
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}, "
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}"
+        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
+        String expected = "{things={edges=["
+                + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}, "
+                + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}}, "
+                + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}}"
                 + "]}}";
 
         //when
@@ -87,8 +88,8 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     @WithMockUser(value = "spring", authorities = "OtherThing:*")
     public void testRestrictAllOtherThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
+        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
+        String expected = "{things={edges=[]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -101,9 +102,9 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     @WithAnonymousUser
     public void testRestrictAllThingQueryForAnonymous() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
-
+        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
+        String expected = "{things={edges=[]}}";
+        
         //when
         Object result = executor.execute(query).getData();
 
@@ -114,9 +115,9 @@ public class RestrictedKeysProviderTests extends AbstractSpringBootTestSupport {
     @Test
     public void testRestrictAllThingQueryWithNullAuthentication() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
-
+        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
+        String expected = "{things={edges=[]}}";
+        
         //when
         Object result = executor.execute(query).getData();
 
