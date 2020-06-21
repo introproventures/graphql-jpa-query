@@ -49,7 +49,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -214,15 +213,6 @@ public final class GraphQLJpaQueryFactory {
         return keysQuery.getResultList();
     }
 
-    class DefaultKeysSupplier implements Supplier<Optional<List<Object>>> {
-
-        @Override
-        public Optional<List<Object>> get() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-    }
-    
     public List<Object> queryResultList(DataFetchingEnvironment environment,
                                            int maxResults,
                                            List<Object> keys) {
