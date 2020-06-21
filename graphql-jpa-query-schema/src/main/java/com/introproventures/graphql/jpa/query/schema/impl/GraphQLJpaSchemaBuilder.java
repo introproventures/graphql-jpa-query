@@ -1470,4 +1470,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return this;
     }
 
+    public RestrictedKeysProvider  getRestrictedKeysProvider() {
+        return restrictedKeysProvider;
+    }    
+    
 }

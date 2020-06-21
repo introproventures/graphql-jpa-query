@@ -34,6 +34,7 @@ import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
@@ -63,6 +64,8 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         @MockBean
         private Supplier<GraphQLContext> graphqlContext;
         
+        @MockBean
+        private RestrictedKeysProvider restrictedKeysProvider;
     }
     
     @Autowired(required=false)
@@ -85,6 +88,9 @@ public class GraphQLJpaQueryAutoConfigurationTest {
 
     @Autowired
     private ObjectProvider<Supplier<GraphQLContext>> graphqlContext;   
+
+    @Autowired
+    private ObjectProvider<RestrictedKeysProvider> restrictedKeysObjectProvider;   
     
     @Autowired
     private GraphQLSchema graphQLSchema;
@@ -96,6 +102,9 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         
         assertThat(graphQLSchemaBuilder).isNotNull()
                                         .isInstanceOf(GraphQLJpaSchemaBuilder.class);
+
+        assertThat(GraphQLJpaSchemaBuilder.class.cast(graphQLSchemaBuilder)
+                                                .getRestrictedKeysProvider()).isEqualTo(restrictedKeysObjectProvider.getObject());
         
         assertThat(executorContextFactory).isNotNull()
                                           .isInstanceOf(GraphQLJpaExecutorContextFactory.class);
