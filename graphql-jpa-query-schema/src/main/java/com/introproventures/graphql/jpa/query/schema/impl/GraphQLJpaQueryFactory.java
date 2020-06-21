@@ -45,9 +45,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -72,12 +74,16 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars;
+import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
@@ -105,6 +111,7 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 
@@ -136,6 +143,7 @@ public final class GraphQLJpaQueryFactory {
     private final String selectNodeName;
     private final GraphQLObjectType entityObjectType;
     private final int defaultFetchSize;
+    private final RestrictedKeysProvider restrictedKeysProvider;
 
     private GraphQLJpaQueryFactory(Builder builder) {
         this.entityManager = builder.entityManager;
@@ -145,6 +153,7 @@ public final class GraphQLJpaQueryFactory {
         this.toManyDefaultOptional = builder.toManyDefaultOptional;
         this.defaultDistinct = builder.defaultDistinct;
         this.defaultFetchSize = builder.defaultFetchSize;
+        this.restrictedKeysProvider = builder.restrictedKeysProvider;
     }
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment,
@@ -157,17 +166,43 @@ public final class GraphQLJpaQueryFactory {
                                              .build();
     }
 
+    public Optional<List<Object>> getRestrictedKeys(DataFetchingEnvironment environment) {
+          EntityIntrospectionResult entityDescriptor = EntityIntrospector.introspect(entityType);
+          
+          Optional<List<Object>> restrictedKeys = restrictedKeysProvider.apply(entityDescriptor);
+          List<Object> restrictedKeysValues = new ArrayList<>(); 
+          
+          if (restrictedKeys.isPresent() && hasIdAttribute()) {
+              restrictedKeys.get()
+                            .stream()
+                            .filter(key -> !"*".equals(key))
+                            .map(key -> {
+                                Type<?> idType = entityType.getIdType();
+                                Class<?> clazz = idType.getJavaType();
+                                GraphQLScalarType scalar = JavaScalars.of(clazz);
+                                
+                                return scalar.getCoercing().parseValue(key);
+                            })
+                            .forEach(restrictedKeysValues::add);
+
+              return Optional.of(restrictedKeysValues);
+          }
+
+          return Optional.empty();
+    }
+    
     public List<Object> queryKeys(DataFetchingEnvironment environment,
                                   int firstResult,
-                                  int maxResults) {
+                                  int maxResults,
+                                  List<Object> restrictedKeys) {
         MergedField queryField = resolveQueryField(environment.getField());
 
         // Override query environment with associated entity object type and
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
-
         TypedQuery<Object> keysQuery = getKeysQuery(queryEnvironment,
-                                                    queryEnvironment.getField());
+                                                    queryEnvironment.getField(),
+                                                    restrictedKeys);
 
         keysQuery.setFirstResult(firstResult)
                  .setMaxResults(maxResults);
@@ -179,6 +214,15 @@ public final class GraphQLJpaQueryFactory {
         return keysQuery.getResultList();
     }
 
+    class DefaultKeysSupplier implements Supplier<Optional<List<Object>>> {
+
+        @Override
+        public Optional<List<Object>> get() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+    
     public List<Object> queryResultList(DataFetchingEnvironment environment,
                                            int maxResults,
                                            List<Object> keys) {
@@ -294,7 +338,7 @@ public final class GraphQLJpaQueryFactory {
         return entityManager.createQuery(query);
     }
 
-    protected TypedQuery<Object> getKeysQuery(DataFetchingEnvironment environment, Field field) {
+    protected TypedQuery<Object> getKeysQuery(DataFetchingEnvironment environment, Field field, List<Object> keys) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Object> query = cb.createQuery(Object.class);
         Root<?> from = query.from(entityType);
@@ -316,8 +360,13 @@ public final class GraphQLJpaQueryFactory {
 
         List<Predicate> predicates = field.getArguments().stream()
             .map(it -> getPredicate(field, cb, from, null, queryEnvironment, it))
-            .filter(it -> it != null)
+            .filter(it -> it != null) 
             .collect(Collectors.toList());
+        
+        if (!keys.isEmpty() && hasIdAttribute()) {
+            Predicate restrictions = from.get(idAttributeName()).in(keys);
+            predicates.add(restrictions);
+        }
 
         query.where(predicates.toArray(new Predicate[0]));
 
@@ -1890,6 +1939,13 @@ public final class GraphQLJpaQueryFactory {
         public IBuildStage withDefaultFetchSize(int defaultFetchSize);
 
         /**
+        * Builder method for restrictedKeysProvider parameter.
+        * @param restrictedKeysProvider field to set
+        * @return builder
+        */
+        public IBuildStage withRestrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider);
+        
+        /**
         * Builder method of the builder.
         * @return built class
         */
@@ -1902,6 +1958,7 @@ public final class GraphQLJpaQueryFactory {
      */
     public static final class Builder implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
 
+        private RestrictedKeysProvider restrictedKeysProvider;
         private EntityManager entityManager;
         private EntityType<?> entityType;
         private GraphQLObjectType entityObjectType;
@@ -1956,8 +2013,21 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
+        public IBuildStage withRestrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider) {
+            this.restrictedKeysProvider = restrictedKeysProvider;
+            return this;
+        }
+        
+        @Override
         public GraphQLJpaQueryFactory build() {
+            Objects.requireNonNull(restrictedKeysProvider, "restrictedKeysProvider must not be null");
+
             return new GraphQLJpaQueryFactory(this);
         }
+    }
+
+    
+    public Function<EntityIntrospectionResult, Optional<List<Object>>> getRestrictedKeysProvider() {
+        return restrictedKeysProvider;
     }
 }

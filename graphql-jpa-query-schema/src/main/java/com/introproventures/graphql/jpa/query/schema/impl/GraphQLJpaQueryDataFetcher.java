@@ -23,7 +23,7 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getP
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,16 +75,23 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                                                                    .withOffset(firstResult)
                                                                    .withLimit(maxResults);
         if (recordsSelection.isPresent()) {
-            List<Object> keys = Collections.emptyList();
+            Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
 
-            if (pageArgument.isPresent() || enableDefaultMaxResults) {
-                keys = queryFactory.queryKeys(environment, firstResult, maxResults);
-            }
-
-            final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                         maxResults,
-                                                                         keys);
-            pagedResult.withSelect(resultList);
+            if (restrictedKeys.isPresent()) {
+                final List<Object> queryKeys = new ArrayList<>();
+                
+                if (pageArgument.isPresent() || enableDefaultMaxResults) {
+                    queryKeys.addAll(queryFactory.queryKeys(environment,
+                                                            firstResult,
+                                                            maxResults,
+                                                            restrictedKeys.get()));
+                }
+    
+                final List<Object> resultList = queryFactory.queryResultList(environment,
+                                                                             maxResults,
+                                                                             queryKeys);
+                pagedResult.withSelect(resultList);
+            } 
         }
 
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {

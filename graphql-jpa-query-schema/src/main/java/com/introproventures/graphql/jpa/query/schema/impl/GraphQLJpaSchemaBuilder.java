@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -55,6 +56,7 @@ import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
+import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.schema.relay.GraphQLJpaRelayDataFetcher;
@@ -131,6 +133,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private int defaultFetchSize = 100;
     private int defaultPageLimitSize = 100;
     private boolean enableDefaultMaxResults = true;
+    
+    private RestrictedKeysProvider restrictedKeysProvider = (entityDescriptor) -> Optional.of(Collections.emptyList());
 
     private final Relay relay = new Relay();
 
@@ -218,6 +222,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withEntityObjectType(entityObjectType)
                                                                     .withSelectNodeName(entityObjectType.getName())
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
+                                                                    .withRestrictedKeysProvider(restrictedKeysProvider)
                                                                     .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaSimpleDataFetcher.builder()
@@ -260,6 +265,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
                                                                     .withDefaultDistinct(isDefaultDistinct)
                                                                     .withDefaultFetchSize(defaultFetchSize)
+                                                                    .withRestrictedKeysProvider(restrictedKeysProvider)
                                                                     .build();
 
         if(enableRelay) {
@@ -337,6 +343,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withSelectNodeName(SELECT_DISTINCT_PARAM_NAME)
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
                                                                     .withDefaultDistinct(isDefaultDistinct)
+                                                                    .withRestrictedKeysProvider(restrictedKeysProvider)
                                                                     .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaStreamDataFetcher.builder()
@@ -923,6 +930,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .withEntityObjectType(entityObjectType)
                                                                                   .withSelectNodeName(entityObjectType.getName())
                                                                                   .withDefaultDistinct(isDefaultDistinct)
+                                                                                  .withRestrictedKeysProvider(restrictedKeysProvider)
                                                                                   .build();
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
@@ -958,6 +966,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .withEntityObjectType(entityObjectType)
                                                                                   .withSelectNodeName(entityObjectType.getName())
                                                                                   .withDefaultDistinct(isDefaultDistinct)
+                                                                                  .withRestrictedKeysProvider(restrictedKeysProvider)
                                                                                   .build();
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
@@ -1452,6 +1461,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     public GraphQLJpaSchemaBuilder enableDefaultMaxResults(boolean enableDefaultMaxResults) {
         this.enableDefaultMaxResults = enableDefaultMaxResults;
 
+        return this;
+    }
+    
+    public GraphQLJpaSchemaBuilder restrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider) {
+        this.restrictedKeysProvider = restrictedKeysProvider;
+        
         return this;
     }
 
