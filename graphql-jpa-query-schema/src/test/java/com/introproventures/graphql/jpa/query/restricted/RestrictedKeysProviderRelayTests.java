@@ -56,8 +56,9 @@ public class RestrictedKeysProviderRelayTests extends AbstractSpringBootTestSupp
     @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1")
     public void testRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
-        String expected = "{things={edges=[{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}]}}";
+        String query = "query RestrictedThingQuery { things { pageInfo { hasNextPage, startCursor, endCursor } edges { node { id type } } } }";
+        String expected = "{things={pageInfo={hasNextPage=false, startCursor=b2Zmc2V0PTE=, endCursor=b2Zmc2V0PTE=}, "
+                + "edges=[{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -70,8 +71,9 @@ public class RestrictedKeysProviderRelayTests extends AbstractSpringBootTestSupp
     @WithMockUser(value = "spring", authorities = "Thing:read:*")
     public void testNonRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { things { edges { node {id type } } } }";
-        String expected = "{things={edges=["
+        String query = "query RestrictedThingQuery { things { pageInfo { hasNextPage, startCursor, endCursor } edges { node {id type } } } }";
+        String expected = "{things={pageInfo={hasNextPage=false, startCursor=b2Zmc2V0PTE=, endCursor=b2Zmc2V0PTM=}, "
+                + "edges=["
                 + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}, "
                 + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}}, "
                 + "{node={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}}"

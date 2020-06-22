@@ -56,8 +56,8 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
     @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1")
     public void testRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}]}}";
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=1, select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -67,11 +67,30 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
     }
     
     @Test
+    @WithMockUser(value = "spring", authorities = {"Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1", 
+                                                   "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1"})
+    public void testRestrictedThingQueryMultiple() {
+        //given
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=2, select=["
+                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, "
+                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}"
+                + "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    
+    @Test
     @WithMockUser(value = "spring", authorities = "Thing:read:*")
     public void testNonRestrictedThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=["
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=3, select=["
                 + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, "
                 + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}, "
                 + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}"
@@ -88,8 +107,8 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
     @WithMockUser(value = "spring", authorities = "OtherThing:*")
     public void testRestrictAllOtherThingQuery() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=0, select=[]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -102,8 +121,8 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
     @WithAnonymousUser
     public void testRestrictAllThingQueryForAnonymous() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=0, select=[]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -115,8 +134,8 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
     @Test
     public void testRestrictAllThingQueryWithNullAuthentication() {
         //given
-        String query = "query RestrictedThingQuery { Things { select {id type } } }";
-        String expected = "{Things={select=[]}}";
+        String query = "query RestrictedThingQuery { Things { total select {id type } } }";
+        String expected = "{Things={total=0, select=[]}}";
 
         //when
         Object result = executor.execute(query).getData();

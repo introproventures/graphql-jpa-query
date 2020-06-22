@@ -74,9 +74,9 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         final PagedResult.Builder<Object> pagedResult = PagedResult.builder()
                                                                    .withOffset(firstResult)
                                                                    .withLimit(maxResults);
+        Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
+        
         if (recordsSelection.isPresent()) {
-            Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
-
             if (restrictedKeys.isPresent()) {
                 final List<Object> queryKeys = new ArrayList<>();
                 
@@ -98,7 +98,8 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         }
 
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment);
+            final Long total = queryFactory.queryTotalCount(environment, 
+                                                            restrictedKeys);
 
             pagedResult.withTotal(total);
         }

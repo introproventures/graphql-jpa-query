@@ -280,19 +280,27 @@ public final class GraphQLJpaQueryFactory {
         return query.getSingleResult();
     }
 
-    public Long queryTotalCount(DataFetchingEnvironment environment) {
+    public Long queryTotalCount(DataFetchingEnvironment environment,
+                                Optional<List<Object>> restrictedKeys) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
 
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
+        
+        if (restrictedKeys.isPresent()) {
 
-        TypedQuery<Long> countQuery = getCountQuery(queryEnvironment, queryEnvironment.getField());
-
-        if (logger.isDebugEnabled()) {
-            logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+            TypedQuery<Long> countQuery = getCountQuery(queryEnvironment, 
+                                                        queryEnvironment.getField(),
+                                                        restrictedKeys.get());
+    
+            if (logger.isDebugEnabled()) {
+                logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+            }
+    
+            return countQuery.getSingleResult();
         }
-
-        return countQuery.getSingleResult();
+        
+        return 0L;
     }
 
     protected <T> TypedQuery<T> getQuery(DataFetchingEnvironment environment, Field field, boolean isDistinct, Object... keys) {
@@ -305,7 +313,7 @@ public final class GraphQLJpaQueryFactory {
         return entityManager.createQuery(criteriaQuery);
     }
 
-    protected TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field) {
+    protected TypedQuery<Long> getCountQuery(DataFetchingEnvironment environment, Field field, List<Object> keys) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<?> root = query.from(entityType);
@@ -322,7 +330,12 @@ public final class GraphQLJpaQueryFactory {
             .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
             .filter(it -> it != null)
             .collect(Collectors.toList());
-
+        
+        if (!keys.isEmpty() && hasIdAttribute()) {
+            Predicate restrictions = root.get(idAttributeName()).in(keys);
+            predicates.add(restrictions);
+        }
+        
         query.where(predicates.toArray(new Predicate[0]));
 
         return entityManager.createQuery(query);

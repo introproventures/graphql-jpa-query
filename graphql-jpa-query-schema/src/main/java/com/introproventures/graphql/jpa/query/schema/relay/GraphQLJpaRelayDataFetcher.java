@@ -49,7 +49,7 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         final Integer first = firstArgument.orElse(defaultFirstSize);
 
         final String after = afterArgument.orElse(new OffsetBasedCursor(0L).toConnectionCursor()
-                                                                .toString());
+                                                                           .toString());
 
         final OffsetBasedCursor cursor = OffsetBasedCursor.fromCursor(after);
 
@@ -60,9 +60,9 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
                 .withOffset(firstResult)
                 .withLimit(maxResults);
 
+        Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
+        
         if (edgesSelection.isPresent()) {
-            Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
-
             if (restrictedKeys.isPresent()) {
                 final List<Object> queryKeys = new ArrayList<>();
     
@@ -84,7 +84,8 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         }
 
         if (pageInfoSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment);
+            final Long total = queryFactory.queryTotalCount(environment,
+                                                            restrictedKeys);
 
             pagedResult.withTotal(total);
         }
