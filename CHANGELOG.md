@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.11
+## 0.4.12-SNAPSHOT
 * fix: correct RestrictedKeysProvider Javadoc errors [823cda2](https://github.com/introproventures/graphql-jpa-query/commit/823cda2cba8eb215f8843b426c14699de6bfe909)
 * feat(GH-219): add support for row level filtering query provider (#274) [37f1416](https://github.com/introproventures/graphql-jpa-query/commit/37f1416793fe07a25922b9429ea694a98623d5c1)
 * fix(version): update spring-boot-dependencies to 2.3.1.RELEASE (#272) [dae311b](https://github.com/introproventures/graphql-jpa-query/commit/dae311bbd9a9d0ebfbf4e2d0ebb7cd9dc7506dab)
