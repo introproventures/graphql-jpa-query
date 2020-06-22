@@ -142,6 +142,75 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
+
+    @Test
+    public void testRestrictThingQueryWithNullAuthentication() {
+        //given
+        String query = "query { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
+        String expected = "{Thing=null}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
+    @Test
+    @WithAnonymousUser
+    public void testRestrictThingQueryWithAnonymouseAuthentication() {
+        //given
+        String query = "query { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
+        String expected = "{Thing=null}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb2")
+    public void testRestrictThingQueryWithoutPermission() {
+        //given
+        String query = "query { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
+        String expected = "{Thing=null}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }           
+
+    @Test
+    @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1")
+    public void testRestrictThingQueryWithPermission() {
+        //given
+        String query = "query { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
+        String expected = "{Thing={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    
+    @Test
+    @WithMockUser(value = "spring", authorities = "Thing:read:*")
+    public void testRestrictThingQueryWithWildcardPermission() {
+        //given
+        String query = "query { Thing(id: \"2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1\") { id type } }";
+        String expected = "{Thing={id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        //then
+        assertThat(result.toString()).isEqualTo(expected);
+    }         
     
 }

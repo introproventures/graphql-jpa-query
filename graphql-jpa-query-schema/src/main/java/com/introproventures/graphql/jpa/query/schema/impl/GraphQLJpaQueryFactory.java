@@ -270,14 +270,25 @@ public final class GraphQLJpaQueryFactory {
 
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment,
                                                                              queryField);
-
-        TypedQuery<Object> query = getQuery(queryEnvironment, queryEnvironment.getField(), true);
-
-        if (logger.isDebugEnabled()) {
-            logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
+        
+        Optional<List<Object>> restrictedKeys = getRestrictedKeys(queryEnvironment);
+        
+        if (restrictedKeys.isPresent()) {
+    
+            TypedQuery<Object> query = getQuery(queryEnvironment, 
+                                                queryEnvironment.getField(), 
+                                                true, 
+                                                restrictedKeys.get()
+                                                              .toArray());
+    
+            if (logger.isDebugEnabled()) {
+                logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
+            }
+    
+            return query.getSingleResult();
         }
-
-        return query.getSingleResult();
+        
+        return null;
     }
 
     public Long queryTotalCount(DataFetchingEnvironment environment,
