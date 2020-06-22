@@ -2030,7 +2030,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     
-    public Function<EntityIntrospectionResult, Optional<List<Object>>> getRestrictedKeysProvider() {
+    public RestrictedKeysProvider getRestrictedKeysProvider() {
         return restrictedKeysProvider;
     }
 }
