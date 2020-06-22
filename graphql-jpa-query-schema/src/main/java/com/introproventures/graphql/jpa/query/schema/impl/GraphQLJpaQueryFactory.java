@@ -262,7 +262,8 @@ public final class GraphQLJpaQueryFactory {
 
         // Let's execute query and get wrap result into stream
         return query.getResultList()
-                    .stream();
+                    .stream()
+                    .peek(entityManager::detach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
