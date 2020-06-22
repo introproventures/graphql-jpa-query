@@ -3,7 +3,7 @@ package com.introproventures.graphql.jpa.query.schema.relay;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaQueryFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.PagedResult;
+
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -48,7 +49,7 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
         final Integer first = firstArgument.orElse(defaultFirstSize);
 
         final String after = afterArgument.orElse(new OffsetBasedCursor(0L).toConnectionCursor()
-                                                                .toString());
+                                                                           .toString());
 
         final OffsetBasedCursor cursor = OffsetBasedCursor.fromCursor(after);
 
@@ -59,23 +60,32 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
                 .withOffset(firstResult)
                 .withLimit(maxResults);
 
+        Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
+        
         if (edgesSelection.isPresent()) {
-            List<Object> keys = Collections.emptyList();
-
-            if (enableDefaultMaxResults || firstArgument.isPresent() || afterArgument.isPresent()) {
-                keys = queryFactory.queryKeys(environment,
-                                              firstResult,
-                                              maxResults);
-            }
-
-            final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                         maxResults,
-                                                                         keys);
-            pagedResult.withSelect(resultList);
+            if (restrictedKeys.isPresent()) {
+                final List<Object> queryKeys = new ArrayList<>();
+    
+                if (enableDefaultMaxResults || firstArgument.isPresent() || afterArgument.isPresent()) {
+                    queryKeys.addAll(queryFactory.queryKeys(environment,
+                                                            firstResult,
+                                                            maxResults,
+                                                            restrictedKeys.get()));
+                }
+                else {
+                    queryKeys.addAll(restrictedKeys.get());
+                }
+    
+                final List<Object> resultList = queryFactory.queryResultList(environment,
+                                                                             maxResults,
+                                                                             queryKeys);
+                pagedResult.withSelect(resultList);
+            } 
         }
 
         if (pageInfoSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment);
+            final Long total = queryFactory.queryTotalCount(environment,
+                                                            restrictedKeys);
 
             pagedResult.withTotal(total);
         }

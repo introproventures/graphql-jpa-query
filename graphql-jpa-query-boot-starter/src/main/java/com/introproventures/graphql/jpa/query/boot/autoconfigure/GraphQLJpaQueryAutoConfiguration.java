@@ -34,9 +34,11 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactor
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+
 import graphql.GraphQL;
 import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
@@ -55,8 +57,13 @@ public class GraphQLJpaQueryAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         @ConditionalOnSingleCandidate(EntityManagerFactory.class)
-        public GraphQLSchemaBuilder graphQLJpaSchemaBuilder(final EntityManagerFactory entityManagerFactory) {
-            return new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
+        public GraphQLSchemaBuilder graphQLJpaSchemaBuilder(final EntityManagerFactory entityManagerFactory,
+                                                            ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
+            GraphQLJpaSchemaBuilder bean = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
+            
+            restrictedKeysProvider.ifAvailable(bean::restrictedKeysProvider);
+            
+            return bean;
         }
 
         @Bean
