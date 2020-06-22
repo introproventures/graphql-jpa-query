@@ -1,6 +1,10 @@
 # Change Log
 
-## 0.4.11-SNAPSHOT
+## 0.4.11
+* fix: correct RestrictedKeysProvider Javadoc errors [823cda2](https://github.com/introproventures/graphql-jpa-query/commit/823cda2cba8eb215f8843b426c14699de6bfe909)
+* feat(GH-219): add support for row level filtering query provider (#274) [37f1416](https://github.com/introproventures/graphql-jpa-query/commit/37f1416793fe07a25922b9429ea694a98623d5c1)
+* fix(version): update spring-boot-dependencies to 2.3.1.RELEASE (#272) [dae311b](https://github.com/introproventures/graphql-jpa-query/commit/dae311bbd9a9d0ebfbf4e2d0ebb7cd9dc7506dab)
+* test: upgrade Spring Boot dependencies to 2.2.0.RELEASE (#188) [b9340a1](https://github.com/introproventures/graphql-jpa-query/commit/b9340a1d64ea161d5e7a6a27824032fb42003a37)
 * fix(GH-38):  Support JPA @ElementCollection annotation with @Embeddable generic type (#270) [04e07c3](https://github.com/introproventures/graphql-jpa-query/commit/04e07c3ecdf6e603cafeea8ff8354735b1ed08c7)
 * fix: Resolve query fetch result in memory to avoid N+1 query problems (#266) [d7163f7](https://github.com/introproventures/graphql-jpa-query/commit/d7163f7f66f018ae3635c3a0828aaf5e2f83a4bf)
 * fix: add support for server.servlet.content-path configuration (#264) [edf9a8a](https://github.com/introproventures/graphql-jpa-query/commit/edf9a8a2628de9dff5e2f0806d0dc2a1a8569463)
