@@ -10,7 +10,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
  * The RestrictedKeysProvider functional interface should provide a list of restricted keys in order to filter records  
  * at runtime based on user security context based on EntityIntrospection descriptor. 
  * 
- * The return argument uses Optional<List<Object>> return type:
+ * The return argument uses Optional of List of Objects return type:
  * The non-empty list will restrict the query to provided keys
  * The empty list will run the query unrestricted. 
  * The empty Optional will block running the query and return empty result. 
