@@ -286,7 +286,13 @@ public final class GraphQLJpaQueryFactory {
                 logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
             }
     
-            return query.getSingleResult();
+            Object result = query.getSingleResult();
+            
+            if (result != null) {
+                entityManager.detach(result);
+            }
+            
+            return result;
         }
         
         return null;
