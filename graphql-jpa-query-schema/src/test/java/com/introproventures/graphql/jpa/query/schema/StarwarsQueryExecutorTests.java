@@ -2125,7 +2125,7 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     // https://github.com/introproventures/graphql-jpa-query/issues/273
     @Test
-    public void testGH273() {
+    public void testGH273Plural() {
 
         //given:
         String query = "{" + 
@@ -2135,7 +2135,42 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 "      name" + 
                 "    }" + 
                 "  }" + 
-                "  " + 
+                "}";
+
+        // given
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            Object result = executor.execute(query).getData();
+            
+            String expected = "{Humans={select=[{id=1000, name=Luke Skywalker}]}}";
+            
+            assertThat(result.toString()).isEqualTo(expected);
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luky Skywalker");
+        });
+
+        // when
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            // then
+            Object result = executor.execute(query).getData();
+
+            String updated = "{Humans={select=[{id=1000, name=Luky Skywalker}]}}";;
+            
+            assertThat(result.toString()).isEqualTo(updated);          
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luke Skywalker");
+        });        
+    }
+    
+    // https://github.com/introproventures/graphql-jpa-query/issues/273
+    @Test
+    public void testGH273Singular() {
+
+        //given:
+        String query = "{" + 
                 "  Human(id: \"1000\" ) {" + 
                 "    id" + 
                 "    name" + 
@@ -2143,38 +2178,31 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 " " + 
                 "}";
 
+        // given
         new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
-            //when:
             Object result = executor.execute(query).getData();
-            String expected = "{"
-                    + "Humans={select=[{id=1000, name=Luke Skywalker}]}, "
-                    + "Human={id=1000, name=Luke Skywalker}"
-                    + "}";
             
-            //then:
+            String expected = "{Human={id=1000, name=Luke Skywalker}}";
+            
             assertThat(result.toString()).isEqualTo(expected);
             
-            //and given
             Human human = em.find(Human.class, "1000");
             
             human.setName("Luky Skywalker");
-            
-            //when
-            result = executor.execute(query).getData();
+        });
 
-            String updated = "{"
-                    + "Humans={select=[{id=1000, name=Luky Skywalker}]}, "
-                    + "Human={id=1000, name=Luky Skywalker}"
-                    + "}";
+        // when
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            // then
+            Object result = executor.execute(query).getData();
+
+            String updated = "{Human={id=1000, name=Luky Skywalker}}";
             
-            //then:
             assertThat(result.toString()).isEqualTo(updated);          
             
-            txStatus.setRollbackOnly();
-        });
-        
-
-        
-    }    
-
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luke Skywalker");
+        });        
+    }        
 }
