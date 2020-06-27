@@ -71,6 +71,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-introspection</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
