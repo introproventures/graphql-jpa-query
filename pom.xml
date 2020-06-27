@@ -44,6 +44,7 @@
         <module>graphql-jpa-query-example-model-books</module>
         <module>graphql-jpa-query-graphiql</module>
         <module>graphql-jpa-query-example-relay</module>
+        <module>graphql-jpa-query-introspection</module>
     </modules>
 
     <distributionManagement>
