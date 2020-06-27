@@ -38,6 +38,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
 
 @SpringBootTest
 @Transactional
@@ -2117,5 +2118,56 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         //then:
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    // https://github.com/introproventures/graphql-jpa-query/issues/273
+    @Test
+    public void testGH273() {
+
+        //given:
+        String query = "{" + 
+                "  Humans(where: {id: {EQ: \"1000\"}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "    }" + 
+                "  }" + 
+                "  " + 
+                "  Human(id: \"1000\" ) {" + 
+                "    id" + 
+                "    name" + 
+                "  }" + 
+                " " + 
+                "}";
+
+        String expected = "{"
+                + "Humans={select=[{id=1000, name=Luke Skywalker}]}, "
+                + "Human={id=1000, name=Luke Skywalker}"
+                + "}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+        
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+        
+        //and given
+        Human human = em.find(Human.class, "1000");
+        
+        human.setName("Luky Skywalker");
+        
+        em.flush();
+        
+        //when
+        result = executor.execute(query).getData();
+
+        String updated = "{"
+                + "Humans={select=[{id=1000, name=Luky Skywalker}]}, "
+                + "Human={id=1000, name=Luky Skywalker}"
+                + "}";
+        
+        //then:
+        assertThat(result.toString()).isEqualTo(updated);
+        
+    }    
 
 }
