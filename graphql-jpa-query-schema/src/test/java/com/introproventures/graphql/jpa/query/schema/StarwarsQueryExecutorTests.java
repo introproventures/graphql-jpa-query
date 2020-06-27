@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
@@ -41,7 +43,6 @@ import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
 
 @SpringBootTest
-@Transactional
 public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
@@ -67,6 +68,9 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     @Autowired
     private EntityManager em;
+    
+    @Autowired
+    private PlatformTransactionManager txManager;
 
     @Test
     public void contextLoads() {
@@ -2139,34 +2143,37 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
                 " " + 
                 "}";
 
-        String expected = "{"
-                + "Humans={select=[{id=1000, name=Luke Skywalker}]}, "
-                + "Human={id=1000, name=Luke Skywalker}"
-                + "}";
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            //when:
+            Object result = executor.execute(query).getData();
+            String expected = "{"
+                    + "Humans={select=[{id=1000, name=Luke Skywalker}]}, "
+                    + "Human={id=1000, name=Luke Skywalker}"
+                    + "}";
+            
+            //then:
+            assertThat(result.toString()).isEqualTo(expected);
+            
+            //and given
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luky Skywalker");
+            
+            //when
+            result = executor.execute(query).getData();
 
-        //when:
-        Object result = executor.execute(query).getData();
+            String updated = "{"
+                    + "Humans={select=[{id=1000, name=Luky Skywalker}]}, "
+                    + "Human={id=1000, name=Luky Skywalker}"
+                    + "}";
+            
+            //then:
+            assertThat(result.toString()).isEqualTo(updated);          
+            
+            txStatus.setRollbackOnly();
+        });
         
-        //then:
-        assertThat(result.toString()).isEqualTo(expected);
-        
-        //and given
-        Human human = em.find(Human.class, "1000");
-        
-        human.setName("Luky Skywalker");
-        
-        em.flush();
-        
-        //when
-        result = executor.execute(query).getData();
 
-        String updated = "{"
-                + "Humans={select=[{id=1000, name=Luky Skywalker}]}, "
-                + "Human={id=1000, name=Luky Skywalker}"
-                + "}";
-        
-        //then:
-        assertThat(result.toString()).isEqualTo(updated);
         
     }    
 
