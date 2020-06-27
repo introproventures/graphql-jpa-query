@@ -262,7 +262,8 @@ public final class GraphQLJpaQueryFactory {
 
         // Let's execute query and get wrap result into stream
         return query.getResultList()
-                    .stream();
+                    .stream()
+                    .peek(entityManager::detach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
@@ -285,7 +286,13 @@ public final class GraphQLJpaQueryFactory {
                 logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
             }
     
-            return query.getSingleResult();
+            Object result = query.getSingleResult();
+            
+            if (result != null) {
+                entityManager.detach(result);
+            }
+            
+            return result;
         }
         
         return null;

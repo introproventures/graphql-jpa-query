@@ -32,15 +32,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
 
 @SpringBootTest
-@Transactional
 public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
@@ -66,6 +68,9 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
 
     @Autowired
     private EntityManager em;
+    
+    @Autowired
+    private PlatformTransactionManager txManager;
 
     @Test
     public void contextLoads() {
@@ -2118,4 +2123,86 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    // https://github.com/introproventures/graphql-jpa-query/issues/273
+    @Test
+    public void testGH273Plural() {
+
+        //given:
+        String query = "{" + 
+                "  Humans(where: {id: {EQ: \"1000\"}}) {" + 
+                "    select {" + 
+                "      id" + 
+                "      name" + 
+                "    }" + 
+                "  }" + 
+                "}";
+
+        // given
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            Object result = executor.execute(query).getData();
+            
+            String expected = "{Humans={select=[{id=1000, name=Luke Skywalker}]}}";
+            
+            assertThat(result.toString()).isEqualTo(expected);
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luky Skywalker");
+        });
+
+        // when
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            // then
+            Object result = executor.execute(query).getData();
+
+            String updated = "{Humans={select=[{id=1000, name=Luky Skywalker}]}}";;
+            
+            assertThat(result.toString()).isEqualTo(updated);          
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luke Skywalker");
+        });        
+    }
+    
+    // https://github.com/introproventures/graphql-jpa-query/issues/273
+    @Test
+    public void testGH273Singular() {
+
+        //given:
+        String query = "{" + 
+                "  Human(id: \"1000\" ) {" + 
+                "    id" + 
+                "    name" + 
+                "  }" + 
+                " " + 
+                "}";
+
+        // given
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            Object result = executor.execute(query).getData();
+            
+            String expected = "{Human={id=1000, name=Luke Skywalker}}";
+            
+            assertThat(result.toString()).isEqualTo(expected);
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luky Skywalker");
+        });
+
+        // when
+        new TransactionTemplate(txManager).executeWithoutResult((txStatus) -> {
+            // then
+            Object result = executor.execute(query).getData();
+
+            String updated = "{Human={id=1000, name=Luky Skywalker}}";
+            
+            assertThat(result.toString()).isEqualTo(updated);          
+            
+            Human human = em.find(Human.class, "1000");
+            
+            human.setName("Luke Skywalker");
+        });        
+    }        
 }
