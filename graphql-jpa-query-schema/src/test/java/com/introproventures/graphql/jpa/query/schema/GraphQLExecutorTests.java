@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
+import static org.assertj.core.util.Maps.newHashMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -2348,5 +2349,34 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void queryForBooksWithWhereCriteriaExpressionDateVariables() {
+        //given
+        String query = "query find($input: BooksCriteriaExpression) {" + 
+        		"  Books(where: $input) {" + 
+        		"    select {" + 
+        		"      id" + 
+        		"      publicationDate" + 
+        		"    }" + 
+        		"  }" + 
+        		"}";
+        
+        Map<String, Object> variables = newHashMap(
+            "input", newHashMap("publicationDate", newHashMap("LE", "1896-10-17"))
+        );
+
+        String expected = "{Books={select=["
+        		+ 	"{id=2, publicationDate=1869-01-01}, "
+        		+ 	"{id=3, publicationDate=1877-04-01}, "
+        		+ 	"{id=6, publicationDate=1896-10-17}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query, variables).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
 
 }
