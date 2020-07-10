@@ -151,7 +151,7 @@ public class JavaScalars {
     }
     
     public static class GraphQLLocalDateTimeCoercing implements Coercing<Object, Object> {
-    	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
         @Override
         public Object serialize(Object input) {

@@ -2,6 +2,8 @@ package com.introproventures.graphql.jpa.query.localdatetime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.TimeZone;
+
 import javax.persistence.EntityManager;
 
 import org.junit.BeforeClass;
@@ -43,7 +45,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
 
     @BeforeClass
     public static void init() {
-        //TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
     
     @Test
@@ -346,9 +348,9 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=6, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=7, localDateTime=2019-08-07T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=8, localDateTime=2019-08-08T10:58:08.389991, description=Add test for LocalDate.}]}}";
+                "{id=6, localDateTime=2019-08-06T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=7, localDateTime=2019-08-07T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=8, localDateTime=2019-08-08T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -376,7 +378,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08.389991, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -392,7 +394,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    localDateTime:{" +
-                "      EQ:\"2019-08-06T10:58:08.389991\"" +
+                "      EQ:\"2019-08-06T10:58:08\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -404,7 +406,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=6, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=6, localDateTime=2019-08-06T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -420,7 +422,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    localDateTime:{" +
-                "      BETWEEN:[\"2019-08-05T10:58:08.389991\",\"2019-08-06T13:58:08.389991\"]" +
+                "      BETWEEN:[\"2019-08-05T10:58:08\",\"2019-08-06T13:58:08\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -433,8 +435,8 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=5, localDateTime=2019-08-05T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=6, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}]}}";
+                "{id=5, localDateTime=2019-08-05T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=6, localDateTime=2019-08-06T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -462,7 +464,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08.389991, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -478,7 +480,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    localDateTime:{" +
-                "      NOT_BETWEEN:[\"2019-08-02T10:58:08.389991\",\"2019-08-08T13:58:08.389991\"]" +
+                "      NOT_BETWEEN:[\"2019-08-02T10:58:08\",\"2019-08-08T13:58:08\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -490,7 +492,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08.389991, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, localDateTime=2019-08-01T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -506,7 +508,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    localDateTime:{" +
-                "      NE:\"2019-08-05T10:58:08.389991\"" +
+                "      NE:\"2019-08-05T10:58:08\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -519,13 +521,13 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=1, localDateTime=2019-08-01T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=2, localDateTime=2019-08-02T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=3, localDateTime=2019-08-03T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=4, localDateTime=2019-08-04T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=6, localDateTime=2019-08-06T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=7, localDateTime=2019-08-07T10:58:08.389991, description=Add test for LocalDate.}, " +
-                "{id=8, localDateTime=2019-08-08T10:58:08.389991, description=Add test for LocalDate.}]}}";
+                "{id=1, localDateTime=2019-08-01T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=2, localDateTime=2019-08-02T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=3, localDateTime=2019-08-03T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=4, localDateTime=2019-08-04T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=6, localDateTime=2019-08-06T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=7, localDateTime=2019-08-07T10:58:08, description=Add test for LocalDate.}, " +
+                "{id=8, localDateTime=2019-08-08T10:58:08, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -541,7 +543,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      GE:\"2019-08-08T10:58:07.915991+07:00\"" +
+                "      GE:\"2019-08-08T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -553,7 +555,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, offsetDateTime=2019-08-08T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, offsetDateTime=2019-08-08T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -569,7 +571,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      GT:\"2019-08-07T10:58:07.915991+07:00\"" +
+                "      GT:\"2019-08-07T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -581,7 +583,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, offsetDateTime=2019-08-08T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, offsetDateTime=2019-08-08T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -597,7 +599,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      BETWEEN:[\"2019-08-06T09:58:07.915991+07:00\",\"2019-08-06T15:58:07.915991+07:00\"]" +
+                "      BETWEEN:[\"2019-08-06T09:58:07+07:00\",\"2019-08-06T15:58:07+07:00\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -609,7 +611,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=6, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=6, offsetDateTime=2019-08-06T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -625,7 +627,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      NOT_BETWEEN:[\"2019-08-02T10:58:07.915991+07:00\",\"2019-08-08T15:58:07.915991+07:00\"]" +
+                "      NOT_BETWEEN:[\"2019-08-02T10:58:07+07:00\",\"2019-08-08T15:58:07+07:00\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -637,7 +639,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -653,7 +655,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      LT:\"2019-08-02T10:58:07.915991+07:00\"" +
+                "      LT:\"2019-08-02T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -665,7 +667,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -681,7 +683,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      LE:\"2019-08-01T15:58:07.915991+07:00\"" +
+                "      LE:\"2019-08-01T15:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -693,7 +695,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, offsetDateTime=2019-08-01T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -709,7 +711,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    offsetDateTime:{" +
-                "      NE:\"2019-08-01T10:58:07.915991+07:00\"" +
+                "      NE:\"2019-08-01T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -722,13 +724,13 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=2, offsetDateTime=2019-08-02T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=3, offsetDateTime=2019-08-03T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=4, offsetDateTime=2019-08-04T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=5, offsetDateTime=2019-08-05T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=6, offsetDateTime=2019-08-06T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=7, offsetDateTime=2019-08-07T03:58:07.915991Z, description=Add test for LocalDate.}, " +
-                "{id=8, offsetDateTime=2019-08-08T03:58:07.915991Z, description=Add test for LocalDate.}]}}";
+                "{id=2, offsetDateTime=2019-08-02T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=3, offsetDateTime=2019-08-03T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=4, offsetDateTime=2019-08-04T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=5, offsetDateTime=2019-08-05T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=6, offsetDateTime=2019-08-06T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=7, offsetDateTime=2019-08-07T03:58:07Z, description=Add test for LocalDate.}, " +
+                "{id=8, offsetDateTime=2019-08-08T03:58:07Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -744,7 +746,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      GT:\"2019-08-07T19:58:07.915991+07:00\"" +
+                "      GT:\"2019-08-07T19:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -756,7 +758,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, zonedDateTime=2019-08-08T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, zonedDateTime=2019-08-08T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -772,7 +774,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      GE:\"2019-08-08T10:58:07.915991+07:00\"" +
+                "      GE:\"2019-08-08T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -784,7 +786,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, zonedDateTime=2019-08-08T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, zonedDateTime=2019-08-08T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -800,7 +802,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      LE:\"2019-08-01T03:58:08.153992Z[UTC]\"" +
+                "      LE:\"2019-08-01T03:58:08Z[UTC]\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -812,7 +814,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -828,7 +830,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      LT:\"2019-08-02T10:58:07.915991+07:00\"" +
+                "      LT:\"2019-08-02T10:58:07+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -840,7 +842,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -856,7 +858,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      BETWEEN:[\"2019-08-05T10:58:07.915991+07:00\",\"2019-08-06T15:58:07.915991+07:00\"]" +
+                "      BETWEEN:[\"2019-08-05T10:58:07+07:00\",\"2019-08-06T15:58:07+07:00\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -869,8 +871,8 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=5, zonedDateTime=2019-08-05T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+                "{id=5, zonedDateTime=2019-08-05T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=6, zonedDateTime=2019-08-06T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -886,7 +888,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      NOT_BETWEEN:[\"2019-08-02T10:58:07.915991+07:00\",\"2019-08-08T15:58:07.915991+07:00\"]" +
+                "      NOT_BETWEEN:[\"2019-08-02T10:58:07+07:00\",\"2019-08-08T15:58:07+07:00\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -898,7 +900,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, zonedDateTime=2019-08-01T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -914,7 +916,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      NE:\"2019-08-05T03:58:08.153992Z[UTC]\"" +
+                "      NE:\"2019-08-05T03:58:08Z[UTC]\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -927,13 +929,13 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=1, zonedDateTime=2019-08-01T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=2, zonedDateTime=2019-08-02T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=3, zonedDateTime=2019-08-03T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=4, zonedDateTime=2019-08-04T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=7, zonedDateTime=2019-08-07T03:58:08.153992Z[UTC], description=Add test for LocalDate.}, " +
-                "{id=8, zonedDateTime=2019-08-08T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+                "{id=1, zonedDateTime=2019-08-01T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=2, zonedDateTime=2019-08-02T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=3, zonedDateTime=2019-08-03T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=4, zonedDateTime=2019-08-04T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=6, zonedDateTime=2019-08-06T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=7, zonedDateTime=2019-08-07T03:58:08Z[UTC], description=Add test for LocalDate.}, " +
+                "{id=8, zonedDateTime=2019-08-08T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -949,7 +951,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    zonedDateTime:{" +
-                "      EQ:\"2019-08-06T10:58:08.153992+07:00\"" +
+                "      EQ:\"2019-08-06T10:58:08+07:00\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -961,7 +963,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=6, zonedDateTime=2019-08-06T03:58:08.153992Z[UTC], description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=6, zonedDateTime=2019-08-06T03:58:08Z[UTC], description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -977,7 +979,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      GT:\"2019-08-07T03:58:08.842270Z\"" +
+                "      GT:\"2019-08-07T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -989,7 +991,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, instant=2019-08-08T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, instant=2019-08-08T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1005,7 +1007,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      GE:\"2019-08-08T03:58:08.842270Z\"" +
+                "      GE:\"2019-08-08T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1017,7 +1019,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=8, instant=2019-08-08T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=8, instant=2019-08-08T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1033,7 +1035,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      LE:\"2019-08-01T03:58:08.842270Z\"" +
+                "      LE:\"2019-08-01T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1045,7 +1047,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1061,7 +1063,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      LT:\"2019-08-02T03:58:08.842270Z\"" +
+                "      LT:\"2019-08-02T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1073,7 +1075,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1089,7 +1091,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      BETWEEN:[\"2019-08-06T03:58:08.842270Z\",\"2019-08-06T03:58:08.842270Z\"]" +
+                "      BETWEEN:[\"2019-08-06T03:58:08Z\",\"2019-08-06T03:58:08Z\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1101,7 +1103,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=6, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=6, instant=2019-08-06T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1117,7 +1119,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      NOT_BETWEEN:[\"2019-08-02T03:58:08.842270Z\",\"2019-08-08T03:58:08.842270Z\"]" +
+                "      NOT_BETWEEN:[\"2019-08-02T03:58:08Z\",\"2019-08-08T03:58:08Z\"]" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1129,7 +1131,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=1, instant=2019-08-01T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1145,7 +1147,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      NE:\"2019-08-08T03:58:08.842270Z\"" +
+                "      NE:\"2019-08-08T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1158,13 +1160,13 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "}";
 
         String expected = "{localDates={select=[" +
-                "{id=1, instant=2019-08-01T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=2, instant=2019-08-02T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=3, instant=2019-08-03T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=4, instant=2019-08-04T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=5, instant=2019-08-05T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=6, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}, " +
-                "{id=7, instant=2019-08-07T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+                "{id=1, instant=2019-08-01T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=2, instant=2019-08-02T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=3, instant=2019-08-03T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=4, instant=2019-08-04T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=5, instant=2019-08-05T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=6, instant=2019-08-06T03:58:08Z, description=Add test for LocalDate.}, " +
+                "{id=7, instant=2019-08-07T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -1180,7 +1182,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  localDates" +
                 "  (where:{" +
                 "    instant:{" +
-                "      EQ:\"2019-08-06T03:58:08.842270Z\"" +
+                "      EQ:\"2019-08-06T03:58:08Z\"" +
                 "    }" +
                 "  })" +
                 "{" +
@@ -1192,7 +1194,7 @@ public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
                 "  }" +
                 "}";
 
-        String expected = "{localDates={select=[{id=6, instant=2019-08-06T03:58:08.842270Z, description=Add test for LocalDate.}]}}";
+        String expected = "{localDates={select=[{id=6, instant=2019-08-06T03:58:08Z, description=Add test for LocalDate.}]}}";
 
         //when
         Object result = executor.execute(query).getData();
