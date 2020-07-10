@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
+import static org.assertj.core.util.Maps.newHashMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -729,8 +730,8 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         String query = "query { Books ( where: { publicationDate: {BETWEEN: [\"1869-01-01\", \"1896-01-01\"]}}) { select { id title publicationDate} } }";
 
         String expected = "{Books={select=[" +
-                "{id=2, title=War and Peace, publicationDate=1869-01-01 00:00:00.0}, " +
-                "{id=3, title=Anna Karenina, publicationDate=1877-04-01 00:00:00.0}" +
+                "{id=2, title=War and Peace, publicationDate=1869-01-01}, " +
+                "{id=3, title=Anna Karenina, publicationDate=1877-04-01}" +
                 "]}}";
 
         //when:
@@ -746,9 +747,9 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         String query = "query { Books ( where: { publicationDate: {NOT_BETWEEN: [\"1869-01-01\", \"1896-01-01\"]}}) { select { id title publicationDate} } }";
 
         String expected = "{Books={select=[" +
-                "{id=5, title=The Cherry Orchard, publicationDate=1904-01-17 00:00:00.0}, " +
-                "{id=6, title=The Seagull, publicationDate=1896-10-17 00:00:00.0}, " +
-                "{id=7, title=Three Sisters, publicationDate=1900-01-01 00:00:00.0}" +
+                "{id=5, title=The Cherry Orchard, publicationDate=1904-01-17}, " +
+                "{id=6, title=The Seagull, publicationDate=1896-10-17}, " +
+                "{id=7, title=Three Sisters, publicationDate=1900-01-01}" +
                 "]}}";
 
         //when:
@@ -2348,5 +2349,34 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
+    
+    @Test
+    public void queryForBooksWithWhereCriteriaExpressionDateVariables() {
+        //given
+        String query = "query find($input: BooksCriteriaExpression) {" + 
+        		"  Books(where: $input) {" + 
+        		"    select {" + 
+        		"      id" + 
+        		"      publicationDate" + 
+        		"    }" + 
+        		"  }" + 
+        		"}";
+        
+        Map<String, Object> variables = newHashMap(
+            "input", newHashMap("publicationDate", newHashMap("LE", "1896-10-17"))
+        );
+
+        String expected = "{Books={select=["
+        		+ 	"{id=2, publicationDate=1869-01-01}, "
+        		+ 	"{id=3, publicationDate=1877-04-01}, "
+        		+ 	"{id=6, publicationDate=1896-10-17}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query, variables).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
 
 }
