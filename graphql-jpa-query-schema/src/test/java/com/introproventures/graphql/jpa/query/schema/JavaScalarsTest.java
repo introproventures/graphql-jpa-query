@@ -282,9 +282,9 @@ public class JavaScalarsTest {
         Object result = coercing.serialize(instant);
 
         //then
-        assertThat(result).isInstanceOf(Instant.class);
+        assertThat(result).isInstanceOf(Long.class);
 
-        OffsetDateTime resultLDT = OffsetDateTime.ofInstant((Instant) result, ZoneOffset.UTC);
+        OffsetDateTime resultLDT = OffsetDateTime.ofInstant(Instant.ofEpochMilli(Long.class.cast(result)), ZoneOffset.UTC);
 
         assert resultLDT.getYear() == 2019;
         assert resultLDT.getDayOfMonth() == 05;

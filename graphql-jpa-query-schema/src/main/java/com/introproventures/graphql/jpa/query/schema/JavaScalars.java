@@ -361,7 +361,9 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToInstant((String) input);
             } else if (input instanceof Instant) {
-                return input;
+                return ((Instant) input).toEpochMilli();
+            } else if (input instanceof Long) {
+                return Instant.ofEpochMilli((Long) input);
             }
             return null;
         }
