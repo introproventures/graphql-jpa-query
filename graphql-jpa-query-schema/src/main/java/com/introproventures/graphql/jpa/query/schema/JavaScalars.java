@@ -151,15 +151,16 @@ public class JavaScalars {
     }
     
     public static class GraphQLLocalDateTimeCoercing implements Coercing<Object, Object> {
+    	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         @Override
         public Object serialize(Object input) {
             if (input instanceof String) {
                 return parseStringToLocalDateTime((String) input);
             } else if (input instanceof LocalDateTime) {
-                return input;
+                return ((LocalDateTime) input).format(formatter);
             }else if (input instanceof LocalDate) {
-                return input;
+                return ((LocalDate) input).format(formatter);
             } else if (input instanceof Long) {
                 return parseLongToLocalDateTime((Long) input);
             } else if (input instanceof Integer) {
@@ -200,12 +201,14 @@ public class JavaScalars {
 
     public static class GraphQLLocalDateCoercing implements Coercing<Object, Object> {
 
+    	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    	
         @Override
         public Object serialize(Object input) {
             if (input instanceof String) {
                 return parseStringToLocalDate((String) input);
             } else if (input instanceof LocalDate) {
-                return input;
+                return ((LocalDate) input).format(formatter);
             } else if (input instanceof Long) {
                 return parseLongToLocalDate((Long) input);
             } else if (input instanceof Integer) {
@@ -314,7 +317,7 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToDate((String) input);
             } else if (input instanceof Date) {
-                return input;
+                return new SimpleDateFormat(dateFormatString).format(input);
             } else if (input instanceof Long) {
                 return new Date(((Long) input).longValue());
             } else if (input instanceof Integer) {
