@@ -1,6 +1,7 @@
 # Change Log
 
-## 0.4.13-SNAPSHOT
+## 0.4.13
+* fix: Cannot convert date value to AST (#278) [06379c7](https://github.com/introproventures/graphql-jpa-query/commit/06379c763c01f9b09f2cfa7412de4107ec3200ab)
 * fix(GH-273): detach result entities from entity manager persistent context (#275) [a678b57](https://github.com/introproventures/graphql-jpa-query/commit/a678b577c543fe5b900345b2d2a3dc8bab7959c3)
 * feat: add graphql-jpa-query-introspection module (#276) [978d9d0](https://github.com/introproventures/graphql-jpa-query/commit/978d9d0f4e799f83c2cf51795179a1524b319eb9)
 * fix: correct RestrictedKeysProvider Javadoc errors [823cda2](https://github.com/introproventures/graphql-jpa-query/commit/823cda2cba8eb215f8843b426c14699de6bfe909)
