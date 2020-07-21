@@ -2379,4 +2379,40 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.toString()).isEqualTo(expected);
     }    
 
+    @Test
+    public void queryWithOperationName() {
+        //given
+        String query = "query findBooks {" + 
+        		"  Books {" + 
+        		"    select {" + 
+        		"      id" + 
+        		"      title" + 
+        		"    }" + 
+        		"  }" + 
+        		"}" + 
+        		"" + 
+        		"query findAuthors {" + 
+        		"  Authors {" + 
+        		"    select {" + 
+        		"      id" +
+        		"      name" +
+        		"    }" + 
+        		"  }" + 
+        		"}";
+        
+        String expected = "{Books={select=["
+        		+ "{id=2, title=War and Peace}, "
+        		+ "{id=3, title=Anna Karenina}, "
+        		+ "{id=5, title=The Cherry Orchard}, "
+        		+ "{id=6, title=The Seagull}, "
+        		+ "{id=7, title=Three Sisters}"
+        		+ "]}}";
+
+        //when
+        Object result = executor.execute(query, "findBooks", null).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }    
+    
 }

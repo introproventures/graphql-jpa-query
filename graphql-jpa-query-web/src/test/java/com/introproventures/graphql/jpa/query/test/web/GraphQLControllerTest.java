@@ -15,6 +15,8 @@
  */
 package com.introproventures.graphql.jpa.query.test.web;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,9 +79,11 @@ public class GraphQLControllerTest {
         when(executor.execute(Mockito.anyString()))
             .thenReturn(new ExecutionResultImpl(new HashMap<>(), new ArrayList<>()));
         
-        when(executor.execute(Mockito.anyString(),Mockito.any()))
+        when(executor.execute(Mockito.anyString(),Mockito.nullable(Map.class)))
             .thenReturn(new ExecutionResultImpl(new HashMap<>(), new ArrayList<>()));
         
+        when(executor.execute(Mockito.anyString(),Mockito.nullable(String.class),Mockito.nullable(Map.class)))
+    		.thenReturn(new ExecutionResultImpl(new HashMap<>(), new ArrayList<>()));
     }
 
     private void ok(final GraphQLQueryRequest query) throws Exception, JsonProcessingException {
@@ -206,7 +210,7 @@ public class GraphQLControllerTest {
         ok(new GraphQLQueryRequest("{Tasks(where: {name: {EQ: \"name\"}}){select{id}}}"));
         
         verify(executor)
-            .execute("{Tasks(where: {name: {EQ: \"name\"}}){select{id}}}", null);
+            .execute("{Tasks(where: {name: {EQ: \"name\"}}){select{id}}}", null, null);
     }
 
     @Test
@@ -215,7 +219,6 @@ public class GraphQLControllerTest {
             .andExpect(status().isBadRequest());
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testGraphqlArguments() throws Exception {
         GraphQLQueryRequest query = new GraphQLQueryRequest("query TasksQuery($title: String!){Tasks(where:{name: {EQ: $title}}){select{id name}}}");
@@ -227,35 +230,50 @@ public class GraphQLControllerTest {
         ok(query);
         
         verify(executor)
-            .execute(query.getQuery(), variables);
+            .execute(query.getQuery(), null, variables);
     }
 
+    @Test
+    public void testGraphqlOperationName() throws Exception {
+    	String operationName = "TasksQuery";
+        GraphQLQueryRequest query = new GraphQLQueryRequest("query TasksQuery($title: String!){Tasks(where:{name: {EQ: $title}}){select{id name}}}");
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("title", "value");
+        query.setVariables(variables);
+        query.setOperationName(operationName);
+
+        ok(query);
+        
+        verify(executor)
+            .execute(query.getQuery(), operationName, variables);
+    }    
     // Json directly
     @Test
     public void testGraphqlArgumentsJson() throws Exception {
-        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{ title genre }}\", \"arguments\": {\"title\": \"title\"}}";
+        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{ title genre }}\", \"variables\": {\"key\": \"value\"}}";
         
         ok(json);
         
-        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{ title genre }}", null);
+        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{ title genre }}", null, singletonMap("key", "value"));
     }
 
     @Test
     public void testGraphqlArgumentsEmptyString() throws Exception {
-        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{id name}}\", \"arguments\": \"\"}";
+        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{id name}}\", \"variables\": {}}";
         
         ok(json);
         
-        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null);
+        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null, emptyMap());
     }
 
     @Test
     public void testGraphqlArgumentsNull() throws Exception {
-        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{id name}}\", \"arguments\": null}";
+        String json = "{\"query\": \"{Tasks(where:{name:{EQ: \\\"title\\\"}}){select{id name}}\", \"variables\": null}";
         
         ok(json);
         
-        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null);
+        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null, null);
     }
 
     @Test
@@ -264,7 +282,7 @@ public class GraphQLControllerTest {
         
         ok(json);
         
-        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null);
+        verify(executor).execute("{Tasks(where:{name:{EQ: \"title\"}}){select{id name}}", null, null);
     }
     
     // Form submitted data
@@ -308,4 +326,5 @@ public class GraphQLControllerTest {
 
         verify(executor).execute(query, null);
     }
+    
 }
