@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.14
+## 0.4.15-SNAPSHOT
 * fix: support GraphQL operationName attribute (#279) [6dfe793](https://github.com/introproventures/graphql-jpa-query/commit/6dfe7934ce01205b0a6b79965b21d4f57d4d109b)
 * fix: Cannot convert date value to AST (#278) [06379c7](https://github.com/introproventures/graphql-jpa-query/commit/06379c763c01f9b09f2cfa7412de4107ec3200ab)
 * fix(GH-273): detach result entities from entity manager persistent context (#275) [a678b57](https://github.com/introproventures/graphql-jpa-query/commit/a678b577c543fe5b900345b2d2a3dc8bab7959c3)
