@@ -44,6 +44,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+
 import graphql.DeferredExecutionResult;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -167,6 +168,7 @@ public class GraphQLController {
                          HttpServletResponse httpServletResponse) throws IOException
     {
         ExecutionResult executionResult = graphQLExecutor.execute(queryRequest.getQuery(),
+        													      queryRequest.getOperationName(),
                                                                   queryRequest.getVariables());
         sendResponse(httpServletResponse, executionResult);
     }
@@ -269,8 +271,10 @@ public class GraphQLController {
 
         @NotNull
         private String query;
+        
+        private String operationName;
 
-        private  Map<String, Object> variables;
+		private  Map<String, Object> variables;
 
         GraphQLQueryRequest() {}
 
@@ -309,7 +313,14 @@ public class GraphQLController {
         public void setVariables(Map<String, Object> variables) {
             this.variables = variables;
         }
+        
+        public String getOperationName() {
+			return operationName;
+		}
 
+		public void setOperationName(String operationName) {
+			this.operationName = operationName;
+		}
     }
 
     private void sendResponse(HttpServletResponse response, ExecutionResult executionResult) throws IOException {

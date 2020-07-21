@@ -82,19 +82,27 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
-        Map<String, Object> variables = Optional.ofNullable(arguments)
-                                                .orElseGet(Collections::emptyMap);
-        
-        GraphQLExecutorContext executorContext = contextFactory.newExecutorContext(graphQLSchema);
-
-        ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
-                                                               .query(query)
-                                                               .variables(variables);        
-
-        GraphQL.Builder graphQL = executorContext.newGraphQL();
-        
-        return graphQL.build()
-                      .execute(executionInput);
+    	return execute(query, null, arguments);
     }
+
+	@Override
+    @Transactional(TxType.REQUIRED)
+	public ExecutionResult execute(String query, String operationName, Map<String, Object> arguments) {
+        Map<String, Object> variables = Optional.ofNullable(arguments)
+                								.orElseGet(Collections::emptyMap);
+
+		GraphQLExecutorContext executorContext = contextFactory.newExecutorContext(graphQLSchema);
+		
+		ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
+								                               .query(query)
+								                               .variables(variables);
+		Optional.ofNullable(operationName)
+				.ifPresent(executionInput::operationName);
+		
+		GraphQL.Builder graphQL = executorContext.newGraphQL();
+		
+		return graphQL.build()
+					  .execute(executionInput);
+	}
 
 }
