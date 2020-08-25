@@ -41,6 +41,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 
 import graphql.GraphQL;
 import graphql.GraphQLContext;
+import graphql.execution.ExecutionStrategy;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
@@ -80,13 +81,19 @@ public class GraphQLJpaQueryAutoConfiguration {
         public GraphQLExecutorContextFactory graphQLJpaExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
                                                                            ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
                                                                            ObjectProvider<Supplier<Instrumentation>> instrumentation,
-                                                                           ObjectProvider<Supplier<GraphQLContext>> graphqlContext) {
+                                                                           ObjectProvider<Supplier<GraphQLContext>> graphqlContext,
+                                                                              ObjectProvider<Supplier<ExecutionStrategy>> queryExecutionStrategy,
+                                                                              ObjectProvider<Supplier<ExecutionStrategy>> mutationExecutionStrategy,
+                                                                              ObjectProvider<Supplier<ExecutionStrategy>> subscriptionExecutionStrategy) {
             GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
 
             graphQLExecutionInputFactory.ifAvailable(bean::withExecutionInputFactory);
             graphqlFieldVisibility.ifAvailable(bean::withGraphqlFieldVisibility);
             instrumentation.ifAvailable(bean::withInstrumentation);
             graphqlContext.ifAvailable(bean::withGraphqlContext);
+            queryExecutionStrategy.ifAvailable(bean::withQueryExecutionStrategy);
+            mutationExecutionStrategy.ifAvailable(bean::withMutationExecutionStrategy);
+            subscriptionExecutionStrategy.ifAvailable(bean::withSubscriptionExecutionStrategy);
 
             return bean;
         }
