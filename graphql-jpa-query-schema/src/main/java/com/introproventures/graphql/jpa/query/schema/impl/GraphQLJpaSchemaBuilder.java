@@ -1038,7 +1038,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     @SuppressWarnings( "rawtypes" )
-    private GraphQLType getAttributeType(Attribute<?,?> attribute, boolean input) {
+    protected GraphQLType getAttributeType(Attribute<?,?> attribute, boolean input) {
 
         if (isBasic(attribute)) {
         	return getGraphQLTypeFromJavaType(attribute.getJavaType());
