@@ -64,6 +64,7 @@ import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
 import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
@@ -628,7 +629,7 @@ public class JavaScalars {
             else if (StringValue.class.isInstance(input)) {
                 value = StringValue.class.cast(input).getValue();
             } else {
-                throw new CoercingParseValueException("Invalid value '" + input + "' for Timestamp");
+                throw new CoercingParseLiteralException("Invalid value '" + input + "' for Timestamp");
             }
             
             return doConvert(value);
@@ -791,8 +792,8 @@ public class JavaScalars {
 
             @Override
             public Instant apply(String date) {
-                return OffsetDateTime.parse(date, FORMATTER)
-                                     .toInstant();
+                return ZonedDateTime.parse(date, FORMATTER)
+                                    .toInstant();
             }
         }
         
@@ -803,8 +804,8 @@ public class JavaScalars {
 
             @Override
             public Instant apply(String date) {
-                return OffsetDateTime.parse(date, FORMATTER)
-                                     .toInstant();
+                return LocalDateTime.parse(date, FORMATTER)
+                                    .toInstant(ZoneOffset.UTC);
             }
         }    
 
