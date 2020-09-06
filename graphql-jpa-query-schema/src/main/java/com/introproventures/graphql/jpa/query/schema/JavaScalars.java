@@ -748,6 +748,7 @@ public class JavaScalars {
         static {
             CONVERTERS.add(new InstantConverter());
             CONVERTERS.add(new OffsetDateTimeConverter());
+            CONVERTERS.add(new ZonedDateTimeConverter());
             CONVERTERS.add(new LocalDateTimeConverter());
             CONVERTERS.add(new LocalDateConverter());
         }
@@ -775,33 +776,45 @@ public class JavaScalars {
 
         static class OffsetDateTimeConverter implements Function<String, Instant> {
 
-            static final DateTimeFormatter ISO_OFFSET_DATE_TIME = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
 
             @Override
             public Instant apply(String date) {
-                return OffsetDateTime.parse(date, ISO_OFFSET_DATE_TIME)
+                return OffsetDateTime.parse(date, FORMATTER)
                                      .toInstant();
             }
         }
         
-        static class LocalDateTimeConverter implements Function<String, Instant> {
+        static class ZonedDateTimeConverter implements Function<String, Instant> {
 
-            static final DateTimeFormatter ISO_LOCAL_DATE_TIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC);
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_ZONED_DATE_TIME.withZone(ZoneOffset.UTC);
 
             @Override
             public Instant apply(String date) {
-                return OffsetDateTime.parse(date, ISO_LOCAL_DATE_TIME)
+                return OffsetDateTime.parse(date, FORMATTER)
+                                     .toInstant();
+            }
+        }
+        
+        
+        static class LocalDateTimeConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                return OffsetDateTime.parse(date, FORMATTER)
                                      .toInstant();
             }
         }    
 
         static class LocalDateConverter implements Function<String, Instant> {
 
-            static final DateTimeFormatter ISO_LOCAL_DATE = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
 
             @Override
             public Instant apply(String date) {
-                LocalDate localDate = LocalDate.parse(date, ISO_LOCAL_DATE);
+                LocalDate localDate = LocalDate.parse(date, FORMATTER);
 
                 return localDate.atStartOfDay()
                                 .toInstant(ZoneOffset.UTC);

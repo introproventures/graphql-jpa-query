@@ -397,6 +397,23 @@ public class JavaScalarsTest {
     }  
 
     @Test
+    public void testTimestampParseLiteralStringValueZonedDateTime() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse("2020-09-06T11:45:27-07:00[America/Los_Angeles]");
+        Instant instant = zonedDateTime.toInstant();
+        
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(zonedDateTime.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }      
+    @Test
     public void testTimestampParseLiteralStringValueLocalDateTime() {
         //given
         Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
