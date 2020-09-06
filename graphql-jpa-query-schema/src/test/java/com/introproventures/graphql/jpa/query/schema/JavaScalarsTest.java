@@ -367,14 +367,6 @@ public class JavaScalarsTest {
         //then
         assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
                           .isEqualTo(expected);
-
-//        //when
-//        String localDateTime = LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault()).toString();
-//        result = coercing.parseLiteral(StringValue.newStringValue(localDateTime).build());
-//
-//        //then
-//        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
-//                          .isEqualTo(expected);
     }    
 
     @Test

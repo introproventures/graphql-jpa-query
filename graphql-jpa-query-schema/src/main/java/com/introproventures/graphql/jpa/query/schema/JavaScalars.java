@@ -583,7 +583,7 @@ public class JavaScalars {
 
     public static class GraphQLSqlTimestampCoercing implements Coercing<Timestamp, Object> {
 
-        private Timestamp convert(Object input) {
+        private Timestamp doConvert(Object input) {
             if (input instanceof Long) {
                 return new Timestamp(Long.class.cast(input));
             } else if (input instanceof String) {
@@ -597,20 +597,18 @@ public class JavaScalars {
         
         @Override
         public Object serialize(Object input) {
-            if (input instanceof Timestamp) {
-                return DateTimeFormatter.ISO_INSTANT.format(Timestamp.class.cast(input).toInstant());
-            } else {
-                Timestamp result = convert(input);
-                if (result == null) {
-                    throw new CoercingSerializeException("Invalid value '" + input + "' for Timestamp");
-                }
-                return DateTimeFormatter.ISO_INSTANT.format(result.toInstant());
+            Timestamp result = doConvert(input);
+            
+            if (result == null) {
+                throw new CoercingSerializeException("Invalid value '" + input + "' for Timestamp");
             }
+            
+            return DateTimeFormatter.ISO_INSTANT.format(result.toInstant());
         }
 
         @Override
         public Timestamp parseValue(Object input) {
-            Timestamp result = convert(input);
+            Timestamp result = doConvert(input);
             
             if (result == null) {
                 throw new CoercingParseValueException("Invalid value '" + input + "' for Timestamp");
@@ -631,7 +629,7 @@ public class JavaScalars {
                 throw new CoercingParseValueException("Invalid value '" + input + "' for Timestamp");
             }
             
-            return convert(value);
+            return doConvert(value);
         }
     }
 
