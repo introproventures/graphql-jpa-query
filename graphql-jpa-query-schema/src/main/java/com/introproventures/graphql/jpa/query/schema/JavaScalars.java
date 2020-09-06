@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -587,7 +587,9 @@ public class JavaScalars {
             if (input instanceof Long) {
                 return new Timestamp(Long.class.cast(input));
             } else if (input instanceof String) {
-                return DateTimeHelper.parseTimestamp(String.class.cast(input));
+                Instant instant = DateTimeHelper.parseDate(String.class.cast(input));
+                
+                return Timestamp.from(instant);
             } else if (input instanceof Timestamp) {
                 return Timestamp.class.cast(input);
             }
@@ -741,111 +743,72 @@ public class JavaScalars {
     
     public final static class DateTimeHelper {
 
-        static final List<DateTimeFormatter> DATE_FORMATTERS = new CopyOnWriteArrayList<>();
-
-        private DateTimeHelper() {
-        }
-
+        static final List<Function<String, Instant>> CONVERTERS = new CopyOnWriteArrayList<>();
+        
         static {
-            DATE_FORMATTERS.add(DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC));
-            DATE_FORMATTERS.add(DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC));
-            DATE_FORMATTERS.add(DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC));
-            DATE_FORMATTERS.add(DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC));
-        }
-
-        // ISO_8601
-        public static String toISOString(LocalDateTime dateTime) {
-            Objects.requireNonNull(dateTime, "dateTime");
-
-            return DateTimeFormatter.ISO_INSTANT.format(ZonedDateTime.of(dateTime, ZoneOffset.UTC));
-        }
-
-        public static String toISOString(OffsetDateTime offsetDateTime) {
-            Objects.requireNonNull(offsetDateTime, "offsetDateTime");
-
-            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime);
-        }
-
-        public static String toISOString(Timestamp timestamp) {
-            Objects.requireNonNull(timestamp, "timestamp");
-
-            return DateTimeFormatter.ISO_INSTANT.format(timestamp.toInstant());
+            CONVERTERS.add(new InstantConverter());
+            CONVERTERS.add(new OffsetDateTimeConverter());
+            CONVERTERS.add(new LocalDateTimeConverter());
+            CONVERTERS.add(new LocalDateConverter());
         }
         
-        public static String toISOString(LocalTime time) {
-            Objects.requireNonNull(time, "time");
-
-            return DateTimeFormatter.ISO_LOCAL_TIME.format(time);
-        }
-
-        public static String toISOString(Date date) {
+        public static Instant parseDate(String date) {
             Objects.requireNonNull(date, "date");
 
-            return toISOString(toLocalDateTime(date));
-        }
-
-        public static LocalDateTime toLocalDateTime(Date date) {
-            Objects.requireNonNull(date, "date");
-
-            return date.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
-        }
-
-        public static Date toDate(LocalDateTime dateTime) {
-            Objects.requireNonNull(dateTime, "dateTime");
-
-            return Date.from(dateTime.atZone(ZoneOffset.UTC).toInstant());
-        }
-
-        public static LocalDateTime parseDate(String date) {
-            Objects.requireNonNull(date, "date");
-
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            for (Function<String, Instant> converter : CONVERTERS) {
                 try {
-                    // equals ISO_LOCAL_DATE
-                    if (formatter.equals(DateTimeFormatter.ISO_LOCAL_DATE)) {
-                        LocalDate localDate = LocalDate.parse(date, formatter);
-
-                        return localDate.atStartOfDay();
-                    } else {
-                        return LocalDateTime.parse(date, formatter);
-                    }
+                    return converter.apply(date);
                 } catch (java.time.format.DateTimeParseException ignored) {
                 }
             }
 
-            return null;
+            return null;            
         }
         
-        public static Timestamp parseTimestamp(String date) {
-            Objects.requireNonNull(date, "date");
+        static class InstantConverter implements Function<String, Instant> {
 
-            for (DateTimeFormatter formatter : DATE_FORMATTERS) {
-                try {
-
-                   Instant instant = OffsetDateTime.parse(date, formatter).toInstant();
-                    
-                   return new Timestamp(instant.toEpochMilli());
-                } catch (java.time.format.DateTimeParseException ignored) {
-                }
+            @Override
+            public Instant apply(String date) {
+                return Instant.parse(date);
             }
-
-            return null;
-        }        
-
-        public static Date createDate(int year, int month, int day) {
-            return createDate(year, month, day, 0, 0, 0, 0);
         }
 
-        public static Date createDate(int year, int month, int day, int hours, int min, int sec) {
-            return createDate(year, month, day, hours, min, sec, 0);
-        }
+        static class OffsetDateTimeConverter implements Function<String, Instant> {
 
-        public static Date createDate(int year, int month, int day, int hours, int min, int sec, int millis) {
-            long nanos = TimeUnit.MILLISECONDS.toNanos(millis);
-            LocalDateTime localDateTime = LocalDateTime.of(year, month, day, hours, min, sec, (int) nanos);
-            return DateTimeHelper.toDate(localDateTime);
-        }
+            static final DateTimeFormatter ISO_OFFSET_DATE_TIME = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
 
+            @Override
+            public Instant apply(String date) {
+                return OffsetDateTime.parse(date, ISO_OFFSET_DATE_TIME)
+                                     .toInstant();
+            }
+        }
+        
+        static class LocalDateTimeConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter ISO_LOCAL_DATE_TIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                return OffsetDateTime.parse(date, ISO_LOCAL_DATE_TIME)
+                                     .toInstant();
+            }
+        }    
+
+        static class LocalDateConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter ISO_LOCAL_DATE = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                LocalDate localDate = LocalDate.parse(date, ISO_LOCAL_DATE);
+
+                return localDate.atStartOfDay()
+                                .toInstant(ZoneOffset.UTC);
+            }
+        }            
     }    
 
+
+    
 }
