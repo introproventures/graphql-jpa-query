@@ -20,6 +20,7 @@ import static graphql.schema.GraphQLScalarType.newScalar;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,8 +40,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -60,6 +64,7 @@ import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
 import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
@@ -577,45 +582,57 @@ public class JavaScalars {
         }
     }
 
-    public static class GraphQLSqlTimestampCoercing implements Coercing<Object, Object> {
+    public static class GraphQLSqlTimestampCoercing implements Coercing<Timestamp, Object> {
 
+        private Timestamp doConvert(Object input) {
+            if (input instanceof Long) {
+                return new Timestamp(Long.class.cast(input));
+            } else if (input instanceof String) {
+                Instant instant = DateTimeHelper.parseDate(String.class.cast(input));
+                
+                return Timestamp.from(instant);
+            } else if (input instanceof Timestamp) {
+                return Timestamp.class.cast(input);
+            }
+            
+            return null;
+        }
+        
         @Override
         public Object serialize(Object input) {
-            if (input instanceof String) {
-                return parseStringToTimestamp((String) input);
-            } else if (input instanceof Date) {
-                return new java.sql.Timestamp(((Date) input).getTime());
-            } else if (input instanceof Long) {
-                return new java.sql.Timestamp(((Long) input).longValue());
-            } else if (input instanceof Integer) {
-                return new java.sql.Timestamp(((Integer) input).longValue());
+            Timestamp result = doConvert(input);
+            
+            if (result == null) {
+                throw new CoercingSerializeException("Invalid value '" + input + "' for Timestamp");
             }
-            return null;
+            
+            return DateTimeFormatter.ISO_INSTANT.format(result.toInstant());
         }
 
         @Override
-        public Object parseValue(Object input) {
-            return serialize(input);
+        public Timestamp parseValue(Object input) {
+            Timestamp result = doConvert(input);
+            
+            if (result == null) {
+                throw new CoercingParseValueException("Invalid value '" + input + "' for Timestamp");
+            }
+            return result;        
         }
 
         @Override
-        public Object parseLiteral(Object input) {
-            if (input instanceof StringValue) {
-                return parseStringToTimestamp(((StringValue) input).getValue());
-            } else if (input instanceof IntValue) {
-                BigInteger value = ((IntValue) input).getValue();
-                return new java.sql.Date(value.longValue());
+        public Timestamp parseLiteral(Object input) {
+            Object value = null;
+            
+            if (IntValue.class.isInstance(input)) {
+                value = IntValue.class.cast(input).getValue().longValue(); 
+            } 
+            else if (StringValue.class.isInstance(input)) {
+                value = StringValue.class.cast(input).getValue();
+            } else {
+                throw new CoercingParseLiteralException("Invalid value '" + input + "' for Timestamp");
             }
-            return null;
-        }
-
-        private java.sql.Timestamp parseStringToTimestamp(String input) {
-            try {
-                return new java.sql.Timestamp(DateFormat.getInstance().parse(input).getTime());
-            } catch (ParseException e) {
-                log.warn("Failed to parse Timestamp from input: " + input, e);
-                return null;
-            }
+            
+            return doConvert(value);
         }
     }
 
@@ -724,5 +741,88 @@ public class JavaScalars {
         }
 
     }
+    
+    public final static class DateTimeHelper {
 
+        static final List<Function<String, Instant>> CONVERTERS = new CopyOnWriteArrayList<>();
+        
+        static {
+            CONVERTERS.add(new InstantConverter());
+            CONVERTERS.add(new OffsetDateTimeConverter());
+            CONVERTERS.add(new ZonedDateTimeConverter());
+            CONVERTERS.add(new LocalDateTimeConverter());
+            CONVERTERS.add(new LocalDateConverter());
+        }
+        
+        public static Instant parseDate(String date) {
+            Objects.requireNonNull(date, "date");
+
+            for (Function<String, Instant> converter : CONVERTERS) {
+                try {
+                    return converter.apply(date);
+                } catch (java.time.format.DateTimeParseException ignored) {
+                }
+            }
+
+            return null;            
+        }
+        
+        static class InstantConverter implements Function<String, Instant> {
+
+            @Override
+            public Instant apply(String date) {
+                return Instant.parse(date);
+            }
+        }
+
+        static class OffsetDateTimeConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                return OffsetDateTime.parse(date, FORMATTER)
+                                     .toInstant();
+            }
+        }
+        
+        static class ZonedDateTimeConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_ZONED_DATE_TIME.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                return ZonedDateTime.parse(date, FORMATTER)
+                                    .toInstant();
+            }
+        }
+        
+        
+        static class LocalDateTimeConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                return LocalDateTime.parse(date, FORMATTER)
+                                    .toInstant(ZoneOffset.UTC);
+            }
+        }    
+
+        static class LocalDateConverter implements Function<String, Instant> {
+
+            static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC);
+
+            @Override
+            public Instant apply(String date) {
+                LocalDate localDate = LocalDate.parse(date, FORMATTER);
+
+                return localDate.atStartOfDay()
+                                .toInstant(ZoneOffset.UTC);
+            }
+        }            
+    }    
+
+
+    
 }

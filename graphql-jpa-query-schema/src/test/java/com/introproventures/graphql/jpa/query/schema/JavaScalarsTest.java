@@ -19,6 +19,8 @@ package com.introproventures.graphql.jpa.query.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,13 +38,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactory;
 import org.junit.Test;
 
 import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
 
+import graphql.language.BooleanValue;
+import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
@@ -292,6 +300,185 @@ public class JavaScalarsTest {
         assert resultLDT.getHour() == 07;
         assert resultLDT.getMinute() == 15;
         assert resultLDT.getSecond() == 07;
+    }
+    
+    @Test
+    public void testTimestampSerialize() {
+        //given
+        Coercing<?, ?> subject = JavaScalars.of(Timestamp.class).getCoercing();
+        Instant expected = Instant.parse("2019-08-05T07:15:07Z");
+
+        final Timestamp input = new Timestamp(expected.toEpochMilli());
+
+        //when
+        Object result = subject.serialize(input);
+
+        //then
+        assertThat(result).asString()
+                          .isEqualTo(expected.toString());
+        
+        //when
+        result = subject.serialize(expected.toString());
+
+        //then
+        assertThat(result).asString()
+                          .isEqualTo(expected.toString());
+
+        //when
+        result = subject.serialize(expected.toEpochMilli());
+
+        //then
+        assertThat(result).asString()
+                          .isEqualTo(expected.toString());
+        
+    }
+    
+    @Test
+    public void testTimestampParseValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Instant instant = Instant.parse("2019-08-05T07:15:07Z");
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+
+        //when
+        Object result = coercing.parseValue(instant.toString());
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }    
+    
+    @Test
+    public void testTimestampParseLiteralStringValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Instant instant = Instant.parse("2019-08-05T07:15:07Z");
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(instant.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }    
+
+    @Test(expected = CoercingParseLiteralException.class)
+    public void testTimestampParseLiteralWrongValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Object input = Boolean.valueOf("true");
+        
+        //when
+        coercing.parseLiteral(input);
+    }    
+
+    @Test(expected = CoercingParseValueException.class)
+    public void testTimestampParseValueWrongValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Object input = Boolean.valueOf("true");
+        
+        //when
+        coercing.parseValue(input);
+    }       
+    @Test(expected = CoercingSerializeException.class)
+    public void testTimestampSerializeWrongValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Object input = BooleanValue.newBooleanValue(true).build();
+        
+        //when
+        coercing.serialize(input);
+    }    
+        
+    
+    @Test
+    public void testTimestampParseLiteralIntValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Instant instant = Instant.parse("2019-08-05T07:15:07Z");
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        IntValue input = IntValue.newIntValue(BigInteger.valueOf(instant.toEpochMilli())).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }    
+    
+    @Test
+    public void testTimestampParseLiteralStringValueOffsetDateTime() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse("2020-09-06T11:45:27-07:00");
+        Instant instant = offsetDateTime.toInstant();
+        
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(offsetDateTime.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }  
+
+    @Test
+    public void testTimestampParseLiteralStringValueZonedDateTime() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse("2020-09-06T11:45:27-07:00[America/Los_Angeles]");
+        Instant instant = zonedDateTime.toInstant();
+        
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(zonedDateTime.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }      
+    @Test
+    public void testTimestampParseLiteralStringValueLocalDateTime() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        LocalDateTime localDateTime = LocalDateTime.parse("2019-08-05T07:15:07", DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.of("UTC")));
+        Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+        
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(localDateTime.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
+    }  
+    
+    @Test
+    public void testTimestampParseLiteralStringValueLocalDate() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        LocalDate localDate = LocalDate.parse("2019-08-05", DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC")));
+        Instant instant = localDate.atStartOfDay(ZoneId.of("UTC")).toInstant();
+        
+        Timestamp expected = new Timestamp(instant.toEpochMilli());
+        StringValue input = StringValue.newStringValue(localDate.toString()).build();
+        
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result).asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+                          .isEqualTo(expected);
     }
     
     @Test
