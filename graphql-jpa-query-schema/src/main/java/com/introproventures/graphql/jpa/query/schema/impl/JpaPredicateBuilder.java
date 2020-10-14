@@ -20,6 +20,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -348,6 +349,50 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    protected Predicate getTimestampPredicate(Path<? extends Timestamp> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof Timestamp) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (Timestamp) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (Timestamp) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (Timestamp) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (Timestamp) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (!filter.getCriterias().contains(PredicateFilter.Criteria.NE)
+                    && (filter.getCriterias().contains(Criteria.BETWEEN) || filter.getCriterias().contains(Criteria.NOT_BETWEEN))) {
+
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<Timestamp> name = (Expression<Timestamp>) root;
+                    Expression<Timestamp> fromDate = cb.literal((Timestamp) values[0]);
+                    Expression<Timestamp> toDate = cb.literal((Timestamp) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN))
+                        return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+    
     protected Predicate getLocalDatePredicate(Path<? extends LocalDate> root, PredicateFilter filter) {
         if (filter.getValue() != null && filter.getValue() instanceof LocalDate) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
@@ -719,6 +764,9 @@ class JpaPredicateBuilder {
         }
         else if(type.equals(OffsetDateTime.class)){
             return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, predicateFilter);
+        }
+        else if (type.equals(Timestamp.class)) {
+            return getTimestampPredicate((Path<Timestamp>) field, predicateFilter);
         }
         else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, predicateFilter);
