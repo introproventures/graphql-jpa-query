@@ -1,6 +1,7 @@
 # Change Log
 
-## 0.4.16-SNAPSHOT
+## 0.4.16
+* fix: add Timestamp predicate builder support (#287) [058918d](https://github.com/introproventures/graphql-jpa-query/commit/058918d998595e6c4ea74e5948f88648205eb223)
 * fix: add support for java.sql.Timestamp GraphQLScalar coercing (#283) [105c8dc](https://github.com/introproventures/graphql-jpa-query/commit/105c8dcac8c039e96ee4436fc50d30c53d8ee2aa)
 * fix: support GraphQL operationName attribute (#279) [6dfe793](https://github.com/introproventures/graphql-jpa-query/commit/6dfe7934ce01205b0a6b79965b21d4f57d4d109b)
 * fix: Cannot convert date value to AST (#278) [06379c7](https://github.com/introproventures/graphql-jpa-query/commit/06379c763c01f9b09f2cfa7412de4107ec3200ab)
