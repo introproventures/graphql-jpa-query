@@ -29,6 +29,7 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 import graphql.GraphQLContext;
+import graphql.execution.ExecutionStrategy;
 import graphql.execution.instrumentation.ChainedInstrumentation;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
@@ -48,6 +49,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     private final Supplier<GraphQLContext> graphqlContext;
     private final Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions;
     private final Supplier<DataLoaderRegistry> dataLoaderRegistry;
+    private final Supplier<ExecutionStrategy> queryExecutionStrategy;
+    private final Supplier<ExecutionStrategy> mutationExecutionStrategy;
+    private final Supplier<ExecutionStrategy> subscriptionExecutionStrategy;
 
     private GraphQLJpaExecutorContext(Builder builder) {
         this.graphQLSchema = builder.graphQLSchema;
@@ -57,6 +61,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         this.graphqlContext = builder.graphqlContext;
         this.dataLoaderDispatcherInstrumentationOptions = builder.dataLoaderDispatcherInstrumentationOptions;
         this.dataLoaderRegistry = builder.dataLoaderRegistry;
+        this.queryExecutionStrategy = builder.queryExecutionStrategy;
+        this.mutationExecutionStrategy = builder.mutationExecutionStrategy;
+        this.subscriptionExecutionStrategy = builder.subscriptionExecutionStrategy;
     }
 
     @Override
@@ -74,7 +81,10 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         Instrumentation instrumentation = newIstrumentation();
 
         return GraphQL.newGraphQL(getGraphQLSchema())
-                      .instrumentation(instrumentation);
+                      .instrumentation(instrumentation)
+                      .queryExecutionStrategy(queryExecutionStrategy.get())
+                      .mutationExecutionStrategy(mutationExecutionStrategy.get())
+                      .subscriptionExecutionStrategy(subscriptionExecutionStrategy.get());
     }
 
     public GraphQLContext newGraphQLContext(DataLoaderRegistry dataLoaderRegistry) {
@@ -135,6 +145,12 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
         public IBuildStage dataLoaderRegistry(Supplier<DataLoaderRegistry> dataLoaderRegistry);
 
+        public IBuildStage queryExecutionStrategy(Supplier<ExecutionStrategy> queryExecutionStrategy);
+
+        public IBuildStage mutationExecutionStrategy(Supplier<ExecutionStrategy> mutationExecutionStrategy);
+
+        public IBuildStage subscriptionExecutionStrategy(Supplier<ExecutionStrategy> subscriptionExecutionStrategy);
+
         public GraphQLJpaExecutorContext build();
     }
 
@@ -150,6 +166,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         private Supplier<GraphQLContext> graphqlContext;
         private Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions;
         private Supplier<DataLoaderRegistry> dataLoaderRegistry;
+        private Supplier<ExecutionStrategy> queryExecutionStrategy;
+        private Supplier<ExecutionStrategy> mutationExecutionStrategy;
+        private Supplier<ExecutionStrategy> subscriptionExecutionStrategy;
 
         private Builder() {
         }
@@ -194,6 +213,27 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         @Override
         public IBuildStage dataLoaderRegistry(Supplier<DataLoaderRegistry> dataLoaderRegistry) {
             this.dataLoaderRegistry = dataLoaderRegistry;
+
+            return this;
+        }
+
+        @Override
+        public IBuildStage queryExecutionStrategy(Supplier<ExecutionStrategy> queryExecutionStrategy) {
+            this.queryExecutionStrategy = queryExecutionStrategy;
+
+            return this;
+        }
+
+        @Override
+        public IBuildStage mutationExecutionStrategy(Supplier<ExecutionStrategy> mutationExecutionStrategy) {
+            this.mutationExecutionStrategy = mutationExecutionStrategy;
+
+            return this;
+        }
+
+        @Override
+        public IBuildStage subscriptionExecutionStrategy(Supplier<ExecutionStrategy> subscriptionExecutionStrategy) {
+            this.subscriptionExecutionStrategy = subscriptionExecutionStrategy;
 
             return this;
         }

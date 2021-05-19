@@ -27,6 +27,10 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactor
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
 import graphql.GraphQLContext;
+import graphql.execution.AsyncExecutionStrategy;
+import graphql.execution.AsyncSerialExecutionStrategy;
+import graphql.execution.ExecutionStrategy;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.execution.instrumentation.SimpleInstrumentation;
 import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentationOptions;
@@ -57,6 +61,10 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         return BatchLoaderRegistry.newDataLoaderRegistry(options);
     };
 
+    private Supplier<ExecutionStrategy> queryExecutionStrategy = AsyncExecutionStrategy::new;
+    private Supplier<ExecutionStrategy> mutationExecutionStrategy = AsyncSerialExecutionStrategy::new;
+    private Supplier<ExecutionStrategy> subscriptionExecutionStrategy = SubscriptionExecutionStrategy::new;
+
 
     public GraphQLJpaExecutorContextFactory() {
     }
@@ -71,6 +79,9 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
                                         .graphqlContext(graphqlContext)
                                         .dataLoaderDispatcherInstrumentationOptions(dataLoaderDispatcherInstrumentationOptions)
                                         .dataLoaderRegistry(dataLoaderRegistry)
+                                        .queryExecutionStrategy(queryExecutionStrategy)
+                                        .mutationExecutionStrategy(mutationExecutionStrategy)
+                                        .subscriptionExecutionStrategy(subscriptionExecutionStrategy)
                                         .build();
     }
 
@@ -100,6 +111,22 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
         this.dataLoaderDispatcherInstrumentationOptions = dataLoaderDispatcherInstrumentationOptions;
         return this;
     }
+
+    public GraphQLJpaExecutorContextFactory withQueryExecutionStrategy(Supplier<ExecutionStrategy> queryExecutionStrategy) {
+        this.queryExecutionStrategy = queryExecutionStrategy;
+        return this;
+    }
+
+    public GraphQLJpaExecutorContextFactory withMutationExecutionStrategy(Supplier<ExecutionStrategy> mutationExecutionStrategy) {
+        this.mutationExecutionStrategy = mutationExecutionStrategy;
+        return this;
+    }
+
+    public GraphQLJpaExecutorContextFactory withSubscriptionExecutionStrategy(Supplier<ExecutionStrategy> subscriptionExecutionStrategy) {
+        this.subscriptionExecutionStrategy = subscriptionExecutionStrategy;
+        return this;
+    }
+
 
     public GraphQLExecutionInputFactory getExecutionInputFactory() {
         return executionInputFactory;
