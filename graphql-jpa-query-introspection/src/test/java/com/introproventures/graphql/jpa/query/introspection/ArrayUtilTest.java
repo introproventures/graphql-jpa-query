@@ -53,7 +53,7 @@ public class ArrayUtilTest {
 
     @Test
     public void testAddAll() {
-        assertThat(ArrayUtil.addAll(null, null)).isNull();
+        assertThat((boolean[][]) ArrayUtil.addAll(null, null)).isNull();
         assertThat(ArrayUtil.addAll(null, new String[] {})).isEqualTo(new String[] {});
         assertThat(ArrayUtil.addAll(new String[] {}, null)).isEqualTo(new String[] {});
         assertThat(ArrayUtil.addAll(new String[] {}, new String[] {})).isEqualTo(new String[] {});

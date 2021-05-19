@@ -1,6 +1,9 @@
 language: java
 sudo: required
 
+env:
+  - MAVEN_OPT=-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
 jdk:
   - openjdk8
   - openjdk11
