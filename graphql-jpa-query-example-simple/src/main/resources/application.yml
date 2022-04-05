@@ -3,6 +3,7 @@ spring:
     hibernate.ddl-auto: create-drop
     show-sql: true
     open-in-view: false
+    defer-datasource-initialization: true
   h2:
     console.enabled: true
   datasource:

@@ -4,7 +4,8 @@ spring:
     generate-ddl: true
     show-sql: true
     open-in-view: false
-    properties:
+    defer-datasource-initialization: true
+  properties:
       hibernate.format_sql: true
   h2:
     console.enabled: true
