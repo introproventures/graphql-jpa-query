@@ -1,6 +1,12 @@
 # Change Log
 
-## 0.4.17-SNAPSHOT
+## 0.4.17
+* fix: Add support for EQ,NE predicates for nullable scalar type values (#301) [88d571e](https://github.com/introproventures/graphql-jpa-query/commit/88d571e1add1956de3fcb96a251eb2e232b3b148)
+* fix: update spring boot version to 2.6.6 (#300) [12f606d](https://github.com/introproventures/graphql-jpa-query/commit/12f606d4c5474778e344a79515ac80aa03e868c8)
+* fix: update spring boot version to 2.6.5 (#299) [490f4cb](https://github.com/introproventures/graphql-jpa-query/commit/490f4cb08634dbd8292481676a0148050051c311)
+* fix(version): update spring-boot-dependencies to 2.4.5 (#296) [6b3d3be](https://github.com/introproventures/graphql-jpa-query/commit/6b3d3be488860a14db0b1d3b24cfedd65a4d2730)
+* Make execution strategies configurable (#281) [abd50be](https://github.com/introproventures/graphql-jpa-query/commit/abd50befc49c12b7b954bd4f355e8ef5305f9957)
+* Allow customizing attribute types (#282) [1e8f034](https://github.com/introproventures/graphql-jpa-query/commit/1e8f034d4d0a90118a842f3fc0b1d5a10641622d)
 * fix: add Timestamp predicate builder support (#287) [058918d](https://github.com/introproventures/graphql-jpa-query/commit/058918d998595e6c4ea74e5948f88648205eb223)
 * fix: add support for java.sql.Timestamp GraphQLScalar coercing (#283) [105c8dc](https://github.com/introproventures/graphql-jpa-query/commit/105c8dcac8c039e96ee4436fc50d30c53d8ee2aa)
 * fix: support GraphQL operationName attribute (#279) [6dfe793](https://github.com/introproventures/graphql-jpa-query/commit/6dfe7934ce01205b0a6b79965b21d4f57d4d109b)
