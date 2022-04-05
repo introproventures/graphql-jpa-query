@@ -575,7 +575,7 @@ type in your variables as a JSON string with quoted keys.
 
 Run Example in Docker
 ------
-You can quickly start GraphQL JPA Query Example in Docker
+You can quickly start GraphQL JPA Query Example in Docker.
 
 License
 -------
