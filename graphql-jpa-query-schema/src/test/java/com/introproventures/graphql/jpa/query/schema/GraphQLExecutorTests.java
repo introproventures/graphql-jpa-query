@@ -560,6 +560,37 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     }
 
     @Test
+    public void queryAuthorBooksWithNotNullFalseId() {
+        //given
+        String query = "query { "
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {NOT_NULL: false}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    @Test
     public void queryAuthorBooksWithIsNullId() {
         //given
         String query = "query { "
@@ -583,6 +614,109 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
                 + "}";
 
         String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithEQNullId() {
+        //given
+        String query = "query { "
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {EQ: null}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithNENullId() {
+        //given
+        String query = "query { "
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {NE: null}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=[" +
+                "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}, {id=3, title=Anna Karenina, genre=NOVEL}]}, " +
+                "{id=4, name=Anton Chekhov, books=[{id=5, title=The Cherry Orchard, genre=PLAY}, {id=6, title=The Seagull, genre=PLAY}, {id=7, title=Three Sisters, genre=PLAY}]}" +
+        "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+
+    @Test
+    public void queryAuthorBooksWithNOT_NULLId() {
+        //given
+        String query = "query { "
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {NOT_NULL: true}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=[" +
+                "{id=1, name=Leo Tolstoy, books=[{id=2, title=War and Peace, genre=NOVEL}, {id=3, title=Anna Karenina, genre=NOVEL}]}, " +
+                "{id=4, name=Anton Chekhov, books=[{id=5, title=The Cherry Orchard, genre=PLAY}, {id=6, title=The Seagull, genre=PLAY}, {id=7, title=Three Sisters, genre=PLAY}]}" +
+                "]}}";
 
         //when
         Object result = executor.execute(query).getData();

@@ -729,6 +729,15 @@ class JpaPredicateBuilder {
 
         if (type.isPrimitive())
             type = PRIMITIVES_TO_WRAPPERS.get(type);
+
+        if (NullValue.class.isInstance(value) && WRAPPERS_TO_PRIMITIVES.get(type) != null) {
+            if (criterias.contains(Criteria.EQ)) {
+                return cb.isNull(field);
+            } else if (criterias.contains(Criteria.NE)) {
+                return cb.isNotNull(field);
+            }
+        }
+
         if (type.equals(String.class)) {
             return getStringPredicate((Path<String>)field, filter);
         }
