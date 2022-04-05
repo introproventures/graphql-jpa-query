@@ -560,6 +560,37 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     }
 
     @Test
+    public void queryAuthorBooksWithNotNullFalseId() {
+        //given
+        String query = "query { "
+                + "Authors(" +
+                "    where: {" +
+                "      books: {" +
+                "        id: {NOT_NULL: false}" +
+                "      }" +
+                "    }" +
+                "  ) {" +
+                "    select {" +
+                "      id" +
+                "      name" +
+                "      books {" +
+                "        id" +
+                "        title" +
+                "        genre" +
+                "      }" +
+                "    }" +
+                "  }"
+                + "}";
+
+        String expected = "{Authors={select=[{id=8, name=Igor Dianov, books=[]}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+    @Test
     public void queryAuthorBooksWithIsNullId() {
         //given
         String query = "query { "
