@@ -723,6 +723,10 @@ class JpaPredicateBuilder {
             return (boolean) value ? cb.isNull(field) : cb.isNotNull(field);
         } else if (criterias.contains(Criteria.NOT_NULL)) {
             return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
+        } else if (criterias.contains(Criteria.EQ) && NullValue.class.isInstance(value)) {
+            return cb.isNull(field);
+        } else if (criterias.contains(Criteria.NE) && NullValue.class.isInstance(value)) {
+            return cb.isNotNull(field);
         }
 
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
