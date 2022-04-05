@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.4.17
+## 0.4.18-SNAPSHOT
 * fix: Add support for EQ,NE predicates for nullable scalar type values (#301) [88d571e](https://github.com/introproventures/graphql-jpa-query/commit/88d571e1add1956de3fcb96a251eb2e232b3b148)
 * fix: update spring boot version to 2.6.6 (#300) [12f606d](https://github.com/introproventures/graphql-jpa-query/commit/12f606d4c5474778e344a79515ac80aa03e868c8)
 * fix: update spring boot version to 2.6.5 (#299) [490f4cb](https://github.com/introproventures/graphql-jpa-query/commit/490f4cb08634dbd8292481676a0148050051c311)
