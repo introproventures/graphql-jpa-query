@@ -1,10 +1,9 @@
 spring:
   h2:
     console.enabled: true
-
   jpa:
     open-in-view: false
-    
+    defer-datasource-initialization: true
   graphql:
     jpa:
       query:
