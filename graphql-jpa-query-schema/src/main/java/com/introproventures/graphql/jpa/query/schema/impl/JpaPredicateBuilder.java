@@ -723,16 +723,21 @@ class JpaPredicateBuilder {
             return (boolean) value ? cb.isNull(field) : cb.isNotNull(field);
         } else if (criterias.contains(Criteria.NOT_NULL)) {
             return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
-        } else if (criterias.contains(Criteria.EQ) && NullValue.class.isInstance(value)) {
-            return cb.isNull(field);
-        } else if (criterias.contains(Criteria.NE) && NullValue.class.isInstance(value)) {
-            return cb.isNotNull(field);
         }
 
         PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
 
         if (type.isPrimitive())
             type = PRIMITIVES_TO_WRAPPERS.get(type);
+
+        if (NullValue.class.isInstance(value) && WRAPPERS_TO_PRIMITIVES.get(type) != null) {
+            if (criterias.contains(Criteria.EQ)) {
+                return cb.isNull(field);
+            } else if (criterias.contains(Criteria.NE)) {
+                return cb.isNotNull(field);
+            }
+        }
+
         if (type.equals(String.class)) {
             return getStringPredicate((Path<String>)field, filter);
         }
