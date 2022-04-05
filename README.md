@@ -575,12 +575,7 @@ type in your variables as a JSON string with quoted keys.
 
 Run Example in Docker
 ------
-You can quickly start GraphQL JPA Query Example in Docker Swarm online using the community-run Docker playground: `play-with-docker.com (PWD)` by clicking the button below:
-
-[![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/master/graphql-jpa-query-example/docker-compose.yml&stack_name=graphhql)
-
-After PWD session is ready, select the Docker container instance on the left and then click on the link at the top with exposed port 8080 to run the example. If you get an error message that says: "error routing request", wait for at least 20 seconds after container instance is created to launch the Spring Boot Application.
-
+You can quickly start GraphQL JPA Query Example in Docker
 
 License
 -------
