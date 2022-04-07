@@ -37,6 +37,7 @@ public class TaskEntity extends ActivitiEntityMetadata {
     private String assignee;
     private String name;
     private String description;
+    private String businessKey;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -156,6 +157,10 @@ public class TaskEntity extends ActivitiEntityMetadata {
     public String getDescription() {
         return description;
     }
+
+    public String getBusinessKey() { return businessKey; }
+
+    public void setBusinessKey(String businessKey) { this.businessKey = businessKey; }
 
     public Date getCreatedDate() {
         return createdDate;

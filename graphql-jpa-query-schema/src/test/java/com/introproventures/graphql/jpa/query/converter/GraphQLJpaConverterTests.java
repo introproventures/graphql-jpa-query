@@ -226,7 +226,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then:
         assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(5);
     }    
     
     @Test
@@ -258,7 +258,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then:
         assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(5);
     }       
     
     @Test // Problem with generating cast() in the where expression
@@ -823,7 +823,72 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }       
+    }
 
+    @Test
+    public void testGraphqlTasksQueryWithEQNullValues() {
+        // @formatter:off
+        String query =
+                "query {" +
+                        "  Tasks(" +
+                        "    page: { start: 1, limit: 100 }" +
+                        "    where: { status: { IN: [CREATED, ASSIGNED] }, dueDate: { EQ: null } }" +
+                        "  ) {" +
+                        "    select {" +
+                        "      id" +
+                        "      businessKey" +
+                        "      name" +
+                        "      status" +
+                        "      priority(orderBy: DESC)" +
+                        "      dueDate(orderBy: ASC)" +
+                        "      assignee" +
+                        "    }" +
+                        "  }" +
+                        "}";
+        // @formatter:on
+
+        Object result = executor.execute(query).getData();
+
+        String expected = "{Tasks={select=[" +
+                "{id=2, businessKey=null, name=task2, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
+                "{id=4, businessKey=null, name=task4, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
+                "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
+                "{id=3, businessKey=null, name=task3, status=CREATED, priority=5, dueDate=null, assignee=assignee}" +
+                "]}}";
+
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void testGraphqlTasksQueryWithNENullValues() {
+        // @formatter:off
+        String query =
+                "query {" +
+                        "  Tasks(" +
+                        "    page: { start: 1, limit: 100 }" +
+                        "    where: { status: { IN: [ASSIGNED, COMPLETED] }, businessKey: { NE: null } }" +
+                        "  ) {" +
+                        "    select {" +
+                        "      id" +
+                        "      businessKey" +
+                        "      name" +
+                        "      status" +
+                        "      priority(orderBy: DESC)" +
+                        "      dueDate(orderBy: ASC)" +
+                        "      assignee" +
+                        "    }" +
+                        "  }" +
+                        "}";
+        // @formatter:on
+
+        Object result = executor.execute(query).getData();
+
+        String expected = "{Tasks={select=[" +
+                "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
+                "{id=1, businessKey=bk1, name=task1, status=COMPLETED, priority=5, dueDate=null, assignee=assignee}" +
+                "]}}";
+
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 
 }

@@ -28,9 +28,12 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,12 +69,15 @@ import graphql.language.NullValue;
  * <li> java.util.Date </li>
  * <li> java.time.LocalDate </li>
  * <li> java.time.LocalDateTime </>
+ * <li> java.time.OffsetDateTime </>
+ * <li> java.time.ZonedDateTime </>
  * <li> java.time.Instant </li>
  * <li> java.time.LocalTime </li>
  * <li> java.util.Calendar </li>
  * <li> java.sql.Date </li>
  * <li> java.sql.Time </li>
  * <li> java.sql.Timestamp </li>
+ * <li> java.util.UUID </li>
  * </ul>
  *
  */
@@ -79,6 +85,7 @@ class JpaPredicateBuilder {
 
     public static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES = new HashMap<Class<?>, Class<?>>();
     public static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = new HashMap<Class<?>, Class<?>>();
+    public static final Set<Class<?>> JAVA_SCALARS = new LinkedHashSet<>();
 
     static {
         PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
@@ -100,6 +107,30 @@ class JpaPredicateBuilder {
         WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
         WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
         WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
+
+        JAVA_SCALARS.addAll(Arrays.asList(Boolean.class,
+                                          Byte.class,
+                                          Character.class,
+                                          Double.class,
+                                          Float.class,
+                                          Integer.class,
+                                          Long.class,
+                                          Short.class,
+                                          BigInteger.class,
+                                          BigDecimal.class,
+                                          String.class,
+                                          Date.class,
+                                          LocalDate.class,
+                                          LocalDateTime.class,
+                                          ZonedDateTime.class,
+                                          Instant.class,
+                                          LocalTime.class,
+                                          Calendar.class,
+                                          OffsetDateTime.class,
+                                          java.sql.Date.class,
+                                          java.sql.Time.class,
+                                          java.sql.Timestamp.class,
+                                          UUID.class));
     }
     
     private final CriteriaBuilder cb;
@@ -304,7 +335,6 @@ class JpaPredicateBuilder {
         return null;
     }
 
-    // TODO: other date types
     protected Predicate getDatePredicate(Path<? extends Date> root, PredicateFilter filter) {
         if (filter.getValue() != null && filter.getValue() instanceof Date) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
@@ -730,7 +760,7 @@ class JpaPredicateBuilder {
         if (type.isPrimitive())
             type = PRIMITIVES_TO_WRAPPERS.get(type);
 
-        if (NullValue.class.isInstance(value) && WRAPPERS_TO_PRIMITIVES.get(type) != null) {
+        if (NullValue.class.isInstance(value) && JAVA_SCALARS.contains(type)) {
             if (criterias.contains(Criteria.EQ)) {
                 return cb.isNull(field);
             } else if (criterias.contains(Criteria.NE)) {
