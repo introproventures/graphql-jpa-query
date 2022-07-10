@@ -143,10 +143,10 @@ insert into book_publishers(book_id, name, country) values
 	(2, 'Willey', 'US'), (2, 'Simon', 'EU');
 	
 -- Car
-insert into Car (id, brand, identification) values
-	(1, 'Ford', 'xxxxx'),
-	(2, 'Cadillac', 'yyyyy'),
-	(3, 'Toyota', 'zzzzz');
+insert into Car (id, brand, identification, hp) values
+	(1, 'Ford', 'xxxxx', 160),
+	(2, 'Cadillac', 'yyyyy', 250),
+	(3, 'Toyota', 'zzzzz', 180);
 
 	
 -- Boat

@@ -6,5 +6,6 @@ import javax.persistence.Embeddable;
 public class Engine {
 
     String identification;
+    Long hp;
 
 }

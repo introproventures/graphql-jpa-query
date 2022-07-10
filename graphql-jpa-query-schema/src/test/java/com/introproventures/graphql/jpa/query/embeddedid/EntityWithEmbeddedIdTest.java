@@ -94,16 +94,14 @@ public class EntityWithEmbeddedIdTest  extends AbstractSpringBootTestSupport {
     }
     
     @Test
-    public void queryBooksWithyWithEmbeddedIdWhereCriteriaExpression() {
+    public void queryBooksWithWithEmbeddedIdWhereCriteriaExpression() {
         //given
         String query = "query {" +
                 "  Books( " +
                 "    where: {" +
                 "      bookId: {" +
-                "        EQ: {" +
-                "          title: \"War and Piece\"" +
-                "          language: \"Russian\"" +
-                "        }" +
+                "        title: {LIKE: \"War % Piece\"}" +
+                "        language: {EQ: \"Russian\"}" +
                 "      }" +
                 "    }" +
                 "  ){" +
