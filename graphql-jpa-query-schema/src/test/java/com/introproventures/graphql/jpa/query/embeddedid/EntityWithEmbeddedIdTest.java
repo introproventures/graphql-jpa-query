@@ -16,7 +16,7 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-@SpringBootTest(properties = "spring.datasource.data=EntityWithEmbeddedIdTest.sql")
+@SpringBootTest(properties = "spring.sql.init.data-locations=EntityWithEmbeddedIdTest.sql")
 public class EntityWithEmbeddedIdTest  extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication

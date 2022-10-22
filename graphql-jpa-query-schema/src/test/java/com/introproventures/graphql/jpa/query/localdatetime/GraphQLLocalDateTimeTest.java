@@ -19,7 +19,7 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
-@SpringBootTest(properties = "spring.datasource.data=LocalDatetTmeData.sql")
+@SpringBootTest(properties = "spring.sql.init.data-locations=LocalDatetTmeData.sql")
 public class GraphQLLocalDateTimeTest extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
