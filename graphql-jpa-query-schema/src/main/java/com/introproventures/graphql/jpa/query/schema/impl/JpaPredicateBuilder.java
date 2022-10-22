@@ -313,7 +313,10 @@ class JpaPredicateBuilder {
     }
 
     protected Predicate getFloatingPointPredicate(Path<? extends Number> root, PredicateFilter filter) {
-        if (filter.getValue() != null && filter.getValue() instanceof Number) {
+
+        Predicate arrayValuePredicate = mayBeArrayValuePredicate(root, filter);
+
+        if (arrayValuePredicate == null && filter.getValue() != null && filter.getValue() instanceof Number) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
                 return cb.lt(root, (Number) filter.getValue());
             }
@@ -332,7 +335,7 @@ class JpaPredicateBuilder {
             // LE or default
             return cb.le(root, (Number) filter.getValue());
         }
-        return null;
+        return arrayValuePredicate;
     }
 
     protected Predicate getDatePredicate(Path<? extends Date> root, PredicateFilter filter) {
