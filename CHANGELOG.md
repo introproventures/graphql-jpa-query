@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.0
+## 0.5.1-SNAPSHOT
 * Update README.md [02bd775](https://github.com/introproventures/graphql-jpa-query/commit/02bd775bee16ca89e584793d07df5104ac864796)
 * Update build.yml [b22f006](https://github.com/introproventures/graphql-jpa-query/commit/b22f0069c6cf9148bab4a0388274f5e1cf54caa7)
 * bugfix: where query with embedded entities produce an exception when type specific opetator is used (#306) [5bded30](https://github.com/introproventures/graphql-jpa-query/commit/5bded307b0f0430637cbf76660614521e13c8d14)
