@@ -33,7 +33,8 @@ Features
 Supported Apis
 ----------------------
 * jpa-api 2.1
-* graphql-java 13
+* graphql-java 19.x for 0.5.x versions
+* graphql-java 13 for 0.4.x versions
 
 Tested using JDK Versions
 ----------------------
