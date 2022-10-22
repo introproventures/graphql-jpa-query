@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import javax.persistence.metamodel.SingularAttribute;
 
+import graphql.schema.GraphQLNamedType;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
@@ -54,7 +55,7 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
-        GraphQLType parentType = environment.getParentType();
+        GraphQLNamedType parentType = (GraphQLNamedType) environment.getParentType();
 
         Object source = environment.getSource();
         Optional<Argument> whereArgument = queryFactory.getArgument(field, "where");
