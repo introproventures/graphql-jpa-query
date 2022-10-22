@@ -111,24 +111,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     protected NamingStrategy namingStrategy = new NamingStrategy() {};
 
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
-    public static final String DEFERRED_RESULTS = "deferredResults";
-
-    /**
-     * The @defer directive can be used to defer sending data for a field till later in the query.  This is an opt in
-     * directive that is not available unless it is explicitly put into the schema.
-     */
-    public static final GraphQLDirective DeferDirective = GraphQLDirective.newDirective()
-                                                                          .name("defer")
-                                                                          .description("This directive allows results to be deferred during execution")
-                                                                          .argument(newArgument()
-                                                                                            .name("if")
-                                                                                            .type(nonNull(GraphQLBoolean))
-                                                                                            .description("Deferred behaviour is controlled by this argument")
-                                                                                            .defaultValue(true)
-                                                                          )
-                                                                          .validLocations(FIELD)
-                                                                          .build();
-
 
     private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
@@ -149,7 +131,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean isDefaultDistinct = true;
     private boolean toManyDefaultOptional = true; // the many end is a collection, and it is always optional by default (empty collection)
     private boolean enableSubscription = false; // experimental
-    private boolean enableDeferDirective = false; // experimental
     private boolean enableRelay = false; // experimental
     private int defaultMaxResults = 100;
     private int defaultFetchSize = 100;
@@ -180,10 +161,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if(enableSubscription) {
             schema.subscription(getSubscriptionType());
-        }
-
-        if(enableDeferDirective) {
-            schema.additionalDirective(DeferDirective);
         }
 
         if(enableRelay) {
@@ -1422,16 +1399,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public GraphQLJpaSchemaBuilder enableSubscription(boolean enableSubscription) {
         this.enableSubscription = enableSubscription;
-
-        return this;
-    }
-
-    public boolean isEnableDeferDirective() {
-        return enableDeferDirective;
-    }
-
-    public GraphQLJpaSchemaBuilder enableDeferDirective(boolean enableDeferDirective) {
-        this.enableDeferDirective = enableDeferDirective;
 
         return this;
     }

@@ -323,9 +323,6 @@ public class GraphQLController {
     }
 
     private void sendResponse(HttpServletResponse response, ExecutionResult executionResult) throws IOException {
-//        if (hasDeferredResults(executionResult)) {
-//            sendDeferredResponse(response, executionResult, executionResult.getExtensions());
-//        } else
          if (hasPublisherResults(executionResult)) {
             sendMultipartResponse(response, executionResult, executionResult.getData());
         } else {
@@ -339,29 +336,11 @@ public class GraphQLController {
         mapper.writeValue(response.getOutputStream(), executionResult.toSpecification());
     }
 
-//    private boolean hasDeferredResults(ExecutionResult executionResult) {
-//        return Optional.ofNullable(executionResult.getExtensions())
-//                       .map(it -> it.containsKey(GraphQL.DEFERRED_RESULTS))
-//                       .orElse(false);
-//    }
-
     private boolean hasPublisherResults(ExecutionResult executionResult) {
         return Publisher.class.isInstance(executionResult.getData());
     }
 
     private static final String CRLF = "\r\n";
-
-    @SuppressWarnings("unchecked")
-//    private void sendDeferredResponse(HttpServletResponse response,
-//                                      ExecutionResult executionResult,
-//                                      Map<Object, Object> extensions) {
-//        Publisher<DeferredExecutionResult> deferredResults = (Publisher<DeferredExecutionResult>) extensions.get(GraphQL.DEFERRED_RESULTS);
-//        try {
-//            sendMultipartResponse(response, executionResult, deferredResults);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     private void sendMultipartResponse(HttpServletResponse response,
                                        ExecutionResult executionResult,
@@ -373,11 +352,6 @@ public class GraphQLController {
 
         response.setHeader("Content-Type", "multipart/mixed; boundary=\"-\"");
         response.setHeader("Connection", "keep-alive");
-
-//        // send the first "un deferred" part of the result
-//        if(hasDeferredResults(executionResult)) {
-//           writeAndFlushPart(response, executionResult.toSpecification());
-//        }
 
         // now send each deferred part which is given to us as a reactive stream
         // of deferred values
