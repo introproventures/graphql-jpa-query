@@ -226,7 +226,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     public void directivesSupport() {
         assertThat(graphQLSchema.getDirectives())
                 .extracting(GraphQLDirective::getName)
-                .containsExactly("include", "skip", "specifiedBy", "deprecated");
+                .containsOnly("include", "skip", "specifiedBy", "deprecated");
     }
     
     @Test
