@@ -130,6 +130,7 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
                 .isPresent().get()
                 .extracting(it -> it.getArgument("optional"))
                 .extracting("defaultValue")
+                .extracting("value")
                 .isEqualTo(Boolean.FALSE);
     }
 
@@ -150,6 +151,7 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
                 .isPresent().get()
                 .extracting(it -> it.getArgument("optional"))
                 .extracting("defaultValue")
+                .extracting("value")
                 .isEqualTo(Boolean.TRUE);
     }
 

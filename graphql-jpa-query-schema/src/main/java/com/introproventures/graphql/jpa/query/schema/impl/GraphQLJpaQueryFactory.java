@@ -75,6 +75,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import graphql.execution.CoercedVariables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +93,6 @@ import graphql.execution.MergedField;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
 import graphql.language.ArrayValue;
-import graphql.language.AstValueHelper;
 import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
 import graphql.language.Field;
@@ -681,9 +681,9 @@ public final class GraphQLJpaQueryFactory {
                 List<Argument> values = whereArgument.map(Collections::singletonList)
                                                      .orElse(Collections.emptyList());
 
-                Map<String, Object> fieldArguments = new ValuesResolver().getArgumentValues(fieldDefinition.getArguments(),
-                                                                                            values,
-                                                                                            variables);
+                Map<String, Object> fieldArguments = ValuesResolver.getArgumentValues(fieldDefinition.getArguments(),
+                                                                                      values,
+                                                                                      new CoercedVariables(variables));
 
                 DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(environment,
                                                                                      fieldDefinition,
@@ -818,8 +818,8 @@ public final class GraphQLJpaQueryFactory {
                     new Field(fieldName)
                 );
 
-                Map<String, Object> arguments = (Map<String, Object>) new ValuesResolver()
-                    .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), variables)
+                Map<String, Object> arguments = (Map<String, Object>) ValuesResolver
+                    .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), new CoercedVariables(variables))
                     .get(WHERE);
 
                 return getWherePredicate(cb, from, join, wherePredicateEnvironment(environment, fieldDef, arguments), where);
@@ -1624,7 +1624,7 @@ public final class GraphQLJpaQueryFactory {
     @SuppressWarnings( "unchecked" )
     protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
         return (R) getObjectField(objectValue, fieldName).map(ObjectField::getValue)
-                                                         .orElse(NullValue.Null);
+                                                         .orElse(NullValue.of());
     }
 
     @SuppressWarnings( "unchecked" )

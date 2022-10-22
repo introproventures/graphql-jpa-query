@@ -81,7 +81,7 @@ public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSup
                 .asList()
 				.hasSize(1)
 				.extracting("id", "title", "genre")
-				.containsOnly(tuple(2L, "War and Peace", NOVEL));
+				.containsOnly(tuple(2L, "War and Peace", "NOVEL"));
 	}
 
 	@Test
@@ -165,8 +165,11 @@ public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSup
 				.extracting("Books")
 				.extracting("select")
                 .asList()
-				.extracting("genre")
-				.containsOnly(PLAY);
+				.hasSize(3)
+				.extracting("title", "genre")
+				.containsOnly(tuple("The Cherry Orchard", "PLAY"),
+							  tuple("The Seagull", "PLAY"),
+							  tuple("Three Sisters", "PLAY"));
 	}
 
 	@Test
