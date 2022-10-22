@@ -770,6 +770,20 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void whereQueryWithSeparateEmbeddedEntityFieldsCriterias() {
+        //given
+        String query = "query { Cars(where: { engine: {identification:{LIKE:\"%\"}, hp:{GE:200}} }) { select {id brand} } }";
+
+        String expected = "{Cars={select=[{id=2, brand=Cadillac}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
     public void queryForEntityWithEmbeddedIdAndEmbeddedField() {

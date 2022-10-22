@@ -17,11 +17,9 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static graphql.Scalars.GraphQLBoolean;
-import static graphql.introspection.Introspection.DirectiveLocation.FIELD;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
-import static graphql.schema.GraphQLNonNull.nonNull;
 
 import java.beans.Introspector;
 import java.lang.reflect.AnnotatedElement;
@@ -49,7 +47,6 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
-import graphql.schema.GraphQLDirective;
 import org.dataloader.MappedBatchLoaderWithContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +61,7 @@ import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.schema.relay.GraphQLJpaRelayDataFetcher;
-
 import graphql.Assert;
-import graphql.Directives;
 import graphql.Scalars;
 import graphql.relay.Relay;
 import graphql.schema.Coercing;
@@ -85,6 +80,7 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
+
 
 /**
  * JPA specific schema builder implementation of {code #GraphQLSchemaBuilder} interface
@@ -136,7 +132,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private int defaultFetchSize = 100;
     private int defaultPageLimitSize = 100;
     private boolean enableDefaultMaxResults = true;
-    
+
     private RestrictedKeysProvider restrictedKeysProvider = (entityDescriptor) -> Optional.of(Collections.emptyList());
 
     private final Relay relay = new Relay();
@@ -505,7 +501,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         String typeName="";
 
         if (managedType instanceof EmbeddableType){
-            typeName = managedType.getJavaType().getSimpleName()+"EmbeddableType";
+            typeName = managedType.getJavaType().getSimpleName();
         } else if (managedType instanceof EntityType) {
             typeName = ((EntityType<?>)managedType).getName();
         }
@@ -514,7 +510,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLInputObjectType getWhereInputType(ManagedType<?> managedType) {
-        return inputObjectCache.computeIfAbsent(managedType, this::computeWhereInputType);
+        GraphQLInputObjectType type = inputObjectCache.get(managedType);
+        if (type == null) {
+            type = computeWhereInputType(managedType);
+            inputObjectCache.put(managedType, type);
+            return type;
+        }
+        return type;
+
     }
 
     private String resolveWhereInputTypeName(ManagedType<?> managedType) {
@@ -609,6 +612,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if(whereAttributesMap.containsKey(type))
            return whereAttributesMap.get(type);
+
+        if (isEmbeddable(attribute)) {
+            EmbeddableType<?> embeddableType = (EmbeddableType<?>) ((SingularAttribute<?, ?>) attribute).getType();
+            return getWhereInputType(embeddableType);
+        }
 
         GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject()
             .name(type)
@@ -786,7 +794,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLArgument getArgument(Attribute<?,?> attribute) {
-        GraphQLInputType type = getAttributeInputType(attribute);
+        GraphQLInputType type = getAttributeInputTypeForSearchByIdArg(attribute);
         String description = getSchemaDescription(attribute);
 
         return GraphQLArgument.newArgument()
@@ -796,25 +804,33 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .build();
     }
 
-    private GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input) {
-        if (input && embeddableInputCache.containsKey(embeddableType.getJavaType()))
-            return embeddableInputCache.get(embeddableType.getJavaType());
-
-        if (!input && embeddableOutputCache.containsKey(embeddableType.getJavaType()))
-            return embeddableOutputCache.get(embeddableType.getJavaType());
-        String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+ (input ? "Input" : "") +"EmbeddableType";
-        GraphQLType graphQLType=null;
+    private GraphQLType getEmbeddableType(EmbeddableType<?> embeddableType, boolean input, boolean searchByIdArg) {
+        GraphQLType graphQLType;
         if (input) {
-            graphQLType = GraphQLInputObjectType.newInputObject()
-                    .name(embeddableTypeName)
+
+            if (searchByIdArg) {
+                if (embeddableInputCache.containsKey(embeddableType.getJavaType())) {
+                    return embeddableInputCache.get(embeddableType.getJavaType());
+                }
+                graphQLType = GraphQLInputObjectType.newInputObject()
+                    .name(namingStrategy.singularize(embeddableType.getJavaType().getSimpleName())+ "InputEmbeddableIdType")
                     .description(getSchemaDescription(embeddableType))
                     .fields(embeddableType.getAttributes().stream()
-                            .filter(this::isNotIgnored)
-                            .map(this::getInputObjectField)
-                            .collect(Collectors.toList())
+                        .filter(this::isNotIgnored)
+                        .map(this::getInputObjectField)
+                        .collect(Collectors.toList())
                     )
                     .build();
+                embeddableInputCache.put(embeddableType.getJavaType(), (GraphQLInputObjectType) graphQLType);
+                return graphQLType;
+            }
+
+            graphQLType = getWhereInputType(embeddableType);
         } else {
+            if (embeddableOutputCache.containsKey(embeddableType.getJavaType())) {
+                return embeddableOutputCache.get(embeddableType.getJavaType());
+            }
+            String embeddableTypeName = namingStrategy.singularize(embeddableType.getJavaType().getSimpleName()) + "EmbeddableType";
             graphQLType = GraphQLObjectType.newObject()
                     .name(embeddableTypeName)
                     .description(getSchemaDescription(embeddableType))
@@ -824,13 +840,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                             .collect(Collectors.toList())
                     )
                     .build();
-        }
-        if (input) {
-            embeddableInputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLInputObjectType) graphQLType);
-        } else{
             embeddableOutputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLObjectType) graphQLType);
         }
-
         return graphQLType;
     }
 
@@ -1020,9 +1031,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLInputType getAttributeInputType(Attribute<?,?> attribute) {
+        return getAttributeInputType(attribute, false);
+    }
+
+    private GraphQLInputType getAttributeInputTypeForSearchByIdArg(Attribute<?,?> attribute) {
+        return getAttributeInputType(attribute, true);
+    }
+
+    private GraphQLInputType getAttributeInputType(Attribute<?,?> attribute, boolean searchByIdArgType) {
 
         try {
-            return (GraphQLInputType) getAttributeType(attribute, true);
+            return (GraphQLInputType) getAttributeType(attribute, true, searchByIdArgType);
         } catch (ClassCastException e){
             throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Input Argument");
         }
@@ -1030,21 +1049,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private GraphQLOutputType getAttributeOutputType(Attribute<?,?> attribute) {
         try {
-            return (GraphQLOutputType) getAttributeType(attribute, false);
+            return (GraphQLOutputType) getAttributeType(attribute, false, false);
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("Attribute " + attribute + " cannot be mapped as an Output Argument");
         }
     }
 
     @SuppressWarnings( "rawtypes" )
-    protected GraphQLType getAttributeType(Attribute<?,?> attribute, boolean input) {
+    protected GraphQLType getAttributeType(Attribute<?,?> attribute, boolean input, boolean searchByIdArgType) {
 
         if (isBasic(attribute)) {
         	return getGraphQLTypeFromJavaType(attribute.getJavaType());
         }
         else if (isEmbeddable(attribute)) {
         	EmbeddableType embeddableType = (EmbeddableType) ((SingularAttribute) attribute).getType();
-        	return getEmbeddableType(embeddableType, input);
+        	return getEmbeddableType(embeddableType, input, searchByIdArgType);
         }
         else if (isToMany(attribute)) {
             EntityType foreignType = (EntityType) ((PluralAttribute) attribute).getElementType();
@@ -1066,8 +1085,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             }
             else if (foreignType.getPersistenceType() == Type.PersistenceType.EMBEDDABLE) {
                 EmbeddableType embeddableType = EmbeddableType.class.cast(foreignType);
-                GraphQLType graphQLType = getEmbeddableType(embeddableType, 
-                                                            input);
+                GraphQLType graphQLType = getEmbeddableType(embeddableType, input, searchByIdArgType);
                 
                 return input ?  graphQLType : new GraphQLList(graphQLType);
             }
