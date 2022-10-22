@@ -1,6 +1,11 @@
 # Change Log
 
-## 0.4.20-SNAPSHOT
+## 0.5.0
+* Update README.md [02bd775](https://github.com/introproventures/graphql-jpa-query/commit/02bd775bee16ca89e584793d07df5104ac864796)
+* Update build.yml [b22f006](https://github.com/introproventures/graphql-jpa-query/commit/b22f0069c6cf9148bab4a0388274f5e1cf54caa7)
+* bugfix: where query with embedded entities produce an exception when type specific opetator is used (#306) [5bded30](https://github.com/introproventures/graphql-jpa-query/commit/5bded307b0f0430637cbf76660614521e13c8d14)
+* Add support for IN/NIN, BETWEEN/NOT_BETWEEN predicates for floating point numbers (#305) [0fba728](https://github.com/introproventures/graphql-jpa-query/commit/0fba7285c3f0c215c915c5d18e1ea99607eb5f97)
+* fix: update graphql-java version to 19.2 (#308) [499798d](https://github.com/introproventures/graphql-jpa-query/commit/499798dd11d36a050ad7b974ba33e73444d605d5)
 * fix: support EQ/NE nullable criteria values  for Java scalars (#302) [82e5210](https://github.com/introproventures/graphql-jpa-query/commit/82e5210df6d6696cbc275671568e75d4f2033a11)
 * fix: Add support for EQ,NE predicates for nullable scalar type values (#301) [88d571e](https://github.com/introproventures/graphql-jpa-query/commit/88d571e1add1956de3fcb96a251eb2e232b3b148)
 * fix: update spring boot version to 2.6.6 (#300) [12f606d](https://github.com/introproventures/graphql-jpa-query/commit/12f606d4c5474778e344a79515ac80aa03e868c8)
