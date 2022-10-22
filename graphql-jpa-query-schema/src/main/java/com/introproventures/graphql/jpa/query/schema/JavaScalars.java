@@ -47,6 +47,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import graphql.scalar.GraphqlFloatCoercing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,10 +78,56 @@ import graphql.schema.GraphQLScalarType;
  */
 public class JavaScalars {
 
+    private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
+    private static final BigInteger LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
+    private static final BigInteger INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
+    private static final BigInteger INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
+    private static final BigInteger BYTE_MAX = BigInteger.valueOf(Byte.MAX_VALUE);
+    private static final BigInteger BYTE_MIN = BigInteger.valueOf(Byte.MIN_VALUE);
+    private static final BigInteger SHORT_MAX = BigInteger.valueOf(Short.MAX_VALUE);
+    private static final BigInteger SHORT_MIN = BigInteger.valueOf(Short.MIN_VALUE);
+
     static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
 
     private static HashMap<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
-    
+
+    public static GraphQLScalarType GraphQLLong = GraphQLScalarType.newScalar()
+                                                                   .name("Long")
+                                                                   .description("Long type")
+                                                                   .coercing(new GraphqlLongCoercing())
+                                                                   .build();
+
+    public static GraphQLScalarType GraphQLShort = GraphQLScalarType.newScalar()
+                                                                    .name("Short")
+                                                                    .description("Short type")
+                                                                    .coercing(new GraphqlShortCoercing())
+                                                                    .build();
+
+    public static GraphQLScalarType GraphQLBigInteger = GraphQLScalarType.newScalar()
+                                                                         .name("BigInteger")
+                                                                         .description("BigInteger type")
+                                                                         .coercing(new GraphqlBigIntegerCoercing())
+                                                                         .build();
+
+    public static GraphQLScalarType GraphQLChar = GraphQLScalarType.newScalar()
+                                                                   .name("Char")
+                                                                   .description("Char type")
+                                                                   .coercing(new GraphqlCharCoercing())
+                                                                   .build();
+
+    public static GraphQLScalarType GraphQLByte = GraphQLScalarType.newScalar()
+                                                                   .name("Byte")
+                                                                   .description("Byte type")
+                                                                   .coercing(new GraphqlByteCoercing())
+                                                                   .build();
+
+    public static GraphQLScalarType GraphQLBigDecimal = GraphQLScalarType.newScalar()
+                                                                         .name("BigDecimal")
+                                                                         .description("BigDecimal type")
+                                                                         .coercing(new GraphqlBigDecimalCoercing())
+                                                                         .build();
+
+
     private static JavaScalars instance = new JavaScalars();
 
     static {
@@ -89,8 +136,8 @@ public class JavaScalars {
         scalarsRegistry.put(Integer.class, Scalars.GraphQLInt);
         scalarsRegistry.put(int.class, Scalars.GraphQLInt);
 
-        scalarsRegistry.put(Short.class, Scalars.GraphQLShort);
-        scalarsRegistry.put(short.class, Scalars.GraphQLShort);
+        scalarsRegistry.put(Short.class, JavaScalars.GraphQLShort);
+        scalarsRegistry.put(short.class, JavaScalars.GraphQLShort);
 
         scalarsRegistry.put(Float.class, Scalars.GraphQLFloat);
         scalarsRegistry.put(float.class, Scalars.GraphQLFloat);
@@ -98,21 +145,21 @@ public class JavaScalars {
         scalarsRegistry.put(Double.class, Scalars.GraphQLFloat);
         scalarsRegistry.put(double.class, Scalars.GraphQLFloat);
 
-        scalarsRegistry.put(Long.class, Scalars.GraphQLLong);
-        scalarsRegistry.put(long.class, Scalars.GraphQLLong);
+        scalarsRegistry.put(Long.class, JavaScalars.GraphQLLong);
+        scalarsRegistry.put(long.class, JavaScalars.GraphQLLong);
 
         scalarsRegistry.put(Boolean.class, Scalars.GraphQLBoolean);
         scalarsRegistry.put(boolean.class, Scalars.GraphQLBoolean);
 
-        scalarsRegistry.put(BigInteger.class, Scalars.GraphQLBigInteger);
+        scalarsRegistry.put(BigInteger.class, JavaScalars.GraphQLBigInteger);
 
-        scalarsRegistry.put(char.class, Scalars.GraphQLChar);
-        scalarsRegistry.put(Character.class, Scalars.GraphQLChar);
+        scalarsRegistry.put(char.class, JavaScalars.GraphQLChar);
+        scalarsRegistry.put(Character.class, JavaScalars.GraphQLChar);
 
-        scalarsRegistry.put(Byte.class, Scalars.GraphQLByte);
-        scalarsRegistry.put(byte.class, Scalars.GraphQLByte);
+        scalarsRegistry.put(Byte.class, JavaScalars.GraphQLByte);
+        scalarsRegistry.put(byte.class, JavaScalars.GraphQLByte);
 
-        scalarsRegistry.put(BigDecimal.class, Scalars.GraphQLBigDecimal);
+        scalarsRegistry.put(BigDecimal.class, JavaScalars.GraphQLBigDecimal);
 
         scalarsRegistry.put(LocalDateTime.class, newScalarType("LocalDateTime", "LocalDateTime type", new GraphQLLocalDateTimeCoercing()));
         scalarsRegistry.put(LocalDate.class, newScalarType("LocalDate", "LocalDate type", new GraphQLLocalDateCoercing()));
@@ -147,8 +194,8 @@ public class JavaScalars {
     }
 
     public static JavaScalars register(Class<?> key, GraphQLScalarType value) {
-        Assert.assertNotNull(key, "key parameter cannot be null.");
-        Assert.assertNotNull(value, "value parameter cannot be null.");
+        Assert.assertNotNull(key, () -> "key parameter cannot be null.");
+        Assert.assertNotNull(value, () -> "value parameter cannot be null.");
 
         scalarsRegistry.put(key, value);
 
@@ -821,8 +868,393 @@ public class JavaScalars {
                                 .toInstant(ZoneOffset.UTC);
             }
         }            
-    }    
+    }
 
+    /**
+     * This represents the "Long" type which is a representation of java.lang.Long
+     */
+    public static class GraphqlLongCoercing implements Coercing<Long, Long> {
 
-    
+        private Long convertImpl(Object input) {
+            if (input instanceof Long) {
+                return (Long) input;
+            } else if (isNumberIsh(input)) {
+                BigDecimal value;
+                try {
+                    value = new BigDecimal(input.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                try {
+                    return value.longValueExact();
+                } catch (ArithmeticException e) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+        }
+
+        @Override
+        public Long serialize(Object input) {
+            Long result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'Long' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Long parseValue(Object input) {
+            Long result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'Long' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Long parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                try {
+                    return Long.parseLong(((StringValue) input).getValue());
+                } catch (NumberFormatException e) {
+                    throw new CoercingParseLiteralException(
+                            "Expected value to be a Long but it was '" + String.valueOf(input) + "'"
+                    );
+                }
+            } else if (input instanceof IntValue) {
+                BigInteger value = ((IntValue) input).getValue();
+                if (value.compareTo(LONG_MIN) < 0 || value.compareTo(LONG_MAX) > 0) {
+                    throw new CoercingParseLiteralException(
+                            "Expected value to be in the Long range but it was '" + value.toString() + "'"
+                    );
+                }
+                return value.longValue();
+            }
+            throw new CoercingParseLiteralException(
+                    "Expected AST type 'IntValue' or 'StringValue' but was '" + typeName(input) + "'."
+            );
+        }
+    }
+
+    public static class GraphqlShortCoercing implements Coercing<Short, Short> {
+
+        private Short convertImpl(Object input) {
+            if (input instanceof Short) {
+                return (Short) input;
+            } else if (isNumberIsh(input)) {
+                BigDecimal value;
+                try {
+                    value = new BigDecimal(input.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                try {
+                    return value.shortValueExact();
+                } catch (ArithmeticException e) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+        }
+
+        @Override
+        public Short serialize(Object input) {
+            Short result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'Short' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Short parseValue(Object input) {
+            Short result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'Short' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Short parseLiteral(Object input) {
+            if (!(input instanceof IntValue)) {
+                throw new CoercingParseLiteralException(
+                        "Expected AST type 'IntValue' but was '" + typeName(input) + "'."
+                );
+            }
+            BigInteger value = ((IntValue) input).getValue();
+            if (value.compareTo(SHORT_MIN) < 0 || value.compareTo(SHORT_MAX) > 0) {
+                throw new CoercingParseLiteralException(
+                        "Expected value to be in the Short range but it was '" + value.toString() + "'"
+                );
+            }
+            return value.shortValue();
+        }
+    }
+
+    public static class GraphqlBigIntegerCoercing implements Coercing<BigInteger, BigInteger> {
+
+        private BigInteger convertImpl(Object input) {
+            if (isNumberIsh(input)) {
+                BigDecimal value;
+                try {
+                    value = new BigDecimal(input.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                try {
+                    return value.toBigIntegerExact();
+                } catch (ArithmeticException e) {
+                    return null;
+                }
+            }
+            return null;
+
+        }
+
+        @Override
+        public BigInteger serialize(Object input) {
+            BigInteger result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'BigInteger' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public BigInteger parseValue(Object input) {
+            BigInteger result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'BigInteger' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public BigInteger parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                try {
+                    return new BigDecimal(((StringValue) input).getValue()).toBigIntegerExact();
+                } catch (NumberFormatException | ArithmeticException e) {
+                    throw new CoercingParseLiteralException(
+                            "Unable to turn AST input into a 'BigInteger' : '" + String.valueOf(input) + "'"
+                    );
+                }
+            } else if (input instanceof IntValue) {
+                return ((IntValue) input).getValue();
+            } else if (input instanceof FloatValue) {
+                try {
+                    return ((FloatValue) input).getValue().toBigIntegerExact();
+                } catch (ArithmeticException e) {
+                    throw new CoercingParseLiteralException(
+                            "Unable to turn AST input into a 'BigInteger' : '" + String.valueOf(input) + "'"
+                    );
+                }
+            }
+            throw new CoercingParseLiteralException(
+                    "Expected AST type 'IntValue', 'StringValue' or 'FloatValue' but was '" + typeName(input) + "'."
+            );
+        }
+    }
+
+    public static class GraphqlCharCoercing implements Coercing<Character, Character> {
+
+        private Character convertImpl(Object input) {
+            if (input instanceof String && ((String) input).length() == 1) {
+                return ((String) input).charAt(0);
+            } else if (input instanceof Character) {
+                return (Character) input;
+            } else {
+                return null;
+            }
+
+        }
+
+        @Override
+        public Character serialize(Object input) {
+            Character result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'Char' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Character parseValue(Object input) {
+            Character result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'Char' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Character parseLiteral(Object input) {
+            if (!(input instanceof StringValue)) {
+                throw new CoercingParseLiteralException(
+                        "Expected AST type 'StringValue' but was '" + typeName(input) + "'."
+                );
+            }
+            String value = ((StringValue) input).getValue();
+            if (value.length() != 1) {
+                throw new CoercingParseLiteralException(
+                        "Empty 'StringValue' provided."
+                );
+            }
+            return value.charAt(0);
+        }
+    }
+
+    public static class GraphqlByteCoercing implements Coercing<Byte, Byte> {
+
+        private Byte convertImpl(Object input) {
+            if (input instanceof Byte) {
+                return (Byte) input;
+            } else if (isNumberIsh(input)) {
+                BigDecimal value;
+                try {
+                    value = new BigDecimal(input.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                try {
+                    return value.byteValueExact();
+                } catch (ArithmeticException e) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+        }
+
+        @Override
+        public Byte serialize(Object input) {
+            Byte result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'Byte' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Byte parseValue(Object input) {
+            Byte result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'Byte' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public Byte parseLiteral(Object input) {
+            if (!(input instanceof IntValue)) {
+                throw new CoercingParseLiteralException(
+                        "Expected AST type 'IntValue' but was '" + typeName(input) + "'."
+                );
+            }
+            BigInteger value = ((IntValue) input).getValue();
+            if (value.compareTo(BYTE_MIN) < 0 || value.compareTo(BYTE_MAX) > 0) {
+                throw new CoercingParseLiteralException(
+                        "Expected value to be in the Byte range but it was '" + value.toString() + "'"
+                );
+            }
+            return value.byteValue();
+        }
+    }
+
+    public static class GraphqlBigDecimalCoercing implements Coercing<BigDecimal, BigDecimal> {
+
+        private BigDecimal convertImpl(Object input) {
+            if (isNumberIsh(input)) {
+                try {
+                    return new BigDecimal(input.toString());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            return null;
+
+        }
+
+        @Override
+        public BigDecimal serialize(Object input) {
+            BigDecimal result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingSerializeException(
+                        "Expected type 'BigDecimal' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public BigDecimal parseValue(Object input) {
+            BigDecimal result = convertImpl(input);
+            if (result == null) {
+                throw new CoercingParseValueException(
+                        "Expected type 'BigDecimal' but was '" + typeName(input) + "'."
+                );
+            }
+            return result;
+        }
+
+        @Override
+        public BigDecimal parseLiteral(Object input) {
+            if (input instanceof StringValue) {
+                try {
+                    return new BigDecimal(((StringValue) input).getValue());
+                } catch (NumberFormatException e) {
+                    throw new CoercingParseLiteralException(
+                            "Unable to turn AST input into a 'BigDecimal' : '" + String.valueOf(input) + "'"
+                    );
+                }
+            } else if (input instanceof IntValue) {
+                return new BigDecimal(((IntValue) input).getValue());
+            } else if (input instanceof FloatValue) {
+                return ((FloatValue) input).getValue();
+            }
+            throw new CoercingParseLiteralException(
+                    "Expected AST type 'IntValue', 'StringValue' or 'FloatValue' but was '" + typeName(input) + "'."
+            );
+        }
+    }
+
+    static boolean isNumberIsh(Object input) {
+        return input instanceof Number || input instanceof String;
+    }
+
+    static String typeName(Object input) {
+        if (input == null) {
+            return "null";
+        }
+
+        return input.getClass().getSimpleName();
+    }
+
 }

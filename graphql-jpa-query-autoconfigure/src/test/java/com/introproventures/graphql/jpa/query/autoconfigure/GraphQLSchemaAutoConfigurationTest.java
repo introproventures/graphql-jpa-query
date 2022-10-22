@@ -160,7 +160,10 @@ public class GraphQLSchemaAutoConfigurationTest {
                                                                       .build();
 
                 GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
-                                                           .query(GraphQLObjectType.newObject().name("null"))
+                                                           .query(GraphQLObjectType.newObject().name("null")
+                                                                                   .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                                                .name("null")
+                                                                                                                .type(Scalars.GraphQLString)))
                                                            .mutation(mutation)
                                                            .codeRegistry(codeRegistry)
                                                            .build();
@@ -203,7 +206,7 @@ public class GraphQLSchemaAutoConfigurationTest {
                 GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
                                                            .query(query)
                                                            .codeRegistry(codeRegistry)
-                                                           .additionalDirective(Directives.DeferDirective)
+                                                           //.additionalDirective(Directives.DeferDirective)
                                                            .build();
                 
                 registry.register(graphQLSchema);
@@ -223,8 +226,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     public void directivesSupport() {
         assertThat(graphQLSchema.getDirectives())
                 .extracting(GraphQLDirective::getName)
-                .containsExactly("include", "skip", "defer");
-            
+                .containsOnly("include", "skip", "specifiedBy", "deprecated");
     }
     
     @Test

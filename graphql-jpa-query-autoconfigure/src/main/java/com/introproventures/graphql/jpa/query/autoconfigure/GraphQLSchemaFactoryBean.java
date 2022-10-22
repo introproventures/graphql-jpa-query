@@ -17,6 +17,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import graphql.schema.GraphQLNamedType;
+import graphql.schema.GraphQLSchemaElement;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import graphql.Internal;
@@ -34,9 +36,10 @@ import graphql.schema.GraphQLTypeVisitorStub;
 import graphql.schema.GraphQLUnionType;
 import graphql.schema.PropertyDataFetcher;
 import graphql.schema.TypeResolver;
-import graphql.schema.TypeTraverser;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
+import graphql.util.Traverser;
+
 
 public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
     
@@ -90,7 +93,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         
         List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
             .filter(it -> Optional.ofNullable(it.getQueryType())
-                                  .map(GraphQLType::getName)
+                                  .map(GraphQLNamedType::getName)
                                   .filter(name -> !"null".equals(name)) // filter out null placeholders
                                   .isPresent())
             .peek(schema -> {
@@ -136,8 +139,8 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         Set<GraphQLType> types = Stream.of(managedGraphQLSchemas)
                                        .map(GraphQLSchema::getAdditionalTypes)
                                        .flatMap(Collection::stream)
-                                       .filter(distinctByKeys(GraphQLType::getName))
-                                       .distinct()
+                                       .map(GraphQLNamedType.class::cast)
+                                       .filter(distinctByKeys(GraphQLNamedType::getName))
                                        .collect(Collectors.toSet());
         if (!types.isEmpty()) {
             schemaBuilder.additionalTypes(types);
@@ -165,8 +168,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
                             .build();
     }
     
-    @SafeVarargs
-    private static <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
+    private <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
         final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
 
         return t -> {
@@ -228,7 +230,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         private final GraphQLCodeRegistry.Builder codeRegistry;
         private final GraphQLFieldsContainer containerType;
         private final String typeName;
-        
+
         CodeRegistryVisitor(GraphQLCodeRegistry.Builder context,
                             GraphQLCodeRegistry.Builder codeRegistry,
                             GraphQLFieldsContainer containerType,
@@ -240,40 +242,40 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         }
 
         @Override
-        public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLType> context) {
+        public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLSchemaElement> context) {
             GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer) context.getParentContext().thisNode();
-            FieldCoordinates coordinates = parentContainerType.equals(containerType) ? coordinates(typeName, node.getName()) 
+            FieldCoordinates coordinates = parentContainerType.equals(containerType) ? coordinates(typeName, node.getName())
                                                                                      : coordinates(parentContainerType, node);
 
-            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType, 
+            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType,
                                                                node);
             if (dataFetcher == null) {
                 dataFetcher = new PropertyDataFetcher<>(node.getName());
             }
-                
-            codeRegistry.dataFetcherIfAbsent(coordinates, 
+
+            codeRegistry.dataFetcherIfAbsent(coordinates,
                                              dataFetcher);
             return CONTINUE;
         }
 
         @Override
-        public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node, TraverserContext<GraphQLType> context) {
+        public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node, TraverserContext<GraphQLSchemaElement> context) {
             TypeResolver typeResolver = codeRegistry.getTypeResolver(node);
 
             if (typeResolver != null) {
                 codeRegistry.typeResolverIfAbsent(node, typeResolver);
             }
-            assertTrue(codeRegistry.getTypeResolver(node) != null, "You MUST provide a type resolver for the interface type '" + node.getName() + "'");
+            assertTrue(codeRegistry.getTypeResolver(node) != null, () -> "You MUST provide a type resolver for the interface type '" + node.getName() + "'");
             return CONTINUE;
         }
 
         @Override
-        public TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLType> context) {
+        public TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLSchemaElement> context) {
             TypeResolver typeResolver = codeRegistry.getTypeResolver(node);
             if (typeResolver != null) {
                 codeRegistry.typeResolverIfAbsent(node, typeResolver);
             }
-            assertTrue(codeRegistry.getTypeResolver(node) != null, "You MUST provide a type resolver for the union type '" + node.getName() + "'");
+            assertTrue(codeRegistry.getTypeResolver(node) != null, () -> "You MUST provide a type resolver for the union type '" + node.getName() + "'");
             return CONTINUE;
         }
     }

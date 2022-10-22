@@ -29,7 +29,6 @@ Features
 * Merging two or more GraphQL schemas from different JPA entity models 
 * Support for GraphQL schema auto-configuration, GraphQL Web Rest Controller via Spring Boot Starters
 * GraphQL Subscriptions (Experimental)
-* GraphQL `@defer` directive (Experimental)
 
 Supported Apis
 ----------------------

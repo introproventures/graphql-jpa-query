@@ -16,9 +16,12 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static graphql.Scalars.GraphQLBoolean;
+import static graphql.introspection.Introspection.DirectiveLocation.FIELD;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
+import static graphql.schema.GraphQLNonNull.nonNull;
 
 import java.beans.Introspector;
 import java.lang.reflect.AnnotatedElement;
@@ -46,6 +49,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import graphql.schema.GraphQLDirective;
 import org.dataloader.MappedBatchLoaderWithContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +131,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean isDefaultDistinct = true;
     private boolean toManyDefaultOptional = true; // the many end is a collection, and it is always optional by default (empty collection)
     private boolean enableSubscription = false; // experimental
-    private boolean enableDeferDirective = false; // experimental
     private boolean enableRelay = false; // experimental
     private int defaultMaxResults = 100;
     private int defaultFetchSize = 100;
@@ -158,10 +161,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         if(enableSubscription) {
             schema.subscription(getSubscriptionType());
-        }
-
-        if(enableDeferDirective) {
-            schema.additionalDirective(Directives.DeferDirective);
         }
 
         if(enableRelay) {
@@ -313,13 +312,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME)
                     .description("Total number of pages calculated on the database for this page size.")
-                    .type(Scalars.GraphQLLong)
+                    .type(JavaScalars.GraphQLLong)
                     .build()
                 )
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME)
                     .description("Total number of records in the database for this query.")
-                    .type(Scalars.GraphQLLong)
+                    .type(JavaScalars.GraphQLLong)
                     .build()
                 )
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -373,7 +372,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return GraphQLArgument.newArgument()
                 .name(SELECT_DISTINCT_PARAM_NAME)
                 .description("Distinct logical specification")
-                .type(Scalars.GraphQLBoolean)
+                .type(GraphQLBoolean)
                 .defaultValue(isDefaultDistinct)
                 .build();
     }
@@ -744,13 +743,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             builder.field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.IS_NULL.name())
                 .description("Is Null criteria")
-                .type(Scalars.GraphQLBoolean)
+                .type(GraphQLBoolean)
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(Criteria.NOT_NULL.name())
                 .description("Is Not Null criteria")
-                .type(Scalars.GraphQLBoolean)
+                .type(GraphQLBoolean)
                 .build()
             )
             .field(GraphQLInputObjectField.newInputObjectField()
@@ -948,7 +947,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         else if (attribute instanceof PluralAttribute
                 && (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY
                 || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY)) {
-            Assert.assertNotNull(baseEntity, "For attribute "+attribute.getName() + " cannot find declaring type!");
+            Assert.assertNotNull(baseEntity, () -> "For attribute "+attribute.getName() + " cannot find declaring type!");
             EntityType elementType =  (EntityType) ((PluralAttribute) attribute).getElementType();
 
             arguments.add(getWhereArgument(elementType));
@@ -993,7 +992,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return GraphQLArgument.newArgument()
                 .name("optional")
                 .description("Optional association specification")
-                .type(Scalars.GraphQLBoolean)
+                .type(GraphQLBoolean)
                 .defaultValue(defaultValue)
                 .build();
     }
@@ -1202,10 +1201,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(clazz.getSimpleName());
             int ordinal = 0;
             for (Enum<?> enumValue : ((Class<Enum<?>>)clazz).getEnumConstants())
-                enumBuilder.value(enumValue.name(), ordinal++);
+                enumBuilder.value(enumValue.name());
 
             GraphQLEnumType enumType = enumBuilder.build();
-            setNoOpCoercing(enumType);
 
             classCache.putIfAbsent(clazz, enumType);
 
@@ -1225,27 +1223,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         entityType.getAttributes().stream()
             .filter(this::isValidInput)
             .filter(this::isNotIgnored)
-            .forEach(it -> enumBuilder.value(it.getName(), ordinal.incrementAndGet()));
+            .forEach(it -> enumBuilder.value(it.getName()));
 
         GraphQLInputType answer = enumBuilder.build();
-        setNoOpCoercing(answer);
 
         return answer;
-    }
-
-    /**
-     * JPA will deserialize Enum's for us...we don't want GraphQL doing it.
-     *
-     * @param type
-     */
-    private void setNoOpCoercing(GraphQLType type) {
-        try {
-            Field coercing = type.getClass().getDeclaredField("coercing");
-            coercing.setAccessible(true);
-            coercing.set(type, new NoOpCoercing());
-        } catch (Exception e) {
-            log.error("Unable to set coercing for " + type, e);
-        }
     }
 
     private static final GraphQLArgument paginationArgument =
@@ -1363,7 +1345,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     @Override
     public GraphQLJpaSchemaBuilder entityPath(String path) {
-        Assert.assertNotNull(path, "path is null");
+        Assert.assertNotNull(path, () -> "path is null");
 
         entityPaths.add(path);
 
@@ -1372,7 +1354,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     @Override
     public GraphQLJpaSchemaBuilder namingStrategy(NamingStrategy instance) {
-        Assert.assertNotNull(instance, "instance is null");
+        Assert.assertNotNull(instance, () -> "instance is null");
 
         this.namingStrategy = instance;
 
@@ -1400,16 +1382,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public GraphQLJpaSchemaBuilder enableSubscription(boolean enableSubscription) {
         this.enableSubscription = enableSubscription;
-
-        return this;
-    }
-
-    public boolean isEnableDeferDirective() {
-        return enableDeferDirective;
-    }
-
-    public GraphQLJpaSchemaBuilder enableDeferDirective(boolean enableDeferDirective) {
-        this.enableDeferDirective = enableDeferDirective;
 
         return this;
     }
