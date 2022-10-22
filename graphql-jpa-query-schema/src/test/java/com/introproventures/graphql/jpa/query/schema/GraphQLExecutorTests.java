@@ -2561,6 +2561,110 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
+
+    @Test
+    public void queryForFloatingThingViaWhereIn() {
+        //given:
+        String query = "{"
+            + "  FloatingThings("
+            + "    where: {"
+            + "      AND: {"
+            + "        floatValue: {IN: [4.55, 5]}"
+            + "        doubleValue: {IN: [4.55, 5]}"
+            + "        bigDecimalValue: {IN: [4.55, 5]}"
+            + "      }"
+            + "    }"
+            + "  ) {"
+            + "    select {"
+            + "      id"
+            + "    }}"
+            + "}";
+        String expected = "{FloatingThings={select=[{id=1}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForFloatingThingViaWhereNin() {
+        //given:
+        String query = "{"
+            + "  FloatingThings("
+            + "    where: {"
+            + "      AND: {"
+            + "        floatValue: {NIN: [4.55, 5]}"
+            + "        doubleValue: {NIN: [4.55, 5]}"
+            + "        bigDecimalValue: {NIN: [4.55, 5]}"
+            + "      }"
+            + "    }"
+            + "  ) {"
+            + "    select {"
+            + "      id"
+            + "    }}"
+            + "}";
+        String expected = "{FloatingThings={select=[{id=2}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForFloatingThingViaWhereBetween() {
+        //given:
+        String query = "{"
+            + "  FloatingThings("
+            + "    where: {"
+            + "      AND: {"
+            + "        floatValue: {BETWEEN: [-1, 0]}"
+            + "        doubleValue: {BETWEEN: [-1, 0]}"
+            + "        bigDecimalValue: {BETWEEN: [-1, 0]}"
+            + "      }"
+            + "    }"
+            + "  ) {"
+            + "    select {"
+            + "      id"
+            + "    }}"
+            + "}";
+        String expected = "{FloatingThings={select=[{id=2}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForFloatingThingViaWhereNotBetween() {
+        //given:
+        String query = "{"
+            + "  FloatingThings("
+            + "    where: {"
+            + "      AND: {"
+            + "        floatValue: {NOT_BETWEEN: [-1, 0]}"
+            + "        doubleValue: {NOT_BETWEEN: [-1, 0]}"
+            + "        bigDecimalValue: {NOT_BETWEEN: [-1, 0]}"
+            + "      }"
+            + "    }"
+            + "  ) {"
+            + "    select {"
+            + "      id"
+            + "    }}"
+            + "}";
+        String expected = "{FloatingThings={select=[{id=1}]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
     
 }

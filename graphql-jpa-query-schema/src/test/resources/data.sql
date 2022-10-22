@@ -159,3 +159,8 @@ insert into Boat (id, country, identification) values
 insert into calculated_entity (id, title, info) values
 	(1, 'title 1', 'inf 1'),
 	(2, 'title 2', 'inf 2');
+
+-- FloatingThing
+insert into floating_thing (id, float_value, double_value, big_decimal_value) values
+    (1, 4.55, 4.55, 4.55),
+    (2, -0.44, -0.44, -0.44)
