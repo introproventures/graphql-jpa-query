@@ -1204,7 +1204,6 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 enumBuilder.value(enumValue.name());
 
             GraphQLEnumType enumType = enumBuilder.build();
-            //setNoOpCoercing(enumType);
 
             classCache.putIfAbsent(clazz, enumType);
 
@@ -1224,27 +1223,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         entityType.getAttributes().stream()
             .filter(this::isValidInput)
             .filter(this::isNotIgnored)
-            .forEach(it -> enumBuilder.value(it.getName(), ordinal.incrementAndGet()));
+            .forEach(it -> enumBuilder.value(it.getName()));
 
         GraphQLInputType answer = enumBuilder.build();
-        //setNoOpCoercing(answer);
 
         return answer;
-    }
-
-    /**
-     * JPA will deserialize Enum's for us...we don't want GraphQL doing it.
-     *
-     * @param type
-     */
-    private void setNoOpCoercing(GraphQLType type) {
-        try {
-            Field coercing = type.getClass().getDeclaredField("coercing");
-            coercing.setAccessible(true);
-            coercing.set(type, new NoOpCoercing());
-        } catch (Exception e) {
-            log.error("Unable to set coercing for " + type, e);
-        }
     }
 
     private static final GraphQLArgument paginationArgument =
