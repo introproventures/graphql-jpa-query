@@ -1,8 +1,25 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import static graphql.Assert.assertTrue;
-import static graphql.schema.FieldCoordinates.coordinates;
-import static graphql.util.TraversalControl.CONTINUE;
+import graphql.Internal;
+import graphql.schema.DataFetcher;
+import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLFieldsContainer;
+import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.GraphQLNamedType;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLSchemaElement;
+import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeVisitorStub;
+import graphql.schema.GraphQLUnionType;
+import graphql.schema.PropertyDataFetcher;
+import graphql.schema.TypeResolver;
+import graphql.util.TraversalControl;
+import graphql.util.TraverserContext;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,28 +34,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLSchemaElement;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
-
-import graphql.Internal;
-import graphql.schema.DataFetcher;
-import graphql.schema.FieldCoordinates;
-import graphql.schema.GraphQLCodeRegistry;
-import graphql.schema.GraphQLDirective;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLFieldsContainer;
-import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLTypeVisitorStub;
-import graphql.schema.GraphQLUnionType;
-import graphql.schema.PropertyDataFetcher;
-import graphql.schema.TypeResolver;
-import graphql.util.TraversalControl;
-import graphql.util.TraverserContext;
-import graphql.util.Traverser;
+import static graphql.Assert.assertTrue;
+import static graphql.schema.FieldCoordinates.coordinates;
+import static graphql.util.TraversalControl.CONTINUE;
 
 
 public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
@@ -145,7 +143,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         if (!types.isEmpty()) {
             schemaBuilder.additionalTypes(types);
         }
-        
+
         if(!mutations.isEmpty())
             schemaBuilder.mutation(GraphQLObjectType.newObject()
                                                     .name(this.mutationName)

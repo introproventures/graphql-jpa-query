@@ -54,6 +54,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -61,6 +62,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -79,7 +81,7 @@ public class JavaScalars {
 
     static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
 
-    private static HashMap<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
+    private static Map<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
 
     private static JavaScalars instance = new JavaScalars();
 
@@ -126,6 +128,17 @@ public class JavaScalars {
         scalarsRegistry.put(Instant.class, newScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
         scalarsRegistry.put(ZonedDateTime.class, newScalarType("ZonedDateTime", "ZonedDateTime type", new GraphQLZonedDateTimeCoercing()));
         scalarsRegistry.put(OffsetDateTime.class, newScalarType("OffsetDateTime", "OffsetDateTime type", new GraphQLOffsetDateTimeCoercing()));
+    }
+
+    public static Optional<GraphQLScalarType> of(String name) {
+        return scalarsRegistry.values()
+                              .stream()
+                              .filter(scalar -> name.equals(scalar.getName()))
+                              .findFirst();
+    }
+
+    public static Collection<GraphQLScalarType> scalars() {
+        return Collections.unmodifiableCollection(scalarsRegistry.values());
     }
 
     public static GraphQLScalarType of(Class<?> key) {

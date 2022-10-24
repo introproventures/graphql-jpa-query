@@ -34,6 +34,7 @@
         <module>graphql-jpa-query-annotations</module>
         <module>graphql-jpa-query-schema</module>
         <module>graphql-jpa-query-boot-starter</module>
+        <module>graphql-jpa-query-boot-starter-graphql</module>
         <module>graphql-jpa-query-example-simple</module>
         <module>graphql-jpa-query-example-merge</module>
         <module>graphql-jpa-query-dependencies</module>
@@ -45,6 +46,7 @@
         <module>graphql-jpa-query-graphiql</module>
         <module>graphql-jpa-query-example-relay</module>
         <module>graphql-jpa-query-introspection</module>
+        <module>graphql-jpa-query-example-spring-graphql</module>
     </modules>
 
     <distributionManagement>

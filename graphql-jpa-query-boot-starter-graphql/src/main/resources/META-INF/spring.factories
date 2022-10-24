@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.introproventures.graphql.jpa.query.boot.autoconfigure.GraphQLJpaQueryBootStarterGraphQlAutoConfiguration,\
+com.introproventures.graphql.jpa.query.boot.autoconfigure.GraphQLJpaQueryGraphQlExecutionAutoConfiguration

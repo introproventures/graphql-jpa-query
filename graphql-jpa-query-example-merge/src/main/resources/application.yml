@@ -11,7 +11,8 @@ spring:
         description: Combined GraphQL Jpa Query for Starwars and Books Example
         use-distinct-parameter: true
         enabled: true
-        path: /graphql
+        web:
+          path: /graphql
         
 starwars:
   hikari:

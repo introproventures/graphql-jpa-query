@@ -15,17 +15,11 @@
  */
 package com.introproventures.graphql.jpa.query.web;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import graphql.ExecutionResult;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -40,13 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-
-import graphql.ExecutionResult;
-import graphql.GraphQL;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Spring Boot GraphQL Query Rest Controller with HTTP mapping endpoints for GraphQLExecutor relay
@@ -58,7 +53,7 @@ import graphql.GraphQL;
 @Transactional
 public class GraphQLController {
 
-    private static final String PATH = "${spring.graphql.jpa.query.path:/graphql}";
+    private static final String PATH = "${spring.graphql.jpa.query.web.path:/graphql}";
     public static final String APPLICATION_GRAPHQL_VALUE = "application/graphql";
 
     private final GraphQLExecutor   graphQLExecutor;

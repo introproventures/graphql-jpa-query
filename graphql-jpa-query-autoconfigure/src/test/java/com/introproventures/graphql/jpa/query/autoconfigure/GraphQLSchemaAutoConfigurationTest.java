@@ -1,14 +1,24 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
+import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
+import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
+import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
+import graphql.GraphQL;
+import graphql.Scalars;
+import graphql.annotations.AnnotationsSchemaCreator;
+import graphql.annotations.annotationTypes.GraphQLField;
+import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
+import graphql.annotations.annotationTypes.GraphQLName;
+import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
+import graphql.scalars.ExtendedScalars;
+import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.StaticDataFetcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reflections.Reflections;
@@ -22,26 +32,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
-import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
-import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
-import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import graphql.Directives;
-import graphql.GraphQL;
-import graphql.Scalars;
-import graphql.annotations.AnnotationsSchemaCreator;
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
-import graphql.annotations.annotationTypes.GraphQLName;
-import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
-import graphql.schema.FieldCoordinates;
-import graphql.schema.GraphQLCodeRegistry;
-import graphql.schema.GraphQLDirective;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.StaticDataFetcher;
+import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
@@ -124,7 +122,13 @@ public class GraphQLSchemaAutoConfigurationTest {
              public Greeting greeting(@GraphQLName("name") String name) {
                  return new Greeting("Hi, " + name + "!");
              }
-             
+
+            @GraphQLField
+            @GraphQLInvokeDetached
+            public Long count() {
+                return Long.valueOf(1);
+            }
+
             public static class Greeting {
 
                 @GraphQLField
@@ -151,6 +155,9 @@ public class GraphQLSchemaAutoConfigurationTest {
                                                               .field(GraphQLFieldDefinition.newFieldDefinition()
                                                                                            .name("greet2")
                                                                                            .type(Scalars.GraphQLString))
+                                                              .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                           .name("count1")
+                                                                                           .type(ExtendedScalars.GraphQLLong))
                                                               .build();
 
                 GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()

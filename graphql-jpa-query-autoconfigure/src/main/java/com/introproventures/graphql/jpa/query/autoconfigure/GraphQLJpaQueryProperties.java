@@ -15,10 +15,10 @@
  */
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import javax.validation.constraints.NotEmpty;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotEmpty;
 
 @ConfigurationProperties(prefix="spring.graphql.jpa.query")
 @Validated
@@ -61,7 +61,11 @@ public class GraphQLJpaQueryProperties {
      */
     private boolean enabled;
 
-    @NotEmpty
+    /**
+     * Web path for web controller
+     * Use 'spring.graphql.jpa.query.web.path' to customize default /graphql path
+     */
+    @Deprecated
     private String path;
 
     /**

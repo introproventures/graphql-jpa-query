@@ -10,6 +10,11 @@
   
   <dependencies>
     <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-schema</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>com.graphql-java</groupId>
       <artifactId>graphql-java</artifactId>
       <optional>true</optional>
@@ -25,7 +30,6 @@
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <scope>test</scope>      
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
