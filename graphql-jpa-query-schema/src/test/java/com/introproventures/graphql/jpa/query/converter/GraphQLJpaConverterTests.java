@@ -35,6 +35,7 @@ import javax.transaction.Transactional;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
@@ -51,7 +52,10 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 
 
-@SpringBootTest(properties = "spring.datasource.data=GraphQLJpaConverterTests.sql")
+@SpringBootTest(properties = {
+        "spring.sql.init.data-locations=GraphQLJpaConverterTests.sql",
+        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE"
+})
 public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     
     @SpringBootApplication

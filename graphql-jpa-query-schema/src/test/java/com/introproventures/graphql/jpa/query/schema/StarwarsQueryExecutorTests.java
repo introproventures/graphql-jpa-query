@@ -17,11 +17,13 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -88,6 +90,21 @@ public class StarwarsQueryExecutorTests extends AbstractSpringBootTestSupport {
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(13);
+    }
+
+    @Test
+    @Transactional
+    public void thingsTester() {
+        // given:
+        Query query = em.createQuery("select t from Thing t");
+
+        // when:
+        List<?> result = query.getResultList();
+
+        // then:
+        assertThat(result).hasSize(1)
+                          .extracting("id", "type")
+                          .containsOnly(tuple(UUID.fromString("2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1"), "Thing1"));
     }
 
     @Test

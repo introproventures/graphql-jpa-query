@@ -16,41 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static graphql.Scalars.GraphQLBoolean;
-import static graphql.schema.GraphQLArgument.newArgument;
-import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
-import static graphql.schema.GraphQLInputObjectType.newInputObject;
-
-import java.beans.Introspector;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.persistence.Convert;
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
-
-import org.dataloader.MappedBatchLoaderWithContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
@@ -80,6 +45,39 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import graphql.schema.PropertyDataFetcher;
+import org.dataloader.MappedBatchLoaderWithContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.persistence.Convert;
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EmbeddableType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
+import java.beans.Introspector;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static graphql.Scalars.GraphQLBoolean;
+import static graphql.schema.GraphQLArgument.newArgument;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
 
 
 /**
@@ -308,13 +306,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME)
                     .description("Total number of pages calculated on the database for this page size.")
-                    .type(JavaScalars.GraphQLLong)
+                    .type(JavaScalars.of(Long.class))
                     .build()
                 )
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME)
                     .description("Total number of records in the database for this query.")
-                    .type(JavaScalars.GraphQLLong)
+                    .type(JavaScalars.of(Long.class))
                     .build()
                 )
                 .field(GraphQLFieldDefinition.newFieldDefinition()

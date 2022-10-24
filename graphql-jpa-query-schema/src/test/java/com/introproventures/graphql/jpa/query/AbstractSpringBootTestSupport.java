@@ -8,7 +8,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource({"classpath:hibernate.properties"})
-@AutoConfigureTestDatabase(replace = Replace.ANY)
 public abstract class AbstractSpringBootTestSupport {
 
 }
