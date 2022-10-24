@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.1
+## 0.5.2-SNAPSHOT
 * fix: Upgrade Spring Boot version to 2.7.5 (#309) [5e7e3c7](https://github.com/introproventures/graphql-jpa-query/commit/5e7e3c72da0c32e6616d36908aadf53a6f67e290)
 * Update README.md [02bd775](https://github.com/introproventures/graphql-jpa-query/commit/02bd775bee16ca89e584793d07df5104ac864796)
 * Update build.yml [b22f006](https://github.com/introproventures/graphql-jpa-query/commit/b22f0069c6cf9148bab4a0388274f5e1cf54caa7)
