@@ -1,6 +1,5 @@
-package com.introproventures.graphql.jpa.query.autoconfigure;
+package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import graphql.language.NamedNode;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLScalarType;
