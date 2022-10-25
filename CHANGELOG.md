@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.3
+## 0.5.4-SNAPSHOT
 * fix: resolve default GraphQLSchemaConfigurer bean race condition in autoconfigure (#312) [1b8515a](https://github.com/introproventures/graphql-jpa-query/commit/1b8515a33ffe654a1136db5626e89dd7e1f4ec33)
 * Update README versions [19a15c8](https://github.com/introproventures/graphql-jpa-query/commit/19a15c836cfde690ea22fbd705df0c5f1bb7f3eb)
 * Update README.md [fd6e775](https://github.com/introproventures/graphql-jpa-query/commit/fd6e77554c370575fcffcb077abd92ca86f76527)
