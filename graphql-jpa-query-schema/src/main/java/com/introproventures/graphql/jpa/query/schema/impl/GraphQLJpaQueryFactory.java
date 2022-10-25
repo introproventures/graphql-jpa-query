@@ -15,19 +15,64 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
-import static graphql.introspection.Introspection.SchemaMetaFieldDef;
-import static graphql.introspection.Introspection.TypeMetaFieldDef;
-import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
-import static java.util.stream.Collectors.groupingBy;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
+import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars;
+import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
+import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
+import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
+import graphql.GraphQLException;
+import graphql.execution.CoercedVariables;
+import graphql.execution.MergedField;
+import graphql.execution.ValuesResolver;
+import graphql.language.Argument;
+import graphql.language.ArrayValue;
+import graphql.language.BooleanValue;
+import graphql.language.EnumValue;
+import graphql.language.Field;
+import graphql.language.FloatValue;
+import graphql.language.IntValue;
+import graphql.language.NullValue;
+import graphql.language.ObjectField;
+import graphql.language.ObjectValue;
+import graphql.language.SelectionSet;
+import graphql.language.StringValue;
+import graphql.language.Value;
+import graphql.language.VariableReference;
+import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.AbstractQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
+import javax.persistence.criteria.Subquery;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -53,66 +98,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.AbstractQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Fetch;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
-import javax.persistence.criteria.Subquery;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
-
-import graphql.execution.CoercedVariables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
-import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars;
-import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
-import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
-import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
-import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
-import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
-
-import graphql.GraphQLException;
-import graphql.execution.MergedField;
-import graphql.execution.ValuesResolver;
-import graphql.language.Argument;
-import graphql.language.ArrayValue;
-import graphql.language.BooleanValue;
-import graphql.language.EnumValue;
-import graphql.language.Field;
-import graphql.language.FloatValue;
-import graphql.language.IntValue;
-import graphql.language.NullValue;
-import graphql.language.ObjectField;
-import graphql.language.ObjectValue;
-import graphql.language.SelectionSet;
-import graphql.language.StringValue;
-import graphql.language.Value;
-import graphql.language.VariableReference;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
+import static graphql.introspection.Introspection.SchemaMetaFieldDef;
+import static graphql.introspection.Introspection.TypeMetaFieldDef;
+import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Provides implemetation for GraphQL JPA Query Factory
@@ -681,7 +678,7 @@ public final class GraphQLJpaQueryFactory {
                 List<Argument> values = whereArgument.map(Collections::singletonList)
                                                      .orElse(Collections.emptyList());
 
-                Map<String, Object> fieldArguments = ValuesResolver.getArgumentValues(fieldDefinition.getArguments(),
+                Map<String, Object> fieldArguments = new ValuesResolver().getArgumentValues(fieldDefinition.getArguments(),
                                                                                       values,
                                                                                       new CoercedVariables(variables));
 
@@ -818,7 +815,7 @@ public final class GraphQLJpaQueryFactory {
                     new Field(fieldName)
                 );
 
-                Map<String, Object> arguments = (Map<String, Object>) ValuesResolver
+                Map<String, Object> arguments = (Map<String, Object>) new ValuesResolver()
                     .getArgumentValues(fieldDef.getArguments(), Collections.singletonList(where), new CoercedVariables(variables))
                     .get(WHERE);
 
