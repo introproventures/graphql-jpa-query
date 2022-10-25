@@ -1,0 +1,17 @@
+scalar Long
+scalar Date
+
+type Query {
+   hello(name: String!): String
+   random: Long
+   now: Date
+}
+
+type Mutation {
+   echo(name: String): String
+}
+
+type Subscription {
+   greetings(name: String): String
+}
+

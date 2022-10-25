@@ -53,12 +53,22 @@
             </dependency>
             <dependency>
                 <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-scalars</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.introproventures</groupId>
                 <artifactId>graphql-jpa-query-schema</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.introproventures</groupId>
                 <artifactId>graphql-jpa-query-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.introproventures</groupId>
+                <artifactId>graphql-jpa-query-boot-starter-graphql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

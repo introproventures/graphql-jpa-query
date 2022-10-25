@@ -93,7 +93,7 @@
                       <goal>push</goal>
                     </goals>
                     <configuration>
-                      <pushImage>true</pushImage>
+                      <skipDockerPush>true</skipDockerPush>
                     </configuration>                    
                   </execution>        
                 </executions>                

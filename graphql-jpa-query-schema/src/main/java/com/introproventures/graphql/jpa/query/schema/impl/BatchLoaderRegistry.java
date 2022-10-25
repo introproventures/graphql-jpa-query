@@ -1,13 +1,14 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BatchLoaderRegistry {
     private final static Map<String, MappedBatchLoaderWithContext<Object, List<Object>>> mappedToManyBatchLoaders = new LinkedHashMap<>();
@@ -31,15 +32,17 @@ public class BatchLoaderRegistry {
 
         mappedToManyBatchLoaders.entrySet()
                                 .forEach(entry -> {
-                                    DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(entry.getValue(),
-                                                                                                                 dataLoaderOptions);
+                                    DataLoader<Object, List<Object>> dataLoader =
+                                            DataLoaderFactory.newMappedDataLoader(entry.getValue(),
+                                                                                  dataLoaderOptions);
                                     dataLoaderRegistry.register(entry.getKey(), dataLoader);
                                 });
 
         mappedToOneBatchLoaders.entrySet()
                                .forEach(entry -> {
-                                   DataLoader<Object, Object> dataLoader = DataLoader.newMappedDataLoader(entry.getValue(),
-                                                                                                          dataLoaderOptions);
+                                   DataLoader<Object, Object> dataLoader =
+                                           DataLoaderFactory.newMappedDataLoader(entry.getValue(),
+                                                                                 dataLoaderOptions);
                                    dataLoaderRegistry.register(entry.getKey(), dataLoader);
                                });
 

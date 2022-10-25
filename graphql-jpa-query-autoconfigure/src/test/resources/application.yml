@@ -11,4 +11,3 @@ spring:
         name: GraphQLBooks
         description: GraphQL Books Schema Description
         enabled: true
-        path: /graphql    
