@@ -1,0 +1,90 @@
+#
+# Schemas must have at least a query root type
+#
+scalar ObjectScalar
+scalar Long
+
+schema {
+  query: Query
+  subscription : Subscription
+}
+
+type Query {
+  null : String
+}
+
+type Subscription {
+  engineEvents(
+    serviceName : [String!],
+    appName : [String!],
+    eventType: [EngineEventType!],
+    processDefinitionKey : [String!],
+    processInstanceId : [String!],
+    businessKey : [String!]
+  ) : [EngineEvent]
+}
+
+enum EngineEventType {
+  PROCESS_STARTED
+  PROCESS_COMPLETED
+  PROCESS_CREATED
+  PROCESS_CANCELLED
+  PROCESS_RESUMED
+  PROCESS_SUSPENDED
+  PROCESS_DEPLOYED
+  PROCESS_UPDATED
+  ACTIVITY_STARTED
+  ACTIVITY_CANCELLED
+  ACTIVITY_COMPLETED
+  VARIABLE_CREATED
+  VARIABLE_UPDATED
+  VARIABLE_DELETED
+  SEQUENCE_FLOW_TAKEN
+  TASK_CREATED
+  TASK_COMPLETED
+  TASK_ASSIGNED
+  TASK_ACTIVATED
+  TASK_SUSPENDED
+  TASK_CANCELLED
+  TASK_UPDATED
+  INTEGRATION_REQUESTED
+  INTEGRATION_RESULT_RECEIVED
+  INTEGRATION_ERROR_RECEIVED
+  TASK_CANDIDATE_USER_ADDED
+  TASK_CANDIDATE_USER_REMOVED
+  TASK_CANDIDATE_GROUP_ADDED
+  TASK_CANDIDATE_GROUP_REMOVED
+  SIGNAL_RECEIVED,
+  TIMER_SCHEDULED,
+  TIMER_FIRED,
+  TIMER_CANCELLED,
+  TIMER_EXECUTED,
+  TIMER_FAILED,
+  TIMER_RETRIES_DECREMENTED,
+  MESSAGE_WAITING,
+  MESSAGE_RECEIVED,
+  MESSAGE_SENT
+  MESSAGE_SUBSCRIPTION_CANCELLED
+}
+
+type EngineEvent {
+  id : String
+  timestamp : Long
+  serviceName : String
+  serviceFullName : String
+  serviceVersion : String
+  serviceType : String
+  appName : String
+  appVersion : String
+
+  processInstanceId : String
+  parentProcessInstanceId : String
+  processDefinitionId : String
+  processDefinitionKey : String
+  processDefinitionVersion : Long
+  businessKey : String
+
+  entityId : String
+  entity : ObjectScalar
+  eventType : EngineEventType
+}
