@@ -40,7 +40,6 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
         return () -> {
             DataLoaderOptions options = DataLoaderOptions.newOptions()
                                                          .setCachingEnabled(false);
-
             newDataLoaderRegistry(options)
                                .getDataLoadersMap()
                                .entrySet()

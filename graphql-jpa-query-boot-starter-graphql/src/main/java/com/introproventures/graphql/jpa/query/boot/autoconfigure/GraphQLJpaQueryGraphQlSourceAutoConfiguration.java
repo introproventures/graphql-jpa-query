@@ -39,15 +39,14 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Configuration
-@ConditionalOnClass({GraphQL.class, GraphQlSource.class})
+@ConditionalOnClass({GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class})
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
 @EnableConfigurationProperties(GraphQlProperties.class)
 @AutoConfigureBefore(GraphQlAutoConfiguration.class)
-public class GraphQLJpaQueryBootStarterGraphQlAutoConfiguration {
+public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
 
     @Bean
     @ConditionalOnGraphQlSchema
@@ -74,10 +73,11 @@ public class GraphQLJpaQueryBootStarterGraphQlAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public GraphQlSource graphQlSource(GraphQLSchema graphQLSchema,
                                        ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
                                        ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,
-                                       ObjectProvider<Supplier<Instrumentation>> instrumentations,
+                                       ObjectProvider<Instrumentation> instrumentations,
                                        ObjectProvider<Consumer<GraphQL.Builder>> configurers) {
         GraphQlSource.Builder builder = GraphQlSource.builder(graphQLSchema);
 
@@ -85,7 +85,6 @@ public class GraphQLJpaQueryBootStarterGraphQlAutoConfiguration {
                .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream()
                                                                              .collect(Collectors.toList()))
                .instrumentation(instrumentations.orderedStream()
-                                                .map(Supplier::get)
                                                 .collect(Collectors.toList()));
 
         configurers.orderedStream()
