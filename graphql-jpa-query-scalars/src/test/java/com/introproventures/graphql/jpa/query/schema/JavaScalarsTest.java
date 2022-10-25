@@ -16,8 +16,19 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
+import com.introproventures.graphql.jpa.query.schema.fixtures.VariableValue;
+import graphql.language.BooleanValue;
+import graphql.language.IntValue;
+import graphql.language.StringValue;
+import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
+import graphql.schema.CoercingParseValueException;
+import graphql.schema.CoercingSerializeException;
+import graphql.schema.GraphQLScalarType;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactory;
+import org.junit.Test;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -38,21 +49,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.InstanceOfAssertFactory;
-import org.junit.Test;
-
-import com.introproventures.graphql.jpa.query.converter.model.VariableValue;
-import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
-
-import graphql.language.BooleanValue;
-import graphql.language.IntValue;
-import graphql.language.StringValue;
-import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
-import graphql.schema.GraphQLScalarType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class JavaScalarsTest {
 
@@ -504,5 +502,7 @@ public class JavaScalarsTest {
         //then
         assertThat(result.isCompletedExceptionally()).isFalse();        
     }
+
+
     
 }

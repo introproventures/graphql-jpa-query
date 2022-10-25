@@ -32,6 +32,7 @@
 
     <modules>
         <module>graphql-jpa-query-annotations</module>
+        <module>graphql-jpa-query-scalars</module>
         <module>graphql-jpa-query-schema</module>
         <module>graphql-jpa-query-boot-starter</module>
         <module>graphql-jpa-query-boot-starter-graphql</module>
