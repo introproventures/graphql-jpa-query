@@ -4,6 +4,9 @@ import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGr
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars;
+import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
+import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.Scalars;
 import graphql.annotations.AnnotationsSchemaCreator;
@@ -12,15 +15,21 @@ import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
 import graphql.annotations.annotationTypes.GraphQLName;
 import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
 import graphql.scalars.ExtendedScalars;
-import graphql.schema.FieldCoordinates;
+import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.StaticDataFetcher;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Publisher;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,17 +37,34 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
-import java.util.Collections;
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
+import static graphql.schema.FieldCoordinates.coordinates;
+import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.GraphQLObjectType.newObject;
+import static graphql.schema.GraphQLSchema.newSchema;
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -146,31 +172,28 @@ public class GraphQLSchemaAutoConfigurationTest {
             @Override
             public void configure(GraphQLShemaRegistration registry) {
 
-                GraphQLObjectType mutation = GraphQLObjectType.newObject()
-                                                              .name("mutation")
-                                                              .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                           .name("greet")
-                                                                                           .type(Scalars.GraphQLString)
-                                                                                           .dataFetcher(new StaticDataFetcher("hello world")))
-                                                              .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                           .name("greet2")
-                                                                                           .type(Scalars.GraphQLString))
-                                                              .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                           .name("count1")
-                                                                                           .type(ExtendedScalars.GraphQLLong))
-                                                              .build();
+                GraphQLObjectType mutation = newObject().name("mutation")
+                                                        .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                     .name("greet")
+                                                                                     .type(Scalars.GraphQLString)
+                                                                                     .dataFetcher(new StaticDataFetcher("hello world")))
+                                                        .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                     .name("greet2")
+                                                                                     .type(Scalars.GraphQLString))
+                                                        .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                     .name("count1")
+                                                                                     .type(ExtendedScalars.GraphQLLong))
+                                                        .build();
 
-                GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
-                                                                      .dataFetcher(FieldCoordinates.coordinates(mutation.getName(),
-                                                                                                                "greet2"),
-                                                                                   new StaticDataFetcher("hello world2"))
-                                                                      .build();
+                GraphQLCodeRegistry codeRegistry = newCodeRegistry().dataFetcher(coordinates(mutation.getName(),"greet2"),
+                                                                                 new StaticDataFetcher("hello world2"))
+                                                                    .build();
 
-                GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
-                                                           .query(GraphQLObjectType.newObject().name("null")
-                                                                                   .field(GraphQLFieldDefinition.newFieldDefinition()
-                                                                                                                .name("null")
-                                                                                                                .type(Scalars.GraphQLString)))
+                GraphQLSchema graphQLSchema = newSchema()
+                                                           .query(newObject().name("null")
+                                                                             .field(GraphQLFieldDefinition.newFieldDefinition()
+                                                                                                          .name("null")
+                                                                                                          .type(Scalars.GraphQLString)))
                                                            .mutation(mutation)
                                                            .codeRegistry(codeRegistry)
                                                            .build();
@@ -178,47 +201,92 @@ public class GraphQLSchemaAutoConfigurationTest {
                 registry.register(graphQLSchema);
             }
         }        
+
         @Component
         static class QueryGraphQLSchemaConfigurer implements GraphQLSchemaConfigurer {
 
             @Override
             public void configure(GraphQLShemaRegistration registry) {
-                GraphQLObjectType query = GraphQLObjectType.newObject()
-                                                           .name("query")
-                                                           .field(newFieldDefinition().name("hello")
-                                                                                      .type(Scalars.GraphQLString)
-                                                                                      .dataFetcher(new StaticDataFetcher("world")))
-                                                           .field(newFieldDefinition().name("hello2")
-                                                                                      .type(Scalars.GraphQLString))
-                                                           .field(newFieldDefinition().name("hello3")
-                                                                                      .type(GraphQLObjectType.newObject()
-                                                                                                             .name("Hello3")
-                                                                                                             .field(newFieldDefinition().name("canada")
-                                                                                                                                        .type(Scalars.GraphQLString))                                                                                                             
-                                                                                                             .field(newFieldDefinition().name("america")
-                                                                                                                                        .type(Scalars.GraphQLString))))
-                                                           .build();
+                GraphQLObjectType query = newObject().name("query")
+                                                     .field(newFieldDefinition().name("hello")
+                                                                                .type(Scalars.GraphQLString)
+                                                                                .dataFetcher(new StaticDataFetcher("world")))
+                                                     .field(newFieldDefinition().name("hello2")
+                                                                                .type(Scalars.GraphQLString))
+                                                     .field(newFieldDefinition().name("hello3")
+                                                                                .type(newObject()
+                                                                                              .name("Hello3")
+                                                                                              .field(newFieldDefinition().name("canada")
+                                                                                                                         .type(Scalars.GraphQLString))
+                                                                                              .field(newFieldDefinition().name("america")
+                                                                                                                         .type(Scalars.GraphQLString))))
+                                                     .build();
 
-                GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
-                                                                      .dataFetcher(FieldCoordinates.coordinates(query.getName(), "hello2"),
-                                                                                   new StaticDataFetcher("world2"))
-                                                                      .dataFetcher(FieldCoordinates.coordinates(query.getName(), "hello3"),
-                                                                                   new StaticDataFetcher(Collections.emptyMap()))
-                                                                      .dataFetcher(FieldCoordinates.coordinates("Hello3", "america"),
-                                                                                   new StaticDataFetcher("Hi!"))
-                                                                      .dataFetcher(FieldCoordinates.coordinates("Hello3", "canada"),
-                                                                                   new StaticDataFetcher("Eh?"))
-                                                                      .build();
+                GraphQLCodeRegistry codeRegistry = newCodeRegistry().dataFetcher(coordinates(query.getName(), "hello2"),
+                                                                                 new StaticDataFetcher("world2"))
+                                                                    .dataFetcher(coordinates(query.getName(), "hello3"),
+                                                                                 new StaticDataFetcher(emptyMap()))
+                                                                    .dataFetcher(coordinates("Hello3", "america"),
+                                                                                 new StaticDataFetcher("Hi!"))
+                                                                    .dataFetcher(coordinates("Hello3", "canada"),
+                                                                                 new StaticDataFetcher("Eh?"))
+                                                                    .build();
 
-                GraphQLSchema graphQLSchema = GraphQLSchema.newSchema()
-                                                           .query(query)
-                                                           .codeRegistry(codeRegistry)
-                                                           //.additionalDirective(Directives.DeferDirective)
-                                                           .build();
+                GraphQLSchema graphQLSchema = newSchema().query(query)
+                                                         .codeRegistry(codeRegistry)
+                                                         .build();
                 
                 registry.register(graphQLSchema);
             }
         }
+
+        @Component
+        static class GraphQLSchemaGeneratorConfigurer implements GraphQLSchemaConfigurer {
+
+            @Value("classpath:activiti.graphqls")
+            private Resource schemaResource;
+
+            @Override
+            public void configure(GraphQLShemaRegistration registry) {
+                File schemaFile = null;
+                try {
+                    schemaFile = schemaResource.getFile();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                TypeDefinitionRegistry typeRegistry = new SchemaParser().parse(schemaFile);
+
+                Supplier<Map> generator = () -> new LinkedHashMap() {{
+                    put("id", UUID.randomUUID());
+                    put("timestamp", Instant.now().toEpochMilli());
+                    put("entity", emptyMap());
+                }};
+
+                DataFetcher<Flux<List<Map>>> dataFetcher = new StaticDataFetcher(Flux.fromStream(Stream.generate(generator))
+                                                                                     .delayElements(Duration.ofMillis(10))
+                                                                                     .take(100)
+                                                                                     .buffer(10));
+
+                GraphQLCodeRegistry codeRegistry = newCodeRegistry().dataFetcher(coordinates("Subscription",
+                                                                                             "engineEvents"),
+                                                                                 dataFetcher)
+                                                                    .build();
+
+                RuntimeWiring.Builder wiring = newRuntimeWiring().codeRegistry(codeRegistry)
+                                                                 .scalar(GraphQLScalarType.newScalar()
+                                                                                          .name("ObjectScalar")
+                                                                                          .description("An object scalar")
+                                                                                          .coercing(new JavaScalars.GraphQLObjectCoercing())
+                                                                                          .build())
+                                                                 .scalar(ExtendedScalars.GraphQLLong)
+                                                                 .transformer(new JavaScalarsWiringPostProcessor());
+
+                registry.register(new SchemaGenerator().makeExecutableSchema(typeRegistry,
+                                                                             wiring.build()));
+            }
+        }
+
     }
 
     @Test
@@ -279,7 +347,24 @@ public class GraphQLSchemaAutoConfigurationTest {
         assertThat(mutation.toString()).isEqualTo("{salut=Salut, dude!}");
         assertThat(query.toString()).isEqualTo("{greeting={value=Hi, dude!}}");
     }
-    
+
+    @Test
+    public void schemaGeneratorConfigurer() {
+        // given
+        GraphQL graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+
+        // when
+        ExecutionResult result = graphQL.execute("subscription { engineEvents { id, timestamp, entity } }");
+
+        Publisher<ExecutionResult> source = result.getData();
+
+        // then
+        StepVerifier.create(source)
+                    .expectSubscription()
+                    .expectNextCount(10)
+                    .verifyComplete();
+    }
+
 
     @Test
     public void defaultConfigurationProperties() {
