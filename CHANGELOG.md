@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.2
+## 0.5.3-SNAPSHOT
 * Update README.md [fd6e775](https://github.com/introproventures/graphql-jpa-query/commit/fd6e77554c370575fcffcb077abd92ca86f76527)
 * feat: add schema wiring support for Spring Graphql 1.0 project  (#310) [994a0b6](https://github.com/introproventures/graphql-jpa-query/commit/994a0b60c5e10c9adb55d2bd4d5e39a99338c51c)
 * fix: Upgrade Spring Boot version to 2.7.5 (#309) [5e7e3c7](https://github.com/introproventures/graphql-jpa-query/commit/5e7e3c72da0c32e6616d36908aadf53a6f67e290)
