@@ -7,6 +7,8 @@ import graphql.GraphQL;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,20 +21,28 @@ import javax.persistence.EntityManagerFactory;
 import java.util.List;
 
 @Configuration
-@ConditionalOnClass({GraphQL.class, GraphQLSchemaBuilder.class})
+@ConditionalOnClass({EntityManagerFactory.class, GraphQL.class, GraphQLSchemaBuilder.class})
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@AutoConfigureBefore(GraphQLSchemaAutoConfiguration.class)
 @AutoConfigureAfter(HibernateJpaAutoConfiguration.class)
 public class GraphQLSchemaBuilderAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
-    public GraphQLSchemaBuilder graphQLJpaSchemaBuilder(final EntityManagerFactory entityManagerFactory,
+    public GraphQLSchemaBuilder defaultGraphQLJpaSchemaBuilder(final EntityManagerFactory entityManagerFactory,
                                                         ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
         GraphQLJpaSchemaBuilder bean = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
 
         restrictedKeysProvider.ifAvailable(bean::restrictedKeysProvider);
 
         return bean;
+    }
+
+    @Bean
+    @ConditionalOnBean(name = "defaultGraphQLJpaSchemaBuilder")
+    @ConditionalOnSingleCandidate(GraphQLSchemaBuilder.class)
+    GraphQLSchemaConfigurer defaultGraphQLJpaSchemaBuilderConfigurer(GraphQLSchemaBuilder graphQLJpaSchemaBuilder) {
+        return registry -> registry.register(graphQLJpaSchemaBuilder.build());
     }
 
     @Bean

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.boot.autoconfigure;
+package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
 import graphql.GraphQL;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class})
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
 @EnableConfigurationProperties(GraphQlProperties.class)
-@AutoConfigureBefore(GraphQlAutoConfiguration.class)
+@AutoConfigureBefore({GraphQlAutoConfiguration.class, GraphQLSchemaAutoConfiguration.class})
 public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
 
     @Bean

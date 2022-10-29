@@ -15,7 +15,7 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.boot.autoconfigure;
 
-import com.introproventures.graphql.jpa.query.boot.autoconfigure.JavaScalarsRuntimeWiringConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.JavaScalarsRuntimeWiringConfigurer;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
