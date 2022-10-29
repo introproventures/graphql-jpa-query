@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.autoconfigure;
 
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -10,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
-
-import java.util.List;
 
 @Configuration
 @ConditionalOnClass(GraphQL.class)
@@ -33,7 +32,7 @@ public class GraphQLSchemaAutoConfiguration {
     @ConditionalOnMissingBean(GraphQLSchema.class)
     public GraphQLSchemaFactoryBean graphQLSchemaFactoryBean(GraphQLJpaQueryProperties properties,
                                                              GraphQLShemaRegistration graphQLShemaRegistration,
-                                                             List<GraphQLSchemaConfigurer> graphQLSchemaConfigurers) {
+                                                             ObjectProvider<GraphQLSchemaConfigurer> graphQLSchemaConfigurers) {
         for (GraphQLSchemaConfigurer configurer : graphQLSchemaConfigurers) {
             configurer.configure(graphQLShemaRegistration);
         }

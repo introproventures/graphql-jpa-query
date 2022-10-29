@@ -15,6 +15,7 @@
  */
 package com.introproventures.graphql.jpa.query.boot.autoconfigure;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
@@ -40,41 +41,37 @@ import java.util.function.Supplier;
 @Configuration
 @ConditionalOnClass(GraphQL.class)
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
-@AutoConfigureAfter(HibernateJpaAutoConfiguration.class)
+@AutoConfigureAfter({HibernateJpaAutoConfiguration.class})
+@EnableGraphQLJpaQuerySchema
 public class GraphQLJpaQueryAutoConfiguration {
 
-    @Configuration
-    public static class DefaultGraphQLJpaQueryConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public GraphQLExecutorContextFactory graphQLJpaExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
+                                                                          ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
+                                                                          ObjectProvider<Supplier<Instrumentation>> instrumentation,
+                                                                          ObjectProvider<Supplier<GraphQLContext>> graphqlContext,
+                                                                          ObjectProvider<Supplier<ExecutionStrategy>> queryExecutionStrategy,
+                                                                          ObjectProvider<Supplier<ExecutionStrategy>> mutationExecutionStrategy,
+                                                                          ObjectProvider<Supplier<ExecutionStrategy>> subscriptionExecutionStrategy) {
+        GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
 
-        @Bean
-        @ConditionalOnMissingBean
-        public GraphQLExecutorContextFactory graphQLJpaExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
-                                                                              ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
-                                                                              ObjectProvider<Supplier<Instrumentation>> instrumentation,
-                                                                              ObjectProvider<Supplier<GraphQLContext>> graphqlContext,
-                                                                              ObjectProvider<Supplier<ExecutionStrategy>> queryExecutionStrategy,
-                                                                              ObjectProvider<Supplier<ExecutionStrategy>> mutationExecutionStrategy,
-                                                                              ObjectProvider<Supplier<ExecutionStrategy>> subscriptionExecutionStrategy) {
-            GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
+        graphQLExecutionInputFactory.ifAvailable(bean::withExecutionInputFactory);
+        graphqlFieldVisibility.ifAvailable(bean::withGraphqlFieldVisibility);
+        instrumentation.ifAvailable(bean::withInstrumentation);
+        graphqlContext.ifAvailable(bean::withGraphqlContext);
+        queryExecutionStrategy.ifAvailable(bean::withQueryExecutionStrategy);
+        mutationExecutionStrategy.ifAvailable(bean::withMutationExecutionStrategy);
+        subscriptionExecutionStrategy.ifAvailable(bean::withSubscriptionExecutionStrategy);
 
-            graphQLExecutionInputFactory.ifAvailable(bean::withExecutionInputFactory);
-            graphqlFieldVisibility.ifAvailable(bean::withGraphqlFieldVisibility);
-            instrumentation.ifAvailable(bean::withInstrumentation);
-            graphqlContext.ifAvailable(bean::withGraphqlContext);
-            queryExecutionStrategy.ifAvailable(bean::withQueryExecutionStrategy);
-            mutationExecutionStrategy.ifAvailable(bean::withMutationExecutionStrategy);
-            subscriptionExecutionStrategy.ifAvailable(bean::withSubscriptionExecutionStrategy);
+        return bean;
+    }
 
-            return bean;
-        }
-
-        @Bean
-        @ConditionalOnMissingBean
-        public GraphQLExecutor graphQLJpaExecutor(GraphQLSchema graphQLSchema,
-                                                  GraphQLExecutorContextFactory graphQLExecutorContextFactory) {
-            return new GraphQLJpaExecutor(graphQLSchema,
-                                          graphQLExecutorContextFactory);
-        }
-
+    @Bean
+    @ConditionalOnMissingBean
+    public GraphQLExecutor graphQLJpaExecutor(GraphQLSchema graphQLSchema,
+                                              GraphQLExecutorContextFactory graphQLExecutorContextFactory) {
+        return new GraphQLJpaExecutor(graphQLSchema,
+                                      graphQLExecutorContextFactory);
     }
 }

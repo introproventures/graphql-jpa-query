@@ -15,19 +15,18 @@
  */
 package com.introproventures.graphql.jpa.query.example.relay;
 
-import javax.persistence.EntityManager;
-
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.model.book.Book;
+import javax.persistence.EntityManager;
 
 /**
  * GraphQL JPA Query Example Relay with Spring Boot Autoconfiguration
