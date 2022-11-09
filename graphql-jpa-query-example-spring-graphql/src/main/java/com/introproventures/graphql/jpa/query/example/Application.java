@@ -15,10 +15,10 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -37,7 +37,7 @@ public class Application {
     }
 
     @Configuration
-    @EntityScan(basePackageClasses=Character.class)
+    @EnableGraphQLJpaQuerySchema(basePackageClasses=Character.class)
     static class StarwarsJpaModelConfiguration {
     }
 }

@@ -16,6 +16,7 @@
 package com.introproventures.graphql.jpa.query.boot.test.boot.autoconfigure;
 
 import java.util.function.Supplier;
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
@@ -34,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verify;
 public class GraphQLJpaQueryAutoConfigurationTest {
 
     @SpringBootApplication
-    @EntityScan(basePackageClasses=Author.class)
+    @EnableGraphQLJpaQuerySchema(basePackageClasses=Author.class)
     static class Application {
         @MockBean
         private GraphQLExecutionInputFactory mockExecutionInputFactory;
