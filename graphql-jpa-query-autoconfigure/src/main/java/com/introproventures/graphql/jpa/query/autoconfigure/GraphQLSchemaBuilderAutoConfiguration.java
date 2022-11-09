@@ -27,12 +27,16 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
     GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(EntityManagerFactory entityManagerFactory,
-                                                        GraphQLJpaQueryProperties properties,
-                                                        ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
+                                                           GraphQLJpaQueryProperties properties,
+                                                           ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
         GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
 
         builder.name(properties.getName())
-               .description(properties.getDescription());
+               .description(properties.getDescription())
+               .defaultDistinct(properties.isDefaultDistinct())
+               .useDistinctParameter(properties.isUseDistinctParameter())
+               .toManyDefaultOptional(properties.isToManyDefaultOptional())
+               .enableRelay(properties.isEnableRelay());
 
         EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames()
                                                  .stream()
