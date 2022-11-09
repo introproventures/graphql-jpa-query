@@ -15,10 +15,9 @@
  */
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import javax.validation.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-
-import javax.validation.constraints.NotEmpty;
 
 @ConfigurationProperties(prefix="spring.graphql.jpa.query")
 @Validated
@@ -28,13 +27,13 @@ public class GraphQLJpaQueryProperties {
      * Provides the name of GraphQL schema. This is required attribute.
      */
     @NotEmpty
-    private String name;
+    private String name = "Query";
     
     /**
      * Provides the description of GraphQL schema. Cannot be null.
      */
     @NotEmpty
-    private String description;
+    private String description = "Query description";
 
     /**
      * Enable or disable distinct parameter.
