@@ -15,18 +15,14 @@
  */
 package com.introproventures.graphql.jpa.query.example.relay;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.persistence.EntityManager;
 
 /**
  * GraphQL JPA Query Example Relay with Spring Boot Autoconfiguration
@@ -37,7 +33,7 @@ import javax.persistence.EntityManager;
  *
  */
 @SpringBootApplication
-@EntityScan(basePackageClasses=Book.class)
+@EnableGraphQLJpaQuerySchema(basePackageClasses=Book.class)
 public class Application {
 
     public static void main(String[] args) {
@@ -45,28 +41,11 @@ public class Application {
     }
     
     @Configuration
-    public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
+    public static class GraphQLJpaQuerySchemaConfigurer {
 
-        private final EntityManager entityManager;
-
-        @Autowired
-        private GraphQLJpaQueryProperties properties;
-
-        public GraphQLJpaQuerySchemaConfigurer(EntityManager entityManager) {
-            this.entityManager = entityManager;
-        }
-
-        @Override
-        public void configure(GraphQLShemaRegistration registry) {
-            registry.register(
-                    new GraphQLJpaSchemaBuilder(entityManager)
-                        .name(properties.getName())
-                        .description(properties.getDescription())
-                        .useDistinctParameter(properties.isUseDistinctParameter())
-                        .defaultDistinct(properties.isDefaultDistinct())
-                        .enableRelay(properties.isEnableRelay())
-                        .build()
-            );
+        @Bean
+        GraphQLJPASchemaBuilderCustomizer graphQLSchemaBuilderCustomizer(GraphQLJpaQueryProperties properties) {
+            return builder -> builder.enableRelay(properties.isEnableRelay());
         }
     }    
     
