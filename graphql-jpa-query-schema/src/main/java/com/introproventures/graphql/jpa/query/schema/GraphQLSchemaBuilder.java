@@ -15,6 +15,7 @@
  */
 package com.introproventures.graphql.jpa.query.schema;
 
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 
 /**
@@ -57,7 +58,17 @@ public interface GraphQLSchemaBuilder {
      * @return this builder instance
      */
     GraphQLSchemaBuilder namingStrategy(NamingStrategy instance);
-    
+
+
+    /**
+     * Register Java type scalar
+     *
+     * @param javaType class
+     * @param scalarType GraphQL scalar instance
+     * @return this builder instance
+     */
+    GraphQLSchemaBuilder scalar(Class<?> javaType, GraphQLScalarType scalarType);
+
     /**
      * Builds {code #GraphQLSchema} instance
      * 

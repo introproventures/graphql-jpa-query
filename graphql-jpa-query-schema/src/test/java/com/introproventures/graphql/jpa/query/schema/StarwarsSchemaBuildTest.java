@@ -16,10 +16,15 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import java.util.Optional;
 import javax.persistence.EntityManager;
-
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import graphql.Scalars;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLSchema;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +33,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
-import graphql.Scalars;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
@@ -187,6 +186,26 @@ public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
 
         //then
         assertThat(schema).isNotNull();
+    }
+
+    @Test
+    public void scalar() {
+        // given
+        GraphQLScalarType scalarType = GraphQLScalarType.newScalar()
+                                                        .name("TestObject")
+                                                        .coercing(new JavaScalars.GraphQLObjectCoercing())
+                                                        .build();
+
+        // when
+        builder.scalar(Object.class, scalarType)
+               .build();
+
+        // then
+        Optional<GraphQLScalarType> result = JavaScalars.of(scalarType.getName());
+
+        assertThat(result).isNotEmpty()
+                          .get()
+                          .isEqualTo(scalarType);
     }
     
 }

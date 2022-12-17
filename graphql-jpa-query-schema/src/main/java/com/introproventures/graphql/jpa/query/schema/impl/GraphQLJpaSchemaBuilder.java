@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,6 +134,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean enableResultStream = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = (entityDescriptor) -> Optional.of(Collections.emptyList());
+    private Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
 
     private final Relay relay = new Relay();
 
@@ -151,6 +153,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
      */
     @Override
     public GraphQLSchema build() {
+        scalars.forEach((javaType, scalarType) -> JavaScalars.register(javaType, scalarType));
+
         GraphQLSchema.Builder schema = GraphQLSchema.newSchema()
                                                     .query(getQueryType());
 
@@ -166,7 +170,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     public GraphQLJpaSchemaBuilder scalar(Class<?> javaType, GraphQLScalarType scalarType) {
-        JavaScalars.register(javaType, scalarType);
+        scalars.put(javaType, scalarType);
 
         return this;
     }
