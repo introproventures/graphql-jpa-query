@@ -130,6 +130,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private int defaultFetchSize = 100;
     private int defaultPageLimitSize = 100;
     private boolean enableDefaultMaxResults = true;
+    private boolean enableResultStream = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = (entityDescriptor) -> Optional.of(Collections.emptyList());
 
@@ -216,6 +217,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withSelectNodeName(entityObjectType.getName())
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
                                                                     .withRestrictedKeysProvider(restrictedKeysProvider)
+                                                                    .withResultStream(enableResultStream)
                                                                     .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaSimpleDataFetcher.builder()
@@ -259,6 +261,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withDefaultDistinct(isDefaultDistinct)
                                                                     .withDefaultFetchSize(defaultFetchSize)
                                                                     .withRestrictedKeysProvider(restrictedKeysProvider)
+                                                                    .withResultStream(enableResultStream)
                                                                     .build();
 
         if(enableRelay) {
@@ -337,6 +340,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                     .withToManyDefaultOptional(toManyDefaultOptional)
                                                                     .withDefaultDistinct(isDefaultDistinct)
                                                                     .withRestrictedKeysProvider(restrictedKeysProvider)
+                                                                    .withResultStream(enableResultStream)
                                                                     .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaStreamDataFetcher.builder()
@@ -939,6 +943,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .withSelectNodeName(entityObjectType.getName())
                                                                                   .withDefaultDistinct(isDefaultDistinct)
                                                                                   .withRestrictedKeysProvider(restrictedKeysProvider)
+                                                                                  .withResultStream(enableResultStream)
                                                                                   .build();
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
@@ -975,6 +980,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                                                   .withSelectNodeName(entityObjectType.getName())
                                                                                   .withDefaultDistinct(isDefaultDistinct)
                                                                                   .withRestrictedKeysProvider(restrictedKeysProvider)
+                                                                                  .withResultStream(enableResultStream)
                                                                                   .build();
 
             String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
@@ -1460,6 +1466,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public RestrictedKeysProvider  getRestrictedKeysProvider() {
         return restrictedKeysProvider;
-    }    
+    }
+
+    public boolean isEnableResultStream() {
+        return enableResultStream;
+    }
+
+    public GraphQLJpaSchemaBuilder enableResultStream(boolean enableResultStream) {
+        this.enableResultStream = enableResultStream;
+
+        return this;
+    }
     
 }

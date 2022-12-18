@@ -1,33 +1,29 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import static com.introproventures.graphql.jpa.query.schema.model.book.Genre.NOVEL;
-import static com.introproventures.graphql.jpa.query.schema.model.book.Genre.PLAY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.BDDAssertions.then;
-
 import java.io.IOException;
 import java.util.Map;
-
 import javax.persistence.EntityManager;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
 import graphql.ExecutionResult;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.BDDAssertions.then;
 
 @SpringBootTest
 public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSupport {
 
-	@SpringBootApplication
+	@SpringBootConfiguration
+	@EnableAutoConfiguration
 	static class Application {
 
 		@Bean

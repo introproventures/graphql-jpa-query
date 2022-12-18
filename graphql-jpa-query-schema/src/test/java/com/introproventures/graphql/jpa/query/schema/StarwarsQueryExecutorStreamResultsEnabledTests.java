@@ -26,7 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootTest
-public class StarwarsQueryExecutorTests extends StarwarsQueryExecutorTestsSupport {
+public class StarwarsQueryExecutorStreamResultsEnabledTests extends StarwarsQueryExecutorTestsSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
@@ -40,10 +40,13 @@ public class StarwarsQueryExecutorTests extends StarwarsQueryExecutorTestsSuppor
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
 
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("Starwars")
-                .description("Starwars JPA test schema")
-                .enableResultStream(false);
+                    .name("Starwars")
+                    .description("Starwars JPA test schema")
+                    .enableResultStream(true);
         }
 
     }
+
+
+
 }
