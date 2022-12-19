@@ -1,29 +1,27 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import javax.persistence.EntityManager;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
 import graphql.schema.GraphQLSchema;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 public class StarwarsSchemaBuildWithDistinctTest extends AbstractSpringBootTestSupport {
-    
-    @SpringBootApplication
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class TestConfiguration {
         @Bean
         public GraphQLJpaSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {

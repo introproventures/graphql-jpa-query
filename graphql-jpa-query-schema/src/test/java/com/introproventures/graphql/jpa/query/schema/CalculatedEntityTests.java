@@ -1,33 +1,32 @@
 package com.introproventures.graphql.jpa.query.schema;
 
+import java.util.Optional;
+import javax.persistence.EntityManager;
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import graphql.ExecutionResult;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchema;
+import graphql.validation.ValidationErrorType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.util.Assert;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.Lists.list;
 
-import java.util.Optional;
-
-import javax.persistence.EntityManager;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.util.Assert;
-
-import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
-import graphql.ExecutionResult;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLSchema;
-import graphql.validation.ValidationErrorType;
-
 @SpringBootTest
 public class CalculatedEntityTests extends AbstractSpringBootTestSupport {
-    @SpringBootApplication
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class Application {
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {

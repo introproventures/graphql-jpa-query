@@ -1,24 +1,11 @@
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.when;
-
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
@@ -26,11 +13,23 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.when;
+
+@SpringBootTest(classes = EntityIntrospectorTest.Application.class)
 public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
 
-    @SpringBootApplication
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class Application {
     }
 

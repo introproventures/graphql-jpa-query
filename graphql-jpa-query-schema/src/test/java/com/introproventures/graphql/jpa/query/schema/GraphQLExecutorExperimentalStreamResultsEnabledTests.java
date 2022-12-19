@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootTest
-public class GraphQLExecutorExperimentalTests extends GraphQLExecutorExperimentalTestsSupport {
+public class GraphQLExecutorExperimentalStreamResultsEnabledTests extends GraphQLExecutorExperimentalTestsSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
@@ -27,7 +27,7 @@ public class GraphQLExecutorExperimentalTests extends GraphQLExecutorExperimenta
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
                 .enableSubscription(true)
-                .enableResultStream(false);
+                .enableResultStream(true);
         }
         
     }

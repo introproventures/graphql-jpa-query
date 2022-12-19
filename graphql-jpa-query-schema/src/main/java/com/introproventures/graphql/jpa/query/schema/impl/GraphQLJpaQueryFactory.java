@@ -15,19 +15,6 @@
  */
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
-import static graphql.introspection.Introspection.SchemaMetaFieldDef;
-import static graphql.introspection.Introspection.TypeMetaFieldDef;
-import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
-import static java.util.stream.Collectors.groupingBy;
-
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -52,7 +39,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
@@ -74,11 +60,6 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
-
-import graphql.execution.CoercedVariables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
@@ -87,8 +68,8 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
-
 import graphql.GraphQLException;
+import graphql.execution.CoercedVariables;
 import graphql.execution.MergedField;
 import graphql.execution.ValuesResolver;
 import graphql.language.Argument;
@@ -113,6 +94,21 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
+import static graphql.introspection.Introspection.SchemaMetaFieldDef;
+import static graphql.introspection.Introspection.TypeMetaFieldDef;
+import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Provides implemetation for GraphQL JPA Query Factory
@@ -143,6 +139,7 @@ public final class GraphQLJpaQueryFactory {
     private final GraphQLObjectType entityObjectType;
     private final int defaultFetchSize;
     private final RestrictedKeysProvider restrictedKeysProvider;
+    private final boolean resultStream;
 
     private GraphQLJpaQueryFactory(Builder builder) {
         this.entityManager = builder.entityManager;
@@ -153,6 +150,7 @@ public final class GraphQLJpaQueryFactory {
         this.defaultDistinct = builder.defaultDistinct;
         this.defaultFetchSize = builder.defaultFetchSize;
         this.restrictedKeysProvider = builder.restrictedKeysProvider;
+        this.resultStream = builder.resultStream;
     }
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment,
@@ -260,7 +258,12 @@ public final class GraphQLJpaQueryFactory {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
         }
 
-        // Let's execute query and get wrap result into stream
+        if (resultStream) {
+            return query.getResultStream()
+                        .peek(entityManager::detach);
+        }
+
+        // Let's execute query and wrap result into stream
         return query.getResultList()
                     .stream()
                     .peek(entityManager::detach);
@@ -1953,6 +1956,13 @@ public final class GraphQLJpaQueryFactory {
         public IBuildStage withDefaultDistinct(boolean defaultDistinct);
 
         /**
+         * Builder method for resultStream parameter.
+         * @param resultStream field to set
+         * @return builder
+         */
+        public IBuildStage withResultStream(boolean resultStream);
+
+        /**
         * Builder method for defaultFetchSize parameter.
         * @param defaultFetchSize field to set
         * @return builder
@@ -1987,6 +1997,7 @@ public final class GraphQLJpaQueryFactory {
         private boolean toManyDefaultOptional = true;
         private boolean defaultDistinct = true;
         private int defaultFetchSize = 100;
+        private boolean resultStream = false;
 
         private Builder() {
         }
@@ -2028,6 +2039,12 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
+        public IBuildStage withResultStream(boolean resultStream) {
+            this.resultStream = resultStream;
+            return this;
+        }
+
+        @Override
         public IBuildStage withDefaultFetchSize(int defaultFetchSize) {
             this.defaultFetchSize = defaultFetchSize;
             return this;
@@ -2038,7 +2055,7 @@ public final class GraphQLJpaQueryFactory {
             this.restrictedKeysProvider = restrictedKeysProvider;
             return this;
         }
-        
+
         @Override
         public GraphQLJpaQueryFactory build() {
             Objects.requireNonNull(restrictedKeysProvider, "restrictedKeysProvider must not be null");

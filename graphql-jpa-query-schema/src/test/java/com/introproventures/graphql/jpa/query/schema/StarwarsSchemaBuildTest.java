@@ -23,7 +23,8 @@ import javax.persistence.EntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
@@ -38,7 +39,8 @@ import graphql.schema.GraphQLSchema;
 @SpringBootTest
 public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
 
-    @SpringBootApplication
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class TestConfiguration {
         @Bean
         public GraphQLJpaSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {

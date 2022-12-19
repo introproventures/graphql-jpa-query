@@ -16,26 +16,26 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import javax.persistence.EntityManager;
-
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 
-import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @SpringBootTest
 public class GraphQLExecutorListCriteriaTests extends AbstractSpringBootTestSupport {
-    
-    @SpringBootApplication
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class Application {
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {

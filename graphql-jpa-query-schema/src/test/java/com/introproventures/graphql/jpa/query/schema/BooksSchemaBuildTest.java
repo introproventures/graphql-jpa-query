@@ -16,21 +16,8 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.BDDAssertions.thenCode;
-
 import java.util.Optional;
-
 import javax.persistence.EntityManager;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
@@ -38,15 +25,26 @@ import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperAuthor;
 import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperBook;
 import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
-
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLSchema;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenCode;
 
 @SpringBootTest
 public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
 
-    @SpringBootApplication
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
     static class TestConfiguration {
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
