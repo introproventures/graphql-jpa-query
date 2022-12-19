@@ -1,150 +1,151 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <artifactId>graphql-jpa-query-schema</artifactId>
-    <name>graphql-jpa-query-schema</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>graphql-jpa-query-schema</artifactId>
+  <name>graphql-jpa-query-schema</name>
 
-    <parent>
-        <groupId>com.introproventures</groupId>
-        <artifactId>graphql-jpa-query-build</artifactId>
-        <version>0.5.5-SNAPSHOT</version>
-        <relativePath>../graphql-jpa-query-build</relativePath>
-    </parent>
+  <parent>
+    <groupId>com.introproventures</groupId>
+    <artifactId>graphql-jpa-query-build</artifactId>
+    <version>0.5.5-SNAPSHOT</version>
+    <relativePath>../graphql-jpa-query-build</relativePath>
+  </parent>
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <dependencies>
+  <dependencies>
 
-        <dependency>
-            <groupId>com.introproventures</groupId>
-            <artifactId>graphql-jpa-query-annotations</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-annotations</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.introproventures</groupId>
-            <artifactId>graphql-jpa-query-scalars</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-scalars</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.introproventures</groupId>
-            <artifactId>graphql-jpa-query-introspection</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-introspection</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java-extended-scalars</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java-extended-scalars</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.atteo</groupId>
-            <artifactId>evo-inflector</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.atteo</groupId>
+      <artifactId>evo-inflector</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <optional>true</optional>
-        </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
 
-        <dependency>
-          <groupId>javax.persistence</groupId>
-          <artifactId>javax.persistence-api</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <optional>true</optional>
+    </dependency>
 
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>javax.transaction-api</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>javax.interceptor</groupId>
-            <artifactId>javax.interceptor-api</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>javax.transaction</groupId>
+      <artifactId>javax.transaction-api</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>javax.interceptor</groupId>
+      <artifactId>javax.interceptor-api</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.introproventures</groupId>
-            <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>com.introproventures</groupId>
-            <artifactId>graphql-jpa-query-example-model-books</artifactId>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <scope>test</scope>
-        </dependency>        
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
-        </dependency>   
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-example-model-books</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>org.spockframework</groupId>
-            <artifactId>spock-core</artifactId>
-            <version>2.3-groovy-3.0</version>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-    </dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.gmavenplus</groupId>
-                <artifactId>gmavenplus-plugin</artifactId>
-                <version>2.1.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compileTests</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
-            </plugin>
-        </plugins>
-    </build>
+    <dependency>
+      <groupId>org.spockframework</groupId>
+      <artifactId>spock-core</artifactId>
+      <version>2.3-groovy-3.0</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <version>2.1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compileTests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M7</version>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
