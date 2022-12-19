@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.introproventures.graphql.jpa.query.boot.autoconfigure;
+package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import graphql.GraphQL;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,21 +32,16 @@ import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.graphql.execution.DataFetcherExceptionResolver;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-@Configuration
+@AutoConfiguration(before = {GraphQlAutoConfiguration.class, GraphQLSchemaAutoConfiguration.class})
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class})
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
 @EnableConfigurationProperties(GraphQlProperties.class)
-@AutoConfigureBefore(GraphQlAutoConfiguration.class)
 public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
 
     @Bean

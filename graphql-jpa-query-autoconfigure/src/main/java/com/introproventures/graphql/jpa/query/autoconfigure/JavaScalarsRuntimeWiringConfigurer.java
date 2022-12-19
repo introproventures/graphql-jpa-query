@@ -1,4 +1,4 @@
-package com.introproventures.graphql.jpa.query.boot.autoconfigure;
+package com.introproventures.graphql.jpa.query.autoconfigure;
 
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;

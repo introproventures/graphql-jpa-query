@@ -1,9 +1,22 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
+import com.introproventures.graphql.jpa.query.autoconfigure.support.TestEntity;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
 import graphql.ExecutionResult;
@@ -19,6 +32,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
@@ -44,19 +58,6 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
 import static graphql.schema.FieldCoordinates.coordinates;
 import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
@@ -78,6 +79,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
     
     @SpringBootApplication
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = TestEntity.class)
     static class Application {
         
         @Configuration
@@ -296,7 +298,15 @@ public class GraphQLSchemaAutoConfigurationTest {
                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
         	
     }
-    
+
+    @Test
+    public void enableGraphQLJpaQuerySchema() {
+        assertThat(graphQLSchema.getAllTypesAsList())
+                .extracting(GraphQLNamedType::getName)
+                .contains("TestEntity");
+
+    }
+
     @Test
     public void directivesSupport() {
         assertThat(graphQLSchema.getDirectives())

@@ -15,42 +15,41 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.boot.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.function.Supplier;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
-
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
-import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutorContextFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-
 import graphql.GraphQLContext;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryAutoConfigurationTest {
 
     @SpringBootApplication
-    @EntityScan(basePackageClasses=Author.class)
+    @EnableGraphQLJpaQuerySchema(basePackageClasses=Author.class)
     static class Application {
         @MockBean
         private GraphQLExecutionInputFactory mockExecutionInputFactory;
@@ -66,13 +65,16 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         
         @MockBean
         private RestrictedKeysProvider restrictedKeysProvider;
+
+        @MockBean
+        private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
     }
     
     @Autowired(required=false)
     private GraphQLExecutor graphQLExecutor;
 
     @Autowired(required=false)
-    private GraphQLSchemaBuilder graphQLSchemaBuilder;
+    private GraphQLJpaSchemaBuilder graphQLSchemaBuilder;
     
     @Autowired(required=false)
     private GraphQLJpaExecutorContextFactory executorContextFactory;   
@@ -94,6 +96,9 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     
     @Autowired
     private GraphQLSchema graphQLSchema;
+
+    @Autowired
+    private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
     
     @Test
     public void contextIsAutoConfigured() {
@@ -118,9 +123,11 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         assertThat(executorContextFactory.getInstrumentation()).isEqualTo(instrumentation.getObject());
         assertThat(executorContextFactory.getGraphqlFieldVisibility()).isEqualTo(graphqlFieldVisibility.getObject());
         assertThat(executorContextFactory.getGraphqlContext()).isEqualTo(graphqlContext.getObject());
-        
+
         assertThat(graphQLSchema.getQueryType())
                                 .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
                                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
+
+        verify(graphQLJPASchemaBuilderCustomizer).customize(eq(graphQLSchemaBuilder));
     }
 }

@@ -1,20 +1,17 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import graphql.PublicApi;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import graphql.schema.GraphQLSchemaElement;
-import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeVisitor;
 import graphql.util.TraversalControl;
 import graphql.util.Traverser;
 import graphql.util.TraverserContext;
 import graphql.util.TraverserResult;
 import graphql.util.TraverserVisitor;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 import static graphql.util.TraversalControl.CONTINUE;
 

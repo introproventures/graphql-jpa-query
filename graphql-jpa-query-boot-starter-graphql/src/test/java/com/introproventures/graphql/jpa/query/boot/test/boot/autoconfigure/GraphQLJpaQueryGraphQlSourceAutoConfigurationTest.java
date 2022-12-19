@@ -15,37 +15,41 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.boot.autoconfigure;
 
-import com.introproventures.graphql.jpa.query.boot.autoconfigure.JavaScalarsRuntimeWiringConfigurer;
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
+import com.introproventures.graphql.jpa.query.autoconfigure.JavaScalarsRuntimeWiringConfigurer;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import org.dataloader.DataLoaderRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
+import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static graphql.GraphQLContext.newContext;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.dataloader.DataLoaderRegistry.newRegistry;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
 
     @SpringBootApplication
-    @EntityScan(basePackageClasses=Author.class)
+    @EnableGraphQLJpaQuerySchema(basePackageClasses=Author.class)
     static class Application {
     }
     
     @Autowired
-    private JavaScalarsRuntimeWiringConfigurer javaScalarsRuntimeWiringConfigurer;
+    private RuntimeWiringConfigurer javaScalarsRuntimeWiringConfigurer;
 
     @Autowired
     private GraphQLSchemaBuilder graphQLSchemaBuilder;
@@ -53,7 +57,7 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
     @Autowired
     private GraphQLSchema graphQLSchema;
 
-    @Autowired(required = false)
+    @Autowired
     private GraphQlSource graphQlSource;
 
     @Autowired
@@ -64,16 +68,24 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
 
     @Test
     public void contextIsAutoConfigured() {
-        assertThat(javaScalarsRuntimeWiringConfigurer).isNotNull();
+        assertThat(javaScalarsRuntimeWiringConfigurer).isInstanceOf(JavaScalarsRuntimeWiringConfigurer.class);
         
-        assertThat(graphQLSchemaBuilder).isNotNull()
-                                        .isInstanceOf(GraphQLJpaSchemaBuilder.class);
+        assertThat(graphQLSchemaBuilder).isInstanceOf(GraphQLJpaSchemaBuilder.class);
 
         assertThat(graphQLSchema.getQueryType())
                                 .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
                                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
-        assertThat(graphQlSource).isNotNull();
+        assertThat(graphQlSource.schema()
+                                .getQueryType())
+                                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+                                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
+        DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
+        batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());
+
+        assertThat(dataLoaderRegistry.getDataLoadersMap())
+                                     .isNotEmpty()
+                                     .containsOnlyKeys("Author.books", "Book.author");
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.starter;
 
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Book;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,7 @@ import org.springframework.graphql.ResponseError;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Date;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +41,9 @@ public class GraphQLJpaQueryStarterIT {
 	private static final String	WAR_AND_PEACE	= "War and Peace";
 
     @SpringBootApplication
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = Book.class)
     static class Application {
+
         @Bean
         ExecutionGraphQlServiceTester graphQlTester(ExecutionGraphQlService graphQlService) {
             return ExecutionGraphQlServiceTester.create(graphQlService);
@@ -50,7 +54,7 @@ public class GraphQLJpaQueryStarterIT {
     private ExecutionGraphQlServiceTester graphQlTester;
 
 	@Test
-	public void testGraphql() {
+	public void testGraphqlBooksQuery() {
         graphQlTester.document("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}")
                      .execute()
                      .errors().verify()
@@ -58,7 +62,7 @@ public class GraphQLJpaQueryStarterIT {
 	}
 
 	@Test
-	public void testGraphqlArguments() {
+	public void testGraphqlBookQueryArguments() {
         graphQlTester.document("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}")
                      .variable("title", WAR_AND_PEACE)
                      .execute()
@@ -67,6 +71,31 @@ public class GraphQLJpaQueryStarterIT {
                                           .satisfies(result -> assertThat(result).extracting("title", "genre")
                                                                                  .contains(tuple("War and Peace", "NOVEL")));
 	}
+
+    @Test
+    public void testGraphqlQueryControllerLongCount() {
+        graphQlTester.document("{ count(string: \"Hello world!\") }")
+                     .execute()
+                     .errors().verify()
+                     .path("count").entity(Long.class).isEqualTo(12L);
+
+    }
+
+    @Test
+    public void testGraphqlQueryControllerToday() {
+        graphQlTester.document("{ today }")
+                     .execute()
+                     .errors().verify()
+                     .path("today").entity(Date.class).satisfies(date -> assertThat(date).isNotNull());
+    }
+
+    @Test
+    public void testGraphqlMutationController() {
+        graphQlTester.document("mutation { reverse(string: \"Hello world!\") }")
+                     .execute()
+                     .errors().verify()
+                     .path("reverse").entity(String.class).isEqualTo("!dlrow olleH");
+    }
 
     @Test
     public void testGraphqlErrorResult() {

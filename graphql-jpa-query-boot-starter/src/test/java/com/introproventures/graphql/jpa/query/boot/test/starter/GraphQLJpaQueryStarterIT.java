@@ -15,13 +15,12 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.starter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
+import com.introproventures.graphql.jpa.query.boot.test.starter.Result.GraphQLError;
+import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
+import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +34,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.introproventures.graphql.jpa.query.boot.test.starter.Result.GraphQLError;
-import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -46,6 +47,7 @@ public class GraphQLJpaQueryStarterIT {
 	private static final String	WAR_AND_PEACE	= "War and Peace";
 
     @SpringBootApplication
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = Author.class)
     static class Application {
     }
    	
