@@ -1,6 +1,12 @@
 # Change Log
 
-## 0.5.4-SNAPSHOT
+## 0.5.4
+* fix: add spring-graphql  to graphq-jpa-query autoconfigure module (#315) [9809aef](https://github.com/introproventures/graphql-jpa-query/commit/9809aef503255b11852723c8e20aa7018adcf7fe)
+* fix: update spring-boot-dependencies to 2.7.6 (#319) [e7dbbce](https://github.com/introproventures/graphql-jpa-query/commit/e7dbbcefb3748e11a7665828e436f1697f4a96f1)
+* feat: add scalar builder method to graphql query schema builder  (#318) [56be363](https://github.com/introproventures/graphql-jpa-query/commit/56be363e6f9b78c7b993cc933858ff0a2742e530)
+* fix: add enable result stream feature for JPA queries (#317) [7315720](https://github.com/introproventures/graphql-jpa-query/commit/7315720cbf32fa9c2af475e1ecaf28d4209b6e38)
+* fix: add codecov coverage upload (#316) [bed8bba](https://github.com/introproventures/graphql-jpa-query/commit/bed8bba405768309b4eb938880e63a24b6b99951)
+* fix: add Graphql SchemaGenerator configurer auto configuration tests (#313) [952a8f6](https://github.com/introproventures/graphql-jpa-query/commit/952a8f6fac06ca772b10379c5d54352145d3a666)
 * fix: resolve default GraphQLSchemaConfigurer bean race condition in autoconfigure (#312) [1b8515a](https://github.com/introproventures/graphql-jpa-query/commit/1b8515a33ffe654a1136db5626e89dd7e1f4ec33)
 * Update README versions [19a15c8](https://github.com/introproventures/graphql-jpa-query/commit/19a15c836cfde690ea22fbd705df0c5f1bb7f3eb)
 * Update README.md [fd6e775](https://github.com/introproventures/graphql-jpa-query/commit/fd6e77554c370575fcffcb077abd92ca86f76527)
