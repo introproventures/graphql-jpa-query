@@ -1,400 +1,400 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.introproventures</groupId>
-    <artifactId>graphql-jpa-query</artifactId>
+  <groupId>com.introproventures</groupId>
+  <artifactId>graphql-jpa-query</artifactId>
+  <version>0.5.5-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>GraphQL JPA Query</name>
 
-    <version>0.5.5-SNAPSHOT</version>
-
-    <packaging>pom</packaging>
-
-    <name>GraphQL JPA Query</name>
-
-    <description>
-    GraphQL JPA Query library auto-generates GraphQL Schema using JPA's EntityManager 
-    and implements GraphQL Relay protocol to execute JPA queries with flexible type safe 
-    criteria expressions and user-friendly SQL query syntax semantics. 
+  <description>
+    GraphQL JPA Query library auto-generates GraphQL Schema using JPA's EntityManager
+    and implements GraphQL Relay protocol to execute JPA queries with flexible type safe
+    criteria expressions and user-friendly SQL query syntax semantics.
   </description>
 
-    <properties>
-        <java.version>1.8</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+  <properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
 
-    <modules>
-        <module>graphql-jpa-query-annotations</module>
-        <module>graphql-jpa-query-scalars</module>
-        <module>graphql-jpa-query-schema</module>
-        <module>graphql-jpa-query-boot-starter</module>
-        <module>graphql-jpa-query-boot-starter-graphql</module>
-        <module>graphql-jpa-query-example-simple</module>
-        <module>graphql-jpa-query-example-merge</module>
-        <module>graphql-jpa-query-dependencies</module>
-        <module>graphql-jpa-query-build</module>
-        <module>graphql-jpa-query-autoconfigure</module>
-        <module>graphql-jpa-query-web</module>
-        <module>graphql-jpa-query-example-model-starwars</module>
-        <module>graphql-jpa-query-example-model-books</module>
-        <module>graphql-jpa-query-graphiql</module>
-        <module>graphql-jpa-query-example-relay</module>
-        <module>graphql-jpa-query-introspection</module>
-        <module>graphql-jpa-query-example-spring-graphql</module>
-    </modules>
+    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+    <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+    <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype 
-				Nexus snapshot repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Sonatype 
-				Nexus release repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
+  <modules>
+    <module>graphql-jpa-query-annotations</module>
+    <module>graphql-jpa-query-scalars</module>
+    <module>graphql-jpa-query-schema</module>
+    <module>graphql-jpa-query-boot-starter</module>
+    <module>graphql-jpa-query-boot-starter-graphql</module>
+    <module>graphql-jpa-query-example-simple</module>
+    <module>graphql-jpa-query-example-merge</module>
+    <module>graphql-jpa-query-dependencies</module>
+    <module>graphql-jpa-query-build</module>
+    <module>graphql-jpa-query-autoconfigure</module>
+    <module>graphql-jpa-query-web</module>
+    <module>graphql-jpa-query-example-model-starwars</module>
+    <module>graphql-jpa-query-example-model-books</module>
+    <module>graphql-jpa-query-graphiql</module>
+    <module>graphql-jpa-query-example-relay</module>
+    <module>graphql-jpa-query-introspection</module>
+    <module>graphql-jpa-query-example-spring-graphql</module>
+  </modules>
 
-    <scm>
-        <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
-        <developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
-        <url>https://github.com/introproventures/graphql-jpa-query</url>
-        <tag>HEAD</tag>
-    </scm>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus snapshot repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Sonatype Nexus release repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+  </distributionManagement>
 
-    <inceptionYear>2017</inceptionYear>
+  <scm>
+    <connection>scm:git:https://github.com/introproventures/graphql-jpa-query.git</connection>
+    <developerConnection>scm:git:git@github.com:introproventures/graphql-jpa-query.git</developerConnection>
     <url>https://github.com/introproventures/graphql-jpa-query</url>
+    <tag>HEAD</tag>
+  </scm>
 
-    <licenses>
-        <license>
-            <name>Apache 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-        </license>
-    </licenses>
+  <inceptionYear>2017</inceptionYear>
+  <url>https://github.com/introproventures/graphql-jpa-query</url>
 
-    <issueManagement>
-        <url>https://github.com/introproventures/graphql-jpa-query/issues</url>
-        <system>GitHub Issues</system>
-    </issueManagement>
+  <licenses>
+    <license>
+      <name>Apache 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
 
-    <!-- Required: developer information: -->
-    <developers>
-        <developer>
-            <id>igdianov</id>
-            <name>Igor Dianov</name>
-            <email>igor.dianov@introproventures.com</email>
-            <organization>IntroPro Ventures Inc.</organization>
-            <organizationUrl>https://github.com/introproventures</organizationUrl>
-            <url>https://github.com/igdianov</url>
-        </developer>
-    </developers>
+  <issueManagement>
+    <url>https://github.com/introproventures/graphql-jpa-query/issues</url>
+    <system>GitHub Issues</system>
+  </issueManagement>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>info.plichta.maven.plugins</groupId>
-                    <artifactId>git-changelog-maven-plugin</artifactId>
-                    <version>0.4.0</version>
-                    <configuration>
-                        <gitHubUrl>${project.scm.url}</gitHubUrl>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.0.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>${maven-deploy-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.3</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.1</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+  <!-- Required: developer information: -->
+  <developers>
+    <developer>
+      <id>igdianov</id>
+      <name>Igor Dianov</name>
+      <email>igor.dianov@introproventures.com</email>
+      <organization>IntroPro Ventures Inc.</organization>
+      <organizationUrl>https://github.com/introproventures</organizationUrl>
+      <url>https://github.com/igdianov</url>
+    </developer>
+  </developers>
 
-        <!-- Include the README, NOTICE and LICENSE files: -->
-        <resources>
-            <resource>
-                <directory>${project.basedir}</directory>
-                <includes>
-                    <include>README*</include>
-                    <include>NOTICE*</include>
-                    <include>LICENSE*</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>info.plichta.maven.plugins</groupId>
+          <artifactId>git-changelog-maven-plugin</artifactId>
+          <version>0.4.0</version>
+          <configuration>
+            <gitHubUrl>${project.scm.url}</gitHubUrl>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven-deploy-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.10</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
 
+    <!-- Include the README, NOTICE and LICENSE files: -->
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>README*</include>
+          <include>NOTICE*</include>
+          <include>LICENSE*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+
+      <!-- Optional: JVM version compliance and encoding: -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorSourceDirectory>assembly</descriptorSourceDirectory>
+          <archiverConfig>
+            <duplicateBehavior>skip</duplicateBehavior>
+          </archiverConfig>
+        </configuration>
+      </plugin>
+
+      <!-- Release configuration: -->
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagNameFormat>@{version}</tagNameFormat>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>releases</releaseProfiles>
+          <arguments>-DskipTests -DskipDocker</arguments>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+          <preparationGoals>clean git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md
+            -Dmessage="[maven-release-plugin] Update CHANGELOG.md" verify
+          </preparationGoals>
+          <completionGoals>git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md
+            -Dmessage="[maven-release-plugin] Update CHANGELOG.md"
+          </completionGoals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12</version>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/*Test_*.java</include>
+            <include>**/*Tests_*.java</include>
+          </includes>
+          <systemPropertyVariables>
+            <slf4j.version>${slf4j.version}</slf4j.version>
+            <log4j.version>${log4j.version}</log4j.version>
+            <user.timezone>UTC</user.timezone>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <!-- Required: javadoc JAR -->
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <source>8</source>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadoc</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Ensure the manifest contains artifact version information: -->
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- Required: source JAR -->
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.2</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- just to make sure deployed artifacts are always built
+            (and tested) using JDK 8 -->
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.1.1</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>${java.version}</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <executions>
+          <!-- Unit tests configuration -->
+          <execution>
+            <id>pre-unit-test</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>post-unit-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <!-- Integration tests configuration -->
+          <execution>
+            <id>pre-integration-test</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>post-integration-test</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>report-integration</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <profile>
+      <id>releases</id>
+      <build>
         <plugins>
-
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-
-            <!-- Optional: JVM version compliance and encoding: -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorSourceDirectory>assembly</descriptorSourceDirectory>
-                    <archiverConfig>
-                        <duplicateBehavior>skip</duplicateBehavior>
-                    </archiverConfig>
-                </configuration>
-            </plugin>
-
-            <!-- Release configuration: -->
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <tagNameFormat>@{version}</tagNameFormat>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<releaseProfiles>releases</releaseProfiles>
-                    <arguments>-DskipTests -DskipDocker</arguments>
-					<mavenExecutorId>forked-path</mavenExecutorId>
-					<preparationGoals>clean git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md	-Dmessage="[maven-release-plugin] Update CHANGELOG.md" verify</preparationGoals>
-					<completionGoals>git-changelog:git-changelog scm:checkin -DpushChanges=false -Dincludes=CHANGELOG.md -Dmessage="[maven-release-plugin] Update CHANGELOG.md"</completionGoals>
-				</configuration>
-			</plugin>
-			<plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
-                        <include>**/*Test_*.java</include>
-                        <include>**/*Tests_*.java</include>
-                    </includes>
-                    <systemPropertyVariables>
-                        <slf4j.version>${slf4j.version}</slf4j.version>
-                        <log4j.version>${log4j.version}</log4j.version>
-                        <user.timezone>UTC</user.timezone>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <!-- Required: javadoc JAR -->
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                  <source>8</source>
-                </configuration>                
-                <executions>
-                    <execution>
-                        <id>attach-javadoc</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Ensure the manifest contains artifact version information: -->
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <!-- Required: source JAR -->
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <!-- just to make sure deployed artifacts are always built 
-                    (and tested) using JDK 8 -->
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.1.1</version>
-                <executions>
-                    <execution>
-                        <id>enforce-java</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireJavaVersion>
-                                    <version>${java.version}</version>
-                                </requireJavaVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
-                <executions>
-                    <!-- Unit tests configuration -->
-                    <execution>
-                        <id>pre-unit-test</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>post-unit-test</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <!-- Integration tests configuration -->
-                    <execution>
-                        <id>pre-integration-test</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>post-integration-test</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>report-integration</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+          <!-- Deployment -->
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.7</version>
+            <executions>
+              <execution>
+                <id>default-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>sonatype-nexus-staging</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
         </plugins>
-    </build>
+      </build>
+    </profile>
 
-    <profiles>
+    <!-- GPG Signature on release -->
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
 
-        <profile>
-            <id>releases</id>
-            <build>
-                <plugins>
-                    <!-- Deployment -->
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
-                        <executions>
-                            <execution>
-                                <id>default-deploy</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>deploy</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>sonatype-nexus-staging</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- GPG Signature on release -->
-        <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-    </profiles>
+  </profiles>
 
 </project>
