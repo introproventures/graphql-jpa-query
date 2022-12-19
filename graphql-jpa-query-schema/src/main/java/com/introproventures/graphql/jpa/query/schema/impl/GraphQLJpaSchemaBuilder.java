@@ -16,6 +16,31 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import java.beans.Introspector;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.persistence.Convert;
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EmbeddableType;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
@@ -41,6 +66,7 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
@@ -48,31 +74,6 @@ import graphql.schema.PropertyDataFetcher;
 import org.dataloader.MappedBatchLoaderWithContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.persistence.Convert;
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
-import java.beans.Introspector;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static graphql.Scalars.GraphQLBoolean;
 import static graphql.schema.GraphQLArgument.newArgument;
@@ -133,6 +134,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean enableResultStream = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = (entityDescriptor) -> Optional.of(Collections.emptyList());
+    private Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
 
     private final Relay relay = new Relay();
 
@@ -151,6 +153,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
      */
     @Override
     public GraphQLSchema build() {
+        scalars.forEach((javaType, scalarType) -> JavaScalars.register(javaType, scalarType));
+
         GraphQLSchema.Builder schema = GraphQLSchema.newSchema()
                                                     .query(getQueryType());
 
@@ -163,6 +167,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         }
 
         return schema.build();
+    }
+
+    public GraphQLJpaSchemaBuilder scalar(Class<?> javaType, GraphQLScalarType scalarType) {
+        scalars.put(javaType, scalarType);
+
+        return this;
     }
 
     private GraphQLObjectType getQueryType() {
