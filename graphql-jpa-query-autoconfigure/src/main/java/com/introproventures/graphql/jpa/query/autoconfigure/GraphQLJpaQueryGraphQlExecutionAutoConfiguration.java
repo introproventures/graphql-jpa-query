@@ -5,12 +5,11 @@ import org.dataloader.DataLoaderOptions;
 import org.dataloader.MappedBatchLoaderWithContext;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
@@ -18,9 +17,8 @@ import reactor.core.publisher.Mono;
 
 import static com.introproventures.graphql.jpa.query.schema.impl.BatchLoaderRegistry.newDataLoaderRegistry;
 
-@Configuration
+@AutoConfiguration(after = GraphQlAutoConfiguration.class)
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class})
-@AutoConfigureAfter(GraphQlAutoConfiguration.class)
 public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
 
     @Bean
