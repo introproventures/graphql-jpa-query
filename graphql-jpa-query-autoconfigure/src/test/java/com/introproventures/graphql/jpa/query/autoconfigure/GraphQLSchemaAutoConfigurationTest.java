@@ -1,5 +1,17 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
@@ -44,19 +56,6 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
 import static graphql.schema.FieldCoordinates.coordinates;
 import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
@@ -78,6 +77,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
     
     @SpringBootApplication
+    @EnableGraphQLJpaQuerySchema
     static class Application {
         
         @Configuration
