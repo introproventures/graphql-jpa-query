@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.4
+## 0.5.5-SNAPSHOT
 * fix: add spring-graphql  to graphq-jpa-query autoconfigure module (#315) [9809aef](https://github.com/introproventures/graphql-jpa-query/commit/9809aef503255b11852723c8e20aa7018adcf7fe)
 * fix: update spring-boot-dependencies to 2.7.6 (#319) [e7dbbce](https://github.com/introproventures/graphql-jpa-query/commit/e7dbbcefb3748e11a7665828e436f1697f4a96f1)
 * feat: add scalar builder method to graphql query schema builder  (#318) [56be363](https://github.com/introproventures/graphql-jpa-query/commit/56be363e6f9b78c7b993cc933858ff0a2742e530)
