@@ -29,7 +29,7 @@ Features
 * Merging two or more GraphQL schemas from different JPA entity models 
 * Support for GraphQL schema auto-configuration, GraphQL Web Rest Controller via Spring Boot Starters
 * GraphQL Subscriptions (Experimental)
-* [Spring GraphQl 1.0](https://docs.spring.io/spring-graphql/docs/current/reference/html/#overview) Schema Wiring, Stitching, Execution, Testing
+* [Spring GraphQl 1.0.x](https://docs.spring.io/spring-graphql/docs/current/reference/html/#overview) Auto configurations for Schema Runtime Wiring, Execution, Protocols, Testing
 
 Supported Apis
 ----------------------
@@ -44,6 +44,7 @@ Tested using JDK Versions
 ----------------------
 * Jdk 8
 * Jdk 11
+* Jdk 17
 
 Modules
 -------
