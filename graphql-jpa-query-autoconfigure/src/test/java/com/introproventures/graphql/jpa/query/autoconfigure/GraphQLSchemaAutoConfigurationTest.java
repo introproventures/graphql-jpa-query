@@ -16,6 +16,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGr
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.SubscriptionRoot;
+import com.introproventures.graphql.jpa.query.autoconfigure.support.TestEntity;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
 import graphql.ExecutionResult;
@@ -77,7 +78,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
     
     @SpringBootApplication
-    @EnableGraphQLJpaQuerySchema
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = TestEntity.class)
     static class Application {
         
         @Configuration
