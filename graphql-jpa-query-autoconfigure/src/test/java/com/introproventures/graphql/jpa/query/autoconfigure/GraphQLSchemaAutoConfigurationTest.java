@@ -32,6 +32,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
@@ -297,7 +298,15 @@ public class GraphQLSchemaAutoConfigurationTest {
                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
         	
     }
-    
+
+    @Test
+    public void enableGraphQLJpaQuerySchema() {
+        assertThat(graphQLSchema.getAllTypesAsList())
+                .extracting(GraphQLNamedType::getName)
+                .contains("TestEntity");
+
+    }
+
     @Test
     public void directivesSupport() {
         assertThat(graphQLSchema.getDirectives())
