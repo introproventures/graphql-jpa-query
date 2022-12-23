@@ -22,6 +22,8 @@ import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 
@@ -71,8 +73,44 @@ class ResultStreamWrapper<T> {
                 // Use hashCode of service locator proxy.
                 return System.identityHashCode(proxy);
             }
-            
+            else if ("spliterator".equals(method.getName())) {
+                // Use hashCode of service locator proxy.
+                return new ResultSpliteratorWrapper(new ResultIteratorWrapper(stream,
+                                                                              size));
+            }
             throw new UnsupportedOperationException(method + " is not supported");
+        }
+
+        public class ResultSpliteratorWrapper implements Spliterator<T> {
+            final ResultIteratorWrapper delegate;
+
+            public ResultSpliteratorWrapper(ResultIteratorWrapper delegate) {
+                this.delegate = delegate;
+            }
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> action) {
+                if (delegate.hasNext()) {
+                    action.accept(delegate.next());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public Spliterator<T> trySplit() {
+                throw new UnsupportedOperationException("method trySplit is not supported");
+            }
+
+            @Override
+            public long estimateSize() {
+                return Long.MAX_VALUE;
+            }
+
+            @Override
+            public int characteristics() {
+                return 0;
+            }
         }
         
         class ResultIteratorWrapper implements Iterator<T> {
@@ -103,6 +141,6 @@ class ResultStreamWrapper<T> {
                     current++;
                 }
             }
-        }        
+        }
     }
 }
