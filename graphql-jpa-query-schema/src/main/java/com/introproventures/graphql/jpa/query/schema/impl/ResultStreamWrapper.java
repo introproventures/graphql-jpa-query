@@ -22,8 +22,6 @@ import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterator;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 
@@ -34,24 +32,24 @@ class ResultStreamWrapper<T> {
                                    int size) {
         return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
                                                 new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(stream.iterator(),
+                                                new ListProxyInvocationHandler<T>(stream,
                                                                                   size));
     }
     
     @SuppressWarnings("unchecked")
-    public static <T> List<T> wrap(Collection<T> stream,
+    public static <T> List<T> wrap(Collection<T> collection,
                                    int size) {
         return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
                                                 new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(stream.iterator(),
+                                                new ListProxyInvocationHandler<T>(collection.stream(),
                                                                                   size));
     }
     
     static class ListProxyInvocationHandler<T> implements InvocationHandler {
-        private final Iterator<T> stream;
+        private final Stream<T> stream;
         private final int size;
         
-        public ListProxyInvocationHandler(Iterator<T> stream,
+        public ListProxyInvocationHandler(Stream<T> stream,
                                           int size) {
             this.stream = stream;
             this.size = size;
@@ -63,7 +61,7 @@ class ResultStreamWrapper<T> {
                 return size; 
             }
             else if("iterator".equals(method.getName())) {
-                return new ResultIteratorWrapper(stream,
+                return new ResultIteratorWrapper(stream.iterator(),
                                                  size);
             } else if ("equals".equals(method.getName())) {
                 // Only consider equal when proxies are identical.
@@ -74,44 +72,11 @@ class ResultStreamWrapper<T> {
                 return System.identityHashCode(proxy);
             }
             else if ("spliterator".equals(method.getName())) {
-                return new ResultSpliteratorWrapper(new ResultIteratorWrapper(stream,
-                                                                              size));
+                return stream.spliterator();
             }
             throw new UnsupportedOperationException(method + " is not supported");
         }
 
-        public class ResultSpliteratorWrapper implements Spliterator<T> {
-            final ResultIteratorWrapper delegate;
-
-            public ResultSpliteratorWrapper(ResultIteratorWrapper delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public boolean tryAdvance(Consumer<? super T> action) {
-                if (delegate.hasNext()) {
-                    action.accept(delegate.next());
-                    return true;
-                }
-                return false;
-            }
-
-            @Override
-            public Spliterator<T> trySplit() {
-                throw new UnsupportedOperationException("method trySplit is not supported");
-            }
-
-            @Override
-            public long estimateSize() {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public int characteristics() {
-                return 0;
-            }
-        }
-        
         class ResultIteratorWrapper implements Iterator<T> {
             
             final Iterator<T> delegate;
