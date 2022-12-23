@@ -248,7 +248,7 @@
       <!-- Ensure the manifest contains artifact version information: -->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.3.0</version>
         <configuration>
           <archive>
             <manifest>
