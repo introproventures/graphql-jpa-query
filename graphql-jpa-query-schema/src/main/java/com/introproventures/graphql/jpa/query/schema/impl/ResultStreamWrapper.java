@@ -32,24 +32,22 @@ class ResultStreamWrapper<T> {
                                    int size) {
         return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
                                                 new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(stream.iterator(),
+                                                new ListProxyInvocationHandler<T>(stream,
                                                                                   size));
     }
     
     @SuppressWarnings("unchecked")
-    public static <T> List<T> wrap(Collection<T> stream,
+    public static <T> List<T> wrap(Collection<T> collection,
                                    int size) {
-        return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
-                                                new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(stream.iterator(),
-                                                                                  size));
+        return wrap(collection.stream(),
+                    size);
     }
     
     static class ListProxyInvocationHandler<T> implements InvocationHandler {
-        private final Iterator<T> stream;
+        private final Stream<T> stream;
         private final int size;
         
-        public ListProxyInvocationHandler(Iterator<T> stream,
+        public ListProxyInvocationHandler(Stream<T> stream,
                                           int size) {
             this.stream = stream;
             this.size = size;
@@ -61,7 +59,7 @@ class ResultStreamWrapper<T> {
                 return size; 
             }
             else if("iterator".equals(method.getName())) {
-                return new ResultIteratorWrapper(stream,
+                return new ResultIteratorWrapper(stream.iterator(),
                                                  size);
             } else if ("equals".equals(method.getName())) {
                 // Only consider equal when proxies are identical.
@@ -71,10 +69,12 @@ class ResultStreamWrapper<T> {
                 // Use hashCode of service locator proxy.
                 return System.identityHashCode(proxy);
             }
-            
+            else if ("spliterator".equals(method.getName())) {
+                return stream.spliterator();
+            }
             throw new UnsupportedOperationException(method + " is not supported");
         }
-        
+
         class ResultIteratorWrapper implements Iterator<T> {
             
             final Iterator<T> delegate;
@@ -103,6 +103,6 @@ class ResultStreamWrapper<T> {
                     current++;
                 }
             }
-        }        
+        }
     }
 }
