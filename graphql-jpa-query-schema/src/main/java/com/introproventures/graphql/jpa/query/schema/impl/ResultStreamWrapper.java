@@ -39,10 +39,8 @@ class ResultStreamWrapper<T> {
     @SuppressWarnings("unchecked")
     public static <T> List<T> wrap(Collection<T> collection,
                                    int size) {
-        return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
-                                                new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(collection.stream(),
-                                                                                  size));
+        return wrap(collection.stream(),
+                    size);
     }
     
     static class ListProxyInvocationHandler<T> implements InvocationHandler {
