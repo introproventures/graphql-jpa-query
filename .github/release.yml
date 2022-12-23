@@ -1,21 +1,21 @@
 # .github/release.yml
 changelog:
   categories:
-    - title: 🛠 Breaking Changes
+    - title: 💥 Breaking Changes
       labels:
         - breaking-change
-    - title: 🎉 New Features
+    - title: ✨ New Features
       labels:
         - enhancement
-    - title: 🛠 Bug Fixes
+    - title: 🐛 Bug Fixes
       labels:
         - bug
-    - title: 👒 Dependencies
+    - title: 🔧 Dependencies
       labels:
         - dependencies
-    - title: 🛠 Documentation 
+    - title: 📚 Documentation 
       labels: 
         - documentation 
-    - title: Other Changes 
+    - title: 🔨 Other Changes 
       labels: 
         - "*"
