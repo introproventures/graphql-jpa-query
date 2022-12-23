@@ -74,7 +74,6 @@ class ResultStreamWrapper<T> {
                 return System.identityHashCode(proxy);
             }
             else if ("spliterator".equals(method.getName())) {
-                // Use hashCode of service locator proxy.
                 return new ResultSpliteratorWrapper(new ResultIteratorWrapper(stream,
                                                                               size));
             }
