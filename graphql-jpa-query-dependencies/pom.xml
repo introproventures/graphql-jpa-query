@@ -17,7 +17,7 @@
     <javax.interceptor-api.version>1.2.2</javax.interceptor-api.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
     <joda-time.version>2.10.5</joda-time.version>
-    <graphql-java-extended-scalars.version>19.0</graphql-java-extended-scalars.version>
+    <graphql-java-extended-scalars.version>20.0</graphql-java-extended-scalars.version>
   </properties>
 
   <dependencyManagement>
