@@ -19,18 +19,15 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-
-import javax.transaction.Transactional;
-import javax.transaction.Transactional.TxType;
-
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
-
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
 
 /**
  * Jpa specific GraphQLExecutor implementation with support to execute GraphQL query within

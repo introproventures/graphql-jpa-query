@@ -1,11 +1,9 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
 
-
 import java.util.Date;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity(name="ProcessVariable")
 @Table(name = "PROCESS_VARIABLE")

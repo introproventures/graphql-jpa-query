@@ -1,10 +1,9 @@
 package com.introproventures.graphql.jpa.query.schema.model.starwars;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

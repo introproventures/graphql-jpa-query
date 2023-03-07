@@ -2,11 +2,11 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import javax.persistence.EntityManager;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.schema.GraphQLSchema;
+import jakarta.persistence.EntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

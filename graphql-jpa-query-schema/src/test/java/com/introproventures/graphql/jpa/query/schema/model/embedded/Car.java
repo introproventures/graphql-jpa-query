@@ -1,9 +1,8 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.embedded;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

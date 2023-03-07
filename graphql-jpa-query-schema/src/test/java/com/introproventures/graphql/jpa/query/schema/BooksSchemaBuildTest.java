@@ -17,7 +17,6 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import java.util.Optional;
-import javax.persistence.EntityManager;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
@@ -28,6 +27,7 @@ import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLSchema;
+import jakarta.persistence.EntityManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -16,14 +16,12 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import javax.persistence.NoResultException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import jakarta.persistence.NoResultException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaSimpleDataFetcher.class);

@@ -1,8 +1,7 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
 import java.util.Objects;
-
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public abstract class ActivitiEntityMetadata  {

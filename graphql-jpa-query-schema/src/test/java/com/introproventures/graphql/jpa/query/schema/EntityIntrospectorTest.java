@@ -2,10 +2,6 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
@@ -13,6 +9,10 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.ManagedType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

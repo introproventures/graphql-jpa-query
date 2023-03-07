@@ -1,7 +1,6 @@
 package com.introproventures.graphql.jpa.query.schema;
 
 import java.util.Optional;
-import javax.persistence.EntityManager;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
@@ -9,6 +8,7 @@ import graphql.ExecutionResult;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationErrorType;
+import jakarta.persistence.EntityManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;

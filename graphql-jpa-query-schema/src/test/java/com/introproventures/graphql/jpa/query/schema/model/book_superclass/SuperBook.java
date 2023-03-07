@@ -16,10 +16,9 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book_superclass;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
-
-import javax.persistence.*;
-import java.util.Date;
 
 @Data
 @Entity

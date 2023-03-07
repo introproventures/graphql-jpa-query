@@ -18,21 +18,17 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.List;
 import java.util.Optional;
-
-import javax.persistence.metamodel.PluralAttribute;
-
-import graphql.schema.GraphQLNamedType;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderOptions;
-import org.dataloader.DataLoaderRegistry;
-import org.dataloader.MappedBatchLoaderWithContext;
-
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLNamedType;
+import jakarta.persistence.metamodel.PluralAttribute;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
+import org.dataloader.MappedBatchLoaderWithContext;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes

@@ -2,12 +2,10 @@ package com.introproventures.graphql.jpa.query.converter.model;
 
 
 import java.io.IOException;
-
-import javax.persistence.AttributeConverter;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.AttributeConverter;
 import org.hibernate.QueryException;
 
 public class VariableValueJsonConverter implements AttributeConverter<VariableValue<?>, String> {

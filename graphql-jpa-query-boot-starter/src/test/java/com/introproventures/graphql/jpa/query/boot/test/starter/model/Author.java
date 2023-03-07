@@ -17,11 +17,9 @@
 package com.introproventures.graphql.jpa.query.boot.test.starter.model;
 
 import java.util.Collection;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 @Data

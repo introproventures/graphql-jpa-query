@@ -39,27 +39,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.AbstractQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Fetch;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
-import javax.persistence.criteria.Subquery;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
@@ -91,9 +70,31 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.AbstractQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Fetch;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.PluralAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -589,8 +590,10 @@ public final class GraphQLJpaQueryFactory {
     }
 
     protected void mayBeAddOrderBy(Field selectedField, CriteriaQuery<?> query, CriteriaBuilder cb, Path<?> fieldPath, DataFetchingEnvironment environment) {
+        Attribute<?, ?> attribute = getAttribute(environment,
+                                                 selectedField.getName());
         // Singular attributes only
-        if (fieldPath.getModel() instanceof SingularAttribute) {
+        if (attribute instanceof SingularAttribute) {
             selectedField.getArguments()
                          .stream()
                          .filter(this::isOrderByArgument)
@@ -623,14 +626,17 @@ public final class GraphQLJpaQueryFactory {
             Path<?> fieldPath = from.get(selection.getName());
             From<?,?> fetch = null;
             Optional<Argument> whereArgument = getArgument(selection, WHERE);
+            GraphQLOutputType fieldType = environment.getFieldType();
 
+            Attribute<?, ?> fieldAttribute = getAttribute(environment,
+                                                          selection.getName());
             // Build predicate arguments for singular attributes only
-            if(fieldPath.getModel() instanceof SingularAttribute) {
+            if(fieldAttribute instanceof SingularAttribute) {
                 // Process the orderBy clause
                 mayBeAddOrderBy(selection, query, cb, fieldPath, environment);
 
                 // Check if it's an object and the foreign side is One.  Then we can eagerly join causing an inner join instead of 2 queries
-                SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldPath.getModel();
+                SingularAttribute<?,?> attribute = (SingularAttribute<?,?>) fieldAttribute;
                 if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE
                     || attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
                 ) {

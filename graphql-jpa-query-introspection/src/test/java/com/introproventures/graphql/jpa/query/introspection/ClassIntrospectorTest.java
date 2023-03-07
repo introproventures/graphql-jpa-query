@@ -1,5 +1,19 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+import jakarta.persistence.Entity;
+import lombok.Data;
+import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertArrayEquals;
@@ -9,24 +23,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.Entity;
-
-import org.junit.Test;
-
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-
-import lombok.Data;
 
 
 public class ClassIntrospectorTest {

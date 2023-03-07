@@ -1,9 +1,8 @@
 package com.introproventures.graphql.jpa.query.schema.model.metamodel;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 @Entity
 public class ClassWithCustomMetamodel {

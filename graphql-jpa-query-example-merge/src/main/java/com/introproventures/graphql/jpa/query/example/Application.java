@@ -15,12 +15,14 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
-import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
-
 import java.util.function.Supplier;
-
-import javax.servlet.http.HttpServletRequest;
-
+import graphql.GraphQLContext;
+import graphql.execution.instrumentation.Instrumentation;
+import graphql.execution.instrumentation.SimpleInstrumentation;
+import graphql.execution.instrumentation.tracing.TracingInstrumentation;
+import graphql.schema.visibility.BlockedFields;
+import graphql.schema.visibility.GraphqlFieldVisibility;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -29,12 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.annotation.RequestScope;
 
-import graphql.GraphQLContext;
-import graphql.execution.instrumentation.Instrumentation;
-import graphql.execution.instrumentation.SimpleInstrumentation;
-import graphql.execution.instrumentation.tracing.TracingInstrumentation;
-import graphql.schema.visibility.BlockedFields;
-import graphql.schema.visibility.GraphqlFieldVisibility;
+import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration

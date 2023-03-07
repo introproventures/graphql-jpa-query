@@ -18,6 +18,7 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
     <joda-time.version>2.10.5</joda-time.version>
     <graphql-java-extended-scalars.version>19.0</graphql-java-extended-scalars.version>
+    <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
   </properties>
 
   <dependencyManagement>
@@ -33,9 +34,9 @@
         <version>${graphql-java-extended-scalars.version}</version>
       </dependency>
       <dependency>
-        <groupId>javax.persistence</groupId>
-        <artifactId>javax.persistence-api</artifactId>
-        <version>${javax.persistence-api.version}</version>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>${jakarta.persistence-api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.atteo</groupId>
@@ -43,9 +44,9 @@
         <version>${evo-inflector.version}</version>
       </dependency>
       <dependency>
-        <groupId>javax.interceptor</groupId>
-        <artifactId>javax.interceptor-api</artifactId>
-        <version>${javax.interceptor-api.version}</version>
+        <groupId>jakarta.interceptor</groupId>
+        <artifactId>jakarta.interceptor-api</artifactId>
+        <version>2.1.0</version>
       </dependency>
       <dependency>
         <groupId>com.introproventures</groupId>

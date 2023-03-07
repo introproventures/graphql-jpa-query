@@ -16,10 +16,10 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import javax.persistence.EntityManager;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.support.StarwarsQueryExecutorTestsSupport;
+import jakarta.persistence.EntityManager;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;

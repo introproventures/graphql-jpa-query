@@ -1,10 +1,14 @@
 package com.introproventures.graphql.jpa.query.schema.model.book_superclass;
 
+import java.util.Date;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.*;
-import java.util.Date;
 
 @MappedSuperclass
 @Getter

@@ -1,7 +1,6 @@
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
-import javax.persistence.Embeddable;
-
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 
 @Data

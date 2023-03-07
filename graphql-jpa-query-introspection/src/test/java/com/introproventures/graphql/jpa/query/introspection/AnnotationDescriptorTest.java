@@ -1,10 +1,9 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-
-import javax.persistence.Entity;
-
+import jakarta.persistence.Entity;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 public class AnnotationDescriptorTest {

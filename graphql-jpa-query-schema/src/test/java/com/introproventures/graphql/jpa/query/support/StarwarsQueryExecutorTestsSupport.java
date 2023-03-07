@@ -21,14 +21,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -51,6 +51,21 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     @Test
     public void contextLoads() {
     }
+
+    @Test
+    @Transactional
+    public void JPASampleBookTester() {
+        // given:
+        Query query = em.createQuery("select id from Book where tags in ('war')");
+
+        // when:
+        List<?> result = query.getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(13);
+    }
+
 
     @Test
     @Transactional

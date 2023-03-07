@@ -1,8 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.model.embedded;
 
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 
 @MappedSuperclass

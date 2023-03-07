@@ -1,8 +1,8 @@
 package com.introproventures.graphql.jpa.query.schema.model.floating;
 
 import java.math.BigDecimal;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.Data;
 
 @Data

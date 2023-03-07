@@ -1,14 +1,13 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.embedded;
 
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-import lombok.Data;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
 import java.io.Serializable;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import lombok.Data;
 
 @Entity(name = "Boat")
 @Data

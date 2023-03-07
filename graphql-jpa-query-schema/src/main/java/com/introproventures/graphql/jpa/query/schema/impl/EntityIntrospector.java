@@ -1,7 +1,5 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static java.util.Locale.ENGLISH;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,13 +18,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.ManagedType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
@@ -35,6 +26,12 @@ import com.introproventures.graphql.jpa.query.introspection.ClassIntrospector;
 import com.introproventures.graphql.jpa.query.introspection.FieldDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.MethodDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.PropertyDescriptor;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.ManagedType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static java.util.Locale.ENGLISH;
 
 public class EntityIntrospector {
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityIntrospector.class);

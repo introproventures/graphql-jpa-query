@@ -1,11 +1,9 @@
 package com.introproventures.graphql.jpa.query.schema.model.calculated;
 
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @GraphQLDescription("ParentCalculatedEntity description")

@@ -1,15 +1,12 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-
 import java.util.Optional;
-
-import javax.persistence.Version;
-
+import jakarta.persistence.Version;
+import lombok.Data;
 import org.junit.Test;
 
-import lombok.Data;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 public class PropertyDescriptorTest {
