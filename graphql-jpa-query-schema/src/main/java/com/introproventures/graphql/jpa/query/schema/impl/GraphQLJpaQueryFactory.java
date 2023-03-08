@@ -35,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -70,7 +71,6 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
@@ -132,6 +132,9 @@ public final class GraphQLJpaQueryFactory {
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
     protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
+
+    private final Map<GraphQLObjectType, EntityType> entityTypeMap = new ConcurrentHashMap<>();
+    private final Map<GraphQLObjectType, EmbeddableType> embeddableTypeMap = new ConcurrentHashMap<>();
 
     protected final EntityManager entityManager;
     protected final EntityType<?> entityType;
@@ -626,11 +629,9 @@ public final class GraphQLJpaQueryFactory {
 
             Path<?> fieldPath = from.get(selection.getName());
             From<?,?> fetch = null;
-            Optional<Argument> whereArgument = getArgument(selection, WHERE);
-            GraphQLOutputType fieldType = environment.getFieldType();
-
-            Attribute<?, ?> fieldAttribute = getAttribute(environment,
-                                                          selection.getName());
+            final Optional<Argument> whereArgument = getArgument(selection, WHERE);
+            final Attribute<?, ?> fieldAttribute = getAttribute(environment,
+                                                                selection.getName());
             // Build predicate arguments for singular attributes only
             if(fieldAttribute instanceof SingularAttribute) {
                 // Process the orderBy clause
@@ -1525,28 +1526,35 @@ public final class GraphQLJpaQueryFactory {
      *      NoSuchElementException - if there is no value present
      */
     private EntityType<?> getEntityType(GraphQLObjectType objectType) {
-        return entityManager.getMetamodel()
-                            .getEntities().stream()
-                                          .filter(it -> it.getName().equals(objectType.getName()))
-                                          .findFirst()
-                                          .get();
+        return entityTypeMap.computeIfAbsent(objectType, this::computeEntityType);
     }
 
     private boolean isEntityType(DataFetchingEnvironment environment) {
         GraphQLObjectType objectType = getObjectType(environment);
+        return getEntityType(objectType) != null;
+    }
+
+    private EntityType<?> computeEntityType(GraphQLObjectType objectType) {
         return entityManager.getMetamodel()
                             .getEntities().stream()
-                                          .anyMatch(it -> it.getName().equals(objectType.getName()));
+                            .filter(it -> it.getName().equals(objectType.getName()))
+                            .findFirst()
+                            .orElse(null);
     }
 
     private EmbeddableType<?> getEmbeddableType(GraphQLObjectType objectType) {
+        return embeddableTypeMap.computeIfAbsent(objectType, this::computeEmbeddableType);
+    }
+
+    private EmbeddableType<?> computeEmbeddableType(GraphQLObjectType objectType) {
         String javaType = objectType.getName().replace("EmbeddableType", "");
         return entityManager.getMetamodel()
                             .getEmbeddables().stream()
                             .filter(it -> it.getJavaType().getSimpleName().equals(javaType))
                             .findFirst()
-                            .get();
+                            .orElse(null);
     }
+
     /**
      * Resolve GraphQL object type from Argument output type.
      *
