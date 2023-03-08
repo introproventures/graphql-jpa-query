@@ -1652,16 +1652,11 @@ public final class GraphQLJpaQueryFactory {
 
     protected String getJPQLQueryString(TypedQuery<?> query) {
         try {
-            Object queryImpl = query.unwrap(TypedQuery.class);
-
-            java.lang.reflect.Field queryStringField = ReflectionUtil.getField(queryImpl.getClass(),
-                                                                               "queryString");
-
-            ReflectionUtil.forceAccess(queryStringField);
-
-            if(queryStringField != null) {
-                return queryStringField.get(queryImpl)
-                                       .toString();
+            Method getQueryString = ReflectionUtil.getMethod(query.getClass(),
+                                                             "getQueryString");
+            if(getQueryString != null) {
+                return getQueryString.invoke(query)
+                             .toString();
             }
 
         } catch (Exception ignored) {
