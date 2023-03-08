@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import graphql.ExecutionResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;

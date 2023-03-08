@@ -15,6 +15,27 @@
  */
 package com.introproventures.graphql.jpa.query.test.web;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.web.GraphQLController;
+import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
+import graphql.ExecutionResultImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.mockito.Mockito.never;
@@ -25,33 +46,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.web.GraphQLController;
-import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
-
-import graphql.ExecutionResultImpl;
-
-@RunWith(SpringRunner.class)
 @WebMvcTest(controllers = GraphQLController.class)
 public class GraphQLControllerTest {
 
@@ -74,7 +68,7 @@ public class GraphQLControllerTest {
      * to produce correct output content type in MockHttpResponse
      * 
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         when(executor.execute(Mockito.anyString()))
             .thenReturn(new ExecutionResultImpl(new HashMap<>(), new ArrayList<>()));

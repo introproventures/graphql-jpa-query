@@ -1,26 +1,9 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.util.Lists.list;
-
 import java.util.Collections;
 import java.util.function.Supplier;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
-
 import graphql.ExecutionResult;
 import graphql.GraphQLContext;
 import graphql.Scalars;
@@ -33,9 +16,19 @@ import graphql.schema.StaticDataFetcher;
 import graphql.schema.visibility.BlockedFields;
 import graphql.schema.visibility.GraphqlFieldVisibility;
 import graphql.validation.ValidationErrorType;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.util.Lists.list;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class GraphQLJpaExecutorContextFactoryTest {
 

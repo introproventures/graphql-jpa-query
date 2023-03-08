@@ -13,8 +13,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -41,7 +42,7 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
     
     private EntityIntrospectionResult subject;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         ManagedType<CalculatedEntity> entityType = entityManager.getMetamodel()
                                                                 .managedType(entityClass);
@@ -50,22 +51,22 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
     }
 
     
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testResultOfNoSuchElementException() throws Exception {
         // then
-        EntityIntrospector.resultOf(Object.class);
+        Assertions.assertThrows(NoSuchElementException.class, () -> EntityIntrospector.resultOf(Object.class));
     }
     
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testIsTransientNonExisting() throws Exception {
         // then
-        assertThat(subject.isTransient("notFound")).isFalse();
+        Assertions.assertThrows(NoSuchElementException.class, () -> subject.isTransient("notFound"));
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testIsIgnoredNonExisting() throws Exception {
         // then
-        assertThat(subject.isIgnored("notFound")).isFalse();
+        Assertions.assertThrows(NoSuchElementException.class, () -> subject.isIgnored("notFound"));
     }
     
     @Test

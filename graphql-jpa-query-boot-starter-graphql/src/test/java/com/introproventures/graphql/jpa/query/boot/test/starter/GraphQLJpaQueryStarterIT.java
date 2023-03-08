@@ -15,10 +15,11 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.starter;
 
+import java.util.Date;
+import java.util.Map;
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Book;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,15 +28,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.ResponseError;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Date;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 public class GraphQLJpaQueryStarterIT {
 	private static final String	WAR_AND_PEACE	= "War and Peace";

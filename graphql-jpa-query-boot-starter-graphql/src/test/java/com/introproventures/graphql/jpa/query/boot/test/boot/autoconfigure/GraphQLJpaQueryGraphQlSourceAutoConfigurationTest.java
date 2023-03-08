@@ -23,8 +23,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import org.dataloader.DataLoaderRegistry;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,13 +32,11 @@ import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static graphql.GraphQLContext.newContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.dataloader.DataLoaderRegistry.newRegistry;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
 

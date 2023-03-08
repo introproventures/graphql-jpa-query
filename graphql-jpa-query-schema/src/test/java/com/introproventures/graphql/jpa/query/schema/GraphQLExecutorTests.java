@@ -32,8 +32,8 @@ import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.util.Maps;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -72,7 +72,7 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     @Autowired
     private GraphQLExecutor executor;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }

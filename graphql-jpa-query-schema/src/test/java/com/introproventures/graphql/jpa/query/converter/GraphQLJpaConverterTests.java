@@ -39,7 +39,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import jakarta.transaction.Transactional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -78,7 +78,6 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     
     @Test
     public void contextLoads() {
-        
     }
     
     @Test

@@ -7,8 +7,8 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.schema.GraphQLSchema;
 import jakarta.persistence.EntityManager;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,7 +43,7 @@ public class StarwarsSchemaBuildWithDistinctTest extends AbstractSpringBootTestS
     @Autowired
     private GraphQLExecutor executor;
 
-    @Before
+    @BeforeEach
     public void setup() {
     }
 
