@@ -124,7 +124,6 @@ public final class GraphQLJpaQueryFactory {
     protected static final String WHERE = "where";
     protected static final String OPTIONAL = "optional";
 
-    protected static final String HIBERNATE_QUERY_PASS_DISTINCT_THROUGH = "hibernate.query.passDistinctThrough";
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
@@ -249,11 +248,6 @@ public final class GraphQLJpaQueryFactory {
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
-
-        // Let's not pass distinct if enabled to have better performance
-        if(isDistinct) {
-            query.setHint(HIBERNATE_QUERY_PASS_DISTINCT_THROUGH, false);
-        }
 
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
