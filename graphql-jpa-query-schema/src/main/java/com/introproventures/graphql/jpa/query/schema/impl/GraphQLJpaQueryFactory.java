@@ -1495,7 +1495,7 @@ public final class GraphQLJpaQueryFactory {
      */
     private Attribute<?,?> getAttribute(DataFetchingEnvironment environment, String argument) {
         GraphQLObjectType objectType = getObjectType(environment);
-        if (!isEntityType(environment)) {
+        if (!isEntityType(objectType)) {
             return getEmbeddableType(objectType).getAttribute(argument);
         }
 
@@ -1525,6 +1525,10 @@ public final class GraphQLJpaQueryFactory {
 
     private boolean isEntityType(DataFetchingEnvironment environment) {
         GraphQLObjectType objectType = getObjectType(environment);
+        return isEntityType(objectType);
+    }
+
+    private boolean isEntityType(GraphQLObjectType objectType) {
         return getEntityType(objectType) != null;
     }
 
