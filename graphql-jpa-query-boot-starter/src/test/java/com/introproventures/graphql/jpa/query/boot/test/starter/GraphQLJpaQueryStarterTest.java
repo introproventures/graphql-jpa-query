@@ -15,17 +15,13 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.starter;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.boot.test.starter.Result.GraphQLError;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -55,16 +51,16 @@ public class GraphQLJpaQueryStarterTest {
 		GraphQLQueryRequest query = new GraphQLQueryRequest("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}");
 
 		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-		Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
+		assertThat(HttpStatus.OK).isEqualTo(entity.getStatusCode());
 
 		Result result = entity.getBody();
-		Assert.assertNotNull(result);
-		Assert.assertNull(result.getErrors());
-		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
+		assertThat(result).isNotNull();
+		assertThat(result.getErrors()).isNull();
+		assertThat("{Books={select=[{title=War and Peace, genre=NOVEL}]}}").isEqualTo(result.getData().toString());
 	}
 
 	@Test
-	public void testGraphqlArguments() throws JsonParseException, JsonMappingException, IOException {
+	public void testGraphqlArguments() {
 		GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}");
 		
         HashMap<String, Object> variables = new HashMap<>();
@@ -74,12 +70,12 @@ public class GraphQLJpaQueryStarterTest {
 		
 		
 		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-		Assert.assertEquals(entity.toString(), HttpStatus.OK, entity.getStatusCode());
+        assertThat(HttpStatus.OK).isEqualTo(entity.getStatusCode());
 
 		Result result = entity.getBody();
-		Assert.assertNotNull(result);
-        Assert.assertNull(result.getErrors());
-		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
+		assertThat(result).isNotNull();
+        assertThat(result.getErrors()).isNull();
+        assertThat("{Books={select=[{title=War and Peace, genre=NOVEL}]}}").isEqualTo(result.getData().toString());
 	}
 	
     @org.junit.jupiter.api.Test

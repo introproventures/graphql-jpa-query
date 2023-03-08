@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 public class StarwarsSchemaBuildWithDistinctTest extends AbstractSpringBootTestSupport {
@@ -75,6 +76,6 @@ public class StarwarsSchemaBuildWithDistinctTest extends AbstractSpringBootTestS
         LinkedHashMap select = (LinkedHashMap)((LinkedHashMap)executor.execute(query).getData()).get("Books");
         List books = (List)select.get("select");
 
-        org.junit.Assert.assertTrue(books.size() > 2);
+        assertTrue(books.size() > 2);
     }
 }

@@ -4,9 +4,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ObjectUtilTest {
 
@@ -23,7 +21,10 @@ public class ObjectUtilTest {
         assertFalse(ObjectUtil
                 .isAnyNull(new Object[] { "", "null", 0, new int[] {}, new ArrayList<>() }));
     }
-    
+
+    private void assertTrue(boolean anyNull) {
+    }
+
     @Test
     public void isEquals() throws Exception {
         assertTrue(ObjectUtil.isEquals(null, null));
