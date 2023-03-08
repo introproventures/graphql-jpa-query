@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,7 +61,6 @@ import graphql.language.IntValue;
 import graphql.language.NullValue;
 import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
-import graphql.language.SelectionSet;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
@@ -100,7 +98,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.SELECT_DISTINCT_PARAM_NAME;
-import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getObjectField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isAfterArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isDistinctArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFirstArgument;
@@ -131,7 +128,6 @@ public final class GraphQLJpaQueryFactory {
     protected static final String ORG_HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
     protected static final String ORG_HIBERNATE_FETCH_SIZE = "org.hibernate.fetchSize";
     protected static final String ORG_HIBERNATE_READ_ONLY = "org.hibernate.readOnly";
-    protected static final String JAVAX_PERSISTENCE_FETCHGRAPH = "javax.persistence.fetchgraph";
 
     private final Map<GraphQLObjectType, EntityType> entityTypeMap = new ConcurrentHashMap<>();
     private final Map<GraphQLObjectType, EmbeddableType> embeddableTypeMap = new ConcurrentHashMap<>();
@@ -617,7 +613,7 @@ public final class GraphQLJpaQueryFactory {
         }
     }
 
-    protected final List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
+    protected List<Predicate> getFieldPredicates(Field field, CriteriaQuery<?> query, CriteriaBuilder cb, Root<?> root, From<?,?> from, DataFetchingEnvironment environment) {
 
         List<Argument> arguments = new ArrayList<>();
         List<Predicate> predicates = new ArrayList<>();
@@ -1242,13 +1238,13 @@ public final class GraphQLJpaQueryFactory {
         return new PredicateFilter(objectField.getName(), filterValue, options, attribute);
     }
 
-    protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment,  Map<String, Object> arguments) {
+    protected DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment,  Map<String, Object> arguments) {
         return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .build();
     }
 
-    protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment, Argument argument) {
+    protected DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment, Argument argument) {
         Map<String, Object> arguments = environment.getArgument(argument.getName());
 
         return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
@@ -1256,7 +1252,7 @@ public final class GraphQLJpaQueryFactory {
                                              .build();
     }
 
-    protected final DataFetchingEnvironment wherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
+    protected DataFetchingEnvironment wherePredicateEnvironment(DataFetchingEnvironment environment, GraphQLFieldDefinition fieldDefinition, Map<String, Object> arguments) {
         return DataFetchingEnvironmentBuilder.newDataFetchingEnvironment(environment)
                                              .arguments(arguments)
                                              .fieldDefinition(fieldDefinition)
@@ -1521,9 +1517,7 @@ public final class GraphQLJpaQueryFactory {
      * Resolve JPA model entity type from GraphQL objectType
      *
      * @param objectType
-     * @return non-null JPA model entity type.
-     * @throws
-     *      NoSuchElementException - if there is no value present
+     * @return JPA model entity type or null if there is no match.
      */
     private EntityType<?> getEntityType(GraphQLObjectType objectType) {
         return entityTypeMap.computeIfAbsent(objectType, this::computeEntityType);
@@ -1607,56 +1601,12 @@ public final class GraphQLJpaQueryFactory {
         throw new GraphQLException("unknown field " + field.getName());
     }
 
-    protected final boolean isManagedType(Attribute<?,?> attribute) {
-    	return attribute.getPersistentAttributeType() != PersistentAttributeType.EMBEDDED
-    			&& attribute.getPersistentAttributeType() != PersistentAttributeType.BASIC
-    			&& attribute.getPersistentAttributeType() != PersistentAttributeType.ELEMENT_COLLECTION;
-    }
-
-    protected final boolean hasNoArguments(Field field) {
-        return !hasArguments(field);
-    }
-
-    protected final boolean hasArguments(Field field) {
-        return field.getArguments() != null && !field.getArguments().isEmpty();
-    }
-
-    protected final boolean hasSelectionSet(Field field) {
+    protected boolean hasSelectionSet(Field field) {
         return field.getSelectionSet() != null;
     }
 
-    protected final Stream<Field> selections(Field field) {
-        SelectionSet selectionSet = field.getSelectionSet() != null
-            ? field.getSelectionSet()
-            : new SelectionSet(Collections.emptyList());
-
-        return selectionSet.getSelections().stream()
-                                           .filter(it -> it instanceof Field)
-                                           .map(it -> (Field) it);
-    }
-
-    protected final Stream<Field> flatten(Field field) {
-        SelectionSet selectionSet = field.getSelectionSet() != null
-            ? field.getSelectionSet()
-            : new SelectionSet(Collections.emptyList());
-
-        return Stream.concat(
-            Stream.of(field),
-            selectionSet.getSelections().stream()
-                                        .filter(it -> it instanceof Field)
-                                        .flatMap(selection -> this.flatten((Field) selection))
-        );
-    }
-
-
     @SuppressWarnings( "unchecked" )
-    protected final <R extends Value<?>> R getObjectFieldValue(ObjectValue objectValue, String fieldName) {
-        return (R) getObjectField(objectValue, fieldName).map(ObjectField::getValue)
-                                                         .orElse(NullValue.of());
-    }
-
-    @SuppressWarnings( "unchecked" )
-    protected final <T> T getArgumentValue(DataFetchingEnvironment environment, Argument argument, Class<T> type) {
+    protected <T> T getArgumentValue(DataFetchingEnvironment environment, Argument argument, Class<T> type) {
         Value<?> value = argument.getValue();
 
         if(VariableReference.class.isInstance(value)) {
@@ -1699,17 +1649,6 @@ public final class GraphQLJpaQueryFactory {
 
         return false;
     }
-
-    protected boolean isTransient(DataFetchingEnvironment environment,
-                                  String attributeName) {
-        return !isPersistent(environment, attributeName);
-    }
-
-    protected boolean isTransient(EntityType<?> entityType,
-                                  String attributeName) {
-        return !isPersistent(entityType, attributeName);
-    }
-
 
     protected String getJPQLQueryString(TypedQuery<?> query) {
         try {
@@ -1843,7 +1782,6 @@ public final class GraphQLJpaQueryFactory {
         return entityObjectType;
     }
 
-
     public int getDefaultFetchSize() {
         return defaultFetchSize;
     }
@@ -1971,43 +1909,42 @@ public final class GraphQLJpaQueryFactory {
         * @param toManyDefaultOptional field to set
         * @return builder
         */
-        public IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
+        IBuildStage withToManyDefaultOptional(boolean toManyDefaultOptional);
 
         /**
         * Builder method for defaultDistinct parameter.
         * @param defaultDistinct field to set
         * @return builder
         */
-        public IBuildStage withDefaultDistinct(boolean defaultDistinct);
+        IBuildStage withDefaultDistinct(boolean defaultDistinct);
 
         /**
          * Builder method for resultStream parameter.
          * @param resultStream field to set
          * @return builder
          */
-        public IBuildStage withResultStream(boolean resultStream);
+        IBuildStage withResultStream(boolean resultStream);
 
         /**
         * Builder method for defaultFetchSize parameter.
         * @param defaultFetchSize field to set
         * @return builder
         */
-        public IBuildStage withDefaultFetchSize(int defaultFetchSize);
+        IBuildStage withDefaultFetchSize(int defaultFetchSize);
 
         /**
         * Builder method for restrictedKeysProvider parameter.
         * @param restrictedKeysProvider field to set
         * @return builder
         */
-        public IBuildStage withRestrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider);
+        IBuildStage withRestrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider);
         
         /**
         * Builder method of the builder.
         * @return built class
         */
-        public GraphQLJpaQueryFactory build();
+        GraphQLJpaQueryFactory build();
     }
-
 
     /**
      * Builder to build {@link GraphQLJpaQueryFactory}.
@@ -2089,7 +2026,6 @@ public final class GraphQLJpaQueryFactory {
         }
     }
 
-    
     public RestrictedKeysProvider getRestrictedKeysProvider() {
         return restrictedKeysProvider;
     }
