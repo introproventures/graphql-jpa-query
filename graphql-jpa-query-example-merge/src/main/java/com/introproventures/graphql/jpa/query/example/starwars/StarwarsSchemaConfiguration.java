@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import jakarta.persistence.EntityManager;
@@ -37,7 +36,7 @@ public class StarwarsSchemaConfiguration {
     }    
      
     @Bean
-    public ApplicationRunner  starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
+    public ApplicationRunner starWarsDataSourceInitializer(@Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
         return (args) -> {
             ResourceLoader resourceLoader = new DefaultResourceLoader();
             
@@ -76,22 +75,12 @@ public class StarwarsSchemaConfiguration {
         bean.setEntityManagerFactory(entityManager);
         
         return bean;
-    }    
-    @Configuration
-    public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
-
-        private final EntityManager entityManager;
-
-        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManager starWarsEntityManager,
-                                               @Qualifier("starWarsEntityManager") EntityManager starWarsEntit) {
-            this.entityManager = starWarsEntityManager;
-        }
-
-        @Override
-        public void configure(GraphQLShemaRegistration registry) {
-
-            registry.register(new GraphQLJpaSchemaBuilder(entityManager).name("GraphQLStarWars").build());
-        }
     }
-    
+
+    @Bean
+    GraphQLSchemaConfigurer starWarsGraphQLJpaQuerySchemaConfigurer(@Qualifier("starWarsEntityManager") EntityManager entityManager) {
+        return registry ->
+            registry.register(new GraphQLJpaSchemaBuilder(entityManager).name("GraphQLStarWars").build());
+    }
+
 }

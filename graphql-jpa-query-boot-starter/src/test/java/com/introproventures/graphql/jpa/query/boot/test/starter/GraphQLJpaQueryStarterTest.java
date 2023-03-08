@@ -15,6 +15,10 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.starter;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
@@ -22,8 +26,7 @@ import com.introproventures.graphql.jpa.query.boot.test.starter.Result.GraphQLEr
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,18 +35,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class GraphQLJpaQueryStarterIT {
+public class GraphQLJpaQueryStarterTest {
 	private static final String	WAR_AND_PEACE	= "War and Peace";
 
     @SpringBootApplication
@@ -86,7 +82,7 @@ public class GraphQLJpaQueryStarterIT {
 		Assert.assertEquals("{Books={select=[{title=War and Peace, genre=NOVEL}]}}", result.getData().toString());
 	}
 	
-    @Test
+    @org.junit.jupiter.api.Test
     public void testGraphqlErrorResult() {
         GraphQLQueryRequest query = new GraphQLQueryRequest("{ }");
 

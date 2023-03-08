@@ -5,14 +5,12 @@ import java.util.Map;
 import javax.sql.DataSource;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJpaQueryProperties;
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLSchemaConfigurer;
-import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLShemaRegistration;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -79,20 +77,10 @@ public class BooksSchemaConfiguration {
         return bean;
     }
 
-    @Configuration
-    public static class GraphQLJpaQuerySchemaConfigurer implements GraphQLSchemaConfigurer {
-
-        private final EntityManager entityManager;
-
-        @Autowired
-        private GraphQLJpaQueryProperties properties;
-
-        public GraphQLJpaQuerySchemaConfigurer(@Qualifier("bookEntityManager") EntityManager bookEntityManager) {
-            this.entityManager = bookEntityManager;
-        }
-
-        @Override
-        public void configure(GraphQLShemaRegistration registry) {
+    @Bean
+    GraphQLSchemaConfigurer booksGraphQLJpaQuerySchemaConfigurer(@Qualifier("bookEntityManager") EntityManager entityManager,
+                                                                 GraphQLJpaQueryProperties properties) {
+        return registry ->
             registry.register(
                     new GraphQLJpaSchemaBuilder(entityManager)
                         .name("GraphQLBooks")
@@ -100,7 +88,6 @@ public class BooksSchemaConfiguration {
                         .setDefaultDistinct(properties.isDefaultDistinct())
                         .build()
             );
-        }
-    }
-    
+    };
+
 }
