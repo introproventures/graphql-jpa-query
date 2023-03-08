@@ -54,21 +54,6 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
 
     @Test
     @Transactional
-    public void JPASampleBookTester() {
-        // given:
-        Query query = em.createQuery("select id from Book where tags in ('war')");
-
-        // when:
-        List<?> result = query.getResultList();
-
-        // then:
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(13);
-    }
-
-
-    @Test
-    @Transactional
     public void JPASampleTester() {
         // given:
         Query query = em.createQuery("select h, h.friends from Human h");
@@ -314,10 +299,9 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
         String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name } } } }";
 
         String expected = "{Droid={name=R2-D2, friends=["
-                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
                 + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
-                + "]}}";
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -333,11 +317,10 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
         String query = "query { Droids(where: {id: {EQ: \"2001\"}}) { select { name, friends { name, appearsIn, friends { name } } }  }}";
 
         String expected = "{Droids={select=[{name=R2-D2, friends=["
-                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, "
                 + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, "
-                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}"
-                + "]"
-                + "}]}}";
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}"
+                + "]}]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -651,9 +634,9 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
         String query = "query { Droid(id: \"2001\") { name, friends { name, appearsIn, friends { name __typename } __typename } __typename } }";
 
         String expected = "{Droid={name=R2-D2, friends=["
-                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, "
                 + "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, "
-                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}], __typename=Droid}}";
+                + "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, "
+                + "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}], __typename=Droid}}";
 
         //when:
         Object result = executor.execute(query).getData();

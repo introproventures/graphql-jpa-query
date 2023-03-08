@@ -91,6 +91,7 @@ import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.criteria.Subquery;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.EmbeddableType;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.PluralAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
@@ -1235,7 +1236,9 @@ public final class GraphQLJpaQueryFactory {
 
         Object filterValue = convertValue( dataFetchingEnvironment, dataFetchingArgument, argument.getValue() );
 
-        return new PredicateFilter(objectField.getName(), filterValue, options );
+        Attribute attribute = getAttribute(environment, objectField.getName());
+
+        return new PredicateFilter(objectField.getName(), filterValue, options, attribute);
     }
 
     protected final DataFetchingEnvironment argumentEnvironment(DataFetchingEnvironment environment,  Map<String, Object> arguments) {
@@ -1495,12 +1498,12 @@ public final class GraphQLJpaQueryFactory {
      */
     private Attribute<?,?> getAttribute(DataFetchingEnvironment environment, String argument) {
         GraphQLObjectType objectType = getObjectType(environment);
-        EntityType<?> entityType = getEntityType(objectType);
+        if (!isEntityType(environment)) {
+            return getEmbeddableType(objectType).getAttribute(argument);
+        }
 
-        return entityType.getAttribute(argument);
+        return getEntityType(objectType).getAttribute(argument);
     }
-
-
 
     private boolean isOptionalAttribute(Attribute<?,?> attribute) {
         if(SingularAttribute.class.isInstance(attribute)) {
@@ -1536,6 +1539,14 @@ public final class GraphQLJpaQueryFactory {
                                           .anyMatch(it -> it.getName().equals(objectType.getName()));
     }
 
+    private EmbeddableType<?> getEmbeddableType(GraphQLObjectType objectType) {
+        String javaType = objectType.getName().replace("EmbeddableType", "");
+        return entityManager.getMetamodel()
+                            .getEmbeddables().stream()
+                            .filter(it -> it.getJavaType().getSimpleName().equals(javaType))
+                            .findFirst()
+                            .get();
+    }
     /**
      * Resolve GraphQL object type from Argument output type.
      *

@@ -45,6 +45,7 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.PluralAttribute;
 
@@ -741,9 +742,10 @@ class JpaPredicateBuilder {
 
     @SuppressWarnings("unchecked")
     private Predicate getTypedPredicate(From<?,?> from, Path<?> field, PredicateFilter filter) {
-        Class<?> type = field.getJavaType();
+        Class<?> type = filter.getJavaType();
         Object value = filter.getValue();
         Set<Criteria> criterias = filter.getCriterias();
+        Attribute attribute = filter.getAttribute();
 
         if(value == null) {
             return cb.disjunction();
@@ -754,8 +756,6 @@ class JpaPredicateBuilder {
         } else if (criterias.contains(Criteria.NOT_NULL)) {
             return (boolean) value ? cb.isNotNull(field) : cb.isNull(field) ;
         }
-
-        PredicateFilter predicateFilter = new PredicateFilter(filter.getField(), value, criterias);
 
         if (type.isPrimitive())
             type = PRIMITIVES_TO_WRAPPERS.get(type);
@@ -776,47 +776,47 @@ class JpaPredicateBuilder {
                 || type.equals(Integer.class)
                 || type.equals(Short.class)
                 || type.equals(Byte.class)) {
-            return getIntegerPredicate((Path<Number>) field, predicateFilter);
+            return getIntegerPredicate((Path<Number>) field, filter);
         }
         else if (type.equals(BigDecimal.class)
                 || type.equals(Double.class)
                 || type.equals(Float.class)) {
-            return getFloatingPointPredicate((Path<Number>) field, predicateFilter);
+            return getFloatingPointPredicate((Path<Number>) field, filter);
         }
         else if (type.equals(java.util.Date.class)) {
-            return getDatePredicate((Path<Date>) field, predicateFilter);
+            return getDatePredicate((Path<Date>) field, filter);
         }
         else if(type.equals(java.time.LocalDate.class)){
-            return getLocalDatePredicate((Path<LocalDate>) field, predicateFilter);
+            return getLocalDatePredicate((Path<LocalDate>) field, filter);
         }
         else if(type.equals(LocalDateTime.class)){
-            return getLocalDateTimePredicate((Path<LocalDateTime>) field, predicateFilter);
+            return getLocalDateTimePredicate((Path<LocalDateTime>) field, filter);
         }
         else if(type.equals(Instant.class)){
-            return getInstantPredicate((Path<Instant>) field, predicateFilter);
+            return getInstantPredicate((Path<Instant>) field, filter);
         }
         else if(type.equals(LocalTime.class)){
-            return getLocalTimePredicate((Path<LocalTime>) field, predicateFilter);
+            return getLocalTimePredicate((Path<LocalTime>) field, filter);
         }
         else if(type.equals(ZonedDateTime.class)){
-            return getZonedDateTimePredicate((Path<ZonedDateTime>) field, predicateFilter);
+            return getZonedDateTimePredicate((Path<ZonedDateTime>) field, filter);
         }
         else if(type.equals(OffsetDateTime.class)){
-            return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, predicateFilter);
+            return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, filter);
         }
         else if (type.equals(Timestamp.class)) {
-            return getTimestampPredicate((Path<Timestamp>) field, predicateFilter);
+            return getTimestampPredicate((Path<Timestamp>) field, filter);
         }
         else if (type.equals(Boolean.class)) {
-            return getBooleanPredicate(field, predicateFilter);
+            return getBooleanPredicate(field, filter);
         }
         else if (type.equals(UUID.class)) {
-            return getUuidPredicate((Path<UUID>) field, predicateFilter);
+            return getUuidPredicate((Path<UUID>) field, filter);
         }
         else if(Collection.class.isAssignableFrom(type)) {
             // collection join for plural attributes
-            if(PluralAttribute.class.isInstance(from.getModel()) 
-                    || EntityType.class.isInstance(from.getModel())) {
+            if(PluralAttribute.class.isInstance(attribute)
+                    || EntityType.class.isInstance(attribute)) {
                 Expression<? extends Collection<Object>> expression = from.get(filter.getField());
                 Predicate predicate;
 
@@ -839,7 +839,7 @@ class JpaPredicateBuilder {
                 return predicate;
             }
         } else if(type.isEnum()) {
-        	return getEnumPredicate((Path<Enum<?>>) field, predicateFilter);
+        	return getEnumPredicate((Path<Enum<?>>) field, filter);
         } // TODO need better detection mechanism
         else if (Object.class.isAssignableFrom(type)) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
@@ -886,7 +886,7 @@ class JpaPredicateBuilder {
             }
         }
 
-        throw new IllegalArgumentException("Unsupported field type " + type + " for field " + predicateFilter.getField());
+        throw new IllegalArgumentException("Unsupported field type " + type + " for field " + filter.getField());
     }
 
     private Object getValue(Object object, Class<?> type) {

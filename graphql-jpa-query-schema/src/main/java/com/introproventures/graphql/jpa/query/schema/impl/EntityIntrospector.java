@@ -26,6 +26,7 @@ import com.introproventures.graphql.jpa.query.introspection.ClassIntrospector;
 import com.introproventures.graphql.jpa.query.introspection.FieldDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.MethodDescriptor;
 import com.introproventures.graphql.jpa.query.introspection.PropertyDescriptor;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.ManagedType;
 import org.slf4j.Logger;
@@ -286,11 +287,19 @@ public class EntityIntrospector {
             public boolean hasDefaultOrderBy() {
                 return getDefaultOrderBy().isPresent();
             }
-            
+
             public Optional<GraphQLDefaultOrderBy> getDefaultOrderBy() {
                 return getAnnotation(GraphQLDefaultOrderBy.class);
             }
-            
+
+            public boolean hasOrderBy() {
+                return getAnnotation(OrderBy.class).isPresent();
+            }
+
+            public Optional<OrderBy> getOrderBy() {
+                return getAnnotation(OrderBy.class);
+            }
+
             public boolean isTransient() {
                 return !attribute.isPresent();
             }

@@ -21,6 +21,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jakarta.persistence.metamodel.Attribute;
 
 class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
 
@@ -148,10 +149,21 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
 
     private final EnumSet<Criteria> criterias;
 
-    public PredicateFilter(String field, Object value, Set<Criteria> criterias) {
+    private final Attribute attribute;
+
+    public PredicateFilter(String field, Object value, Set<Criteria> criterias, Attribute attribute) {
         this.field = field;
         this.typedValue = value;
         this.criterias = EnumSet.copyOf(criterias);
+        this.attribute = attribute;
+    }
+
+    public Attribute getAttribute() {
+        return attribute;
+    }
+
+    public Class<?> getJavaType() {
+        return attribute.getJavaType();
     }
 
     public String getField() {
