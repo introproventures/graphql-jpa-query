@@ -3,7 +3,7 @@ package com.introproventures.graphql.jpa.query.introspection;
 import java.util.Optional;
 import jakarta.persistence.Version;
 import lombok.Data;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

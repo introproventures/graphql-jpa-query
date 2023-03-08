@@ -1,13 +1,11 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
-import org.junit.Test;
 
 
 public class ObjectUtilTest {
@@ -38,14 +36,14 @@ public class ObjectUtilTest {
         assertFalse(ObjectUtil.isEquals(Boolean.TRUE, Boolean.FALSE));
 
         Object[] oa = new Object[] { new MyObject(), new MyObject() };
-        int[] ia = new int[] { 1, 2, 3 };
-        long[] la = new long[] { 1, 2, 3 };
-        short[] sa = new short[] { 1, 2, 3 };
-        byte[] ba = new byte[] { 1, 2, 3 };
-        double[] da = new double[] { 1, 2, 3 };
-        float[] fa = new float[] { 1, 2, 3 };
-        boolean[] bla = new boolean[] { true, false, true };
-        char[] ca = new char[] { 'a', 'b', 'c' };
+        Integer[] ia = new Integer[] { 1, 2, 3 };
+        Long[] la = new Long[] { 1L, 2L, 3L };
+        Short[] sa = new Short[] { 1, 2, 3 };
+        Byte[] ba = new Byte[] { 1, 2, 3 };
+        Double[] da = new Double[] { 1.0, 2.0, 3.0 };
+        Float[] fa = new Float[] { 1.0F, 2.0F, 3.0F };
+        Boolean[] bla = new Boolean[] { true, false, true };
+        Character[] ca = new Character[] { 'a', 'b', 'c' };
         Object[] combo = { oa, ia, la, sa, ba, da, fa, bla, ca, null };
 
         assertObjectEquals(oa);
@@ -67,12 +65,11 @@ public class ObjectUtilTest {
         }
     }
     
-    private void assertObjectEquals(Object array) throws Exception {
-        Method clone = Object.class.getDeclaredMethod("clone");
-        clone.setAccessible(true);
+    private <T> void assertObjectEquals(T[] array) throws Exception {
+        Object clone = array.clone();
 
         assertTrue(ObjectUtil.isEquals(array, array)); // same
-        assertTrue(ObjectUtil.isEquals(array, clone.invoke(array))); // equals to copy
+        assertTrue(ObjectUtil.isEquals(array, clone)); // equals to copy
 
         Object copy = Array.newInstance(array.getClass().getComponentType(), Array.getLength(array) - 1);
         System.arraycopy(array, 0, copy, 0, Array.getLength(copy));
