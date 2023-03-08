@@ -37,9 +37,8 @@ public class BooksSchemaConfiguration {
      
     @Bean
     @Qualifier("bookEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory(
-            EntityManagerFactoryBuilder builder,
-            @Qualifier("bookDataSource") DataSource bookDataSource) {
+    public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory(EntityManagerFactoryBuilder builder,
+                                                                           @Qualifier("bookDataSource") DataSource bookDataSource) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
         properties.put(AvailableSettings.JAKARTA_HBM2DDL_CREATE_SCHEMAS, "true");
@@ -56,23 +55,22 @@ public class BooksSchemaConfiguration {
     }
     
     @Bean
-    public ApplicationRunner booksDataSourceInitializer(@Qualifier("bookDataSource")  DataSource bookDataSource) {
+    public ApplicationRunner booksDataSourceInitializer(@Qualifier("bookDataSource")  DataSource dataSource) {
         return (args) -> {
             ResourceLoader resourceLoader = new DefaultResourceLoader();
             
             ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
             databasePopulator.addScript(resourceLoader.getResource("books.sql"));
             
-            databasePopulator.execute(bookDataSource);
+            databasePopulator.execute(dataSource);
         };
     }
-    
-    
+
     @Bean
     @Qualifier("bookEntityManager")
-    public SharedEntityManagerBean bookEntityManager(@Qualifier("bookEntityManagerFactory") EntityManagerFactory bookEntityManagerFactory) {
+    public SharedEntityManagerBean bookEntityManager(@Qualifier("bookEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         SharedEntityManagerBean bean =  new SharedEntityManagerBean();
-        bean.setEntityManagerFactory(bookEntityManagerFactory);
+        bean.setEntityManagerFactory(entityManagerFactory);
         
         return bean;
     }

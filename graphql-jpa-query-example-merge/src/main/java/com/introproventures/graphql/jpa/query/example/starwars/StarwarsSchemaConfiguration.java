@@ -50,9 +50,9 @@ public class StarwarsSchemaConfiguration {
     
     @Bean
     @Primary
-    @Qualifier("starWarsEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean starWarsEntityManagerFactory(EntityManagerFactoryBuilder builder,
-                                                                               @Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
+    @Qualifier("startWarsEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder builder,
+                                                                       @Qualifier("starWarsDataSource") DataSource starWarsDataSource) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(AvailableSettings.HBM2DDL_AUTO, "create-drop");
         properties.put(AvailableSettings.JAKARTA_HBM2DDL_CREATE_SCHEMAS, "true");
@@ -68,11 +68,11 @@ public class StarwarsSchemaConfiguration {
                 .build();
     }    
 
-    @Bean 
+    @Bean
     @Qualifier("starWarsEntityManager")
-    public SharedEntityManagerBean starWarsEntityManager(@Qualifier("starWarsEntityManagerFactory") EntityManagerFactory entityManager) {
+    public SharedEntityManagerBean starWarsEntityManager(@Qualifier("startWarsEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         SharedEntityManagerBean bean =  new SharedEntityManagerBean();
-        bean.setEntityManagerFactory(entityManager);
+        bean.setEntityManagerFactory(entityManagerFactory);
         
         return bean;
     }
