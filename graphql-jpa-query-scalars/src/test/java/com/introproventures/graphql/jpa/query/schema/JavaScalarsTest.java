@@ -16,20 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
-import com.introproventures.graphql.jpa.query.schema.fixtures.VariableValue;
-import graphql.language.BooleanValue;
-import graphql.language.IntValue;
-import graphql.language.StringValue;
-import graphql.schema.Coercing;
-import graphql.schema.CoercingParseLiteralException;
-import graphql.schema.CoercingParseValueException;
-import graphql.schema.CoercingSerializeException;
-import graphql.schema.GraphQLScalarType;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.InstanceOfAssertFactory;
-import org.junit.Test;
-
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -48,9 +34,22 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import com.introproventures.graphql.jpa.query.schema.JavaScalars.GraphQLObjectCoercing;
+import com.introproventures.graphql.jpa.query.schema.fixtures.VariableValue;
+import graphql.language.BooleanValue;
+import graphql.language.IntValue;
+import graphql.language.StringValue;
+import graphql.schema.Coercing;
+import graphql.schema.CoercingParseLiteralException;
+import graphql.schema.CoercingParseValueException;
+import graphql.schema.CoercingSerializeException;
+import graphql.schema.GraphQLScalarType;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactory;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class JavaScalarsTest {
 
@@ -163,18 +162,16 @@ public class JavaScalarsTest {
         assertThat(coercing.serialize(LocalTime.of(17, 59, 59, (int) TimeUnit.MILLISECONDS.toNanos(277)))).isEqualTo("17:59:59.277");
     }
     
-    @Test(expected=CoercingSerializeException.class)
+    @Test
     public void testLocalTimeSerializeInvalidValue() {
         //given
         Coercing<?,?> coercing = JavaScalars.of(LocalTime.class).getCoercing();
 
         //then
-        coercing.serialize("");
-        coercing.serialize("not a time");
-        coercing.serialize(new Object());
-        
-        fail("Should throw CoercingSerializeException");
-    }    
+        assertThat(catchThrowable(() -> coercing.serialize(""))).isInstanceOf(CoercingSerializeException.class);
+        assertThat(catchThrowable(() -> coercing.serialize("not a time"))).isInstanceOf(CoercingSerializeException.class);
+        assertThat(catchThrowable(() -> coercing.serialize(new Object()))).isInstanceOf(CoercingSerializeException.class);
+    }
     
     @Test
     public void testLocalTimeParseValue() {
@@ -188,17 +185,15 @@ public class JavaScalarsTest {
         assertThat(coercing.parseValue("17:59:59.277")).isEqualTo(LocalTime.of(17, 59, 59, (int) TimeUnit.MILLISECONDS.toNanos(277)));
     }
 
-    @Test(expected=CoercingParseValueException.class)
+    @Test
     public void testLocalTimeParseValueInvlidValue() {
         //given
         Coercing<?,?> coercing = JavaScalars.of(LocalTime.class).getCoercing();
 
         //then
-        coercing.parseValue("");
-        coercing.parseValue("not a time");
-        coercing.parseValue(new Object());
-        
-        fail("Should throw CoercingParseValueException");
+        assertThat(catchThrowable(() -> coercing.parseValue(""))).isInstanceOf(CoercingParseValueException.class);
+        assertThat(catchThrowable(() -> coercing.parseValue("not a time"))).isInstanceOf(CoercingParseValueException.class);
+        assertThat(catchThrowable(() -> coercing.parseValue(new Object()))).isInstanceOf(CoercingParseValueException.class);
     }
     
     @Test
@@ -362,33 +357,33 @@ public class JavaScalarsTest {
                           .isEqualTo(expected);
     }    
 
-    @Test(expected = CoercingParseLiteralException.class)
+    @Test
     public void testTimestampParseLiteralWrongValue() {
         //given
         Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = Boolean.valueOf("true");
         
         //when
-        coercing.parseLiteral(input);
+        assertThat(catchThrowable(() -> coercing.parseLiteral(input))).isInstanceOf(CoercingParseLiteralException.class);
     }    
 
-    @Test(expected = CoercingParseValueException.class)
+    @Test
     public void testTimestampParseValueWrongValue() {
         //given
         Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = Boolean.valueOf("true");
         
         //when
-        coercing.parseValue(input);
+        assertThat(catchThrowable(() -> coercing.parseValue(input))).isInstanceOf(CoercingParseValueException.class);
     }       
-    @Test(expected = CoercingSerializeException.class)
+    @Test
     public void testTimestampSerializeWrongValue() {
         //given
         Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = BooleanValue.newBooleanValue(true).build();
         
         //when
-        coercing.serialize(input);
+        assertThat(catchThrowable(() -> coercing.serialize(input))).isInstanceOf(CoercingSerializeException.class);
     }    
         
     
