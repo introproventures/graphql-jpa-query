@@ -52,45 +52,45 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
 
     
     @Test
-    public void testResultOfNoSuchElementException() throws Exception {
+    public void testResultOfNoSuchElementException() {
         // then
         Assertions.assertThrows(NoSuchElementException.class, () -> EntityIntrospector.resultOf(Object.class));
     }
     
     @Test
-    public void testIsTransientNonExisting() throws Exception {
+    public void testIsTransientNonExisting() {
         // then
         Assertions.assertThrows(NoSuchElementException.class, () -> subject.isTransient("notFound"));
     }
 
     @Test
-    public void testIsIgnoredNonExisting() throws Exception {
+    public void testIsIgnoredNonExisting() {
         // then
         Assertions.assertThrows(NoSuchElementException.class, () -> subject.isIgnored("notFound"));
     }
     
     @Test
-    public void shouldExcludeClassPropertyDescriptor() throws Exception {
+    public void shouldExcludeClassPropertyDescriptor() {
         // then
         assertThat(subject.getPropertyDescriptor("class")).isEmpty();
     }
 
     @Test
-    public void testIsTransientFunction() throws Exception {
+    public void testIsTransientFunction() {
         // then
         assertThat(subject.isTransient("fieldFun")).isTrue();
         assertThat(subject.isTransient("hideFieldFunction")).isTrue();
     } 
 
     @Test
-    public void testIsPersistentFunction() throws Exception {
+    public void testIsPersistentFunction() {
         // then
         assertThat(subject.isPersistent("fieldFun")).isFalse();
         assertThat(subject.isPersistent("hideFieldFunction")).isFalse();
     }
     
     @Test
-    public void testIsTransientFields() throws Exception {
+    public void testIsTransientFields() {
         // then
         assertThat(subject.isTransient("fieldFun")).isTrue();
         assertThat(subject.isTransient("fieldMem")).isTrue();
@@ -103,7 +103,7 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
     }
 
     @Test
-    public void testNotTransientFields() throws Exception {
+    public void testNotTransientFields() {
     	// then
         assertThat(subject.isTransient("id")).isFalse();
         assertThat(subject.isTransient("info")).isFalse();
@@ -112,7 +112,7 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
     }
 
     @Test
-    public void testByPassSetMethod() throws Exception {
+    public void testByPassSetMethod() {
         // then
         assertThat(subject.isTransient("something")).isTrue();
     }
@@ -395,5 +395,35 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
                               "publicValue",
                               "protectedValue",
                               "ignoredProtectedValue");
+    }
+
+    @Test
+    public void shouldEntityIntrospectionResultEqualsHashCodeImplemented() {
+        //given
+        EntityType<CalculatedEntity> entity = entityManager.getMetamodel()
+                                                           .entity(CalculatedEntity.class);
+
+        EntityType<ClassWithCustomMetamodel> anotherEntity = entityManager.getMetamodel()
+                                                           .entity(ClassWithCustomMetamodel.class);
+
+        //when
+        EntityIntrospectionResult result = EntityIntrospector.introspect(entity);
+        EntityIntrospectionResult anotherResult = EntityIntrospector.introspect(anotherEntity);
+
+        //then
+        assertThat(result.toString()).isNotEqualTo(anotherResult.toString());
+        assertThat(result.equals(result)).isTrue();
+        assertThat(result.equals(anotherResult)).isFalse();
+        assertThat(result.hashCode()).isNotEqualTo(anotherResult.hashCode());
+
+        AttributePropertyDescriptor resultPropertyDescriptor = result.getPropertyDescriptor("id").get();
+        AttributePropertyDescriptor anotherResultPropertyDescriptor = anotherResult.getPropertyDescriptor("id").get();
+
+        assertThat(resultPropertyDescriptor.toString()).isNotEqualTo(anotherResultPropertyDescriptor.toString());
+        assertThat(resultPropertyDescriptor.hashCode()).isNotEqualTo(anotherResultPropertyDescriptor.hashCode());
+        assertThat(resultPropertyDescriptor.equals(resultPropertyDescriptor)).isTrue();
+        assertThat(resultPropertyDescriptor.equals(anotherResultPropertyDescriptor)).isFalse();
+        assertThat(resultPropertyDescriptor.hashCode()).isNotEqualTo(anotherResultPropertyDescriptor.hashCode());
+
     }
 }
