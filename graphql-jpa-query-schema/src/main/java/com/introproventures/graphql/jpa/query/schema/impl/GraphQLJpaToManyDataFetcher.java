@@ -28,7 +28,6 @@ import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
 
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
-import graphql.GraphQLContext;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
@@ -79,8 +78,7 @@ class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
 
     protected DataLoader<Object, List<Object>> getDataLoader(DataFetchingEnvironment environment,
                                                              String dataLoaderKey) {
-        GraphQLContext context = environment.getContext();
-        DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
+        DataLoaderRegistry dataLoaderRegistry = environment.getDataLoaderRegistry();
 
         if (!dataLoaderRegistry.getKeys()
                               .contains(dataLoaderKey)) {

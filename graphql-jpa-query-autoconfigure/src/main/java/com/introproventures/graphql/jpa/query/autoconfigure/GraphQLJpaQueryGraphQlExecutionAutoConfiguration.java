@@ -1,9 +1,6 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
 import graphql.GraphQL;
-import org.dataloader.DataLoaderOptions;
-import org.dataloader.MappedBatchLoaderWithContext;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -13,9 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
-import reactor.core.publisher.Mono;
-
-import static com.introproventures.graphql.jpa.query.schema.impl.BatchLoaderRegistry.newDataLoaderRegistry;
 
 @AutoConfiguration(after = GraphQlAutoConfiguration.class)
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class})
@@ -36,19 +30,4 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
                                                                                  batchLoaderRegistry);
     }
 
-    @Bean
-    InitializingBean batchLoaderRegistryConfigurer(BatchLoaderRegistry batchLoaderRegistry) {
-        return () -> {
-            DataLoaderOptions options = DataLoaderOptions.newOptions()
-                                                         .setCachingEnabled(false);
-            newDataLoaderRegistry(options)
-                               .getDataLoadersMap()
-                               .entrySet()
-                               .stream()
-                               .forEach(entry -> batchLoaderRegistry.forName(entry.getKey())
-                                                                    .withOptions(options)
-                                                                    .registerMappedBatchLoader((keys, env) ->
-                                                                           Mono.fromCompletionStage(((MappedBatchLoaderWithContext) entry.getValue()).load(keys, env))));
-        };
-    }
 }
