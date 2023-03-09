@@ -68,7 +68,7 @@
       </dependency>
       <dependency>
         <groupId>com.introproventures</groupId>
-        <artifactId>graphql-jpa-query-boot-starter-graphql</artifactId>
+        <artifactId>graphql-jpa-query-spring-boot-starter</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -79,11 +79,6 @@
       <dependency>
         <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-web</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.introproventures</groupId>
-        <artifactId>graphql-jpa-query-graphiql</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
