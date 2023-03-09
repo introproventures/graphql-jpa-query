@@ -1,5 +1,17 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import graphql.Internal;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
@@ -20,19 +32,7 @@ import graphql.schema.TypeResolver;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.springframework.util.Assert;
 
 import static graphql.Assert.assertTrue;
 import static graphql.schema.FieldCoordinates.coordinates;
@@ -62,12 +62,14 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
     
     
     public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
+        Assert.notEmpty(managedGraphQLSchemas, "Managed GraphQLSchema registrations can't be empty.");
+
         this.managedGraphQLSchemas = managedGraphQLSchemas;
     }
 
     @Override
-    protected GraphQLSchema createInstance() throws Exception {
-        
+    protected GraphQLSchema createInstance() {
+
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
         TypeTraverser typeTraverser = new TypeTraverser();

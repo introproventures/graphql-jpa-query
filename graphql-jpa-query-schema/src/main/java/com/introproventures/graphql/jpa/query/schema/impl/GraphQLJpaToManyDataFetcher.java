@@ -80,7 +80,8 @@ class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
     protected DataLoader<Object, List<Object>> getDataLoader(DataFetchingEnvironment environment,
                                                              String dataLoaderKey) {
         GraphQLContext context = environment.getContext();
-        DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
+        DataLoaderRegistry dataLoaderRegistry = context.getOrDefault("dataLoaderRegistry",
+                                                                     environment.getDataLoaderRegistry());
 
         if (!dataLoaderRegistry.getKeys()
                               .contains(dataLoaderKey)) {
