@@ -16,9 +16,8 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
-
 import java.util.Optional;
+import javax.persistence.metamodel.SingularAttribute;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
@@ -29,12 +28,7 @@ import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
 
-import graphql.GraphQLContext;
-import graphql.language.Argument;
-import graphql.language.Field;
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLType;
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes
