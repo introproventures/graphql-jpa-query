@@ -413,6 +413,7 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
         //then
         assertThat(result.toString()).isNotEqualTo(anotherResult.toString());
         assertThat(result.equals(result)).isTrue();
+        assertThat(result.equals(null)).isTrue();
         assertThat(result.equals(anotherResult)).isFalse();
         assertThat(result.hashCode()).isNotEqualTo(anotherResult.hashCode());
 
@@ -422,6 +423,7 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
         assertThat(resultPropertyDescriptor.toString()).isNotEqualTo(anotherResultPropertyDescriptor.toString());
         assertThat(resultPropertyDescriptor.hashCode()).isNotEqualTo(anotherResultPropertyDescriptor.hashCode());
         assertThat(resultPropertyDescriptor.equals(resultPropertyDescriptor)).isTrue();
+        assertThat(resultPropertyDescriptor.equals(null)).isFalse();
         assertThat(resultPropertyDescriptor.equals(anotherResultPropertyDescriptor)).isFalse();
         assertThat(resultPropertyDescriptor.hashCode()).isNotEqualTo(anotherResultPropertyDescriptor.hashCode());
 
