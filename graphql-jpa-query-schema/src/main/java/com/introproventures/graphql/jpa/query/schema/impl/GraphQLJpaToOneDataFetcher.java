@@ -17,7 +17,6 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.Optional;
-import graphql.GraphQLContext;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
