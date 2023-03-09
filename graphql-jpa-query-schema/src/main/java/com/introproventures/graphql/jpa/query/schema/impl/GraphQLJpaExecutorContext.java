@@ -19,11 +19,6 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-
-import org.dataloader.DataLoaderRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import graphql.ExecutionInput;
@@ -37,6 +32,9 @@ import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrume
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import org.dataloader.DataLoaderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
@@ -69,7 +67,7 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     @Override
     public ExecutionInput.Builder newExecutionInput() {
         DataLoaderRegistry dataLoaderRegistry = newDataLoaderRegistry();
-        GraphQLContext context = newGraphQLContext(dataLoaderRegistry);
+        GraphQLContext context = newGraphQLContext();
 
         return executionInputFactory.create()
                                     .dataLoaderRegistry(dataLoaderRegistry)
@@ -87,12 +85,8 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
                       .subscriptionExecutionStrategy(subscriptionExecutionStrategy.get());
     }
 
-    public GraphQLContext newGraphQLContext(DataLoaderRegistry dataLoaderRegistry) {
-        GraphQLContext context = graphqlContext.get();
-
-        context.put("dataLoaderRegistry", dataLoaderRegistry);
-
-        return context;
+    public GraphQLContext newGraphQLContext() {
+        return graphqlContext.get();
     }
 
     public DataLoaderRegistry newDataLoaderRegistry() {
