@@ -27,7 +27,7 @@ public class GraphQLJpaQueryProperties {
      * Provides the name of GraphQL schema. This is required attribute.
      */
     @NotEmpty
-    private String name = "Query";
+    private String name = "JPA";
     
     /**
      * Provides the description of GraphQL schema. Cannot be null.

@@ -4,6 +4,7 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
 @ConditionalOnClass(GraphQL.class)
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@EnableGraphQLJpaQuerySchema
 public class GraphQLSchemaAutoConfiguration {
 
     @Bean
@@ -24,6 +26,7 @@ public class GraphQLSchemaAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(GraphQLSchema.class)
+    @ConditionalOnBean(GraphQLSchemaConfigurer.class)
     public GraphQLSchemaFactoryBean graphQLSchemaFactoryBean(GraphQLJpaQueryProperties properties,
                                                              GraphQLShemaRegistration graphQLShemaRegistration,
                                                              ObjectProvider<GraphQLSchemaConfigurer> graphQLSchemaConfigurers) {

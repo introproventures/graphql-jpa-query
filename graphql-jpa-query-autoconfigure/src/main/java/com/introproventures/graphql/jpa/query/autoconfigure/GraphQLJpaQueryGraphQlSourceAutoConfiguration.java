@@ -23,6 +23,7 @@ import graphql.schema.GraphQLSchema;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +39,7 @@ import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 
-@AutoConfiguration(before = {GraphQlAutoConfiguration.class, GraphQLSchemaAutoConfiguration.class})
+@AutoConfiguration(before = GraphQlAutoConfiguration.class, after = GraphQLSchemaAutoConfiguration.class)
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class})
 @ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
 @EnableConfigurationProperties(GraphQlProperties.class)
@@ -69,7 +70,8 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(GraphQlSource.class)
+    @ConditionalOnBean(GraphQLSchema.class)
     public GraphQlSource graphQlSource(GraphQLSchema graphQLSchema,
                                        ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
                                        ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,

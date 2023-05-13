@@ -11,6 +11,8 @@ spring:
     console.enabled: true
 
   graphql:
+    graphiql:
+      enabled: true
     jpa:
       query:
         name: BooksRelay
@@ -20,4 +22,3 @@ spring:
 logging:
   level:
     com.introproventures.graphql.jpa.query.schema: DEBUG
-    

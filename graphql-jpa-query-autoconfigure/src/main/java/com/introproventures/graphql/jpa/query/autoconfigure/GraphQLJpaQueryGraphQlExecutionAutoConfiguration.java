@@ -3,6 +3,7 @@ package com.introproventures.graphql.jpa.query.autoconfigure;
 import graphql.GraphQL;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration;
@@ -11,7 +12,7 @@ import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
 
-@AutoConfiguration(after = GraphQlAutoConfiguration.class)
+@AutoConfiguration(after = GraphQLJpaQueryGraphQlSourceAutoConfiguration.class)
 @ConditionalOnClass({GraphQL.class, GraphQlSource.class})
 public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
 
@@ -23,6 +24,7 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnBean(GraphQlSource.class)
     ExecutionGraphQlService executionGraphQlService(ListableBeanFactory beanFactory,
                                                     GraphQlSource graphQlSource,
                                                     BatchLoaderRegistry batchLoaderRegistry) {

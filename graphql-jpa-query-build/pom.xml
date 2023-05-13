@@ -11,7 +11,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <spring-boot.version>3.0.4</spring-boot.version>
+    <spring-boot.version>3.0.6</spring-boot.version>
   </properties>
 
   <repositories>
@@ -36,7 +36,6 @@
 
   <dependencyManagement>
     <dependencies>
-
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
@@ -44,24 +43,20 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
       <dependency>
         <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-example-model-starwars</artifactId>
         <version>${project.version}</version>
       </dependency>
-
       <dependency>
         <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-example-model-books</artifactId>
         <version>${project.version}</version>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 
   <dependencies>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -73,13 +68,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>

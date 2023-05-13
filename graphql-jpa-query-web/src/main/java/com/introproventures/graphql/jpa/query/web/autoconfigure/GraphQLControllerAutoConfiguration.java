@@ -5,6 +5,7 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.web.GraphQLController;
 import com.introproventures.graphql.jpa.query.web.GraphQLControllerProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,7 +21,8 @@ import org.springframework.context.annotation.Bean;
 public class GraphQLControllerAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(GraphQLController.class)
+    @ConditionalOnBean(GraphQLExecutor.class)
     public GraphQLController graphQLController(GraphQLExecutor graphQLExecutor,
                                                ObjectMapper objectMapper) {
         return new GraphQLController(graphQLExecutor,

@@ -26,6 +26,7 @@
     <dependency>
       <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-web</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
@@ -36,6 +37,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+      <scope>test</scope>
     </dependency>
     
     <dependency>

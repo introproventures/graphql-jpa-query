@@ -13,14 +13,18 @@
   
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <skipDocker>false</skipDocker>    
   </properties>
   
   <dependencies>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.introproventures</groupId>
-      <artifactId>graphql-jpa-query-boot-starter</artifactId>
+      <artifactId>graphql-jpa-query-spring-boot-starter</artifactId>
     </dependency>
 
     <dependency>
@@ -40,71 +44,14 @@
     
   </dependencies>
   
-    <build>
+  <build>
+      <finalName>${project.artifactId}</finalName>
+      <plugins>
+          <plugin>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-maven-plugin</artifactId>
+          </plugin>
+      </plugins>
+  </build>
 
-        <finalName>${project.artifactId}</finalName>
-
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.14</version>
-                <dependencies>
-                  <dependency>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
-                    <version>1.1.1</version>
-                  </dependency>
-                </dependencies>                
-                <executions>
-                  <execution>
-                    <id>build-image</id>
-                    <phase>package</phase>
-                    <goals>
-                      <goal>build</goal>
-                    </goals>
-                  </execution>
-                  <execution>
-                    <id>push-image</id>
-                    <phase>deploy</phase>
-                    <goals>
-                      <goal>push</goal>
-                    </goals>
-                    <configuration>
-                      <skipDockerPush>true</skipDockerPush>
-                    </configuration>                    
-                  </execution>        
-                </executions>                
-                <configuration>
-                    <serverId>docker-hub</serverId>
-                    <registryUrl>https://index.docker.io/v1/</registryUrl>
-                    <imageName>introproventures/${project.artifactId}</imageName>
-                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                    
-                    <skipDocker>${skipDocker}</skipDocker>
-                    
-                    <!-- optionally overwrite tags every time image is built with docker:build -->
-                    <forceTags>true</forceTags>
-			        <imageTags>
-			           <imageTag>${project.version}</imageTag>
-			           <imageTag>latest</imageTag>
-			        </imageTags>                    
-
-                </configuration>
-
-            </plugin>
-
-        </plugins>
-    </build>
 </project>

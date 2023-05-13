@@ -7,22 +7,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-@SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment=WebEnvironment.RANDOM_PORT, properties = "debug=true")
 public class GraphQLControllerAutoConfigurationTest {
-    
-    @MockBean
-    private GraphQLExecutor graphQLExecutor;
-    
+
     @Autowired
     private GraphQLController graphQLController;
     
     @SpringBootApplication
     static class Application {
-        
+        @Bean
+        GraphQLExecutor graphQLExecutor() {
+            return mock(GraphQLExecutor.class);
+        }
     }
     
     @Test

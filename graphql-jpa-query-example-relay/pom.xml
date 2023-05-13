@@ -12,14 +12,19 @@
 
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <skipDocker>false</skipDocker>
+    <skipDocker>true</skipDocker>
   </properties>
 
   <dependencies>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.introproventures</groupId>
-      <artifactId>graphql-jpa-query-boot-starter</artifactId>
+      <artifactId>graphql-jpa-query-spring-boot-starter</artifactId>
     </dependency>
 
     <dependency>

@@ -33,7 +33,7 @@
     <module>graphql-jpa-query-scalars</module>
     <module>graphql-jpa-query-schema</module>
     <module>graphql-jpa-query-boot-starter</module>
-    <module>graphql-jpa-query-boot-starter-graphql</module>
+    <module>graphql-jpa-query-spring-boot-starter</module>
     <module>graphql-jpa-query-example-simple</module>
     <module>graphql-jpa-query-example-merge</module>
     <module>graphql-jpa-query-dependencies</module>
@@ -45,6 +45,7 @@
     <module>graphql-jpa-query-example-relay</module>
     <module>graphql-jpa-query-introspection</module>
     <module>graphql-jpa-query-example-spring-graphql</module>
+    <module>getting-started</module>
   </modules>
 
   <distributionManagement>
@@ -177,9 +178,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
+          <release>${java.version}</release>
           <source>${java.version}</source>
           <target>${java.version}</target>
           <encoding>${project.build.sourceEncoding}</encoding>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
 
