@@ -1,0 +1,28 @@
+spring:
+  jpa:
+    hibernate.ddl-auto: create-drop
+    generate-ddl: true
+    show-sql: true
+    open-in-view: false
+    defer-datasource-initialization: true
+  properties:
+      hibernate.format_sql: true
+  h2:
+    console.enabled: true
+
+  graphql:
+    graphiql:
+      enabled: true
+    jpa:
+      query:
+        name: BooksRelay
+        description: GraphQL Jpa Query Books Relay Example
+        enable-relay: true
+  sql:
+    init:
+      data-locations:
+        - classpath:books.sql
+
+logging:
+  level:
+    com.introproventures.graphql.jpa.query.schema: DEBUG

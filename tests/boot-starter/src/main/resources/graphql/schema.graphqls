@@ -1,0 +1,21 @@
+scalar Long
+scalar Date
+
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
+type Query {
+    count(string: String): Long
+    today: Date
+}
+
+type Mutation {
+    reverse(string: String): String
+}
+
+type Subscription {
+    greetings(name: String): String
+}
