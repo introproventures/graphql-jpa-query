@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "debug=true")
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLControllerAutoConfigurationTest {
 
     @Autowired
