@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.0.0
+## 1.0.1-SNAPSHOT
 * add tests to release profile [dad46e0](https://github.com/introproventures/graphql-jpa-query/commit/dad46e05460e9641728b8928f88ea509381f0129)
 * Upgrade to Spring Boot 3 with Jakarta EE JPA 3.1 Support (#356) [b744338](https://github.com/introproventures/graphql-jpa-query/commit/b744338b4c94afb57e8c88224992f176ea533c5f)
 * Remove legacy data loader registry lookup from execution context (#357) [97fafa9](https://github.com/introproventures/graphql-jpa-query/commit/97fafa972d0e6e33756ba01f9baa49354e58b275)
