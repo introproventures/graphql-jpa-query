@@ -4,7 +4,7 @@
 
   <artifactId>graphql-jpa-query-boot-starter</artifactId>
   <name>graphql-jpa-query-boot-starter</name>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <description>
     Provides Spring Boot Starter Maven Dependency

@@ -72,11 +72,6 @@
       </dependency>
       <dependency>
         <groupId>com.introproventures</groupId>
-        <artifactId>graphql-jpa-query-it-spring-graphql</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.introproventures</groupId>
         <artifactId>graphql-jpa-query-autoconfigure</artifactId>
         <version>${project.version}</version>
       </dependency>
