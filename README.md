@@ -5,7 +5,7 @@ GraphQL Query Api for JPA Entity Models
 [![codecov](https://codecov.io/gh/introproventures/graphql-jpa-query/branch/master/graph/badge.svg)](https://codecov.io/gh/introproventures/graphql-jpa-query)
 [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query) 
 
-GraphQL JPA Query library uses JPA 3.1 specification to derive and build GraphQL Apis using GraphQL Java for your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
+GraphQL JPA Query library uses JPA specification to derive and build GraphQL Apis using GraphQL Java for your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
 
 GraphQL is a query language for Web APIs implemented by GraphQL Java [graphql-java](https://github.com/graphql-java) runtime for fulfilling those queries with your existing data. GraphQL provides a complete and understandable description of the data in your API, gives clients the power to ask for exactly what they need and nothing more, makes it easier to evolve APIs over time, and enables powerful developer tools.
 
@@ -13,7 +13,7 @@ Your applications can now use GraphQL queries that smoothly follow references be
 
 While typical REST APIs require loading from multiple URLs, GraphQL APIs get all the data your app needs in a single request. Apps using GraphQL can be quick even on slow mobile network connections.
 
-JPA 3.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
+JPA (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
 
 GraphQL JPA Query creates a uniform query API for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting a separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
 
@@ -28,7 +28,7 @@ Features
 * Merging two or more GraphQL schemas from different JPA entity models 
 * Support for GraphQL schema auto-configuration, GraphQL Web Rest Controller via Spring Boot Starters
 * GraphQL Subscriptions (Experimental)
-* [Spring GraphQl 1.0.x](https://docs.spring.io/spring-graphql/docs/current/reference/html/#overview) Auto configurations for Schema Runtime Wiring, Execution, Protocols, Testing
+* [Spring GraphQl 1.x.x](https://docs.spring.io/spring-graphql/docs/current/reference/html/#overview) Auto configurations for Schema Runtime Wiring, Execution, Protocols, Testing
 
 Supported Apis
 ----------------------
@@ -44,8 +44,6 @@ Supported Apis
 
 Tested using JDK Versions
 ----------------------
-* Jdk 8
-* Jdk 11
 * Jdk 17
 * Jdk 19
 
