@@ -17,6 +17,10 @@
     Provides GraphQL JPA Query Integration Tests Support
   </description>
 
+  <properties>
+    <skipStaging>true</skipStaging>
+  </properties>
+
   <modules>
     <module>models</module>
     <module>relay</module>

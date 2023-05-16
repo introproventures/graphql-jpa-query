@@ -28,6 +28,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipPrettier>false</skipPrettier>
+    <skipStaging>false</skipStaging>
   </properties>
 
   <modules>
@@ -382,6 +383,7 @@
               <serverId>sonatype-nexus-staging</serverId>
               <nexusUrl>https://oss.sonatype.org/</nexusUrl>
               <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <skipStaging>${skipStaging}</skipStaging>
             </configuration>
           </plugin>
         </plugins>
