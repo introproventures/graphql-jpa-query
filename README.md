@@ -3,8 +3,7 @@ GraphQL Query Api for JPA Entity Models
 
 [![CI](https://github.com/introproventures/graphql-jpa-query/actions/workflows/build.yml/badge.svg)](https://github.com/introproventures/graphql-jpa-query/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/introproventures/graphql-jpa-query/branch/master/graph/badge.svg)](https://codecov.io/gh/introproventures/graphql-jpa-query)
-[![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
-[![Jitpack.io](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query) 
+[![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query) 
 
 GraphQL JPA Query library uses JPA 3.1 specification to derive and build GraphQL Apis using GraphQL Java for your JPA Entity Java Classes. It provides a powerfull JPA Query Schema Builder to generate GraphQL Schema using JPA EntityManager Api and instruments GraphQL Schema with JPA Query Data Fetchers that transform GraphQL queries into JPA queries on the fly.
 
@@ -14,7 +13,7 @@ Your applications can now use GraphQL queries that smoothly follow references be
 
 While typical REST APIs require loading from multiple URLs, GraphQL APIs get all the data your app needs in a single request. Apps using GraphQL can be quick even on slow mobile network connections.
 
-JPA 2.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
+JPA 3.1 (Java Persistence Annotation) is Java's standard solution to bridge the gap between object-oriented domain models and relational database systems. 
 
 GraphQL JPA Query creates a uniform query API for your applications without being limited by a single data source. You can use it with multiple JPA compliant databases by instrumenting a separate EntityManager for each DataSource and expose a single GraphQL Query Apis for your Web application domain using Spring Boot Auto Configuration magic.
 
@@ -59,7 +58,7 @@ The GraphQL-JPA-Query library consists of the following modules:
 4. `graphql-jpa-query-web` - Provides Graphql Web Controller with Spring Boot auto-configuration support
 5. `graphql-jpa-query-schema` - Provides interface specifications and implementation of the JPA Schema Builder and JPA Data Fetchers
 6. `graphql-jpa-query-boot-starter`- Provides Spring Boot starter support to enable GraphQL JPA Query in your project
-7. `graphql-jpa-query-example` - Provides example application for Starwars sample entity models
+7. `graphql-jpa-query-examples` - Provides example application for Starwars sample entity models
 
 Building with Maven Central [![Maven Central](https://img.shields.io/maven-central/v/com.introproventures/graphql-jpa-query.svg)](https://mvnrepository.com/artifact/com.introproventures/graphql-jpa-query)
 ------------------------
@@ -98,41 +97,6 @@ For GraphQL JPA Query Boot Starter use:
 	  <artifactId>graphql-jpa-query-boot-starter</artifactId>
 	  <version>tag</version>
 	</dependency>
-
-Building with jitpack.io [![Release](https://jitpack.io/v/introproventures/graphql-jpa-query.svg)](https://jitpack.io/#introproventures/graphql-jpa-query)
-------------------------
-You can simply use jitpack.io to include and build individual modules in your project. You will need to add jitpack.io repository in our project to resolve required artifacts using valid release tag.
-
-      <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-      </repositories>
-
-For GraphQL JPA Annotations use:
-
-    <dependency>
-	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
-	    <artifactId>graphql-jpa-query-annotations</artifactId>
-	    <version>tag</version>
-    </dependency>
-
-For GraphQL JPA Schema Builder use:
-
-    <dependency>
-	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
-	    <artifactId>graphql-jpa-query-schema</artifactId>
-	    <version>tag</version>
-    </dependency>
-
-For GraphQL JPA Query Boot Starter use:
-
-    <dependency>
-	    <groupId>com.github.introproventures.graphql-jpa-query</groupId>
-	    <artifactId>graphql-jpa-query-boot-starter</artifactId>
-	    <version>tag</version>
-    </dependency>
 
 Other Dependencies
 -----------------
@@ -580,10 +544,6 @@ GraphiQL (https://github.com/graphql/graphiql) can be used for simple testing. Y
 You can run GraphQL queries in the left pannel. Type the query and hit the run button. The results should come up in the middle
 panel. If your query has variables, there is a minimized panel at the bottom left.  Simply click on this to expand, and
 type in your variables as a JSON string with quoted keys.
-
-Run Example in Docker
-------
-You can quickly start GraphQL JPA Query Example in Docker.
 
 License
 -------
