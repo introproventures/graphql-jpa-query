@@ -31,20 +31,6 @@
     <skipStaging>false</skipStaging>
   </properties>
 
-  <modules>
-    <module>annotations</module>
-    <module>scalars</module>
-    <module>schema</module>
-    <module>boot-starter</module>
-    <module>dependencies</module>
-    <module>build</module>
-    <module>autoconfigure</module>
-    <module>web</module>
-    <module>introspection</module>
-    <module>tests</module>
-    <module>examples</module>
-  </modules>
-
   <distributionManagement>
     <snapshotRepository>
       <id>sonatype-nexus-snapshots</id>
@@ -361,7 +347,37 @@
 
   <profiles>
     <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>annotations</module>
+        <module>scalars</module>
+        <module>schema</module>
+        <module>boot-starter</module>
+        <module>dependencies</module>
+        <module>build</module>
+        <module>autoconfigure</module>
+        <module>web</module>
+        <module>introspection</module>
+        <module>tests</module>
+        <module>examples</module>
+      </modules>
+    </profile>
+    <profile>
       <id>releases</id>
+      <modules>
+        <module>annotations</module>
+        <module>scalars</module>
+        <module>schema</module>
+        <module>boot-starter</module>
+        <module>dependencies</module>
+        <module>build</module>
+        <module>autoconfigure</module>
+        <module>web</module>
+        <module>introspection</module>
+      </modules>
       <build>
         <plugins>
           <!-- Deployment -->

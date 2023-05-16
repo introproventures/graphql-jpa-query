@@ -17,8 +17,4 @@
     <module>spring-graphql-web</module>
   </modules>
 
-  <properties>
-    <skipStaging>true</skipStaging>
-  </properties>
-
 </project>
