@@ -377,6 +377,7 @@
         <module>autoconfigure</module>
         <module>web</module>
         <module>introspection</module>
+        <module>tests</module>
       </modules>
       <build>
         <plugins>
