@@ -1,5 +1,7 @@
 package com.introproventures.graphql.jpa.query.restricted;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
@@ -17,15 +19,13 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.util.Assert;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest(properties = "spring.sql.init.data-locations=RestrictedKeysProviderTests.sql")
 public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSupport {
 
     @SpringBootApplication
     @EntityScan(basePackageClasses = Thing.class)
     static class Application {
-        
+
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
             return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
@@ -33,7 +33,6 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
@@ -41,7 +40,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
                 .restrictedKeysProvider(new SpringSecurityRestrictedKeysProvider(entityManager.getMetamodel()));
         }
     }
-    
+
     @Autowired
     private GraphQLExecutor executor;
 
@@ -63,17 +62,22 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
         //then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
-    @WithMockUser(value = "spring", authorities = {"Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1", 
-                                                   "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1"})
+    @WithMockUser(
+        value = "spring",
+        authorities = {
+            "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1", "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1",
+        }
+    )
     public void testRestrictedThingQueryMultiple() {
         //given
         String query = "query RestrictedThingQuery { Things { total select {id type } } }";
-        String expected = "{Things={total=2, select=["
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, "
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}"
-                + "]}}";
+        String expected =
+            "{Things={total=2, select=[" +
+            "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, " +
+            "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -81,25 +85,25 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
         //then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
-    
+
     @Test
     @WithMockUser(value = "spring", authorities = "Thing:read:*")
     public void testNonRestrictedThingQuery() {
         //given
         String query = "query RestrictedThingQuery { Things { total select {id type } } }";
-        String expected = "{Things={total=3, select=["
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, "
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}, "
-                + "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}"
-                + "]}}";
+        String expected =
+            "{Things={total=3, select=[" +
+            "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1, type=Thing1}, " +
+            "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbc1, type=Thing2}, " +
+            "{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbd1, type=Thing3}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     @WithMockUser(value = "spring", authorities = "OtherThing:*")
@@ -113,7 +117,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
 
     @Test
     @WithAnonymousUser
@@ -127,7 +131,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
+    }
 
     @Test
     public void testRestrictAllThingQueryWithNullAuthentication() {
@@ -153,8 +157,8 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     @WithAnonymousUser
     public void testRestrictThingQueryWithAnonymouseAuthentication() {
@@ -168,7 +172,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
         //then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb2")
     public void testRestrictThingQueryWithoutPermission() {
@@ -181,7 +185,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }           
+    }
 
     @Test
     @WithMockUser(value = "spring", authorities = "Thing:read:2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1")
@@ -196,7 +200,7 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
         //then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     @WithMockUser(value = "spring", authorities = "Thing:read:*")
     public void testRestrictThingQueryWithWildcardPermission() {
@@ -209,6 +213,5 @@ public class RestrictedKeysProviderSelectTests extends AbstractSpringBootTestSup
 
         //then
         assertThat(result.toString()).isEqualTo(expected);
-    }         
-    
+    }
 }

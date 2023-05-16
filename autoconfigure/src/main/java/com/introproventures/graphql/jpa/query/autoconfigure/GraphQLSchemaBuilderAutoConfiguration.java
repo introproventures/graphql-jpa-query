@@ -16,32 +16,33 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration(
-        before = {GraphQLSchemaAutoConfiguration.class, GraphQLJpaQueryGraphQlSourceAutoConfiguration.class},
-        after = HibernateJpaAutoConfiguration.class
+    before = { GraphQLSchemaAutoConfiguration.class, GraphQLJpaQueryGraphQlSourceAutoConfiguration.class },
+    after = HibernateJpaAutoConfiguration.class
 )
 @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
-@ConditionalOnClass({EntityManagerFactory.class, GraphQL.class, GraphQLSchemaBuilder.class})
-@ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@ConditionalOnClass({ EntityManagerFactory.class, GraphQL.class, GraphQLSchemaBuilder.class })
+@ConditionalOnProperty(name = "spring.graphql.jpa.query.enabled", havingValue = "true", matchIfMissing = true)
 public class GraphQLSchemaBuilderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
-    GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(EntityManagerFactory entityManagerFactory,
-                                                           GraphQLJpaQueryProperties properties,
-                                                           ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
+    GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(
+        EntityManagerFactory entityManagerFactory,
+        GraphQLJpaQueryProperties properties,
+        ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider
+    ) {
         GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
 
-        builder.name(properties.getName())
-               .description(properties.getDescription())
-               .defaultDistinct(properties.isDefaultDistinct())
-               .useDistinctParameter(properties.isUseDistinctParameter())
-               .toManyDefaultOptional(properties.isToManyDefaultOptional())
-               .enableRelay(properties.isEnableRelay());
+        builder
+            .name(properties.getName())
+            .description(properties.getDescription())
+            .defaultDistinct(properties.isDefaultDistinct())
+            .useDistinctParameter(properties.isUseDistinctParameter())
+            .toManyDefaultOptional(properties.isToManyDefaultOptional())
+            .enableRelay(properties.isEnableRelay());
 
-        EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames()
-                                                 .stream()
-                                                 .forEach(builder::entityPath);
+        EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames().stream().forEach(builder::entityPath);
 
         restrictedKeysProvider.ifAvailable(builder::restrictedKeysProvider);
 
@@ -50,13 +51,14 @@ public class GraphQLSchemaBuilderAutoConfiguration {
 
     @Bean
     @ConditionalOnSingleCandidate(GraphQLSchemaBuilder.class)
-    GraphQLSchemaConfigurer defaultGraphQLJpaSchemaBuilderConfigurer(GraphQLJpaSchemaBuilder builder,
-                                                                     ObjectProvider<GraphQLJPASchemaBuilderCustomizer> customizer) {
+    GraphQLSchemaConfigurer defaultGraphQLJpaSchemaBuilderConfigurer(
+        GraphQLJpaSchemaBuilder builder,
+        ObjectProvider<GraphQLJPASchemaBuilderCustomizer> customizer
+    ) {
         return registry -> {
             customizer.ifAvailable(it -> it.customize(builder));
 
             registry.register(builder.build());
         };
     }
-
 }

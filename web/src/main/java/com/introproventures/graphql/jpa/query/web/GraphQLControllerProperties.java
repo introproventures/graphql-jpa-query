@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "spring.graphql.jpa.query.web")
 public class GraphQLControllerProperties {
+
     private boolean enabled;
 
     @NotEmpty

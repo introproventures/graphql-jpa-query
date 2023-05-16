@@ -1,5 +1,6 @@
 package com.introproventures.graphql.jpa.query.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
@@ -13,14 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 public class GraphQLExecutorSuperClassTests extends AbstractSpringBootTestSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class Application {
+
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
             return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
@@ -28,10 +28,7 @@ public class GraphQLExecutorSuperClassTests extends AbstractSpringBootTestSuppor
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-
-            return new GraphQLJpaSchemaBuilder(entityManager)
-                    .name("GraphQLBooks")
-                    .description("Books JPA test schema");
+            return new GraphQLJpaSchemaBuilder(entityManager).name("GraphQLBooks").description("Books JPA test schema");
         }
     }
 
@@ -43,17 +40,17 @@ public class GraphQLExecutorSuperClassTests extends AbstractSpringBootTestSuppor
         Assert.isAssignable(GraphQLExecutor.class, executor.getClass());
     }
 
-
     @Test
     public void querySuperAuthors() {
         //given
         String query = "{ SuperAuthors { select { id name genre} }}";
 
-        String expected = "{SuperAuthors={select=[" +
-                "{id=1, name=Leo Tolstoy, genre=NOVEL}, " +
-                "{id=4, name=Anton Chekhov, genre=PLAY}, " +
-                "{id=8, name=Igor Dianov, genre=JAVA}" +
-                "]}}";
+        String expected =
+            "{SuperAuthors={select=[" +
+            "{id=1, name=Leo Tolstoy, genre=NOVEL}, " +
+            "{id=4, name=Anton Chekhov, genre=PLAY}, " +
+            "{id=8, name=Igor Dianov, genre=JAVA}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -67,11 +64,12 @@ public class GraphQLExecutorSuperClassTests extends AbstractSpringBootTestSuppor
         //given
         String query = "{ SuperBooks(where: {genre: {IN: PLAY}}) { select { id title, genre } }}";
 
-        String expected = "{SuperBooks={select=["
-                + "{id=5, title=The Cherry Orchard, genre=PLAY}, "
-                + "{id=6, title=The Seagull, genre=PLAY}, "
-                + "{id=7, title=Three Sisters, genre=PLAY}"
-                + "]}}";
+        String expected =
+            "{SuperBooks={select=[" +
+            "{id=5, title=The Cherry Orchard, genre=PLAY}, " +
+            "{id=6, title=The Seagull, genre=PLAY}, " +
+            "{id=7, title=Three Sisters, genre=PLAY}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -80,4 +78,3 @@ public class GraphQLExecutorSuperClassTests extends AbstractSpringBootTestSuppor
         assertThat(result.toString()).isEqualTo(expected);
     }
 }
-

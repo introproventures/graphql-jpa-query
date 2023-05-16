@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -113,14 +112,10 @@ public class FieldDescriptor extends Descriptor implements Getter, Setter {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         FieldDescriptor other = (FieldDescriptor) obj;
         return Objects.equals(field, other.field) && Objects.equals(type, other.type);
     }
-
 }

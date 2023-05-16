@@ -7,5 +7,4 @@ public class Engine {
 
     String identification;
     Long hp;
-
 }

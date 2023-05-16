@@ -23,17 +23,15 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getP
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions
@@ -43,7 +41,7 @@ import graphql.schema.DataFetchingEnvironment;
  */
 class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
 
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
 
     private final int defaultMaxResults;
     private final int defaultPageLimitSize;
@@ -71,42 +69,37 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         final int firstResult = page.getOffset();
         final int maxResults = Integer.min(page.getLimit(), defaultMaxResults); // Limit max results to avoid OoM
 
-        final PagedResult.Builder<Object> pagedResult = PagedResult.builder()
-                                                                   .withOffset(firstResult)
-                                                                   .withLimit(maxResults);
+        final PagedResult.Builder<Object> pagedResult = PagedResult
+            .builder()
+            .withOffset(firstResult)
+            .withLimit(maxResults);
         Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
-        
+
         if (recordsSelection.isPresent()) {
             if (restrictedKeys.isPresent()) {
                 final List<Object> queryKeys = new ArrayList<>();
-                
+
                 if (pageArgument.isPresent() || enableDefaultMaxResults) {
-                    queryKeys.addAll(queryFactory.queryKeys(environment,
-                                                            firstResult,
-                                                            maxResults,
-                                                            restrictedKeys.get()));
-                } 
-                else {
+                    queryKeys.addAll(
+                        queryFactory.queryKeys(environment, firstResult, maxResults, restrictedKeys.get())
+                    );
+                } else {
                     queryKeys.addAll(restrictedKeys.get());
                 }
-    
-                final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                             maxResults,
-                                                                             queryKeys);
+
+                final List<Object> resultList = queryFactory.queryResultList(environment, maxResults, queryKeys);
                 pagedResult.withSelect(resultList);
-            } 
+            }
         }
 
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment, 
-                                                            restrictedKeys);
+            final Long total = queryFactory.queryTotalCount(environment, restrictedKeys);
 
             pagedResult.withTotal(total);
         }
 
         return pagedResult.build();
     }
-
 
     public int getDefaultMaxResults() {
         return defaultMaxResults;
@@ -128,12 +121,11 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IQueryFactoryStage {
-
         /**
-        * Builder method for queryFactory parameter.
-        * @param queryFactory field to set
-        * @return builder
-        */
+         * Builder method for queryFactory parameter.
+         * @param queryFactory field to set
+         * @return builder
+         */
         public IDefaultMaxResultsStage withQueryFactory(GraphQLJpaQueryFactory queryFactory);
     }
 
@@ -141,19 +133,18 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IDefaultMaxResultsStage {
-
         /**
-        * Builder method for defaultMaxResults parameter.
-        * @param defaultMaxResults field to set
-        * @return builder
-        */
+         * Builder method for defaultMaxResults parameter.
+         * @param defaultMaxResults field to set
+         * @return builder
+         */
         public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults);
 
         /**
-        * Builder method for enableDefaultMaxResults parameter.
-        * @param enableDefaultMaxResults field to set
-        * @return builder
-        */
+         * Builder method for enableDefaultMaxResults parameter.
+         * @param enableDefaultMaxResults field to set
+         * @return builder
+         */
         public IDefaultPageLimitSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults);
     }
 
@@ -161,12 +152,11 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IDefaultPageLimitSizeStage {
-
         /**
-        * Builder method for defaultPageLimitSize parameter.
-        * @param defaultPageLimitSize field to set
-        * @return builder
-        */
+         * Builder method for defaultPageLimitSize parameter.
+         * @param defaultPageLimitSize field to set
+         * @return builder
+         */
         public IBuildStage withDefaultPageLimitSize(int defaultPageLimitSize);
     }
 
@@ -174,26 +164,25 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IBuildStage {
-
         /**
-        * Builder method of the builder.
-        * @return built class
-        */
+         * Builder method of the builder.
+         * @return built class
+         */
         public GraphQLJpaQueryDataFetcher build();
     }
 
     /**
      * Builder to build {@link GraphQLJpaQueryDataFetcher}.
      */
-    public static final class Builder implements IQueryFactoryStage, IDefaultMaxResultsStage, IDefaultPageLimitSizeStage, IBuildStage {
+    public static final class Builder
+        implements IQueryFactoryStage, IDefaultMaxResultsStage, IDefaultPageLimitSizeStage, IBuildStage {
 
         private GraphQLJpaQueryFactory queryFactory;
         private int defaultMaxResults;
         private int defaultPageLimitSize;
         private boolean enableDefaultMaxResults;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         @Override
         public IDefaultMaxResultsStage withQueryFactory(GraphQLJpaQueryFactory queryFactory) {
@@ -225,4 +214,3 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         }
     }
 }
-

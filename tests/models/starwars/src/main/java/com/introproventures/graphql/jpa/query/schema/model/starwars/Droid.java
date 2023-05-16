@@ -27,7 +27,7 @@ import lombok.EqualsAndHashCode;
 @Entity
 @GraphQLDescription("Represents an electromechanical robot in the Star Wars Universe")
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 public class Droid extends Character {
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -37,6 +37,6 @@ public class Droid extends Character {
     //description moved to getter to test it gets picked up
     @GraphQLDescription("Documents the primary purpose this droid serves")
     public DroidFunction getPrimaryFunction() {
-        return(primaryFunction);
+        return (primaryFunction);
     }
 }

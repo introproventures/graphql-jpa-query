@@ -7,6 +7,7 @@ import lombok.Data;
 @Entity
 @Data
 public class TestEntity {
+
     @Id
     private Long id;
 }

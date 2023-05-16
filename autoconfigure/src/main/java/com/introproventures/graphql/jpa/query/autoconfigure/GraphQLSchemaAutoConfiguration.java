@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration(after = GraphQLSchemaBuilderAutoConfiguration.class)
 @EnableConfigurationProperties(GraphQLJpaQueryProperties.class)
 @ConditionalOnClass(GraphQL.class)
-@ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@ConditionalOnProperty(name = "spring.graphql.jpa.query.enabled", havingValue = "true", matchIfMissing = true)
 @EnableGraphQLJpaQuerySchema
 public class GraphQLSchemaAutoConfiguration {
 
@@ -27,16 +27,17 @@ public class GraphQLSchemaAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GraphQLSchema.class)
     @ConditionalOnBean(GraphQLSchemaConfigurer.class)
-    public GraphQLSchemaFactoryBean graphQLSchemaFactoryBean(GraphQLJpaQueryProperties properties,
-                                                             GraphQLShemaRegistration graphQLShemaRegistration,
-                                                             ObjectProvider<GraphQLSchemaConfigurer> graphQLSchemaConfigurers) {
+    public GraphQLSchemaFactoryBean graphQLSchemaFactoryBean(
+        GraphQLJpaQueryProperties properties,
+        GraphQLShemaRegistration graphQLShemaRegistration,
+        ObjectProvider<GraphQLSchemaConfigurer> graphQLSchemaConfigurers
+    ) {
         for (GraphQLSchemaConfigurer configurer : graphQLSchemaConfigurers) {
             configurer.configure(graphQLShemaRegistration);
         }
 
         return new GraphQLSchemaFactoryBean(graphQLShemaRegistration.getManagedGraphQLSchemas())
-	        		.setQueryName(properties.getName())
-	    			.setQueryDescription(properties.getDescription());
-    };
-
+            .setQueryName(properties.getName())
+            .setQueryDescription(properties.getDescription());
+    }
 }

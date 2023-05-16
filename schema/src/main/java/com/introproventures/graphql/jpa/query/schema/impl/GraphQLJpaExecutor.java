@@ -16,9 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
@@ -28,11 +25,14 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Jpa specific GraphQLExecutor implementation with support to execute GraphQL query within
  * existing transaction context
- * 
+ *
  * @author Igor Dianov
  *
  */
@@ -41,28 +41,26 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     private final GraphQLSchema graphQLSchema;
 
     private final GraphQLExecutorContextFactory contextFactory;
-    
+
     /**
      * Creates instance using GraphQLSchema parameter with default GraphQLJpaExecutorContextFactory
-     *  
+     *
      * @param graphQLSchema instance
      */
     public GraphQLJpaExecutor(GraphQLSchema graphQLSchema) {
         this(graphQLSchema, new GraphQLJpaExecutorContextFactory() {});
     }
-    
+
     /**
      * Creates instance using GraphQLSchema and GraphQLJpaExecutorContextFactory
-     * 
+     *
      * @param graphQLSchema schema
      * @param contextFactory factory
      */
-    public GraphQLJpaExecutor(GraphQLSchema graphQLSchema,
-                              GraphQLExecutorContextFactory contextFactory) {
+    public GraphQLJpaExecutor(GraphQLSchema graphQLSchema, GraphQLExecutorContextFactory contextFactory) {
         this.graphQLSchema = graphQLSchema;
         this.contextFactory = contextFactory;
     }
-    
 
     /* (non-Javadoc)
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String)
@@ -79,27 +77,21 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
     @Override
     @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
-    	return execute(query, null, arguments);
+        return execute(query, null, arguments);
     }
 
-	@Override
+    @Override
     @Transactional(TxType.REQUIRED)
-	public ExecutionResult execute(String query, String operationName, Map<String, Object> arguments) {
-        Map<String, Object> variables = Optional.ofNullable(arguments)
-                								.orElseGet(Collections::emptyMap);
+    public ExecutionResult execute(String query, String operationName, Map<String, Object> arguments) {
+        Map<String, Object> variables = Optional.ofNullable(arguments).orElseGet(Collections::emptyMap);
 
-		GraphQLExecutorContext executorContext = contextFactory.newExecutorContext(graphQLSchema);
-		
-		ExecutionInput.Builder executionInput = executorContext.newExecutionInput()
-								                               .query(query)
-								                               .variables(variables);
-		Optional.ofNullable(operationName)
-				.ifPresent(executionInput::operationName);
-		
-		GraphQL.Builder graphQL = executorContext.newGraphQL();
-		
-		return graphQL.build()
-					  .execute(executionInput);
-	}
+        GraphQLExecutorContext executorContext = contextFactory.newExecutorContext(graphQLSchema);
 
+        ExecutionInput.Builder executionInput = executorContext.newExecutionInput().query(query).variables(variables);
+        Optional.ofNullable(operationName).ifPresent(executionInput::operationName);
+
+        GraphQL.Builder graphQL = executorContext.newGraphQL();
+
+        return graphQL.build().execute(executionInput);
+    }
 }

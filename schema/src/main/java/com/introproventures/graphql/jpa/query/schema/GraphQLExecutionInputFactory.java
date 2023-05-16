@@ -19,9 +19,7 @@ package com.introproventures.graphql.jpa.query.schema;
 import graphql.ExecutionInput;
 
 public interface GraphQLExecutionInputFactory {
-
     default ExecutionInput.Builder create() {
         return ExecutionInput.newExecutionInput();
-    };
-
+    }
 }

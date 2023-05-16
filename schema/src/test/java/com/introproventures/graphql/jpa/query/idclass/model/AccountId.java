@@ -1,7 +1,6 @@
 package com.introproventures.graphql.jpa.query.idclass.model;
 
 import java.io.Serializable;
-
 import lombok.Data;
 
 @Data
@@ -11,5 +10,4 @@ public class AccountId implements Serializable {
 
     private String accountNumber;
     private String accountType;
-
 }

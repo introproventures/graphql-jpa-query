@@ -1,5 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema;
 
+import static graphql.util.TraversalControl.CONTINUE;
+
 import graphql.language.NamedNode;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLScalarType;
@@ -11,22 +13,17 @@ import graphql.schema.idl.SchemaGeneratorPostProcessing;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 import graphql.util.TreeTransformerUtil;
-
 import java.util.function.Function;
-
-import static graphql.util.TraversalControl.CONTINUE;
 
 public class JavaScalarsWiringPostProcessor implements SchemaGeneratorPostProcessing {
 
-    public JavaScalarsWiringPostProcessor() {
-    }
+    public JavaScalarsWiringPostProcessor() {}
 
     @Override
     public GraphQLSchema process(GraphQLSchema originalSchema) {
         Visitor visitor = new Visitor();
 
-        return SchemaTransformer.transformSchema(originalSchema,
-                                                 visitor);
+        return SchemaTransformer.transformSchema(originalSchema, visitor);
     }
 
     class Visitor extends GraphQLTypeVisitorStub {
@@ -37,7 +34,11 @@ public class JavaScalarsWiringPostProcessor implements SchemaGeneratorPostProces
             return schemaChanged;
         }
 
-        private TraversalControl changOrContinue(GraphQLSchemaElement node, GraphQLSchemaElement newNode, TraverserContext<GraphQLSchemaElement> context) {
+        private TraversalControl changOrContinue(
+            GraphQLSchemaElement node,
+            GraphQLSchemaElement newNode,
+            TraverserContext<GraphQLSchemaElement> context
+        ) {
             if (node != newNode) {
                 TreeTransformerUtil.changeNode(context, newNode);
                 schemaChanged = true;
@@ -58,16 +59,17 @@ public class JavaScalarsWiringPostProcessor implements SchemaGeneratorPostProces
         }
 
         @Override
-        public TraversalControl visitGraphQLScalarType(GraphQLScalarType node, TraverserContext<GraphQLSchemaElement> context) {
+        public TraversalControl visitGraphQLScalarType(
+            GraphQLScalarType node,
+            TraverserContext<GraphQLSchemaElement> context
+        ) {
             if (notSuitable(node, GraphQLScalarType::getDefinition)) {
                 return CONTINUE;
             }
 
-            GraphQLScalarType newNode = JavaScalars.of(node.getName())
-                                                   .orElse(node);
+            GraphQLScalarType newNode = JavaScalars.of(node.getName()).orElse(node);
 
             return changOrContinue(node, newNode, context);
         }
-
     }
 }

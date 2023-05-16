@@ -1,12 +1,12 @@
 package com.introproventures.graphql.jpa.query.schema.model.calculated;
 
-import java.time.LocalDate;
-import java.time.Period;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
+import java.time.LocalDate;
+import java.time.Period;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -44,6 +44,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 public class CalculatedEntity extends ParentCalculatedEntity {
+
     @Id
     Long id;
 
@@ -51,27 +52,25 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     String title;
 
     String info;
-    
+
     @GraphQLDescription("Uppercase")
     String Uppercase;
-    
+
     private Integer age;
-    
-    private Integer getAge(){
-        return Period.between(LocalDate.now(), 
-                              LocalDate.of(2000, 1, 1))
-                     .getYears();
+
+    private Integer getAge() {
+        return Period.between(LocalDate.now(), LocalDate.of(2000, 1, 1)).getYears();
     }
-    
+
     private Integer protectedGetter;
-    
+
     @GraphQLDescription("protectedGetter")
-    protected Integer getProtectedGetter(){
+    protected Integer getProtectedGetter() {
         return protectedGetter;
     }
-    
+
     String UppercaseGetter;
-    
+
     @GraphQLDescription("transientModifier")
     transient Integer transientModifier; // transient property
 
@@ -80,7 +79,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
 
     @Transient
     boolean logic = true; // transient property
-    
+
     @Transient
     @GraphQLDescription("i desc member")
     String fieldMem = "member";
@@ -92,7 +91,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
     String propertyIgnoredOnGetter;
 
     String propertyDuplicatedInChild;
-   
+
     @Transient
     @GraphQLDescription("i desc function")
     public String getFieldFun() {
@@ -109,7 +108,7 @@ public class CalculatedEntity extends ParentCalculatedEntity {
         return "getHideFieldFunction";
     }
 
-    public void setSomething(int a){}
+    public void setSomething(int a) {}
 
     @GraphQLIgnore
     public String getPropertyIgnoredOnGetter() {
@@ -118,20 +117,19 @@ public class CalculatedEntity extends ParentCalculatedEntity {
 
     @Transient
     @GraphQLIgnore
-    public String getIgnoredTransientValue(){
+    public String getIgnoredTransientValue() {
         return "IgnoredTransientValue";
     }
-    
+
     @Transient
     @GraphQLDescription("UppercaseGetter")
     public String getUppercaseGetter() {
         return Uppercase;
     }
 
-    // transient getter 
+    // transient getter
     @GraphQLIgnore
     public String getUppercaseGetterIgnore() {
         return UppercaseGetter;
     }
-    
 }

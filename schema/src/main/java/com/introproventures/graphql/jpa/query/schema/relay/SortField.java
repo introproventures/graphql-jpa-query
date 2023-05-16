@@ -3,7 +3,8 @@ package com.introproventures.graphql.jpa.query.schema.relay;
 public class SortField {
 
     public enum Direction {
-        ASC, DESC
+        ASC,
+        DESC,
     }
 
     private String name;

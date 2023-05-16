@@ -7,15 +7,15 @@ public class ArrayUtil {
     private static final int INDEX_NOT_FOUND = -1;
 
     public static boolean isEmpty(Object array) {
-        if(array == null) {
+        if (array == null) {
             return true;
         }
-        
+
         // not an array
-        if(!array.getClass().isArray()) {
+        if (!array.getClass().isArray()) {
             return false;
         }
-        
+
         // check array length
         return Array.getLength(array) == 0;
     }
@@ -23,11 +23,11 @@ public class ArrayUtil {
     public static boolean isNotEmpty(Object array) {
         return !isEmpty(array);
     }
-    
+
     public static int indexOf(Object[] array, Object objectToFind) {
         return indexOf(array, objectToFind, 0);
     }
-    
+
     public static int indexOf(Object[] array, Object objectToFind, int startIndex) {
         if (array == null) {
             return INDEX_NOT_FOUND;
@@ -74,8 +74,9 @@ public class ArrayUtil {
             final Class<?> type1 = array1.getClass().getComponentType();
             final Class<?> type2 = array2.getClass().getComponentType();
             if (!type1.isAssignableFrom(type2)) {
-                throw new IllegalArgumentException("Cannot store " + type2.getName() + " in an array of "
-                        + type1.getName());
+                throw new IllegalArgumentException(
+                    "Cannot store " + type2.getName() + " in an array of " + type1.getName()
+                );
             }
             throw ase; // No, so rethrow original
         }
@@ -89,5 +90,4 @@ public class ArrayUtil {
 
         return (T[]) array.clone();
     }
-    
 }

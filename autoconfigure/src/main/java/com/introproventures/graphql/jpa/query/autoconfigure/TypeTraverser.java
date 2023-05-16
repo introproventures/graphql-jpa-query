@@ -1,10 +1,7 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import static graphql.util.TraversalControl.CONTINUE;
+
 import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLTypeVisitor;
 import graphql.util.TraversalControl;
@@ -12,11 +9,13 @@ import graphql.util.Traverser;
 import graphql.util.TraverserContext;
 import graphql.util.TraverserResult;
 import graphql.util.TraverserVisitor;
-
-import static graphql.util.TraversalControl.CONTINUE;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 class TypeTraverser {
-
 
     private final Function<? super GraphQLSchemaElement, ? extends List<GraphQLSchemaElement>> getChildren;
 
@@ -32,19 +31,30 @@ class TypeTraverser {
         return depthFirst(graphQLTypeVisitor, Collections.singletonList(root));
     }
 
-    public TraverserResult depthFirst(final GraphQLTypeVisitor graphQLTypeVisitor, Collection<? extends GraphQLSchemaElement> roots) {
+    public TraverserResult depthFirst(
+        final GraphQLTypeVisitor graphQLTypeVisitor,
+        Collection<? extends GraphQLSchemaElement> roots
+    ) {
         return depthFirst(initTraverser(), new TraverserDelegateVisitor(graphQLTypeVisitor), roots);
     }
 
-    public TraverserResult depthFirst(final GraphQLTypeVisitor graphQLTypeVisitor,
-                                      Collection<? extends GraphQLSchemaElement> roots,
-                                      Map<String, GraphQLSchemaElement> types) {
-        return depthFirst(initTraverser().rootVar(TypeTraverser.class, types), new TraverserDelegateVisitor(graphQLTypeVisitor), roots);
+    public TraverserResult depthFirst(
+        final GraphQLTypeVisitor graphQLTypeVisitor,
+        Collection<? extends GraphQLSchemaElement> roots,
+        Map<String, GraphQLSchemaElement> types
+    ) {
+        return depthFirst(
+            initTraverser().rootVar(TypeTraverser.class, types),
+            new TraverserDelegateVisitor(graphQLTypeVisitor),
+            roots
+        );
     }
 
-    public TraverserResult depthFirst(final Traverser<GraphQLSchemaElement> traverser,
-                                      final TraverserDelegateVisitor traverserDelegateVisitor,
-                                      Collection<? extends GraphQLSchemaElement> roots) {
+    public TraverserResult depthFirst(
+        final Traverser<GraphQLSchemaElement> traverser,
+        final TraverserDelegateVisitor traverserDelegateVisitor,
+        Collection<? extends GraphQLSchemaElement> roots
+    ) {
         return doTraverse(traverser, roots, traverserDelegateVisitor);
     }
 
@@ -52,16 +62,20 @@ class TypeTraverser {
         return Traverser.depthFirst(getChildren);
     }
 
-    private TraverserResult doTraverse(Traverser<GraphQLSchemaElement> traverser, Collection<? extends GraphQLSchemaElement> roots, TraverserDelegateVisitor traverserDelegateVisitor) {
+    private TraverserResult doTraverse(
+        Traverser<GraphQLSchemaElement> traverser,
+        Collection<? extends GraphQLSchemaElement> roots,
+        TraverserDelegateVisitor traverserDelegateVisitor
+    ) {
         return traverser.traverse(roots, traverserDelegateVisitor);
     }
 
     private static class TraverserDelegateVisitor implements TraverserVisitor<GraphQLSchemaElement> {
+
         private final GraphQLTypeVisitor before;
 
         TraverserDelegateVisitor(GraphQLTypeVisitor delegate) {
             this.before = delegate;
-
         }
 
         @Override
@@ -79,5 +93,4 @@ class TypeTraverser {
             return before.visitBackRef(context);
         }
     }
-
 }

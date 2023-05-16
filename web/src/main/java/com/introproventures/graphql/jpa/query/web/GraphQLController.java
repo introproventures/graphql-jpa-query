@@ -15,11 +15,6 @@
  */
 package com.introproventures.graphql.jpa.query.web;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
@@ -28,6 +23,11 @@ import graphql.ExecutionResult;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -55,8 +55,8 @@ public class GraphQLController {
     private static final String PATH = "${spring.graphql.jpa.query.web.path:/graphql}";
     public static final String APPLICATION_GRAPHQL_VALUE = "application/graphql";
 
-    private final GraphQLExecutor   graphQLExecutor;
-    private final ObjectMapper  mapper;
+    private final GraphQLExecutor graphQLExecutor;
+    private final ObjectMapper mapper;
 
     /**
      * Creates instance of Spring GraphQLController RestController
@@ -70,11 +70,15 @@ public class GraphQLController {
         this.mapper = mapper;
     }
 
-    @GetMapping(value = PATH,
-                consumes = MediaType.TEXT_EVENT_STREAM_VALUE,
-                produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter getEventStream(@RequestParam(name = "query") final String query,
-                                     @RequestParam(name = "variables", required = false) final String variables) throws IOException {
+    @GetMapping(
+        value = PATH,
+        consumes = MediaType.TEXT_EVENT_STREAM_VALUE,
+        produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
+    public SseEmitter getEventStream(
+        @RequestParam(name = "query") final String query,
+        @RequestParam(name = "variables", required = false) final String variables
+    ) throws IOException {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
@@ -82,7 +86,7 @@ public class GraphQLController {
         SseEmitter sseEmitter = new SseEmitter(180_000L); // FIXME need to add parameter
         sseEmitter.onTimeout(sseEmitter::complete);
 
-        if(!executionResult.getErrors().isEmpty()) {
+        if (!executionResult.getErrors().isEmpty()) {
             sseEmitter.send(executionResult.toSpecification(), MediaType.APPLICATION_JSON);
             sseEmitter.completeWithError(new RuntimeException(executionResult.getErrors().toString()));
             return sseEmitter;
@@ -92,50 +96,48 @@ public class GraphQLController {
 
         // now send each deferred part which is given to us as a reactive stream
         // of deferred values
-        deferredResults.subscribe(new Subscriber<ExecutionResult>() {
-            Subscription subscription;
-            Long id = 0L;
+        deferredResults.subscribe(
+            new Subscriber<ExecutionResult>() {
+                Subscription subscription;
+                Long id = 0L;
 
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(1);
-            }
+                @Override
+                public void onSubscribe(Subscription s) {
+                    this.subscription = s;
+                    s.request(1);
+                }
 
-            @Override
-            public void onNext(ExecutionResult executionResult) {
-                subscription.request(1);
+                @Override
+                public void onNext(ExecutionResult executionResult) {
+                    subscription.request(1);
 
-                try {
-                    SseEventBuilder event = wrap(executionResult);
+                    try {
+                        SseEventBuilder event = wrap(executionResult);
 
-                    sseEmitter.send(event);
-                } catch (IOException e) {
-                    sseEmitter.completeWithError(e);
+                        sseEmitter.send(event);
+                    } catch (IOException e) {
+                        sseEmitter.completeWithError(e);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    sseEmitter.completeWithError(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    sseEmitter.complete();
+                }
+
+                SseEventBuilder wrap(ExecutionResult executionResult) {
+                    Map<String, Object> result = executionResult.getData();
+                    String name = result.keySet().iterator().next();
+
+                    return SseEmitter.event().id((id++).toString()).name(name).data(result, MediaType.APPLICATION_JSON);
                 }
             }
-
-            @Override
-            public void onError(Throwable t) {
-                sseEmitter.completeWithError(t);
-            }
-
-            @Override
-            public void onComplete() {
-                sseEmitter.complete();
-            }
-
-            SseEventBuilder wrap(ExecutionResult executionResult) {
-                Map<String, Object> result = executionResult.getData();
-                String name = result.keySet().iterator().next();
-
-                return SseEmitter.event()
-                                 .id((id++).toString())
-                                 .name(name)
-                                 .data(result, MediaType.APPLICATION_JSON);
-
-            }
-        });
+        );
 
         return sseEmitter;
     }
@@ -154,15 +156,20 @@ public class GraphQLController {
      * @param httpServletResponse object
      * @throws IOException exception
      */
-    @PostMapping(value = PATH,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public void postJson(@RequestBody @Valid final GraphQLQueryRequest queryRequest,
-                         HttpServletResponse httpServletResponse) throws IOException
-    {
-        ExecutionResult executionResult = graphQLExecutor.execute(queryRequest.getQuery(),
-        													      queryRequest.getOperationName(),
-                                                                  queryRequest.getVariables());
+    @PostMapping(
+        value = PATH,
+        consumes = { MediaType.APPLICATION_JSON_VALUE },
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public void postJson(
+        @RequestBody @Valid final GraphQLQueryRequest queryRequest,
+        HttpServletResponse httpServletResponse
+    ) throws IOException {
+        ExecutionResult executionResult = graphQLExecutor.execute(
+            queryRequest.getQuery(),
+            queryRequest.getOperationName(),
+            queryRequest.getVariables()
+        );
         sendResponse(httpServletResponse, executionResult);
     }
 
@@ -179,13 +186,12 @@ public class GraphQLController {
      * @param httpServletResponse object
      * @throws IOException exception
      */
-    @GetMapping(value = PATH,
-                consumes = {APPLICATION_GRAPHQL_VALUE},
-                produces=MediaType.APPLICATION_JSON_VALUE)
-    public void getQuery(@RequestParam(name = "query") final String query,
-                         @RequestParam(name = "variables", required = false) final String variables,
-                         HttpServletResponse httpServletResponse) throws IOException {
-
+    @GetMapping(value = PATH, consumes = { APPLICATION_GRAPHQL_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void getQuery(
+        @RequestParam(name = "query") final String query,
+        @RequestParam(name = "variables", required = false) final String variables,
+        HttpServletResponse httpServletResponse
+    ) throws IOException {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
@@ -205,12 +211,16 @@ public class GraphQLController {
      * @param httpServletResponse object
      * @throws IOException exception
      */
-    @PostMapping(value = PATH,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces=MediaType.APPLICATION_JSON_VALUE)
-    public void postForm(@RequestParam(name = "query") final String query,
-                         @RequestParam(name = "variables", required = false) final String variables,
-                         HttpServletResponse httpServletResponse) throws IOException    {
+    @PostMapping(
+        value = PATH,
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public void postForm(
+        @RequestParam(name = "query") final String query,
+        @RequestParam(name = "variables", required = false) final String variables,
+        HttpServletResponse httpServletResponse
+    ) throws IOException {
         Map<String, Object> variablesMap = variablesStringToMap(variables);
 
         ExecutionResult executionResult = graphQLExecutor.execute(query, variablesMap);
@@ -227,11 +237,9 @@ public class GraphQLController {
      * @param httpServletResponse object
      * @throws IOException exception
      */
-    @PostMapping(value = PATH,
-            consumes = APPLICATION_GRAPHQL_VALUE,
-            produces=MediaType.APPLICATION_JSON_VALUE)
-    public void postApplicationGraphQL(@RequestBody final String query,
-                                       HttpServletResponse httpServletResponse) throws IOException    {
+    @PostMapping(value = PATH, consumes = APPLICATION_GRAPHQL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void postApplicationGraphQL(@RequestBody final String query, HttpServletResponse httpServletResponse)
+        throws IOException {
         ExecutionResult executionResult = graphQLExecutor.execute(query, null);
 
         sendResponse(httpServletResponse, executionResult);
@@ -250,8 +258,7 @@ public class GraphQLController {
     private Map<String, Object> variablesStringToMap(final String json) throws IOException {
         Map<String, Object> variables = null;
 
-        if (json != null && !json.isEmpty())
-            variables = mapper.readValue(json, Map.class);
+        if (json != null && !json.isEmpty()) variables = mapper.readValue(json, Map.class);
 
         return variables;
     }
@@ -264,10 +271,10 @@ public class GraphQLController {
 
         @NotNull
         private String query;
-        
+
         private String operationName;
 
-		private  Map<String, Object> variables;
+        private Map<String, Object> variables;
 
         GraphQLQueryRequest() {}
 
@@ -306,18 +313,18 @@ public class GraphQLController {
         public void setVariables(Map<String, Object> variables) {
             this.variables = variables;
         }
-        
-        public String getOperationName() {
-			return operationName;
-		}
 
-		public void setOperationName(String operationName) {
-			this.operationName = operationName;
-		}
+        public String getOperationName() {
+            return operationName;
+        }
+
+        public void setOperationName(String operationName) {
+            this.operationName = operationName;
+        }
     }
 
     private void sendResponse(HttpServletResponse response, ExecutionResult executionResult) throws IOException {
-         if (hasPublisherResults(executionResult)) {
+        if (hasPublisherResults(executionResult)) {
             sendMultipartResponse(response, executionResult, executionResult.getData());
         } else {
             sendNormalResponse(response, executionResult);
@@ -336,9 +343,11 @@ public class GraphQLController {
 
     private static final String CRLF = "\r\n";
 
-    private void sendMultipartResponse(HttpServletResponse response,
-                                       ExecutionResult executionResult,
-                                       Publisher<? extends ExecutionResult> deferredResults) {
+    private void sendMultipartResponse(
+        HttpServletResponse response,
+        ExecutionResult executionResult,
+        Publisher<? extends ExecutionResult> deferredResults
+    ) {
         // this implements this Apollo defer spec: https://github.com/apollographql/apollo-server/blob/defer-support/docs/source/defer-support.md
         // the spec says CRLF + "-----" + CRLF is needed at the end, but it works without it and with it we get client
         // side errors with it, so let's skip it
@@ -349,32 +358,32 @@ public class GraphQLController {
 
         // now send each deferred part which is given to us as a reactive stream
         // of deferred values
-        deferredResults.subscribe(new Subscriber<ExecutionResult>() {
-            Subscription subscription;
+        deferredResults.subscribe(
+            new Subscriber<ExecutionResult>() {
+                Subscription subscription;
 
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.subscription = s;
-                s.request(1);
+                @Override
+                public void onSubscribe(Subscription s) {
+                    this.subscription = s;
+                    s.request(1);
+                }
+
+                @Override
+                public void onNext(ExecutionResult executionResult) {
+                    subscription.request(1);
+
+                    writeAndFlushPart(response, executionResult.toSpecification());
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    t.printStackTrace(System.err);
+                }
+
+                @Override
+                public void onComplete() {}
             }
-
-            @Override
-            public void onNext(ExecutionResult executionResult) {
-                subscription.request(1);
-
-                writeAndFlushPart(response, executionResult.toSpecification());
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                t.printStackTrace(System.err);
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        });
-
+        );
     }
 
     private void writeAndFlushPart(HttpServletResponse response, Map<String, Object> result) {
@@ -395,7 +404,6 @@ public class GraphQLController {
             throw new UncheckedIOException(e);
         }
     }
-
 
     private class DeferMultiPart {
 
@@ -423,5 +431,4 @@ public class GraphQLController {
             }
         }
     }
-
 }

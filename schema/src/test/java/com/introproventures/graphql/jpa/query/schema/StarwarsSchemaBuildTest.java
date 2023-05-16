@@ -16,7 +16,8 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.Scalars;
@@ -25,6 +26,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import jakarta.persistence.EntityManager;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,28 +35,24 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class TestConfiguration {
+
         @Bean
         public GraphQLJpaSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
-            return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("Starwars")
-                .description("Starwars Universe Schema");
+            return new GraphQLJpaSchemaBuilder(entityManager).name("Starwars").description("Starwars Universe Schema");
         }
     }
-    
+
     @Autowired
     private GraphQLJpaSchemaBuilder builder;
 
     @BeforeEach
-    public void setup() {
-    }
+    public void setup() {}
 
     @Test
     public void correctlyDerivesSchemaFromGivenEntities() {
@@ -62,30 +60,37 @@ public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the result is returned")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the result is returned").isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droid").getArgument("id"))
-            .describedAs( "Ensure that identity can be queried on")
+            .describedAs("Ensure that identity can be queried on")
             .isNotNull();
-        
+
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("where"))
-            .describedAs( "Ensure that collections can be queried on")
+            .describedAs("Ensure that collections can be queried on")
             .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("CodeLists").getArguments())
             .describedAs("Ensure Subobjects may be queried upon")
             .hasSize(2);
-        
-        assertThat(((GraphQLInputObjectType)((GraphQLInputObjectType) schema.getQueryType()
-            .getFieldDefinition("CodeLists").getArgument("where").getType())
-            .getField("code").getType())
-            .getField("EQ").getType()
-        ).isEqualTo(Scalars.GraphQLString);
+
+        assertThat(
+            (
+                (GraphQLInputObjectType) (
+                    (GraphQLInputObjectType) schema
+                        .getQueryType()
+                        .getFieldDefinition("CodeLists")
+                        .getArgument("where")
+                        .getType()
+                ).getField("code")
+                    .getType()
+            ).getField("EQ")
+                .getType()
+        )
+            .isEqualTo(Scalars.GraphQLString);
     }
 
     @Test
@@ -94,93 +99,86 @@ public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the schema is generated")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the schema is generated").isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("page"))
-            .describedAs( "Ensure that query collection has page argument")
+            .describedAs("Ensure that query collection has page argument")
             .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droids").getArgument("where"))
-            .describedAs( "Ensure that query collection has where argument")
+            .describedAs("Ensure that query collection has where argument")
             .isNotNull();
-        
+
         //then
-        assertThat(schema.getQueryType()
-            .getFieldDefinition("CodeLists").getArguments()
-        )
-        .describedAs("Ensure query has two arguments")
-        .hasSize(2);
-        
+        assertThat(schema.getQueryType().getFieldDefinition("CodeLists").getArguments())
+            .describedAs("Ensure query has two arguments")
+            .hasSize(2);
     }
-    
-    
+
     @Test
     public void correctlyDerivesSchemaDescriptionsFromGivenEntities() {
         //when
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the schema is generated")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the schema is generated").isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Droid").getDescription())
-            .describedAs( "Ensure that Droid has the expected description")
+            .describedAs("Ensure that Droid has the expected description")
             .isEqualTo("Represents an electromechanical robot in the Star Wars Universe");
-        
+
         //then
         assertThat(
-                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
-                .getFieldDefinition("primaryFunction")
+            ((GraphQLObjectType) schema.getQueryType().getFieldDefinition("Droid").getType()).getFieldDefinition(
+                    "primaryFunction"
+                )
                 .getDescription()
         )
-            .describedAs( "Ensure that Droid.primaryFunction has the expected description")
+            .describedAs("Ensure that Droid.primaryFunction has the expected description")
             .isEqualTo("Documents the primary purpose this droid serves");
 
         //then
         assertThat(
-                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
-                        .getFieldDefinition("id")
-                        .getDescription()
+            ((GraphQLObjectType) schema.getQueryType().getFieldDefinition("Droid").getType()).getFieldDefinition("id")
+                .getDescription()
         )
-                .describedAs( "Ensure that Droid.id has the expected description, inherited from Character")
-                .isEqualTo("Primary Key for the Character Class");
-        
-        //then
-        assertThat(
-                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("Droid").getType())
-                        .getFieldDefinition("name")
-                        .getDescription()
-        )
-                .describedAs( "Ensure that Droid.name has the expected description, inherited from Character")
-                .isEqualTo("Name of the character");
+            .describedAs("Ensure that Droid.id has the expected description, inherited from Character")
+            .isEqualTo("Primary Key for the Character Class");
 
         //then
         assertThat(
-                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
-                        .getFieldDefinition("id")
-                        .getDescription()
+            ((GraphQLObjectType) schema.getQueryType().getFieldDefinition("Droid").getType()).getFieldDefinition("name")
+                .getDescription()
         )
-                .describedAs( "Ensure that CodeList.id has the expected description")
-                .isEqualTo("Primary Key for the Code List Class");
-        
+            .describedAs("Ensure that Droid.name has the expected description, inherited from Character")
+            .isEqualTo("Name of the character");
+
         //then
         assertThat(
-                ((GraphQLObjectType)schema.getQueryType().getFieldDefinition("CodeList").getType())
-                        .getFieldDefinition("parent")
-                        .getDescription()
+            ((GraphQLObjectType) schema.getQueryType().getFieldDefinition("CodeList").getType()).getFieldDefinition(
+                    "id"
+                )
+                .getDescription()
         )
-                .describedAs( "Ensure that CodeList.parent has the expected description")
-                .isEqualTo("The CodeList's parent CodeList");
+            .describedAs("Ensure that CodeList.id has the expected description")
+            .isEqualTo("Primary Key for the Code List Class");
+
+        //then
+        assertThat(
+            ((GraphQLObjectType) schema.getQueryType().getFieldDefinition("CodeList").getType()).getFieldDefinition(
+                    "parent"
+                )
+                .getDescription()
+        )
+            .describedAs("Ensure that CodeList.parent has the expected description")
+            .isEqualTo("The CodeList's parent CodeList");
     }
 
     @Test
-    public void testBuildSchema(){
+    public void testBuildSchema() {
         //given
         GraphQLSchema schema = builder.build();
 
@@ -191,21 +189,18 @@ public class StarwarsSchemaBuildTest extends AbstractSpringBootTestSupport {
     @Test
     public void scalar() {
         // given
-        GraphQLScalarType scalarType = GraphQLScalarType.newScalar()
-                                                        .name("TestObject")
-                                                        .coercing(new JavaScalars.GraphQLObjectCoercing())
-                                                        .build();
+        GraphQLScalarType scalarType = GraphQLScalarType
+            .newScalar()
+            .name("TestObject")
+            .coercing(new JavaScalars.GraphQLObjectCoercing())
+            .build();
 
         // when
-        builder.scalar(Object.class, scalarType)
-               .build();
+        builder.scalar(Object.class, scalarType).build();
 
         // then
         Optional<GraphQLScalarType> result = JavaScalars.of(scalarType.getName());
 
-        assertThat(result).isNotEmpty()
-                          .get()
-                          .isEqualTo(scalarType);
+        assertThat(result).isNotEmpty().get().isEqualTo(scalarType);
     }
-    
 }

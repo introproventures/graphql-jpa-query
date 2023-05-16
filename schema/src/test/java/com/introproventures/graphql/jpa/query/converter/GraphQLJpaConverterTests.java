@@ -16,9 +16,8 @@
 
 package com.introproventures.graphql.jpa.query.converter;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
@@ -39,23 +38,26 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-
-@SpringBootTest(properties = {
+@SpringBootTest(
+    properties = {
         "spring.sql.init.data-locations=GraphQLJpaConverterTests.sql",
-        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE"
-})
+        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE",
+    }
+)
 public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
-    
+
     @SpringBootApplication
     static class Application {
+
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
             return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
@@ -67,19 +69,17 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
                 .name("CustomAttributeConverterSchema")
                 .description("Custom Attribute Converter Schema");
         }
-        
     }
-    
+
     @Autowired
     private GraphQLExecutor executor;
-    
+
     @Autowired
     private EntityManager entityManager;
-    
+
     @Test
-    public void contextLoads() {
-    }
-    
+    public void contextLoads() {}
+
     @Test
     @Transactional
     public void queryTester() {
@@ -93,7 +93,7 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
     }
-    
+
     @Test
     @Transactional
     public void criteriaTester() {
@@ -101,11 +101,10 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         CriteriaQuery<JsonEntity> criteria = builder.createQuery(JsonEntity.class);
         Root<JsonEntity> json = criteria.from(JsonEntity.class);
 
-        JsonNode value = new ObjectMapper().valueToTree(Collections.singletonMap("attr",
-                                                                                 new String[] {"1","2","3","4","5"}));
-        criteria.select(json)
-                .where(builder.equal(json.get("attributes"), value));
-        
+        JsonNode value = new ObjectMapper()
+            .valueToTree(Collections.singletonMap("attr", new String[] { "1", "2", "3", "4", "5" }));
+        criteria.select(json).where(builder.equal(json.get("attributes"), value));
+
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
 
@@ -120,13 +119,16 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<TaskVariableEntity> criteria = cb.createQuery(TaskVariableEntity.class);
         Root<TaskVariableEntity> taskVariable = criteria.from(TaskVariableEntity.class);
-        
+
         Boolean object = Boolean.TRUE;
 
         VariableValue<Boolean> variableValue = new VariableValue<>(object);
-        criteria.select(taskVariable)
-                .where(cb.and(cb.equal(cb.lower(taskVariable.get("name")), "variable2")),
-                              cb.in(taskVariable.get("value")).value(variableValue));
+        criteria
+            .select(taskVariable)
+            .where(
+                cb.and(cb.equal(cb.lower(taskVariable.get("name")), "variable2")),
+                cb.in(taskVariable.get("value")).value(variableValue)
+            );
 
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
@@ -143,51 +145,30 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
         Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
-        
+
         Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
         Root<TaskVariableEntity> taskVariables = subquery.from(TaskVariableEntity.class);
-        
+
         Predicate isOwner = cb.in(taskVariables.get("task")).value(task);
 
-        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
+        Predicate var1 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable2"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE))
+        );
 
-        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
-        
-        tasksQuery.select(task)
-                  .where(cb.and(cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var1))),
-                                cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var2)))));
-        // when:
-        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+        Predicate var2 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable1"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data")))
+        );
 
-        // then:
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(1);
-    }    
-    
-    @Test
-    @Transactional
-    public void criteriaTester4() {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-
-        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
-        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
-        
-        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
-        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
-        
-        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
-        
-        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
-
-        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
-        
-        tasksQuery.select(task)
-                  .where(cb.and(cb.exists(subquery.select(taskVariables).where(var1)),
-                                cb.exists(subquery.select(taskVariables).where(var2))));
+        tasksQuery
+            .select(task)
+            .where(
+                cb.and(
+                    cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var1))),
+                    cb.exists(subquery.select(taskVariables).where(cb.and(isOwner, var2)))
+                )
+            );
         // when:
         List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
 
@@ -195,7 +176,46 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
     }
-    
+
+    @Test
+    @Transactional
+    public void criteriaTester4() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+
+        Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
+        Root<TaskEntity> taskCorrelation = subquery.correlate(task);
+
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+
+        Predicate var1 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable2"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE))
+        );
+
+        Predicate var2 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable1"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data")))
+        );
+
+        tasksQuery
+            .select(task)
+            .where(
+                cb.and(
+                    cb.exists(subquery.select(taskVariables).where(var1)),
+                    cb.exists(subquery.select(taskVariables).where(var2))
+                )
+            );
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }
+
     @Test
     @Transactional
     public void criteriaTester5() {
@@ -203,31 +223,38 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
         Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
-        
+
         Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
         Root<TaskEntity> taskCorrelation = subquery.correlate(task);
-        
-        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
-        
-        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
-        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
-        
-        tasksQuery.select(task)
-                  .where(cb.and(cb.not(cb.exists(subquery.select(taskVariables).where(var1))),
-                                cb.not(cb.exists(subquery.select(taskVariables).where(var2)))
-                                )
-                         );
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+
+        Predicate var1 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable2"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE))
+        );
+
+        Predicate var2 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable1"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data")))
+        );
+
+        tasksQuery
+            .select(task)
+            .where(
+                cb.and(
+                    cb.not(cb.exists(subquery.select(taskVariables).where(var1))),
+                    cb.not(cb.exists(subquery.select(taskVariables).where(var2)))
+                )
+            );
         // when:
         List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
 
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(5);
-    }    
-    
+    }
+
     @Test
     @Transactional
     public void criteriaTester6() {
@@ -235,31 +262,40 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
         Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
-        
+
         Subquery<TaskVariableEntity> subquery = tasksQuery.subquery(TaskVariableEntity.class);
         Root<TaskEntity> taskCorrelation = subquery.correlate(task);
-        
-        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
-        
-        Predicate var1 = cb.and(cb.equal(taskVariables.get("name"), "variable2"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE)));
 
-        Predicate var2 = cb.and(cb.equal(taskVariables.get("name"), "variable1"), 
-                                cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data"))));
-        
-        tasksQuery.select(task)
-                  .where(cb.not(cb.or(cb.exists(subquery.select(taskVariables).where(var1)),
-                                      cb.exists(subquery.select(taskVariables).where(var2)))
-                                )
-                         );
+        Join<TaskEntity, TaskVariableEntity> taskVariables = taskCorrelation.join("variables");
+
+        Predicate var1 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable2"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(Boolean.TRUE))
+        );
+
+        Predicate var2 = cb.and(
+            cb.equal(taskVariables.get("name"), "variable1"),
+            cb.equal(taskVariables.get("value"), new VariableValue<>(new String("data")))
+        );
+
+        tasksQuery
+            .select(task)
+            .where(
+                cb.not(
+                    cb.or(
+                        cb.exists(subquery.select(taskVariables).where(var1)),
+                        cb.exists(subquery.select(taskVariables).where(var2))
+                    )
+                )
+            );
         // when:
         List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
 
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(5);
-    }       
-    
+    }
+
     @Test // Problem with generating cast() in the where expression
     @Transactional
     public void criteriaTesterLike() {
@@ -267,17 +303,15 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         CriteriaQuery<JsonEntity> criteria = builder.createQuery(JsonEntity.class);
         Root<JsonEntity> json = criteria.from(JsonEntity.class);
 
-        criteria.select(json)
-                .where(builder.like(json.get("attributes").as(String.class), "%key%"));
-        
+        criteria.select(json).where(builder.like(json.get("attributes").as(String.class), "%key%"));
+
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
 
         // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
-    }    
-    
+    }
 
     @Test
     @Transactional
@@ -286,62 +320,36 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         CriteriaQuery<JsonEntity> criteria = builder.createQuery(JsonEntity.class);
         Root<JsonEntity> json = criteria.from(JsonEntity.class);
 
-        criteria.select(json)
-                .where(builder.gt(builder.locate(json.<String>get("attributes"),"key"), 0));
-        
+        criteria.select(json).where(builder.gt(builder.locate(json.<String>get("attributes"), "key"), 0));
+
         // when:
         List<?> result = entityManager.createQuery(criteria).getResultList();
 
-        // then: 
+        // then:
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(1);
     }
-    
+
     @Test
     public void queryJsonEntity() {
         //given
-        String query = "query {" + 
-                "  JsonEntities {" + 
-                "    select {" + 
-                "      id" + 
-                "      firstName" + 
-                "      lastName" + 
-                "      attributes" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{JsonEntities={select=["
-                + "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}, "
-                + "{id=2, firstName=joe, lastName=smith, attributes={\"attr\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}"
-                + "]}}";
+        String query =
+            "query {" +
+            "  JsonEntities {" +
+            "    select {" +
+            "      id" +
+            "      firstName" +
+            "      lastName" +
+            "      attributes" +
+            "    }" +
+            "  }" +
+            "}";
 
-        //when
-        Object result = executor.execute(query).getData();
-
-        // then
-        assertThat(result.toString()).isEqualTo(expected);
-    }     
-    
-    @Test
-    public void queryJsonEntityWhereSearchCriteria() {
-        //given
-        String query = "query {" + 
-                "  JsonEntities(where: {" 
-                +     "attributes: {LOCATE: \"key\"}" 
-                + "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      firstName" + 
-                "      lastName" + 
-                "      attributes" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{JsonEntities={select=["
-                + "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}"
-                + "]}}";
+        String expected =
+            "{JsonEntities={select=[" +
+            "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}, " +
+            "{id=2, firstName=joe, lastName=smith, attributes={\"attr\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -349,22 +357,52 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
+    @Test
+    public void queryJsonEntityWhereSearchCriteria() {
+        //given
+        String query =
+            "query {" +
+            "  JsonEntities(where: {" +
+            "attributes: {LOCATE: \"key\"}" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      firstName" +
+            "      lastName" +
+            "      attributes" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{JsonEntities={select=[" +
+            "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @Test
     public void queryTaskVariablesWhereSearchCriteria() {
         //given
-        String query = "query {" + 
-                "  TaskVariables(where: {" 
-                +     "value: {LOCATE: \"true\"}" 
-                + "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            "  TaskVariables(where: {" +
+            "value: {LOCATE: \"true\"}" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{id=2, name=variable2, value=true}]}}";
 
         //when
@@ -373,24 +411,25 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryTaskVariablesWhereSearchCriteriaVariableBinding() {
         //given
-        String query = "query($value: VariableValue!) {" + 
-                "  TaskVariables(where: {" 
-                +     "value: {LOCATE: $value }" 
-                + "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        Map<String,Object> variables = Collections.singletonMap("value", true);
-        
+        String query =
+            "query($value: VariableValue!) {" +
+            "  TaskVariables(where: {" +
+            "value: {LOCATE: $value }" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
+        Map<String, Object> variables = Collections.singletonMap("value", true);
+
         String expected = "{TaskVariables={select=[{id=2, name=variable2, value=true}]}}";
 
         //when
@@ -399,25 +438,25 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
 
     @Test
     public void queryProcessVariablesWhereSearchCriteriaVariableBindings() {
         //given
-        String query = "query($value: VariableValue!)  {" + 
-                " ProcessVariables(where: {" 
-                +     "value: {LOCATE: $value}" 
-                + "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
+        String query =
+            "query($value: VariableValue!)  {" +
+            " ProcessVariables(where: {" +
+            "value: {LOCATE: $value}" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
 
-        Map<String,Object> variables = Collections.singletonMap("value", "[\"1\",\"2\",\"3\",\"4\",\"5\"]");
-        
+        Map<String, Object> variables = Collections.singletonMap("value", "[\"1\",\"2\",\"3\",\"4\",\"5\"]");
+
         String expected = "{ProcessVariables={select=[{id=1, name=document, value={key=[1, 2, 3, 4, 5]}}]}}";
 
         //when
@@ -430,18 +469,19 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     @Test
     public void queryProcessVariablesWhereSearchCriteria() {
         //given
-        String query = "query {" + 
-                " ProcessVariables(where: {" 
-                +     "value: {LOCATE: \"[\\\"1\\\",\\\"2\\\",\\\"3\\\",\\\"4\\\",\\\"5\\\"]\"}" 
-                + "}) {" + 
-                "    select {" + 
-                "      id" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " ProcessVariables(where: {" +
+            "value: {LOCATE: \"[\\\"1\\\",\\\"2\\\",\\\"3\\\",\\\"4\\\",\\\"5\\\"]\"}" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{ProcessVariables={select=[{id=1, name=document, value={key=[1, 2, 3, 4, 5]}}]}}";
 
         //when
@@ -454,18 +494,19 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     @Test
     public void queryProcessVariablesWhereWithEQStringSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "name: {EQ: \"variable1\"}" 
-                +     "value: {EQ: \"data\"}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "name: {EQ: \"variable1\"}" +
+            "value: {EQ: \"data\"}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable1, value=data}]}}";
 
         //when
@@ -473,23 +514,24 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
+    }
+
     @Test
     public void queryProcessVariablesWhereWithEQBooleanSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "name: {EQ: \"variable2\"}" 
-                +     "value: {EQ: true}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "name: {EQ: \"variable2\"}" +
+            "value: {EQ: true}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable2, value=true}]}}";
 
         //when
@@ -497,23 +539,24 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
- 
+    }
+
     @Test
     public void queryProcessVariablesWhereWithEQNullSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "name: {EQ: \"variable3\"}" 
-                +     "value: {EQ: null}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "name: {EQ: \"variable3\"}" +
+            "value: {EQ: null}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable3, value=null}]}}";
 
         //when
@@ -521,23 +564,24 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
+    }
 
     @Test
     public void queryProcessVariablesWhereWithEQIntSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "name: {EQ: \"variable6\"}" 
-                +     "value: {EQ: 12345}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "name: {EQ: \"variable6\"}" +
+            "value: {EQ: 12345}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable6, value=12345}]}}";
 
         //when
@@ -546,22 +590,23 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryProcessVariablesWhereWithEQDoubleSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "name: {EQ: \"variable5\"}" 
-                +     "value: {EQ: 1.2345}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "name: {EQ: \"variable5\"}" +
+            "value: {EQ: 1.2345}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
 
         //when
@@ -569,23 +614,23 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-    
-    
+    }
+
     @Test
     public void queryProcessVariablesWhereWithINSingleValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {IN: 1.2345}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {IN: 1.2345}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
 
         //when
@@ -593,22 +638,23 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }    
-        
+    }
+
     @Test
     public void queryProcessVariablesWhereWithINListValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {IN: [1.2345]}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {IN: [1.2345]}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
         String expected = "{TaskVariables={select=[{name=variable5, value=1.2345}]}}";
 
         //when
@@ -616,29 +662,31 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
-    
+    }
+
     @Test
     public void queryProcessVariablesWhereWithNINListValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {NIN: [null]}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{TaskVariables={select=["
-                + "{name=variable1, value=data}, "
-                + "{name=variable2, value=true}, "
-                + "{name=variable4, value={key=data}}, "
-                + "{name=variable5, value=1.2345}, "
-                + "{name=variable6, value=12345}, "
-                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {NIN: [null]}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{TaskVariables={select=[" +
+            "{name=variable1, value=data}, " +
+            "{name=variable2, value=true}, " +
+            "{name=variable4, value={key=data}}, " +
+            "{name=variable5, value=1.2345}, " +
+            "{name=variable6, value=12345}, " +
+            "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -646,28 +694,30 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryProcessVariablesWhereWithNINSingleValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {NIN: null}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{TaskVariables={select=["
-                + "{name=variable1, value=data}, "
-                + "{name=variable2, value=true}, "
-                + "{name=variable4, value={key=data}}, "
-                + "{name=variable5, value=1.2345}, "
-                + "{name=variable6, value=12345}, "
-                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {NIN: null}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{TaskVariables={select=[" +
+            "{name=variable1, value=data}, " +
+            "{name=variable2, value=true}, " +
+            "{name=variable4, value={key=data}}, " +
+            "{name=variable5, value=1.2345}, " +
+            "{name=variable6, value=12345}, " +
+            "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -675,147 +725,153 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         // then
         assertThat(result.toString()).isEqualTo(expected);
     }
-    
+
     @Test
     public void queryProcessVariablesWhereWithNEValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {NE: null}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{TaskVariables={select=["
-                + "{name=variable1, value=data}, "
-                + "{name=variable2, value=true}, "
-                + "{name=variable4, value={key=data}}, "
-                + "{name=variable5, value=1.2345}, "
-                + "{name=variable6, value=12345}, "
-                + "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {NE: null}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{TaskVariables={select=[" +
+            "{name=variable1, value=data}, " +
+            "{name=variable2, value=true}, " +
+            "{name=variable4, value={key=data}}, " +
+            "{name=variable5, value=1.2345}, " +
+            "{name=variable6, value=12345}, " +
+            "{name=variable7, value=[1, 2, 3, 4, 5]}]}}";
 
         //when
         Object result = executor.execute(query).getData();
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }        
-     
+    }
+
     @Test
     public void queryProcessVariablesWhereWithINListTypedValueSearchCriteria() {
         //given
-        String query = "query {" + 
-                " TaskVariables(where: {" 
-                +     "value: {IN: [null, true, \"data\", 12345, 1.2345]}" 
-                + "}) {" + 
-                "    select {" + 
-                "      name" + 
-                "      value" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{TaskVariables={select=["
-                + "{name=variable1, value=data}, "
-                + "{name=variable2, value=true}, "
-                + "{name=variable3, value=null}, "
-                + "{name=variable5, value=1.2345}, "
-                + "{name=variable6, value=12345}"
-                + "]}}";
+        String query =
+            "query {" +
+            " TaskVariables(where: {" +
+            "value: {IN: [null, true, \"data\", 12345, 1.2345]}" +
+            "}) {" +
+            "    select {" +
+            "      name" +
+            "      value" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{TaskVariables={select=[" +
+            "{name=variable1, value=data}, " +
+            "{name=variable2, value=true}, " +
+            "{name=variable3, value=null}, " +
+            "{name=variable5, value=1.2345}, " +
+            "{name=variable6, value=12345}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }     
-    
-    
+    }
+
     @Test
     public void queryTasksVariablesWhereWithExplicitANDEXISTSByNameAndValueCriteria() {
         //given
-        String query = "query {" + 
-                "  Tasks(where: {" + 
-                "    status: {EQ: COMPLETED}" + 
-                "    AND: [{" + 
-                "      EXISTS: {" + 
-                "        variables: {" + 
-                "          name: {EQ: \"variable1\"}" + 
-                "          value: {EQ: \"data\"}" + 
-                "        }" + 
-                "      }" + 
-                "    } {" + 
-                "      EXISTS: {" + 
-                "        variables: {" + 
-                "          name: {EQ: \"variable2\"}" + 
-                "          value: {EQ: true}" + 
-                "        }" + 
-                "      }" + 
-                "    }]" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      status" + 
-                "      variables {" + 
-                "        name" + 
-                "        value" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{Tasks={select=["
-                + "{id=1, status=COMPLETED, variables=["
-                +   "{name=variable2, value=true}, "
-                +   "{name=variable1, value=data}]}"
-                + "]}}";
+        String query =
+            "query {" +
+            "  Tasks(where: {" +
+            "    status: {EQ: COMPLETED}" +
+            "    AND: [{" +
+            "      EXISTS: {" +
+            "        variables: {" +
+            "          name: {EQ: \"variable1\"}" +
+            "          value: {EQ: \"data\"}" +
+            "        }" +
+            "      }" +
+            "    } {" +
+            "      EXISTS: {" +
+            "        variables: {" +
+            "          name: {EQ: \"variable2\"}" +
+            "          value: {EQ: true}" +
+            "        }" +
+            "      }" +
+            "    }]" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      status" +
+            "      variables {" +
+            "        name" +
+            "        value" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Tasks={select=[" +
+            "{id=1, status=COMPLETED, variables=[" +
+            "{name=variable2, value=true}, " +
+            "{name=variable1, value=data}]}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
 
         // then
         assertThat(result.toString()).isEqualTo(expected);
-    }       
-
+    }
 
     @Test
     public void queryTasksVariablesWhereWithEXISTSByNameAndValueCriteria() {
         //given
-        String query = "query {" + 
-                "  Tasks(where: {" + 
-                "    status: {EQ: COMPLETED}" + 
-                "    EXISTS: [{" + 
-                "      variables: {" + 
-                "        name: {EQ: \"variable1\"}" + 
-                "        value: {EQ: \"data\"}" + 
-                "      }" + 
-                "    } {" + 
-                "      variables: {" + 
-                "        name: {EQ: \"variable2\"}" + 
-                "        value: {EQ: true}" + 
-                "      }" + 
-                "    }]" + 
-                "  }) {" + 
-                "    select {" + 
-                "      id" + 
-                "      status" + 
-                "      variables {" + 
-                "        name" + 
-                "        value" + 
-                "      }" + 
-                "    }" + 
-                "  }" + 
-                "}";
-        
-        String expected = "{Tasks={select=["
-                + "{id=1, status=COMPLETED, variables=["
-                +   "{name=variable2, value=true}, "
-                +   "{name=variable1, value=data}]}"
-                + "]}}";
+        String query =
+            "query {" +
+            "  Tasks(where: {" +
+            "    status: {EQ: COMPLETED}" +
+            "    EXISTS: [{" +
+            "      variables: {" +
+            "        name: {EQ: \"variable1\"}" +
+            "        value: {EQ: \"data\"}" +
+            "      }" +
+            "    } {" +
+            "      variables: {" +
+            "        name: {EQ: \"variable2\"}" +
+            "        value: {EQ: true}" +
+            "      }" +
+            "    }]" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      status" +
+            "      variables {" +
+            "        name" +
+            "        value" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Tasks={select=[" +
+            "{id=1, status=COMPLETED, variables=[" +
+            "{name=variable2, value=true}, " +
+            "{name=variable1, value=data}]}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -848,12 +904,13 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         Object result = executor.execute(query).getData();
 
-        String expected = "{Tasks={select=[" +
-                "{id=2, businessKey=null, name=task2, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
-                "{id=4, businessKey=null, name=task4, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
-                "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
-                "{id=3, businessKey=null, name=task3, status=CREATED, priority=5, dueDate=null, assignee=assignee}" +
-                "]}}";
+        String expected =
+            "{Tasks={select=[" +
+            "{id=2, businessKey=null, name=task2, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
+            "{id=4, businessKey=null, name=task4, status=CREATED, priority=10, dueDate=null, assignee=assignee}, " +
+            "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
+            "{id=3, businessKey=null, name=task3, status=CREATED, priority=5, dueDate=null, assignee=assignee}" +
+            "]}}";
 
         assertThat(result.toString()).isEqualTo(expected);
     }
@@ -882,12 +939,12 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         Object result = executor.execute(query).getData();
 
-        String expected = "{Tasks={select=[" +
-                "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
-                "{id=1, businessKey=bk1, name=task1, status=COMPLETED, priority=5, dueDate=null, assignee=assignee}" +
-                "]}}";
+        String expected =
+            "{Tasks={select=[" +
+            "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
+            "{id=1, businessKey=bk1, name=task1, status=COMPLETED, priority=5, dueDate=null, assignee=assignee}" +
+            "]}}";
 
         assertThat(result.toString()).isEqualTo(expected);
     }
-
 }

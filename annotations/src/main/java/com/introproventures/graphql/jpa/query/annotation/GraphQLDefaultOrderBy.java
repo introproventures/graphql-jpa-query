@@ -22,13 +22,13 @@ import java.lang.annotation.Target;
 
 /**
  *  Mark the default field to be ordered by GraphQL JPA Schema Executor
- *  If there are no orders specified in the resulting query, the @Id field 
+ *  If there are no orders specified in the resulting query, the @Id field
  *  will be used as a default sorting key
- *  
+ *
  *  @author Igor Dianov
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface GraphQLDefaultOrderBy {
-    public boolean asc() default true;     //Default order ASCENDING
+    public boolean asc() default true; //Default order ASCENDING
 }

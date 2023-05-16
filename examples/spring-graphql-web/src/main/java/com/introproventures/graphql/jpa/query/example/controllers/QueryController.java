@@ -1,11 +1,10 @@
 package com.introproventures.graphql.jpa.query.example.controllers;
 
+import java.util.Date;
+import java.util.Random;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-
-import java.util.Date;
-import java.util.Random;
 
 @Controller
 public class QueryController {
@@ -24,5 +23,4 @@ public class QueryController {
     Date now() {
         return new Date();
     }
-
 }

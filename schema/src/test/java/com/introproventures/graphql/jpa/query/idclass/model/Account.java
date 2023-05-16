@@ -17,5 +17,4 @@ public class Account {
     private String accountType;
 
     private String description;
-
 }

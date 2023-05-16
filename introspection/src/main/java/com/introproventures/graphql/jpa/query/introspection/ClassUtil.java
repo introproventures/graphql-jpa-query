@@ -15,7 +15,7 @@ public class ClassUtil {
 
         return interfacesFound.toArray(new Class<?>[0]);
     }
-    
+
     private static void getAllInterfaces(Class<?> clazz, List<Class<?>> interfacesFound) {
         while (clazz != null) {
             Class<?>[] interfaces = clazz.getInterfaces();
@@ -29,8 +29,8 @@ public class ClassUtil {
 
             clazz = clazz.getSuperclass();
         }
-    }    
-    
+    }
+
     public static List<Class<?>> getAllInterfaces(Class<?> clazz) {
         if (clazz == null) {
             return null;
@@ -40,7 +40,8 @@ public class ClassUtil {
         getAllInterfaces(clazz, interfacesFound);
 
         return interfacesFound;
-    }    
+    }
+
     public static List<Class<?>> getAllSuperclasses(Class<?> clazz) {
         if (clazz == null) {
             return null;
@@ -66,5 +67,4 @@ public class ClassUtil {
         }
         return classes.toArray(new Class<?>[0]);
     }
-    
 }

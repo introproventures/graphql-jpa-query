@@ -3,6 +3,14 @@ package com.introproventures.graphql.jpa.query.support;
 import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME;
 import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME;
 
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.impl.PageArgument;
+import graphql.language.Argument;
+import graphql.language.Field;
+import graphql.language.ObjectField;
+import graphql.language.ObjectValue;
+import graphql.language.SelectionSet;
+import graphql.schema.DataFetchingEnvironment;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,31 +26,17 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
-import com.introproventures.graphql.jpa.query.schema.impl.PageArgument;
-import graphql.language.Argument;
-import graphql.language.Field;
-import graphql.language.ObjectField;
-import graphql.language.ObjectValue;
-import graphql.language.SelectionSet;
-import graphql.schema.DataFetchingEnvironment;
-
 public class GraphQLSupport {
 
     public static Stream<Field> fields(SelectionSet selectionSet) {
-        return selectionSet.getSelections()
-                           .stream()
-                           .filter(Field.class::isInstance)
-                           .map(Field.class::cast);
-
+        return selectionSet.getSelections().stream().filter(Field.class::isInstance).map(Field.class::cast);
     }
 
     public static Optional<Field> searchByFieldName(Field root, String fieldName) {
-        Predicate<Field> matcher = (field) -> fieldName.equals(field.getName());
+        Predicate<Field> matcher = field -> fieldName.equals(field.getName());
 
         return search(root, matcher);
     }
-
 
     public static Optional<Field> search(Field root, Predicate<Field> predicate) {
         Queue<Field> queue = new ArrayDeque<>();
@@ -63,31 +57,28 @@ public class GraphQLSupport {
     }
 
     public static final Collection<Field> selections(Field field) {
-        SelectionSet selectionSet = Optional.ofNullable(field.getSelectionSet())
-                                            .map(Function.identity())
-                                            .orElseGet(() -> new SelectionSet(Collections.emptyList()));
+        SelectionSet selectionSet = Optional
+            .ofNullable(field.getSelectionSet())
+            .map(Function.identity())
+            .orElseGet(() -> new SelectionSet(Collections.emptyList()));
 
         return fields(selectionSet).collect(Collectors.toList());
     }
 
-    public static  Optional<Argument> getPageArgument(Field field) {
-        return field.getArguments()
-            .stream()
-            .filter(it -> PAGE_PARAM_NAME.equals(it.getName()))
-            .findFirst();
+    public static Optional<Argument> getPageArgument(Field field) {
+        return field.getArguments().stream().filter(it -> PAGE_PARAM_NAME.equals(it.getName())).findFirst();
     }
 
-    public static  Optional<Argument> getWhereArgument(Field field) {
-        return field.getArguments()
-            .stream()
-            .filter(it -> QUERY_WHERE_PARAM_NAME.equals(it.getName()))
-            .findFirst();
+    public static Optional<Argument> getWhereArgument(Field field) {
+        return field.getArguments().stream().filter(it -> QUERY_WHERE_PARAM_NAME.equals(it.getName())).findFirst();
     }
 
-    public static  PageArgument extractPageArgument(DataFetchingEnvironment environment, Optional<Argument> paginationRequest, int defaultPageLimitSize) {
-
+    public static PageArgument extractPageArgument(
+        DataFetchingEnvironment environment,
+        Optional<Argument> paginationRequest,
+        int defaultPageLimitSize
+    ) {
         if (paginationRequest.isPresent()) {
-
             Map<String, Integer> pagex = environment.getArgument(GraphQLJpaSchemaBuilder.PAGE_PARAM_NAME);
 
             Integer start = pagex.getOrDefault(GraphQLJpaSchemaBuilder.PAGE_START_PARAM_NAME, 1);
@@ -99,18 +90,19 @@ public class GraphQLSupport {
         return new PageArgument(1, defaultPageLimitSize);
     }
 
-    public static  Field removeArgument(Field field, Optional<Argument> argument) {
-
+    public static Field removeArgument(Field field, Optional<Argument> argument) {
         if (!argument.isPresent()) {
-          return field;
+            return field;
         }
 
-        List<Argument> newArguments = field.getArguments().stream()
-            .filter(a -> !a.equals(argument.get())).collect(Collectors.toList());
+        List<Argument> newArguments = field
+            .getArguments()
+            .stream()
+            .filter(a -> !a.equals(argument.get()))
+            .collect(Collectors.toList());
 
         return field.transform(builder -> builder.arguments(newArguments));
-
-      }
+    }
 
     public static Boolean isWhereArgument(Argument argument) {
         return GraphQLJpaSchemaBuilder.QUERY_WHERE_PARAM_NAME.equals(argument.getName());
@@ -137,34 +129,33 @@ public class GraphQLSupport {
     }
 
     public static final Optional<ObjectField> getObjectField(ObjectValue objectValue, String fieldName) {
-        return objectValue.getObjectFields().stream()
-                                            .filter(it -> fieldName.equals(it.getName()))
-                                            .findFirst();
+        return objectValue.getObjectFields().stream().filter(it -> fieldName.equals(it.getName())).findFirst();
     }
 
     public static final Optional<Field> getSelectionField(Field field, String fieldName) {
-        return GraphQLSupport.fields(field.getSelectionSet())
-                             .filter(it -> fieldName.equals(it.getName()))
-                             .findFirst();
+        return GraphQLSupport.fields(field.getSelectionSet()).filter(it -> fieldName.equals(it.getName())).findFirst();
     }
 
     public static Collector<Object, List<Object>, List<Object>> toResultList() {
-        return Collector.of(ArrayList::new,
-                            (list, item) -> {
-                                if (item != null) {
-                                    list.add(item);
-                                }
-                            },
-                            (left, right) -> {
-                                left.addAll(right);
-                                return left;
-                            },
-                            (list) -> {
-                                return list.stream()
-                                           .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
-                                           .collect(Collectors.toList());
-                            },
-                            Collector.Characteristics.CONCURRENT);
+        return Collector.of(
+            ArrayList::new,
+            (list, item) -> {
+                if (item != null) {
+                    list.add(item);
+                }
+            },
+            (left, right) -> {
+                left.addAll(right);
+                return left;
+            },
+            list -> {
+                return list
+                    .stream()
+                    .filter(GraphQLSupport.distinctByKey(GraphQLSupport::identityToString))
+                    .collect(Collectors.toList());
+            },
+            Collector.Characteristics.CONCURRENT
+        );
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

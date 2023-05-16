@@ -16,8 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.List;
-import java.util.Optional;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
 import graphql.language.Argument;
 import graphql.language.Field;
@@ -25,6 +23,8 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLNamedType;
 import jakarta.persistence.metamodel.PluralAttribute;
+import java.util.List;
+import java.util.Optional;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
@@ -38,11 +38,13 @@ import org.dataloader.MappedBatchLoaderWithContext;
  */
 class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
 
-    private final PluralAttribute<Object,Object,Object> attribute;
+    private final PluralAttribute<Object, Object, Object> attribute;
     private final GraphQLJpaQueryFactory queryFactory;
 
-    public GraphQLJpaToManyDataFetcher(GraphQLJpaQueryFactory queryFactory,
-                                          PluralAttribute<Object,Object,Object> attribute) {
+    public GraphQLJpaToManyDataFetcher(
+        GraphQLJpaQueryFactory queryFactory,
+        PluralAttribute<Object, Object, Object> attribute
+    ) {
         this.queryFactory = queryFactory;
         this.attribute = attribute;
     }
@@ -58,39 +60,40 @@ class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
         // Resolve collection query if where argument is present or any field in selection has orderBy argument
         if (whereArg.isPresent() || queryFactory.hasAnySelectionOrderBy(field)) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
-            String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
-                                                                        .orElseGet(attribute::getName);
+            String dataLoaderKey =
+                parentType.getName() + "." + Optional.ofNullable(field.getAlias()).orElseGet(attribute::getName);
 
-            DataLoader<Object, List<Object>> dataLoader = getDataLoader(environment,
-                                                                        dataLoaderKey);
+            DataLoader<Object, List<Object>> dataLoader = getDataLoader(environment, dataLoaderKey);
 
             return dataLoader.load(parentIdValue, environment);
         }
 
         // Let hibernate resolve collection query
-        return queryFactory.getAttributeValue(source,
-                                              attribute);
+        return queryFactory.getAttributeValue(source, attribute);
     }
 
-    protected DataLoader<Object, List<Object>> getDataLoader(DataFetchingEnvironment environment,
-                                                             String dataLoaderKey) {
+    protected DataLoader<Object, List<Object>> getDataLoader(
+        DataFetchingEnvironment environment,
+        String dataLoaderKey
+    ) {
         DataLoaderRegistry dataLoaderRegistry = environment.getDataLoaderRegistry();
 
-        if (!dataLoaderRegistry.getKeys()
-                              .contains(dataLoaderKey)) {
+        if (!dataLoaderRegistry.getKeys().contains(dataLoaderKey)) {
             synchronized (dataLoaderRegistry) {
-                MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaToManyMappedBatchLoader(queryFactory);
+                MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaToManyMappedBatchLoader(
+                    queryFactory
+                );
 
-                DataLoaderOptions options = DataLoaderOptions.newOptions()
-                                                             .setCachingEnabled(false);
+                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
 
-                DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
-                                                                                             options);
+                DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(
+                    mappedBatchLoader,
+                    options
+                );
                 dataLoaderRegistry.register(dataLoaderKey, dataLoader);
             }
         }
 
-        return  dataLoaderRegistry.getDataLoader(dataLoaderKey);
+        return dataLoaderRegistry.getDataLoader(dataLoaderKey);
     }
-
 }

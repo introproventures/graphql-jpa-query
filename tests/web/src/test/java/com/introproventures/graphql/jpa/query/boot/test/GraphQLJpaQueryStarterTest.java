@@ -33,59 +33,59 @@ import org.springframework.http.ResponseEntity;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryStarterTest {
-	private static final String	WAR_AND_PEACE	= "War and Peace";
 
-	@Autowired
-	TestRestTemplate rest;
+    private static final String WAR_AND_PEACE = "War and Peace";
 
-	@Test
-	public void testGraphql() {
-		GraphQLQueryRequest query = new GraphQLQueryRequest("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}");
+    @Autowired
+    TestRestTemplate rest;
 
-		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-		assertThat(HttpStatus.OK).isEqualTo(entity.getStatusCode());
+    @Test
+    public void testGraphql() {
+        GraphQLQueryRequest query = new GraphQLQueryRequest(
+            "{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}"
+        );
 
-		Result result = entity.getBody();
-		assertThat(result).isNotNull();
-		assertThat(result.getErrors()).isNull();
-		assertThat("{Books={select=[{title=War and Peace, genre=NOVEL}]}}").isEqualTo(result.getData().toString());
-	}
-
-	@Test
-	public void testGraphqlArguments() {
-		GraphQLQueryRequest query = new GraphQLQueryRequest("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}");
-		
-        HashMap<String, Object> variables = new HashMap<>();
-        variables.put("title", WAR_AND_PEACE);
-        
-        query.setVariables(variables);
-		
-		
-		ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
+        ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
         assertThat(HttpStatus.OK).isEqualTo(entity.getStatusCode());
 
-		Result result = entity.getBody();
-		assertThat(result).isNotNull();
+        Result result = entity.getBody();
+        assertThat(result).isNotNull();
         assertThat(result.getErrors()).isNull();
         assertThat("{Books={select=[{title=War and Peace, genre=NOVEL}]}}").isEqualTo(result.getData().toString());
-	}
-	
+    }
+
+    @Test
+    public void testGraphqlArguments() {
+        GraphQLQueryRequest query = new GraphQLQueryRequest(
+            "query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}"
+        );
+
+        HashMap<String, Object> variables = new HashMap<>();
+        variables.put("title", WAR_AND_PEACE);
+
+        query.setVariables(variables);
+
+        ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
+        assertThat(HttpStatus.OK).isEqualTo(entity.getStatusCode());
+
+        Result result = entity.getBody();
+        assertThat(result).isNotNull();
+        assertThat(result.getErrors()).isNull();
+        assertThat("{Books={select=[{title=War and Peace, genre=NOVEL}]}}").isEqualTo(result.getData().toString());
+    }
+
     @Test
     public void testGraphqlErrorResult() {
         GraphQLQueryRequest query = new GraphQLQueryRequest("{ }");
 
         ResponseEntity<Result> entity = rest.postForEntity("/graphql", new HttpEntity<>(query), Result.class);
-        assertThat(entity.getStatusCode()).as(entity.toString())
-                                          .isEqualTo(HttpStatus.OK);
+        assertThat(entity.getStatusCode()).as(entity.toString()).isEqualTo(HttpStatus.OK);
         Result result = entity.getBody();
         assertThat(result).isNotNull();
         assertThat(result.getErrors()).isNotNull();
-        assertThat(result.getErrors()).extracting(GraphQLError::getMessage)
-                                      .isNotEmpty();
-        assertThat(result.getErrors()).extracting(GraphQLError::getExtensions)
-                                      .isNotEmpty();
-        assertThat(result.getErrors()).extracting(GraphQLError::getLocations)
-                                      .isNotEmpty();
+        assertThat(result.getErrors()).extracting(GraphQLError::getMessage).isNotEmpty();
+        assertThat(result.getErrors()).extracting(GraphQLError::getExtensions).isNotEmpty();
+        assertThat(result.getErrors()).extracting(GraphQLError::getLocations).isNotEmpty();
         assertThat(result.getData()).isNull();
     }
 }
@@ -95,21 +95,21 @@ class Result {
     Map<String, Object> data;
     List<GraphQLError> errors;
     Map<Object, Object> extensions;
-    
+
     static class GraphQLError {
 
         String message;
         List<SourceLocation> locations;
         Map<String, Object> extensions;
-        
+
         public String getMessage() {
             return message;
         }
-        
+
         public List<SourceLocation> getLocations() {
             return locations;
         }
-        
+
         public Map<String, Object> getExtensions() {
             return extensions;
         }
@@ -120,35 +120,29 @@ class Result {
         int line;
         int column;
         String sourceName;
-        
+
         public int getLine() {
             return line;
         }
-        
+
         public int getColumn() {
             return column;
         }
-        
+
         public String getSourceName() {
             return sourceName;
         }
-        
     }
 
-    
     public Map<String, Object> getData() {
         return data;
     }
 
-    
     public List<GraphQLError> getErrors() {
         return errors;
     }
 
-    
     public Map<Object, Object> getExtensions() {
         return extensions;
-    }    
+    }
 }
-
-

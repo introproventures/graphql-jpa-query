@@ -6,10 +6,10 @@ import graphql.schema.idl.RuntimeWiring;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
 public class JavaScalarsRuntimeWiringConfigurer implements RuntimeWiringConfigurer {
+
     @Override
     public void configure(RuntimeWiring.Builder wiringBuilder) {
-        JavaScalars.scalars()
-                   .forEach(wiringBuilder::scalar);
+        JavaScalars.scalars().forEach(wiringBuilder::scalar);
 
         wiringBuilder.transformer(new JavaScalarsWiringPostProcessor());
     }

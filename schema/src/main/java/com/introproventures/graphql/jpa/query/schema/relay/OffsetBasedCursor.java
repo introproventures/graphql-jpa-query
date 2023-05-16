@@ -1,22 +1,22 @@
 package com.introproventures.graphql.jpa.query.schema.relay;
 
+import graphql.relay.ConnectionCursor;
+import graphql.relay.DefaultConnectionCursor;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import graphql.relay.ConnectionCursor;
-import graphql.relay.DefaultConnectionCursor;
 
 /**
  * This uses an encoding of offset from the page forward
  */
 class OffsetBasedCursor {
+
     private static final java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
     private static final java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
-    private final static Pattern offsetPattern = Pattern.compile("^offset=([0-9]*)");
+    private static final Pattern offsetPattern = Pattern.compile("^offset=([0-9]*)");
 
     long offset;
-    
+
     public OffsetBasedCursor() {
         this(0L);
     }
@@ -48,12 +48,11 @@ class OffsetBasedCursor {
         return encoder.encodeToString(s.getBytes(StandardCharsets.UTF_8));
     }
 
-    static private String decode(String s) {
+    private static String decode(String s) {
         return new String(decoder.decode(s), StandardCharsets.UTF_8);
     }
 
     private static void throwInvalidCursor(String cursor) {
         throw new IllegalArgumentException("Invalid paged cursor provided : " + cursor);
     }
-
 }

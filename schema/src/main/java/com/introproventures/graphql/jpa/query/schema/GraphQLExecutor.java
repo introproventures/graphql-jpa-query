@@ -15,43 +15,40 @@
  */
 package com.introproventures.graphql.jpa.query.schema;
 
-import java.util.Map;
-
 import graphql.ExecutionResult;
+import java.util.Map;
 
 /**
  * GraphQLExecutor interface specification
- * 
+ *
  * @author Igor Dianov
  *
  */
 public interface GraphQLExecutor {
-    
     /**
      * Execute GraphQL query provided in query argument
-     * 
+     *
      * @param query GraphQL query string
      * @return GraphQL ExecutionResult
      */
     ExecutionResult execute(String query);
-    
+
     /**
-     * Execute GraphQL query provided in query argument and variables 
-     * 
+     * Execute GraphQL query provided in query argument and variables
+     *
      * @param query GraphQL query string
-     * @param arguments GraphQL arguments key/value mapo 
+     * @param arguments GraphQL arguments key/value mapo
      * @return GraphQL ExecutionResult
      */
     ExecutionResult execute(String query, Map<String, Object> arguments);
 
     /**
-     * Execute GraphQL query provided in query argument and variables 
-     * 
+     * Execute GraphQL query provided in query argument and variables
+     *
      * @param query GraphQL query string
      * @param operationName GraphQL operationName string
-     * @param arguments GraphQL arguments key/value mapo 
+     * @param arguments GraphQL arguments key/value mapo
      * @return GraphQL ExecutionResult
      */
     ExecutionResult execute(String query, String operationName, Map<String, Object> arguments);
-    
 }

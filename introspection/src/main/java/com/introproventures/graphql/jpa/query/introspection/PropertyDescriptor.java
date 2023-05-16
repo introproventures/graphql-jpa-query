@@ -24,30 +24,33 @@ public class PropertyDescriptor extends Descriptor {
         this.annotations = new Annotations(fieldDescriptor.getField());
     }
 
-    public PropertyDescriptor(ClassDescriptor classDescriptor, String propertyName, MethodDescriptor readMethod,
-            MethodDescriptor writeMethod) {
-        super(classDescriptor, ((readMethod == null) || readMethod.isPublic())
-                & (writeMethod == null || writeMethod.isPublic()));
+    public PropertyDescriptor(
+        ClassDescriptor classDescriptor,
+        String propertyName,
+        MethodDescriptor readMethod,
+        MethodDescriptor writeMethod
+    ) {
+        super(
+            classDescriptor,
+            ((readMethod == null) || readMethod.isPublic()) & (writeMethod == null || writeMethod.isPublic())
+        );
         this.name = propertyName;
         this.readMethodDescriptor = readMethod;
         this.writeMethodDescriptor = writeMethod;
 
         if (classDescriptor.isExtendedProperties()) {
             this.fieldDescriptor = findField(propertyName);
-            if(fieldDescriptor != null) {
+            if (fieldDescriptor != null) {
                 this.annotations = new Annotations(fieldDescriptor.getField());
             }
         } else {
             this.fieldDescriptor = null;
-            if(readMethod != null) {
+            if (readMethod != null) {
                 this.annotations = new Annotations(readMethod.getMethod());
-            }
-            else if(writeMethod != null) {
+            } else if (writeMethod != null) {
                 this.annotations = new Annotations(writeMethod.getMethod());
             }
         }
-        
-        
     }
 
     protected FieldDescriptor findField(String fieldName) {
@@ -97,7 +100,7 @@ public class PropertyDescriptor extends Descriptor {
 
     public Getter getGetter(boolean declared) {
         if (getters == null) {
-            getters = new Getter[] { createGetter(false), createGetter(true), };
+            getters = new Getter[] { createGetter(false), createGetter(true) };
         }
 
         return getters[declared ? 1 : 0];
@@ -120,7 +123,7 @@ public class PropertyDescriptor extends Descriptor {
 
     public Setter getSetter(boolean declared) {
         if (setters == null) {
-            setters = new Setter[] { createSetter(false), createSetter(true), };
+            setters = new Setter[] { createSetter(false), createSetter(true) };
         }
 
         return setters[declared ? 1 : 0];
@@ -174,7 +177,7 @@ public class PropertyDescriptor extends Descriptor {
             FieldDescriptor fieldDescriptor = getFieldDescriptor();
 
             if (fieldDescriptor != null) {
-                componentType = fieldDescriptor.getRawComponentType(); 
+                componentType = fieldDescriptor.getRawComponentType();
             }
         }
 
@@ -185,33 +188,34 @@ public class PropertyDescriptor extends Descriptor {
     public Field getField() {
         Class<?> clazz = this.getClassDescriptor().getType();
 
-        return ReflectionUtil.getField(clazz, this.getName()); 
+        return ReflectionUtil.getField(clazz, this.getName());
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("PropertyDescriptor [name=")
-               .append(name)
-               .append(", readMethodDescriptor=")
-               .append(readMethodDescriptor)
-               .append(", writeMethodDescriptor=")
-               .append(writeMethodDescriptor)
-               .append(", fieldDescriptor=")
-               .append(fieldDescriptor)
-               .append(", type=")
-               .append(type)
-               .append(", getters=")
-               .append(Arrays.toString(getters))
-               .append(", setters=")
-               .append(Arrays.toString(setters))
-               .append(", classDescriptor=")
-               .append(classDescriptor)
-               .append(", isPublic=")
-               .append(isPublic)
-               .append(", annotations=")
-               .append(annotations)
-               .append("]");
+        builder
+            .append("PropertyDescriptor [name=")
+            .append(name)
+            .append(", readMethodDescriptor=")
+            .append(readMethodDescriptor)
+            .append(", writeMethodDescriptor=")
+            .append(writeMethodDescriptor)
+            .append(", fieldDescriptor=")
+            .append(fieldDescriptor)
+            .append(", type=")
+            .append(type)
+            .append(", getters=")
+            .append(Arrays.toString(getters))
+            .append(", setters=")
+            .append(Arrays.toString(setters))
+            .append(", classDescriptor=")
+            .append(classDescriptor)
+            .append(", isPublic=")
+            .append(isPublic)
+            .append(", annotations=")
+            .append(annotations)
+            .append("]");
         return builder.toString();
     }
 
@@ -225,12 +229,9 @@ public class PropertyDescriptor extends Descriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         PropertyDescriptor other = (PropertyDescriptor) obj;
         return Objects.equals(name, other.name) && Objects.equals(type, other.type);
     }

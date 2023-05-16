@@ -16,8 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
-import java.util.HashSet;
-import java.util.Set;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -29,6 +27,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,22 +38,23 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(exclude={"books","phoneNumbers"}) // Fixes NPE in Hibernate when initializing loaded collections #1
+@EqualsAndHashCode(exclude = { "books", "phoneNumbers" }) // Fixes NPE in Hibernate when initializing loaded collections #1
 public class Author {
-	@Id
-	Long id;
 
-	String name;
+    @Id
+    Long id;
 
-	@OneToMany(mappedBy="author", fetch=FetchType.LAZY)
+    String name;
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     @OrderBy("id ASC")
-	Set<Book> books;
-	
-	@ElementCollection(fetch=FetchType.LAZY) 
-	@CollectionTable(name = "author_phone_numbers", joinColumns = @JoinColumn(name = "author_id")) 
-	@Column(name = "phone_number")
-	private Set<String> phoneNumbers = new HashSet<>();	
-	
-	@Enumerated(EnumType.STRING)
-    Genre genre;	
+    Set<Book> books;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "author_phone_numbers", joinColumns = @JoinColumn(name = "author_id"))
+    @Column(name = "phone_number")
+    private Set<String> phoneNumbers = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    Genre genre;
 }

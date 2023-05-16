@@ -10,5 +10,4 @@ public abstract class Vehicle {
 
     @Id
     String id;
-
 }

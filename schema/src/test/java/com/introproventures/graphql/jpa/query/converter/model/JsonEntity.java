@@ -12,16 +12,15 @@ import lombok.Data;
 @Table(name = "json_entity")
 @Data
 public class JsonEntity {
- 
+
     @Id
     private int id;
- 
+
     private String firstName;
- 
+
     private String lastName;
- 
+
     @Convert(converter = JsonNodeConverter.class)
     @Column(columnDefinition = "text")
     private JsonNode attributes;
-    
 }

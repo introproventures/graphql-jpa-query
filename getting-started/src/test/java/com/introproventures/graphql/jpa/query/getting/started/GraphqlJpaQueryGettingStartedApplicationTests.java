@@ -10,11 +10,9 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 @AutoConfigureGraphQlTester
 class GraphqlJpaQueryGettingStartedApplicationTests {
 
-	@Autowired
-	private GraphQlTester graphQlTester;
+    @Autowired
+    private GraphQlTester graphQlTester;
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {}
 }

@@ -1,19 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
-import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
-import jakarta.persistence.Entity;
-import lombok.Data;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -24,16 +10,30 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
+import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
+import jakarta.persistence.Entity;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 public class ClassIntrospectorTest {
 
-    private static ClassIntrospector introspector = ClassIntrospector.builder()
-                                                                     .withEnhancedProperties(true)
-                                                                     .withScanAccessible(true)
-                                                                     .withIncludeFieldsAsProperties(true)
-                                                                     .withScanStatics(false)
-                                                                     .build();
-    
+    private static ClassIntrospector introspector = ClassIntrospector
+        .builder()
+        .withEnhancedProperties(true)
+        .withScanAccessible(true)
+        .withIncludeFieldsAsProperties(true)
+        .withScanStatics(false)
+        .build();
+
     @Test
     public void testBasic() {
         ClassDescriptor cd = introspector.introspect(BeanSampleA.class);
@@ -41,19 +41,20 @@ public class ClassIntrospectorTest {
         PropertyDescriptor[] properties = cd.getAllPropertyDescriptors();
         int c = 0;
         for (PropertyDescriptor property : properties) {
-            if (property.isFieldOnlyDescriptor())
-                continue;
-            if (property.isPublic())
-                c++;
+            if (property.isFieldOnlyDescriptor()) continue;
+            if (property.isPublic()) c++;
         }
         assertEquals(2, c);
 
-        Arrays.sort(properties, new Comparator<PropertyDescriptor>() {
-            @Override
-            public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-                return o1.getName().compareTo(o2.getName());
+        Arrays.sort(
+            properties,
+            new Comparator<PropertyDescriptor>() {
+                @Override
+                public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
             }
-        });
+        );
 
         PropertyDescriptor pd = properties[0];
         assertEquals("fooProp", pd.getName());
@@ -79,7 +80,7 @@ public class ClassIntrospectorTest {
         assertNull(cd.getPropertyDescriptor("Something", false));
         assertNull(cd.getPropertyDescriptor("notExisting", false));
     }
-    
+
     @Test
     public void testExtends() {
         ClassDescriptor cd = introspector.introspect(BeanSampleB.class);
@@ -88,28 +89,28 @@ public class ClassIntrospectorTest {
         PropertyDescriptor[] properties = cd.getAllPropertyDescriptors();
         int c = 0;
         for (PropertyDescriptor property : properties) {
-            if (property.isFieldOnlyDescriptor())
-                continue;
-            if (property.isPublic())
-                c++;
+            if (property.isFieldOnlyDescriptor()) continue;
+            if (property.isPublic()) c++;
         }
         assertEquals(2, c);
 
         c = 0;
         for (PropertyDescriptor property : properties) {
-            if (property.isFieldOnlyDescriptor())
-                continue;
+            if (property.isFieldOnlyDescriptor()) continue;
             c++;
         }
         assertEquals(3, c);
         assertEquals(4, properties.length);
 
-        Arrays.sort(properties, new Comparator<PropertyDescriptor>() {
-            @Override
-            public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-                return o1.getName().compareTo(o2.getName());
+        Arrays.sort(
+            properties,
+            new Comparator<PropertyDescriptor>() {
+                @Override
+                public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
             }
-        });
+        );
 
         PropertyDescriptor pd = properties[0];
         assertEquals("boo", pd.getName());
@@ -148,15 +149,14 @@ public class ClassIntrospectorTest {
         assertNotNull(cd.getPropertyDescriptor("boo", true));
         assertNull(cd.getPropertyDescriptor("boo", false));
     }
-    
+
     @Test
     public void testCtors() {
         ClassDescriptor cd = introspector.introspect(Parent.class);
         ConstructorDescriptor[] ctors = cd.getAllConstructorDescriptors();
         int c = 0;
         for (ConstructorDescriptor ctor : ctors) {
-            if (ctor.isPublic())
-                c++;
+            if (ctor.isPublic()) c++;
         }
         assertEquals(1, c);
         ctors = cd.getAllConstructorDescriptors();
@@ -167,12 +167,11 @@ public class ClassIntrospectorTest {
         Constructor<?> ctor = cd.getConstructorDescriptor(new Class[] { Integer.class }, true).getConstructor();
         assertNotNull(ctor);
 
-        cd =  introspector.introspect(Child.class);
+        cd = introspector.introspect(Child.class);
         ctors = cd.getAllConstructorDescriptors();
         c = 0;
         for (ConstructorDescriptor ccc : ctors) {
-            if (ccc.isPublic())
-                c++;
+            if (ccc.isPublic()) c++;
         }
         assertEquals(1, c);
 
@@ -186,7 +185,7 @@ public class ClassIntrospectorTest {
         ctor = cd.getConstructorDescriptor(new Class[] { String.class }, true).getConstructor();
         assertNotNull(ctor);
     }
-    
+
     @Test
     public void testSameFieldDifferentClass() {
         ClassDescriptor cd = introspector.introspect(BeanSampleA.class);
@@ -203,7 +202,7 @@ public class ClassIntrospectorTest {
         assertNotEquals(fd, fd2);
         assertEquals(fd.getField(), fd2.getField());
     }
-    
+
     @Test
     public void testPropertyMatches() {
         ClassDescriptor cd = introspector.introspect(BeanSampleC.class);
@@ -243,7 +242,7 @@ public class ClassIntrospectorTest {
         assertNotNull(getPropertyGetterDescriptor(cd, "s3", false));
         assertNotNull(getPropertySetterDescriptor(cd, "s3", false));
     }
-    
+
     @Test
     public void testOverload() {
         ClassDescriptor cd = introspector.introspect(Overload.class);
@@ -279,7 +278,7 @@ public class ClassIntrospectorTest {
 
         assertNull(cd.getMethodDescriptor("staticMethod", true));
     }
-    
+
     @Test
     public void testFields() throws NoSuchFieldException {
         ClassDescriptor cd = introspector.introspect(MethodParameterType.class);
@@ -330,7 +329,7 @@ public class ClassIntrospectorTest {
         assertEquals(Integer.class, fd3.getRawComponentType());
         assertEquals(String.class, ReflectionUtil.getComponentTypes(fd3.getField().getGenericType(), cd.getType())[0]);
     }
-    
+
     @Test
     public void testMethods() throws NoSuchMethodException {
         ClassDescriptor cd = introspector.introspect(MethodParameterType.class);
@@ -341,8 +340,7 @@ public class ClassIntrospectorTest {
         MethodDescriptor[] mds = cd.getAllMethodDescriptors();
         int mc = 0;
         for (MethodDescriptor md : mds) {
-            if (md.isPublic())
-                mc++;
+            if (md.isPublic()) mc++;
         }
         assertEquals(0, mc);
 
@@ -416,154 +414,178 @@ public class ClassIntrospectorTest {
         assertEquals(Integer.class, md5.getRawReturnComponentType());
         assertEquals(List.class, md5.getSetterRawType());
         assertEquals(Integer.class, md5.getSetterRawComponentType());
-    }    
-    
+    }
+
     @Test
     public void testClassAnnotations() throws NoSuchFieldException, SecurityException {
         // given
         Annotation classAnnotation = BeanSampleD.class.getAnnotation(Entity.class);
         AnnotationDescriptor expected = new AnnotationDescriptor(classAnnotation);
-        
+
         // when
         ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
-        
+
         // then
         assertThat(classDescriptor.getAllAnnotationDescriptors())
-                                  .containsOnly(expected)
-                                  .extracting(AnnotationDescriptor::getAnnotation,
-                                              AnnotationDescriptor::getAnnotationType,
-                                              AnnotationDescriptor::getElementTypes,
-                                              AnnotationDescriptor::getPolicy,
-                                              AnnotationDescriptor::isDocumented,
-                                              AnnotationDescriptor::isInherited)
-                                  .contains(tuple(classAnnotation,
-                                                  Entity.class,
-                                                  new ElementType[] {ElementType.TYPE},
-                                                  expected.getPolicy(),
-                                                  true,
-                                                  false));
+            .containsOnly(expected)
+            .extracting(
+                AnnotationDescriptor::getAnnotation,
+                AnnotationDescriptor::getAnnotationType,
+                AnnotationDescriptor::getElementTypes,
+                AnnotationDescriptor::getPolicy,
+                AnnotationDescriptor::isDocumented,
+                AnnotationDescriptor::isInherited
+            )
+            .contains(
+                tuple(
+                    classAnnotation,
+                    Entity.class,
+                    new ElementType[] { ElementType.TYPE },
+                    expected.getPolicy(),
+                    true,
+                    false
+                )
+            );
     }
-    
+
     @Test
     public void testFieldAnnotations() throws NoSuchFieldException, SecurityException {
         // given
-        Annotation fieldAnnotation = BeanSampleD.class.getDeclaredField("foo")
-                                                      .getAnnotation(GraphQLIgnore.class);
+        Annotation fieldAnnotation = BeanSampleD.class.getDeclaredField("foo").getAnnotation(GraphQLIgnore.class);
         AnnotationDescriptor expected = new AnnotationDescriptor(fieldAnnotation);
 
         // when
-        FieldDescriptor subject = introspector.introspect(BeanSampleD.class)
-                                                      .getFieldDescriptor("foo", true);
+        FieldDescriptor subject = introspector.introspect(BeanSampleD.class).getFieldDescriptor("foo", true);
         // then
         assertThat(subject.getAllAnnotationDescriptors())
-                          .containsOnly(expected)
-                          .extracting(AnnotationDescriptor::getAnnotation,
-                                      AnnotationDescriptor::getAnnotationType,
-                                      AnnotationDescriptor::getElementTypes,
-                                      AnnotationDescriptor::getPolicy,
-                                      AnnotationDescriptor::isDocumented,
-                                      AnnotationDescriptor::isInherited)
-                          .contains(tuple(fieldAnnotation,
-                                          GraphQLIgnore.class,
-                                          new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
-                                          expected.getPolicy(),
-                                          false,
-                                          false));
-        
+            .containsOnly(expected)
+            .extracting(
+                AnnotationDescriptor::getAnnotation,
+                AnnotationDescriptor::getAnnotationType,
+                AnnotationDescriptor::getElementTypes,
+                AnnotationDescriptor::getPolicy,
+                AnnotationDescriptor::isDocumented,
+                AnnotationDescriptor::isInherited
+            )
+            .contains(
+                tuple(
+                    fieldAnnotation,
+                    GraphQLIgnore.class,
+                    new ElementType[] { ElementType.TYPE, ElementType.FIELD, ElementType.METHOD },
+                    expected.getPolicy(),
+                    false,
+                    false
+                )
+            );
     }
 
     @Test
     public void testMethodAnnotations() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
         // given
-        Annotation fieldAnnotation = BeanSampleD.class.getDeclaredMethod("getBar")
-                                                      .getAnnotation(GraphQLDescription.class);
+        Annotation fieldAnnotation =
+            BeanSampleD.class.getDeclaredMethod("getBar").getAnnotation(GraphQLDescription.class);
         AnnotationDescriptor expected = new AnnotationDescriptor(fieldAnnotation);
-        
+
         // when
-        MethodDescriptor subject = introspector.introspect(BeanSampleD.class)
-                                                   .getMethodDescriptor("getBar", new Class[] {}, true);
+        MethodDescriptor subject = introspector
+            .introspect(BeanSampleD.class)
+            .getMethodDescriptor("getBar", new Class[] {}, true);
         // then
         assertThat(subject.getAllAnnotationDescriptors())
-                          .containsOnly(expected)
-                          .extracting(AnnotationDescriptor::getAnnotation,
-                                      AnnotationDescriptor::getAnnotationType,
-                                      AnnotationDescriptor::getElementTypes,
-                                      AnnotationDescriptor::getPolicy,
-                                      AnnotationDescriptor::isDocumented,
-                                      AnnotationDescriptor::isInherited)
-                          .contains(tuple(fieldAnnotation,
-                                          GraphQLDescription.class,
-                                          new ElementType[] {ElementType.TYPE, ElementType.FIELD, ElementType.METHOD},
-                                          expected.getPolicy(),
-                                          false,
-                                          false));
+            .containsOnly(expected)
+            .extracting(
+                AnnotationDescriptor::getAnnotation,
+                AnnotationDescriptor::getAnnotationType,
+                AnnotationDescriptor::getElementTypes,
+                AnnotationDescriptor::getPolicy,
+                AnnotationDescriptor::isDocumented,
+                AnnotationDescriptor::isInherited
+            )
+            .contains(
+                tuple(
+                    fieldAnnotation,
+                    GraphQLDescription.class,
+                    new ElementType[] { ElementType.TYPE, ElementType.FIELD, ElementType.METHOD },
+                    expected.getPolicy(),
+                    false,
+                    false
+                )
+            );
     }
-    
+
     @Test
     public void testConstructorDescriptors() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
         // given
         ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
         Constructor<BeanSampleD> constructor = BeanSampleD.class.getConstructor(new Class[] {});
-                
+
         // when
-        ConstructorDescriptor subject = introspector.introspect(BeanSampleD.class)
-                                                    .getConstructorDescriptor(new Class[] {}, true);
+        ConstructorDescriptor subject = introspector
+            .introspect(BeanSampleD.class)
+            .getConstructorDescriptor(new Class[] {}, true);
         // then
         assertThat(classDescriptor.getAllConstructorDescriptors())
-                                  .containsOnly(subject)
-                                  .extracting(ConstructorDescriptor::getConstructor,
-                                              ConstructorDescriptor::getClassDescriptor,
-                                              ConstructorDescriptor::getName,
-                                              ConstructorDescriptor::getParameters,
-                                              ConstructorDescriptor::isDefault,
-                                              ConstructorDescriptor::isPublic)
-                                  .contains(tuple(constructor,
-                                                  classDescriptor,
-                                                  "com.introproventures.graphql.jpa.query.introspection.ClassIntrospectorTest$BeanSampleD",
-                                                  new Class[] {},
-                                                  true,
-                                                  true));
+            .containsOnly(subject)
+            .extracting(
+                ConstructorDescriptor::getConstructor,
+                ConstructorDescriptor::getClassDescriptor,
+                ConstructorDescriptor::getName,
+                ConstructorDescriptor::getParameters,
+                ConstructorDescriptor::isDefault,
+                ConstructorDescriptor::isPublic
+            )
+            .contains(
+                tuple(
+                    constructor,
+                    classDescriptor,
+                    "com.introproventures.graphql.jpa.query.introspection.ClassIntrospectorTest$BeanSampleD",
+                    new Class[] {},
+                    true,
+                    true
+                )
+            );
     }
-        
-    
+
     @Test
     public void testPropertyDescriptors() throws NoSuchFieldException, SecurityException, NoSuchMethodException {
         // given
         ClassDescriptor classDescriptor = introspector.introspect(BeanSampleD.class);
-                
+
         // when
-        PropertyDescriptor[] subject = introspector.introspect(BeanSampleD.class)
-                                                   .getAllPropertyDescriptors();
+        PropertyDescriptor[] subject = introspector.introspect(BeanSampleD.class).getAllPropertyDescriptors();
         // then
-        assertThat(subject).hasSize(2)
-                           .extracting(PropertyDescriptor::getName,
-                                       PropertyDescriptor::getType,
-                                       PropertyDescriptor::getClassDescriptor,
-                                       PropertyDescriptor::isFieldOnlyDescriptor,
-                                       PropertyDescriptor::isPublic)
-                           .contains(tuple("bar", String.class, classDescriptor, false, false),
-                                     tuple("foo", Integer.class, classDescriptor, false, true));
+        assertThat(subject)
+            .hasSize(2)
+            .extracting(
+                PropertyDescriptor::getName,
+                PropertyDescriptor::getType,
+                PropertyDescriptor::getClassDescriptor,
+                PropertyDescriptor::isFieldOnlyDescriptor,
+                PropertyDescriptor::isPublic
+            )
+            .contains(
+                tuple("bar", String.class, classDescriptor, false, false),
+                tuple("foo", Integer.class, classDescriptor, false, true)
+            );
     }
-    
-    
 
     @Data
     @Entity
     static class BeanSampleD {
-        
+
         @GraphQLIgnore
         protected Integer foo;
-        
+
         private String bar;
-        
+
         @GraphQLDescription("getBar")
         protected String getBar() {
             return bar;
         }
     }
-    
+
     static class BeanSampleA {
-        
+
         protected static String staticField;
 
         protected Integer shared;
@@ -582,12 +604,12 @@ public class ClassIntrospectorTest {
             return true;
         }
     }
-    
+
     static class BeanSampleB extends BeanSampleA {
 
         public static final long serialVersionUID = 42L;
-        
-        public static void staticMethod() { };
+
+        public static void staticMethod() {}
 
         private Long boo;
 
@@ -599,7 +621,7 @@ public class ClassIntrospectorTest {
             this.boo = boo;
         }
     }
-    
+
     public class BeanSampleC {
 
         private String s1;
@@ -629,27 +651,22 @@ public class ClassIntrospectorTest {
         public void setS3(String s3) {
             this.s3 = s3;
         }
-    }    
-    
+    }
+
     static class Parent {
 
-        protected Parent() {
+        protected Parent() {}
 
-        }
-
-        public Parent(Integer i) {
-
-        }
-
+        public Parent(Integer i) {}
     }
-    
+
     static class Child extends Parent {
 
         public Child(String a) {
             super();
         }
     }
-    
+
     static class Overload {
 
         String company;
@@ -663,15 +680,15 @@ public class ClassIntrospectorTest {
             return company;
         }
     }
-    
+
     static class MethodParameterType<A> {
+
         List<A> f;
         List<?> f2;
         Map<String, A> f3;
         List<Long> f4;
 
-        <T extends List<T>> void m(A a, String p1, T p2, List<?> p3, List<T> p4) {
-        }
+        <T extends List<T>> void m(A a, String p1, T p2, List<?> p3, List<T> p4) {}
 
         <T extends List<T>> List<T> m2(A a, String p1, T p2, List<?> p3, List<T> p4) {
             return null;
@@ -690,8 +707,7 @@ public class ClassIntrospectorTest {
         }
     }
 
-    static class Foo extends MethodParameterType<Integer> {
-    }    
+    static class Foo extends MethodParameterType<Integer> {}
 
     MethodDescriptor getPropertySetterDescriptor(ClassDescriptor cd, String name, boolean declared) {
         PropertyDescriptor propertyDescriptor = cd.getPropertyDescriptor(name, true);
@@ -717,5 +733,5 @@ public class ClassIntrospectorTest {
             }
         }
         return null;
-    }    
+    }
 }

@@ -46,7 +46,7 @@ public class MethodDescriptor extends Descriptor implements Getter, Setter {
             rawParameterTypes[i] = ReflectionUtil.getRawType(type, classDescriptor.getType());
             if (rawParameterComponentTypes != null) {
                 rawParameterComponentTypes[i] =
-                        ReflectionUtil.getComponentType(genericParams[i], classDescriptor.getType());
+                    ReflectionUtil.getComponentType(genericParams[i], classDescriptor.getType());
             }
         }
     }
@@ -143,16 +143,14 @@ public class MethodDescriptor extends Descriptor implements Getter, Setter {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         MethodDescriptor other = (MethodDescriptor) obj;
-        return Objects.equals(method, other.method) && Arrays.equals(rawParameterTypes,
-                                                                     other.rawParameterTypes) && Objects.equals(returnType,
-                                                                                                                other.returnType);
+        return (
+            Objects.equals(method, other.method) &&
+            Arrays.equals(rawParameterTypes, other.rawParameterTypes) &&
+            Objects.equals(returnType, other.returnType)
+        );
     }
-
 }

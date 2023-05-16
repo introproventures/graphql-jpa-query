@@ -35,7 +35,8 @@ import reactor.test.StepVerifier;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 public class GraphQLJpaQueryStarterIT {
-	private static final String	WAR_AND_PEACE	= "War and Peace";
+
+    private static final String WAR_AND_PEACE = "War and Peace";
 
     @TestConfiguration
     static class GraphQLTesterConfiguration {
@@ -49,63 +50,81 @@ public class GraphQLJpaQueryStarterIT {
     @Autowired
     private ExecutionGraphQlServiceTester graphQlTester;
 
-	@Test
-	public void testGraphqlBooksQuery() {
-        graphQlTester.document("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}")
-                     .execute()
-                     .errors().verify()
-                     .path("Books.select").entityList(Book.class).hasSize(1);
-	}
+    @Test
+    public void testGraphqlBooksQuery() {
+        graphQlTester
+            .document("{Books(where:{title:{EQ: \"" + WAR_AND_PEACE + "\"}}){ select {title genre}}}")
+            .execute()
+            .errors()
+            .verify()
+            .path("Books.select")
+            .entityList(Book.class)
+            .hasSize(1);
+    }
 
-	@Test
-	public void testGraphqlBookQueryArguments() {
-        graphQlTester.document("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}")
-                     .variable("title", WAR_AND_PEACE)
-                     .execute()
-                     .errors().verify()
-                     .path("Books.select").entityList(Map.class).hasSize(1)
-                                          .satisfies(result -> assertThat(result).extracting("title", "genre")
-                                                                                 .contains(tuple("War and Peace", "NOVEL")));
-	}
+    @Test
+    public void testGraphqlBookQueryArguments() {
+        graphQlTester
+            .document("query BookQuery($title: String!){Books(where:{title:{EQ: $title}}){select{title genre}}}")
+            .variable("title", WAR_AND_PEACE)
+            .execute()
+            .errors()
+            .verify()
+            .path("Books.select")
+            .entityList(Map.class)
+            .hasSize(1)
+            .satisfies(result ->
+                assertThat(result).extracting("title", "genre").contains(tuple("War and Peace", "NOVEL"))
+            );
+    }
 
     @Test
     public void testGraphqlQueryControllerLongCount() {
-        graphQlTester.document("{ count(string: \"Hello world!\") }")
-                     .execute()
-                     .errors().verify()
-                     .path("count").entity(Long.class).isEqualTo(12L);
-
+        graphQlTester
+            .document("{ count(string: \"Hello world!\") }")
+            .execute()
+            .errors()
+            .verify()
+            .path("count")
+            .entity(Long.class)
+            .isEqualTo(12L);
     }
 
     @Test
     public void testGraphqlQueryControllerToday() {
-        graphQlTester.document("{ today }")
-                     .execute()
-                     .errors().verify()
-                     .path("today").entity(Date.class).satisfies(date -> assertThat(date).isNotNull());
+        graphQlTester
+            .document("{ today }")
+            .execute()
+            .errors()
+            .verify()
+            .path("today")
+            .entity(Date.class)
+            .satisfies(date -> assertThat(date).isNotNull());
     }
 
     @Test
     public void testGraphqlMutationController() {
-        graphQlTester.document("mutation { reverse(string: \"Hello world!\") }")
-                     .execute()
-                     .errors().verify()
-                     .path("reverse").entity(String.class).isEqualTo("!dlrow olleH");
+        graphQlTester
+            .document("mutation { reverse(string: \"Hello world!\") }")
+            .execute()
+            .errors()
+            .verify()
+            .path("reverse")
+            .entity(String.class)
+            .isEqualTo("!dlrow olleH");
     }
 
     @Test
     public void testGraphqlErrorResult() {
-        graphQlTester.document("{ }")
-                     .execute()
-                     .errors().satisfy(result -> {
-                         assertThat(result).extracting(ResponseError::getMessage)
-                                                       .isNotEmpty();
-                         assertThat(result).extracting(ResponseError::getExtensions)
-                                                       .isNotEmpty();
-                         assertThat(result).extracting(ResponseError::getLocations)
-                                                       .isNotEmpty();
-                     });
-
+        graphQlTester
+            .document("{ }")
+            .execute()
+            .errors()
+            .satisfy(result -> {
+                assertThat(result).extracting(ResponseError::getMessage).isNotEmpty();
+                assertThat(result).extracting(ResponseError::getExtensions).isNotEmpty();
+                assertThat(result).extracting(ResponseError::getLocations).isNotEmpty();
+            });
     }
 
     @Test
@@ -114,16 +133,12 @@ public class GraphQLJpaQueryStarterIT {
         var subscription = "subscription { greetings(name: \"Foo Bar\") }";
 
         // when
-        Flux<String> greetingFlux = graphQlTester.document(subscription)
+        Flux<String> greetingFlux = graphQlTester
+            .document(subscription)
             .executeSubscription()
             .toFlux("greetings", String.class);
 
         // then
-        StepVerifier.create(greetingFlux)
-            .expectSubscription()
-            .expectNextCount(10)
-            .verifyComplete();
+        StepVerifier.create(greetingFlux).expectSubscription().expectNextCount(10).verifyComplete();
     }
-
 }
-

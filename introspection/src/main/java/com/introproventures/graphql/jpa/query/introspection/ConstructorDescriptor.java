@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Objects;
@@ -44,11 +43,12 @@ public class ConstructorDescriptor extends Descriptor {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ConstructorDescriptor [constructor=")
-               .append(constructor)
-               .append(", parameters=")
-               .append(Arrays.toString(parameters))
-               .append("]");
+        builder
+            .append("ConstructorDescriptor [constructor=")
+            .append(constructor)
+            .append(", parameters=")
+            .append(Arrays.toString(parameters))
+            .append("]");
         return builder.toString();
     }
 
@@ -63,15 +63,10 @@ public class ConstructorDescriptor extends Descriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         ConstructorDescriptor other = (ConstructorDescriptor) obj;
-        return Objects.equals(constructor, other.constructor) 
-                && Arrays.equals(parameters, other.parameters);
+        return Objects.equals(constructor, other.constructor) && Arrays.equals(parameters, other.parameters);
     }
-
 }

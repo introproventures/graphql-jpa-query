@@ -1,11 +1,10 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.annotation.Annotation;
 import java.util.Objects;
 
 public abstract class Descriptor {
-    
+
     protected final ClassDescriptor classDescriptor;
     protected final boolean isPublic;
 
@@ -62,16 +61,14 @@ public abstract class Descriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Descriptor other = (Descriptor) obj;
-        return Objects.equals(annotations, other.annotations) 
-                && Objects.equals(classDescriptor, other.classDescriptor) 
-                && isPublic == other.isPublic;
+        return (
+            Objects.equals(annotations, other.annotations) &&
+            Objects.equals(classDescriptor, other.classDescriptor) &&
+            isPublic == other.isPublic
+        );
     }
-
 }

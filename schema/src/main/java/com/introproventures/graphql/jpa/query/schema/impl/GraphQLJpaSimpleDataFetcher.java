@@ -24,8 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
+
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaSimpleDataFetcher.class);
-    
+
     private final GraphQLJpaQueryFactory queryFactory;
 
     private GraphQLJpaSimpleDataFetcher(Builder builder) {
@@ -36,8 +37,7 @@ class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
 
-        if(!field.getArguments().isEmpty()) {
-            
+        if (!field.getArguments().isEmpty()) {
             try {
                 return queryFactory.querySingleResult(environment);
             } catch (NoResultException ignored) {
@@ -47,7 +47,7 @@ class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
 
         return null;
     }
-    
+
     /**
      * Creates builder to build {@link GraphQLJpaSimpleDataFetcher}.
      * @return created builder
@@ -60,12 +60,11 @@ class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
      * Definition of a stage for staged builder.
      */
     public interface IQueryFactoryStage {
-
         /**
-        * Builder method for queryFactory parameter.
-        * @param queryFactory field to set
-        * @return builder
-        */
+         * Builder method for queryFactory parameter.
+         * @param queryFactory field to set
+         * @return builder
+         */
         public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory);
     }
 
@@ -73,11 +72,10 @@ class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
      * Definition of a stage for staged builder.
      */
     public interface IBuildStage {
-
         /**
-        * Builder method of the builder.
-        * @return built class
-        */
+         * Builder method of the builder.
+         * @return built class
+         */
         public GraphQLJpaSimpleDataFetcher build();
     }
 
@@ -88,8 +86,7 @@ class GraphQLJpaSimpleDataFetcher implements DataFetcher<Object> {
 
         private GraphQLJpaQueryFactory queryFactory;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         @Override
         public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory) {

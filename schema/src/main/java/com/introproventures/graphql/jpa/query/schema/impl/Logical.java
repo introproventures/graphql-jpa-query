@@ -21,14 +21,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 enum Logical {
-    AND, OR, EXISTS, NOT_EXISTS;
-    
-    private static Set<String> names = EnumSet.allOf(Logical.class)
-                                              .stream()
-                                              .map(it -> it.name().toString())
-                                              .collect(Collectors.toSet());
+    AND,
+    OR,
+    EXISTS,
+    NOT_EXISTS;
+
+    private static Set<String> names = EnumSet
+        .allOf(Logical.class)
+        .stream()
+        .map(it -> it.name().toString())
+        .collect(Collectors.toSet());
 
     public static Set<String> names() {
         return names;
-    }    
+    }
 }

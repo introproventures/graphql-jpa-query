@@ -17,18 +17,20 @@ public class ClassIntrospector {
         this.enhancedProperties = builder.enhancedProperties;
         this.includeFieldsAsProperties = builder.includeFieldsAsProperties;
         this.propertyFieldPrefix = builder.propertyFieldPrefix;
-        this.scanStatics = builder.scanStatics ;
+        this.scanStatics = builder.scanStatics;
     }
 
     public ClassIntrospector() {
         this(true, true, true, true, null);
     }
 
-    public ClassIntrospector(boolean scanAccessible,
-                             boolean enhancedProperties,
-                             boolean includeFieldsAsProperties,
-                             boolean scanStatics,
-                             String propertyFieldPrefix) {
+    public ClassIntrospector(
+        boolean scanAccessible,
+        boolean enhancedProperties,
+        boolean includeFieldsAsProperties,
+        boolean scanStatics,
+        String propertyFieldPrefix
+    ) {
         this.scanAccessible = scanAccessible;
         this.enhancedProperties = enhancedProperties;
         this.includeFieldsAsProperties = includeFieldsAsProperties;
@@ -45,12 +47,14 @@ public class ClassIntrospector {
     }
 
     private ClassDescriptor getClassDescriptor(Class<?> type) {
-        return new ClassDescriptor(type,
-                                   scanAccessible,
-                                   enhancedProperties,
-                                   includeFieldsAsProperties,
-                                   scanStatics,
-                                   propertyFieldPrefix);
+        return new ClassDescriptor(
+            type,
+            scanAccessible,
+            enhancedProperties,
+            includeFieldsAsProperties,
+            scanStatics,
+            propertyFieldPrefix
+        );
     }
 
     /**
@@ -72,8 +76,7 @@ public class ClassIntrospector {
         private boolean includeFieldsAsProperties = true;
         private String propertyFieldPrefix = null;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder withScanAccessible(boolean scanAccessible) {
             this.scanAccessible = scanAccessible;

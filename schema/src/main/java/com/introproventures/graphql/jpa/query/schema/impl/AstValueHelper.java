@@ -1,5 +1,8 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static graphql.schema.GraphQLTypeUtil.isList;
+import static graphql.schema.GraphQLTypeUtil.isNonNull;
+
 import graphql.Assert;
 import graphql.AssertException;
 import graphql.GraphQLException;
@@ -28,7 +31,6 @@ import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import graphql.util.FpKit;
-
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -41,9 +43,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static graphql.schema.GraphQLTypeUtil.isList;
-import static graphql.schema.GraphQLTypeUtil.isNonNull;
 
 @Internal
 public class AstValueHelper {
@@ -140,7 +139,7 @@ public class AstValueHelper {
             Value nodeValue = astFromValue(mapValue.get(field.getName()), fieldType);
             if (nodeValue != null) {
                 fieldNodes.add(ObjectField.newObjectField().name(field.getName()).value(nodeValue).build());
-            } else if (mapValue.containsKey(field.getName())){
+            } else if (mapValue.containsKey(field.getName())) {
                 fieldNodes.add(ObjectField.newObjectField().name(field.getName()).value(NullValue.of()).build());
             }
         });
@@ -244,8 +243,7 @@ public class AstValueHelper {
             BeanInfo info = Introspector.getBeanInfo(value.getClass());
             for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
                 Method reader = pd.getReadMethod();
-                if (reader != null)
-                    result.put(pd.getName(), reader.invoke(value));
+                if (reader != null) result.put(pd.getName(), reader.invoke(value));
             }
         } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
             throw new GraphQLException(e);
@@ -273,7 +271,11 @@ public class AstValueHelper {
             InputValueDefinition inputValueDefinition = inputType.getInputValueDefinitions().get(0);
             return inputValueDefinition.getDefaultValue();
         } catch (Exception e) {
-            return Assert.assertShouldNeverHappen("valueFromAst of '%s' failed because of '%s'", astLiteral, e.getMessage());
+            return Assert.assertShouldNeverHappen(
+                "valueFromAst of '%s' failed because of '%s'",
+                astLiteral,
+                e.getMessage()
+            );
         }
     }
 }

@@ -1,10 +1,10 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ObjectUtilTest {
 
@@ -18,12 +18,10 @@ public class ObjectUtilTest {
         assertTrue(ObjectUtil.isAnyNull(new Object[] { null, null, null, null, null }));
         assertTrue(ObjectUtil.isAnyNull(new Object[] { null, null, 0, null, null }));
         assertTrue(ObjectUtil.isAnyNull(new Object[] { null, "null", 0, null, null }));
-        assertFalse(ObjectUtil
-                .isAnyNull(new Object[] { "", "null", 0, new int[] {}, new ArrayList<>() }));
+        assertFalse(ObjectUtil.isAnyNull(new Object[] { "", "null", 0, new int[] {}, new ArrayList<>() }));
     }
 
-    private void assertTrue(boolean anyNull) {
-    }
+    private void assertTrue(boolean anyNull) {}
 
     @Test
     public void isEquals() throws Exception {
@@ -57,15 +55,16 @@ public class ObjectUtilTest {
         assertObjectEquals(bla);
         assertObjectEquals(ca);
         assertObjectEquals(combo);
-    }    
-    
+    }
+
     private class MyObject {
+
         @Override
         public int hashCode() {
             return 123;
         }
     }
-    
+
     private <T> void assertObjectEquals(T[] array) throws Exception {
         Object clone = array.clone();
 

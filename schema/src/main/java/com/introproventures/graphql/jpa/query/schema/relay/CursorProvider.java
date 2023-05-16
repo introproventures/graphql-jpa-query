@@ -4,6 +4,5 @@ import graphql.relay.ConnectionCursor;
 
 @FunctionalInterface
 public interface CursorProvider<N> {
-
     ConnectionCursor createCursor(N node, int index);
 }

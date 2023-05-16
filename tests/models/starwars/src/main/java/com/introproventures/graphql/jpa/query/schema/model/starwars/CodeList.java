@@ -43,13 +43,13 @@ public class CodeList {
     //JPA annotations moved to getters to test that @GraphQLDescription can be placed on the field when the JPA annotation is on the getter
     @Id
     public Long getId() {
-        return(id);
+        return (id);
     }
-    
-    @ManyToOne(fetch=FetchType.LAZY)
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     @GraphQLDescription("The CodeList's parent CodeList")
     public CodeList getParent() {
-        return(parent);
+        return (parent);
     }
 }

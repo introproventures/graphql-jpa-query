@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-
 public abstract class ReflectionUtil {
 
     public static Field[] getAllFieldsOfClass(Class<?> clazz) {
@@ -28,7 +27,7 @@ public abstract class ReflectionUtil {
 
         return getAllFieldsOfClass0(clazz);
     }
-    
+
     public static Method[] getAccessibleMethods(Class<?> clazz) {
         return getAccessibleMethods(clazz, Object.class);
     }
@@ -44,8 +43,8 @@ public abstract class ReflectionUtil {
             itr = itr.getSuperclass();
         }
         return methods;
-    }    
-    
+    }
+
     public static Method[] getAccessibleMethods(Class<?> clazz, Class<?> limit) {
         Package topPackage = clazz.getPackage();
         List<Method> methodList = new ArrayList<>();
@@ -99,7 +98,7 @@ public abstract class ReflectionUtil {
 
         allMethods.add(newMethod);
     }
-    
+
     public static Field getField(Class<?> clazz, String fieldName) {
         if (ObjectUtil.isAnyNull(clazz, fieldName)) {
             return null;
@@ -107,7 +106,7 @@ public abstract class ReflectionUtil {
 
         return getField0(clazz, fieldName);
     }
-    
+
     static Field getField0(Class<?> clazz, String fieldName) {
         for (Class<?> itr = clazz; hasSuperClass(itr);) {
             Field[] fields = itr.getDeclaredFields();
@@ -121,7 +120,8 @@ public abstract class ReflectionUtil {
         }
 
         return null;
-    }    
+    }
+
     public static Class<?> getComponentType(Type type, Class<?> implClass) {
         Class<?>[] componentTypes = getComponentTypes(type, implClass);
         if (componentTypes == null) {
@@ -129,11 +129,11 @@ public abstract class ReflectionUtil {
         }
         return componentTypes[componentTypes.length - 1];
     }
-    
+
     public static Class<?> getComponentType(Type type) {
         return getComponentType(type, null);
-    }    
-    
+    }
+
     static Field[] getAllFieldsOfClass0(Class<?> clazz) {
         Field[] fields = null;
 
@@ -144,11 +144,11 @@ public abstract class ReflectionUtil {
 
         return fields;
     }
-    
+
     public static boolean hasSuperClass(Class<?> clazz) {
         return (clazz != null) && !clazz.equals(Object.class);
-    }    
-    
+    }
+
     public static Annotation[] getAnnotation(AnnotatedElement annotatedElement) {
         if (Objects.isNull(annotatedElement)) {
             return null;
@@ -156,15 +156,15 @@ public abstract class ReflectionUtil {
 
         return annotatedElement.getAnnotations();
     }
- 
+
     public static boolean isPublic(Member m) {
         return m != null && Modifier.isPublic(m.getModifiers());
-    }  
-    
+    }
+
     public static boolean isAccessible(Member m) {
         return m != null && Modifier.isPublic(m.getModifiers());
     }
-    
+
     public static void forceAccess(AccessibleObject object) {
         if (object == null || object.isAccessible()) {
             return;
@@ -175,7 +175,7 @@ public abstract class ReflectionUtil {
             throw new RuntimeException(e);
         }
     }
-    
+
     public static Class<?> getRawType(Type type) {
         return getRawType(type, null);
     }
@@ -191,9 +191,8 @@ public abstract class ReflectionUtil {
         }
 
         return null;
-
     }
-    
+
     public static Class<?>[] getComponentTypes(Type type, Class<?> implClass) {
         if (type == null) {
             return null;
@@ -205,9 +204,8 @@ public abstract class ReflectionUtil {
         }
 
         return null;
+    }
 
-    }    
-    
     public static Field[] getAccessibleFields(Class<?> clazz) {
         return getAccessibleFields(clazz, Object.class);
     }
@@ -256,8 +254,8 @@ public abstract class ReflectionUtil {
         }
 
         return fields;
-    }    
-    
+    }
+
     private static void addFieldIfNotExist(List<Field> allFields, Field newField) {
         for (Field field : allFields) {
             if (ObjectUtil.isEquals(field, newField)) {
@@ -267,12 +265,9 @@ public abstract class ReflectionUtil {
 
         allFields.add(newField);
     }
-    
-    
+
     enum GenericType {
-
         CLASS_TYPE {
-
             @Override
             Class<?> type() {
                 return Class.class;
@@ -293,7 +288,6 @@ public abstract class ReflectionUtil {
             }
         },
         PARAMETERIZED_TYPE {
-
             @Override
             Class<?> type() {
                 return ParameterizedType.class;
@@ -324,7 +318,6 @@ public abstract class ReflectionUtil {
             }
         },
         WILDCARD_TYPE {
-
             @Override
             Class<?> type() {
                 return WildcardType.class;
@@ -353,7 +346,6 @@ public abstract class ReflectionUtil {
             }
         },
         GENERIC_ARRAY_TYPE {
-
             @Override
             Class<?> type() {
                 return GenericArrayType.class;
@@ -380,7 +372,6 @@ public abstract class ReflectionUtil {
             }
         },
         TYPE_VARIABLE {
-
             @Override
             Class<?> type() {
                 return TypeVariable.class;
@@ -424,7 +415,7 @@ public abstract class ReflectionUtil {
             return null;
         }
     }
-    
+
     public static Type resolveVariable(TypeVariable<?> variable, final Class<?> implClass) {
         final Class<?> rawType = getRawType(implClass, null);
 
@@ -476,8 +467,8 @@ public abstract class ReflectionUtil {
         }
         return null;
     }
-    
-    public static Method getMethod(Class<?> clazz, String methodName, Class<?>...parameterTypes) {
+
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         if (clazz == null || methodName == null) {
             return null;
         }
@@ -495,7 +486,6 @@ public abstract class ReflectionUtil {
         }
 
         return null;
-
     }
 
     public static Field[] getAllInstanceFields(Class<?> clazz) {
@@ -505,7 +495,7 @@ public abstract class ReflectionUtil {
 
         return getAllInstanceFields0(clazz);
     }
-    
+
     static Field[] getAllInstanceFields0(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         for (Class<?> itr = clazz; hasSuperClass(itr);) {
@@ -564,12 +554,12 @@ public abstract class ReflectionUtil {
 
         return getComponentTypes(type.getGenericSuperclass());
     }
-    
+
     public static Class<?>[] getComponentTypes(Type type) {
         return getComponentTypes(type, null);
     }
-    
-    public static <T> T invokeMethod(Method method, Object target, Object...args) {
+
+    public static <T> T invokeMethod(Method method, Object target, Object... args) {
         if (method == null) {
             return null;
         }
@@ -583,10 +573,9 @@ public abstract class ReflectionUtil {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-
     }
-    
-    public static Object invokeMethod(Object object, String methodName, Class<?>[] parameterTypes, Object...args) {
+
+    public static Object invokeMethod(Object object, String methodName, Class<?>[] parameterTypes, Object... args) {
         if (object == null || methodName == null) {
             return null;
         }
@@ -608,15 +597,14 @@ public abstract class ReflectionUtil {
         }
 
         return invokeMethod(method, object, args);
-
     }
-    
-    public static Object invokeMethod(Object object, String methodName, Object...args) {
+
+    public static Object invokeMethod(Object object, String methodName, Object... args) {
         if (object == null || methodName == null) {
             return null;
         }
         if (args == null) {
-            args =  new Object[0];
+            args = new Object[0];
         }
 
         int arguments = args.length;
@@ -626,5 +614,5 @@ public abstract class ReflectionUtil {
         }
 
         return invokeMethod(object, methodName, parameterTypes, args);
-    }    
+    }
 }

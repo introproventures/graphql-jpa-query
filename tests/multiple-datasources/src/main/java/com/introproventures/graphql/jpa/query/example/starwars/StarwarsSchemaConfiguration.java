@@ -33,16 +33,16 @@ public class StarwarsSchemaConfiguration {
     @ConfigurationProperties(prefix = "starwars")
     public DataSource starWarsDataSource() {
         return DataSourceBuilder.create().build();
-    }    
-     
+    }
+
     @Bean
     public ApplicationRunner starWarsDataSourceInitializer() {
-        return (args) -> {
+        return args -> {
             ResourceLoader resourceLoader = new DefaultResourceLoader();
-            
+
             ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
             databasePopulator.addScript(resourceLoader.getResource("starwars.sql"));
-            
+
             databasePopulator.execute(starWarsDataSource());
         };
     }
@@ -55,7 +55,10 @@ public class StarwarsSchemaConfiguration {
         properties.put(AvailableSettings.DIALECT, H2Dialect.class.getName());
         properties.put(AvailableSettings.SHOW_SQL, "true");
         properties.put(AvailableSettings.FORMAT_SQL, "true");
-        properties.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
+        properties.put(
+            AvailableSettings.PHYSICAL_NAMING_STRATEGY,
+            "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
+        );
 
         var vendorAdapter = new HibernateJpaVendorAdapter();
         var factoryBean = new LocalContainerEntityManagerFactoryBean();
@@ -66,22 +69,21 @@ public class StarwarsSchemaConfiguration {
         factoryBean.setJpaPropertyMap(properties);
 
         return factoryBean;
-    }    
+    }
 
     @Bean
     public SharedEntityManagerBean starWarsEntityManager() {
-        SharedEntityManagerBean bean =  new SharedEntityManagerBean();
+        SharedEntityManagerBean bean = new SharedEntityManagerBean();
         bean.setEntityManagerFactory(entityManagerFactory().getObject());
-        
+
         return bean;
     }
 
     @Bean
     GraphQLSchemaConfigurer starWarsGraphQLJpaQuerySchemaConfigurer() {
         return registry ->
-            registry.register(new GraphQLJpaSchemaBuilder(starWarsEntityManager().getObject())
-                                      .name("GraphQLStarWars")
-                                      .build());
+            registry.register(
+                new GraphQLJpaSchemaBuilder(starWarsEntityManager().getObject()).name("GraphQLStarWars").build()
+            );
     }
-
 }

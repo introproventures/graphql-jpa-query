@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Objects;
@@ -44,8 +43,8 @@ public class Constructors {
         return defaultConstructor;
     }
 
-    public ConstructorDescriptor getCtorDescriptor(Class<?>...args) {
-        ctors: for (ConstructorDescriptor ctorDescriptor : allConstructors) {
+    public ConstructorDescriptor getCtorDescriptor(Class<?>... args) {
+        ctors:for (ConstructorDescriptor ctorDescriptor : allConstructors) {
             Class<?>[] arg = ctorDescriptor.getParameters();
 
             if (arg.length != args.length) {
@@ -70,13 +69,14 @@ public class Constructors {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Constructors [classDescriptor=")
-               .append(classDescriptor)
-               .append(", allConstructors=")
-               .append(Arrays.toString(allConstructors))
-               .append(", defaultConstructor=")
-               .append(defaultConstructor)
-               .append("]");
+        builder
+            .append("Constructors [classDescriptor=")
+            .append(classDescriptor)
+            .append(", allConstructors=")
+            .append(Arrays.toString(allConstructors))
+            .append(", defaultConstructor=")
+            .append(defaultConstructor)
+            .append("]");
         return builder.toString();
     }
 
@@ -91,16 +91,14 @@ public class Constructors {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Constructors other = (Constructors) obj;
-        return Arrays.equals(allConstructors, other.allConstructors) 
-                && Objects.equals(classDescriptor, other.classDescriptor) 
-                && Objects.equals(defaultConstructor, other.defaultConstructor);
+        return (
+            Arrays.equals(allConstructors, other.allConstructors) &&
+            Objects.equals(classDescriptor, other.classDescriptor) &&
+            Objects.equals(defaultConstructor, other.defaultConstructor)
+        );
     }
-
 }

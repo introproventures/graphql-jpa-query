@@ -23,7 +23,6 @@ public class Annotations {
     }
 
     private Map<Class<? extends Annotation>, AnnotationDescriptor> inspectAnnotations() {
-
         Annotation[] annotations = ReflectionUtil.getAnnotation(annotatedElement);
         if (ArrayUtil.isEmpty(annotations)) {
             return null;
@@ -60,12 +59,15 @@ public class Annotations {
                 index++;
             }
 
-            Arrays.sort(allAnnotations, new Comparator<AnnotationDescriptor>() {
-                @Override
-                public int compare(AnnotationDescriptor ad1, AnnotationDescriptor ad2) {
-                    return ad1.getClass().getName().compareTo(ad2.getClass().getName());
+            Arrays.sort(
+                allAnnotations,
+                new Comparator<AnnotationDescriptor>() {
+                    @Override
+                    public int compare(AnnotationDescriptor ad1, AnnotationDescriptor ad2) {
+                        return ad1.getClass().getName().compareTo(ad2.getClass().getName());
+                    }
                 }
-            });
+            );
 
             this.allAnnotations = allAnnotations;
         }
@@ -87,14 +89,10 @@ public class Annotations {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Annotations other = (Annotations) obj;
         return Objects.equals(annotatedElement, other.annotatedElement);
     }
-
 }

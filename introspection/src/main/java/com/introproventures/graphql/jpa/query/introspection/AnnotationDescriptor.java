@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -70,19 +69,20 @@ public class AnnotationDescriptor {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("AnnotationDescriptor [annotation=")
-               .append(annotation)
-               .append(", annotationType=")
-               .append(annotationType)
-               .append(", elementTypes=")
-               .append(Arrays.toString(elementTypes))
-               .append(", policy=")
-               .append(policy)
-               .append(", isDocumented=")
-               .append(isDocumented)
-               .append(", isInherited=")
-               .append(isInherited)
-               .append("]");
+        builder
+            .append("AnnotationDescriptor [annotation=")
+            .append(annotation)
+            .append(", annotationType=")
+            .append(annotationType)
+            .append(", elementTypes=")
+            .append(Arrays.toString(elementTypes))
+            .append(", policy=")
+            .append(policy)
+            .append(", isDocumented=")
+            .append(isDocumented)
+            .append(", isInherited=")
+            .append(isInherited)
+            .append("]");
         return builder.toString();
     }
 
@@ -97,19 +97,17 @@ public class AnnotationDescriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         AnnotationDescriptor other = (AnnotationDescriptor) obj;
-        return Objects.equals(annotation, other.annotation) 
-                && Objects.equals(annotationType, other.annotationType) 
-                && Arrays.equals(elementTypes, other.elementTypes) 
-                && isDocumented == other.isDocumented 
-                && isInherited == other.isInherited 
-                && policy == other.policy;
+        return (
+            Objects.equals(annotation, other.annotation) &&
+            Objects.equals(annotationType, other.annotationType) &&
+            Arrays.equals(elementTypes, other.elementTypes) &&
+            isDocumented == other.isDocumented &&
+            isInherited == other.isInherited &&
+            policy == other.policy
+        );
     }
-
 }

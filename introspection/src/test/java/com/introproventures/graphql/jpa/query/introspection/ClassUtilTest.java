@@ -1,5 +1,9 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -7,10 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.RandomAccess;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ClassUtilTest {
 
@@ -39,9 +39,8 @@ public class ClassUtilTest {
         List<Class<?>> list = ClassUtil.getAllInterfaces(Integer[].class);
         assertTrue(list.contains(Cloneable.class));
         assertTrue(list.contains(Serializable.class));
-
     }
-    
+
     @Test
     public void getAllSuperclasses() {
         assertEquals(null, ClassUtil.getAllSuperclasses(null));
@@ -61,7 +60,5 @@ public class ClassUtilTest {
         assertTrue(ClassUtil.getAllSuperclasses(Integer.class).contains(Number.class));
 
         assertTrue(ClassUtil.getAllSuperclasses(Integer[].class).isEmpty());
-
-    }    
-
+    }
 }

@@ -16,19 +16,19 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.Optional;
+import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
+
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLNamedType;
 import jakarta.persistence.metamodel.SingularAttribute;
+import java.util.Optional;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
-
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes
@@ -38,11 +38,13 @@ import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.EM
  */
 class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
 
-    private final SingularAttribute<Object,Object> attribute;
+    private final SingularAttribute<Object, Object> attribute;
     private final GraphQLJpaQueryFactory queryFactory;
 
-    public GraphQLJpaToOneDataFetcher(GraphQLJpaQueryFactory queryFactory,
-                                      SingularAttribute<Object,Object> attribute) {
+    public GraphQLJpaToOneDataFetcher(
+        GraphQLJpaQueryFactory queryFactory,
+        SingularAttribute<Object, Object> attribute
+    ) {
         this.queryFactory = queryFactory;
         this.attribute = attribute;
     }
@@ -54,45 +56,38 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
 
         Object source = environment.getSource();
         Optional<Argument> whereArgument = queryFactory.getArgument(field, "where");
-        Boolean isOptional = queryFactory.getOptionalArgumentValue(environment,
-                                                                   field,
-                                                                   attribute);
+        Boolean isOptional = queryFactory.getOptionalArgumentValue(environment, field, attribute);
         // Resolve collection query if where argument is present
         if ((whereArgument.isPresent() && isOptional) && !EMBEDDED.equals(attribute.getPersistentAttributeType())) {
             Object parentIdValue = queryFactory.getParentIdAttributeValue(source);
-            String dataLoaderKey = parentType.getName() + "." + Optional.ofNullable(field.getAlias())
-                                                                        .orElseGet(attribute::getName);
+            String dataLoaderKey =
+                parentType.getName() + "." + Optional.ofNullable(field.getAlias()).orElseGet(attribute::getName);
 
-            DataLoader<Object, Object> dataLoader = getDataLoader(environment,
-                                                                  dataLoaderKey);
+            DataLoader<Object, Object> dataLoader = getDataLoader(environment, dataLoaderKey);
 
             return dataLoader.load(parentIdValue, environment);
         }
 
         // Let hibernate resolve collection query
-        return queryFactory.getAttributeValue(source,
-                                              attribute);
+        return queryFactory.getAttributeValue(source, attribute);
     }
 
-    protected DataLoader<Object, Object> getDataLoader(DataFetchingEnvironment environment,
-                                                       String dataLoaderKey) {
+    protected DataLoader<Object, Object> getDataLoader(DataFetchingEnvironment environment, String dataLoaderKey) {
         DataLoaderRegistry dataLoaderRegistry = environment.getDataLoaderRegistry();
 
-        if (!dataLoaderRegistry.getKeys()
-                               .contains(dataLoaderKey)) {
+        if (!dataLoaderRegistry.getKeys().contains(dataLoaderKey)) {
             synchronized (dataLoaderRegistry) {
-                MappedBatchLoaderWithContext<Object, Object> mappedBatchLoader = new GraphQLJpaToOneMappedBatchLoader(queryFactory);
+                MappedBatchLoaderWithContext<Object, Object> mappedBatchLoader = new GraphQLJpaToOneMappedBatchLoader(
+                    queryFactory
+                );
 
-                DataLoaderOptions options = DataLoaderOptions.newOptions()
-                                                             .setCachingEnabled(false);
+                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
 
-                DataLoader<Object, Object> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader,
-                                                                                       options);
+                DataLoader<Object, Object> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader, options);
                 dataLoaderRegistry.register(dataLoaderKey, dataLoader);
             }
         }
 
         return environment.getDataLoader(dataLoaderKey);
     }
-
 }

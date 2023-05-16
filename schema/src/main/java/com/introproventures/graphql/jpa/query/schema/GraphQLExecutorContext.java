@@ -21,11 +21,9 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 
 public interface GraphQLExecutorContext {
-    
     ExecutionInput.Builder newExecutionInput();
 
     GraphQL.Builder newGraphQL();
 
     GraphQLSchema getGraphQLSchema();
-    
 }

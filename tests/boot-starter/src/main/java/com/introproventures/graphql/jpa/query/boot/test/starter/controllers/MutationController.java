@@ -10,9 +10,6 @@ public class MutationController {
 
     @MutationMapping
     Mono<String> reverse(@Argument String string) {
-        return Mono.just(new StringBuilder(string))
-                   .map(StringBuilder::reverse)
-                   .map(StringBuilder::toString);
+        return Mono.just(new StringBuilder(string)).map(StringBuilder::reverse).map(StringBuilder::toString);
     }
-
 }

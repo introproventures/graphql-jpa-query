@@ -16,17 +16,19 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnWebApplication
 @ConditionalOnClass(GraphQLExecutor.class)
-@ConditionalOnProperty(prefix = "spring.graphql.jpa.query", name = {"enabled", "web.enabled"}, havingValue="true", matchIfMissing=true)
+@ConditionalOnProperty(
+    prefix = "spring.graphql.jpa.query",
+    name = { "enabled", "web.enabled" },
+    havingValue = "true",
+    matchIfMissing = true
+)
 @EnableConfigurationProperties(GraphQLControllerProperties.class)
 public class GraphQLControllerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(GraphQLController.class)
     @ConditionalOnBean(GraphQLExecutor.class)
-    public GraphQLController graphQLController(GraphQLExecutor graphQLExecutor,
-                                               ObjectMapper objectMapper) {
-        return new GraphQLController(graphQLExecutor,
-                                     objectMapper);
+    public GraphQLController graphQLController(GraphQLExecutor graphQLExecutor, ObjectMapper objectMapper) {
+        return new GraphQLController(graphQLExecutor, objectMapper);
     }
-
 }

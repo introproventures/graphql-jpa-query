@@ -31,12 +31,11 @@ public class BooksSchemaConfiguration {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "books")    
+    @ConfigurationProperties(prefix = "books")
     public DataSource bookDataSource() {
-        return DataSourceBuilder.create()
-                .build();
+        return DataSourceBuilder.create().build();
     }
-     
+
     @Bean
     public LocalContainerEntityManagerFactoryBean bookEntityManagerFactory() {
         var properties = new HashMap<String, Object>();
@@ -45,7 +44,10 @@ public class BooksSchemaConfiguration {
         properties.put(AvailableSettings.DIALECT, H2Dialect.class.getName());
         properties.put(AvailableSettings.SHOW_SQL, "true");
         properties.put(AvailableSettings.FORMAT_SQL, "true");
-        properties.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
+        properties.put(
+            AvailableSettings.PHYSICAL_NAMING_STRATEGY,
+            "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
+        );
 
         var vendorAdapter = new HibernateJpaVendorAdapter();
         var factoryBean = new LocalContainerEntityManagerFactoryBean();
@@ -57,24 +59,24 @@ public class BooksSchemaConfiguration {
 
         return factoryBean;
     }
-    
+
     @Bean
     public ApplicationRunner booksDataSourceInitializer() {
-        return (args) -> {
+        return args -> {
             ResourceLoader resourceLoader = new DefaultResourceLoader();
-            
+
             ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
             databasePopulator.addScript(resourceLoader.getResource("books.sql"));
-            
+
             databasePopulator.execute(bookDataSource());
         };
     }
 
     @Bean
     public SharedEntityManagerBean bookEntityManager() {
-        SharedEntityManagerBean bean =  new SharedEntityManagerBean();
+        SharedEntityManagerBean bean = new SharedEntityManagerBean();
         bean.setEntityManagerFactory(bookEntityManagerFactory().getObject());
-        
+
         return bean;
     }
 
@@ -82,12 +84,11 @@ public class BooksSchemaConfiguration {
     GraphQLSchemaConfigurer booksGraphQLJpaQuerySchemaConfigurer(GraphQLJpaQueryProperties properties) {
         return registry ->
             registry.register(
-                    new GraphQLJpaSchemaBuilder(bookEntityManager().getObject())
-                        .name("GraphQLBooks")
-                        .useDistinctParameter(properties.isUseDistinctParameter())
-                        .setDefaultDistinct(properties.isDefaultDistinct())
-                        .build()
+                new GraphQLJpaSchemaBuilder(bookEntityManager().getObject())
+                    .name("GraphQLBooks")
+                    .useDistinctParameter(properties.isUseDistinctParameter())
+                    .setDefaultDistinct(properties.isDefaultDistinct())
+                    .build()
             );
-    };
-
+    }
 }

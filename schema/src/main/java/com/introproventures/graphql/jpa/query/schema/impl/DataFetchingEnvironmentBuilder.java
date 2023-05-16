@@ -5,11 +5,11 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 
 /**
- * Wrapper utility class to bridge between Graphql-java11 and Graphql-java13 Api changes  
- * 
+ * Wrapper utility class to bridge between Graphql-java11 and Graphql-java13 Api changes
+ *
  */
 class DataFetchingEnvironmentBuilder {
-    
+
     public static DataFetchingEnvironmentImpl.Builder newDataFetchingEnvironment(DataFetchingEnvironment environment) {
         return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(environment);
     }
@@ -21,5 +21,4 @@ class DataFetchingEnvironmentBuilder {
     public static DataFetchingEnvironmentImpl.Builder newDataFetchingEnvironment(ExecutionContext executionContext) {
         return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(executionContext);
     }
-    
 }

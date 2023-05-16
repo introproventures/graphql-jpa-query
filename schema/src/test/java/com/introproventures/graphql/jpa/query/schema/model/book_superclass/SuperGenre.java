@@ -17,5 +17,7 @@
 package com.introproventures.graphql.jpa.query.schema.model.book_superclass;
 
 public enum SuperGenre {
-	NOVEL, PLAY, JAVA
+    NOVEL,
+    PLAY,
+    JAVA,
 }

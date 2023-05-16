@@ -9,8 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @EnableGraphQLJpaQuerySchema(Book.class)
 public class GraphqlJpaQueryGettingStartedApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(GraphqlJpaQueryGettingStartedApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(GraphqlJpaQueryGettingStartedApplication.class, args);
+    }
 }

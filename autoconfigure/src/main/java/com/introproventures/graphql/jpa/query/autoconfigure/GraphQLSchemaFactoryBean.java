@@ -1,17 +1,9 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import static graphql.Assert.assertTrue;
+import static graphql.schema.FieldCoordinates.coordinates;
+import static graphql.util.TraversalControl.CONTINUE;
+
 import graphql.Internal;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
@@ -31,16 +23,23 @@ import graphql.schema.PropertyDataFetcher;
 import graphql.schema.TypeResolver;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.util.Assert;
 
-import static graphql.Assert.assertTrue;
-import static graphql.schema.FieldCoordinates.coordinates;
-import static graphql.util.TraversalControl.CONTINUE;
+public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema> {
 
-
-public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>{
-    
     private static final String QUERY_NAME = "Query";
     private static final String QUERY_DESCRIPTION = "";
     private static final String SUBSCRIPTION_NAME = "Subscription";
@@ -48,9 +47,8 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
     private static final String MUTATION_NAME = "Mutation";
     private static final String MUTATION_DESCRIPTION = "";
 
-    
     private final GraphQLSchema[] managedGraphQLSchemas;
-    
+
     private String queryName = QUERY_NAME;
     private String queryDescription = QUERY_DESCRIPTION;
 
@@ -59,8 +57,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
     private String mutationName = MUTATION_NAME;
     private String mutationDescription = MUTATION_DESCRIPTION;
-    
-    
+
     public GraphQLSchemaFactoryBean(GraphQLSchema[] managedGraphQLSchemas) {
         Assert.notEmpty(managedGraphQLSchemas, "Managed GraphQLSchema registrations can't be empty.");
 
@@ -69,112 +66,136 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
     @Override
     protected GraphQLSchema createInstance() {
-
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
         GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();
         TypeTraverser typeTraverser = new TypeTraverser();
-        
-        List<GraphQLFieldDefinition> mutations = Stream.of(managedGraphQLSchemas)
+
+        List<GraphQLFieldDefinition> mutations = Stream
+            .of(managedGraphQLSchemas)
             .filter(it -> it.getMutationType() != null)
             .peek(schema -> {
-                schema.getCodeRegistry().transform(builderConsumer -> {
-                    typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer, 
-                                                                     codeRegistryBuilder, 
-                                                                     schema.getMutationType(),
-                                                                     mutationName), 
-                                             schema.getMutationType());
-                });
+                schema
+                    .getCodeRegistry()
+                    .transform(builderConsumer -> {
+                        typeTraverser.depthFirst(
+                            new CodeRegistryVisitor(
+                                builderConsumer,
+                                codeRegistryBuilder,
+                                schema.getMutationType(),
+                                mutationName
+                            ),
+                            schema.getMutationType()
+                        );
+                    });
             })
             .map(GraphQLSchema::getMutationType)
             .filter(Objects::nonNull)
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
-        
-        List<GraphQLFieldDefinition> queries = Stream.of(managedGraphQLSchemas)
-            .filter(it -> Optional.ofNullable(it.getQueryType())
-                                  .map(GraphQLNamedType::getName)
-                                  .filter(name -> !"null".equals(name)) // filter out null placeholders
-                                  .isPresent())
+
+        List<GraphQLFieldDefinition> queries = Stream
+            .of(managedGraphQLSchemas)
+            .filter(it ->
+                Optional
+                    .ofNullable(it.getQueryType())
+                    .map(GraphQLNamedType::getName)
+                    .filter(name -> !"null".equals(name)) // filter out null placeholders
+                    .isPresent()
+            )
             .peek(schema -> {
-                schema.getCodeRegistry().transform(builderConsumer -> {
-                     typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer,
-                                                                      codeRegistryBuilder,
-                                                                      schema.getQueryType(),
-                                                                      queryName),
-                                              schema.getQueryType());
-                 });
+                schema
+                    .getCodeRegistry()
+                    .transform(builderConsumer -> {
+                        typeTraverser.depthFirst(
+                            new CodeRegistryVisitor(
+                                builderConsumer,
+                                codeRegistryBuilder,
+                                schema.getQueryType(),
+                                queryName
+                            ),
+                            schema.getQueryType()
+                        );
+                    });
             })
             .map(GraphQLSchema::getQueryType)
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
-        List<GraphQLFieldDefinition> subscriptions = Stream.of(managedGraphQLSchemas)
+        List<GraphQLFieldDefinition> subscriptions = Stream
+            .of(managedGraphQLSchemas)
             .filter(it -> it.getSubscriptionType() != null)
             .peek(schema -> {
-                schema.getCodeRegistry().transform(builderConsumer -> {
-                    typeTraverser.depthFirst(new CodeRegistryVisitor(builderConsumer,
-                                                                     codeRegistryBuilder,
-                                                                     schema.getSubscriptionType(),
-                                                                     subscriptionName),
-                                             schema.getSubscriptionType());
-                });
+                schema
+                    .getCodeRegistry()
+                    .transform(builderConsumer -> {
+                        typeTraverser.depthFirst(
+                            new CodeRegistryVisitor(
+                                builderConsumer,
+                                codeRegistryBuilder,
+                                schema.getSubscriptionType(),
+                                subscriptionName
+                            ),
+                            schema.getSubscriptionType()
+                        );
+                    });
             })
             .map(GraphQLSchema::getSubscriptionType)
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
-        Set<GraphQLDirective> directives = Stream.of(managedGraphQLSchemas)
+        Set<GraphQLDirective> directives = Stream
+            .of(managedGraphQLSchemas)
             .map(GraphQLSchema::getDirectives)
             .flatMap(Collection::stream)
             .filter(distinctByKeys(GraphQLDirective::getName))
             .collect(Collectors.toSet());
 
-        if(!directives.isEmpty()) {
+        if (!directives.isEmpty()) {
             schemaBuilder.additionalDirectives(directives);
         }
-        
-        Set<GraphQLType> types = Stream.of(managedGraphQLSchemas)
-                                       .map(GraphQLSchema::getAdditionalTypes)
-                                       .flatMap(Collection::stream)
-                                       .map(GraphQLNamedType.class::cast)
-                                       .filter(distinctByKeys(GraphQLNamedType::getName))
-                                       .collect(Collectors.toSet());
+
+        Set<GraphQLType> types = Stream
+            .of(managedGraphQLSchemas)
+            .map(GraphQLSchema::getAdditionalTypes)
+            .flatMap(Collection::stream)
+            .map(GraphQLNamedType.class::cast)
+            .filter(distinctByKeys(GraphQLNamedType::getName))
+            .collect(Collectors.toSet());
         if (!types.isEmpty()) {
             schemaBuilder.additionalTypes(types);
         }
 
-        if(!mutations.isEmpty())
-            schemaBuilder.mutation(GraphQLObjectType.newObject()
-                                                    .name(this.mutationName)
-                                                    .description(this.mutationDescription)
-                                                    .fields(mutations));
+        if (!mutations.isEmpty()) schemaBuilder.mutation(
+            GraphQLObjectType
+                .newObject()
+                .name(this.mutationName)
+                .description(this.mutationDescription)
+                .fields(mutations)
+        );
 
-        if(!queries.isEmpty())
-            schemaBuilder.query(GraphQLObjectType.newObject()
-                                                 .name(this.queryName)
-                                                 .description(this.queryDescription)
-                                                 .fields(queries));
+        if (!queries.isEmpty()) schemaBuilder.query(
+            GraphQLObjectType.newObject().name(this.queryName).description(this.queryDescription).fields(queries)
+        );
 
-        if(!subscriptions.isEmpty())
-            schemaBuilder.subscription(GraphQLObjectType.newObject()
-                                                        .name(this.subscriptionName)
-                                                        .description(this.subscriptionDescription)
-                                                        .fields(subscriptions));
-        
-        return schemaBuilder.codeRegistry(codeRegistryBuilder.build())
-                            .build();
+        if (!subscriptions.isEmpty()) schemaBuilder.subscription(
+            GraphQLObjectType
+                .newObject()
+                .name(this.subscriptionName)
+                .description(this.subscriptionDescription)
+                .fields(subscriptions)
+        );
+
+        return schemaBuilder.codeRegistry(codeRegistryBuilder.build()).build();
     }
-    
+
     private <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
         final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
 
         return t -> {
-            final List<?> keys = Arrays.stream(keyExtractors)
-                                       .map(ke -> ke.apply(t))
-                                       .collect(Collectors.toList());
+            final List<?> keys = Arrays.stream(keyExtractors).map(ke -> ke.apply(t)).collect(Collectors.toList());
 
             return seen.putIfAbsent(keys, Boolean.TRUE) == null;
         };
@@ -187,13 +208,13 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
     public GraphQLSchemaFactoryBean setQueryName(String name) {
         this.queryName = name;
-        
+
         return this;
     }
 
     public GraphQLSchemaFactoryBean setQueryDescription(String description) {
         this.queryDescription = description;
-        
+
         return this;
     }
 
@@ -220,21 +241,24 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
 
         return this;
     }
-    
+
     /**
      * This ensure that all fields have data fetchers and that unions and interfaces have type resolvers
      */
     @Internal
     class CodeRegistryVisitor extends GraphQLTypeVisitorStub {
+
         private final GraphQLCodeRegistry.Builder source;
         private final GraphQLCodeRegistry.Builder codeRegistry;
         private final GraphQLFieldsContainer containerType;
         private final String typeName;
 
-        CodeRegistryVisitor(GraphQLCodeRegistry.Builder context,
-                            GraphQLCodeRegistry.Builder codeRegistry,
-                            GraphQLFieldsContainer containerType,
-                            String typeName) {
+        CodeRegistryVisitor(
+            GraphQLCodeRegistry.Builder context,
+            GraphQLCodeRegistry.Builder codeRegistry,
+            GraphQLFieldsContainer containerType,
+            String typeName
+        ) {
             this.source = context;
             this.codeRegistry = codeRegistry;
             this.containerType = containerType;
@@ -242,43 +266,55 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
         }
 
         @Override
-        public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLSchemaElement> context) {
+        public TraversalControl visitGraphQLFieldDefinition(
+            GraphQLFieldDefinition node,
+            TraverserContext<GraphQLSchemaElement> context
+        ) {
             GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer) context.getParentContext().thisNode();
-            FieldCoordinates coordinates = parentContainerType.equals(containerType) ? coordinates(typeName, node.getName())
-                                                                                     : coordinates(parentContainerType, node);
+            FieldCoordinates coordinates = parentContainerType.equals(containerType)
+                ? coordinates(typeName, node.getName())
+                : coordinates(parentContainerType, node);
 
-            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType,
-                                                               node);
+            DataFetcher<?> dataFetcher = source.getDataFetcher(parentContainerType, node);
             if (dataFetcher == null) {
                 dataFetcher = new PropertyDataFetcher<>(node.getName());
             }
 
-            codeRegistry.dataFetcherIfAbsent(coordinates,
-                                             dataFetcher);
+            codeRegistry.dataFetcherIfAbsent(coordinates, dataFetcher);
             return CONTINUE;
         }
 
         @Override
-        public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node, TraverserContext<GraphQLSchemaElement> context) {
+        public TraversalControl visitGraphQLInterfaceType(
+            GraphQLInterfaceType node,
+            TraverserContext<GraphQLSchemaElement> context
+        ) {
             TypeResolver typeResolver = codeRegistry.getTypeResolver(node);
 
             if (typeResolver != null) {
                 codeRegistry.typeResolverIfAbsent(node, typeResolver);
             }
-            assertTrue(codeRegistry.getTypeResolver(node) != null, () -> "You MUST provide a type resolver for the interface type '" + node.getName() + "'");
+            assertTrue(
+                codeRegistry.getTypeResolver(node) != null,
+                () -> "You MUST provide a type resolver for the interface type '" + node.getName() + "'"
+            );
             return CONTINUE;
         }
 
         @Override
-        public TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLSchemaElement> context) {
+        public TraversalControl visitGraphQLUnionType(
+            GraphQLUnionType node,
+            TraverserContext<GraphQLSchemaElement> context
+        ) {
             TypeResolver typeResolver = codeRegistry.getTypeResolver(node);
             if (typeResolver != null) {
                 codeRegistry.typeResolverIfAbsent(node, typeResolver);
             }
-            assertTrue(codeRegistry.getTypeResolver(node) != null, () -> "You MUST provide a type resolver for the union type '" + node.getName() + "'");
+            assertTrue(
+                codeRegistry.getTypeResolver(node) != null,
+                () -> "You MUST provide a type resolver for the union type '" + node.getName() + "'"
+            );
             return CONTINUE;
         }
     }
-    
-    
 }

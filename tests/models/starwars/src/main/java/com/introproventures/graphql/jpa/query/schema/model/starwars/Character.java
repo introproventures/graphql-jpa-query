@@ -16,7 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.starwars;
 
-import java.util.Set;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -28,6 +27,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OrderBy;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,7 +38,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(exclude={"appearsIn","friends", "friendsOf"}) // Fixes NPE in Hibernate when initializing loaded collections #1
+@EqualsAndHashCode(exclude = { "appearsIn", "friends", "friendsOf" }) // Fixes NPE in Hibernate when initializing loaded collections #1
 public abstract class Character {
 
     @Id
@@ -49,23 +49,24 @@ public abstract class Character {
     String name;
 
     @GraphQLDescription("Who are the known friends to this character")
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="character_friends",
-            joinColumns=@JoinColumn(name="source_id", referencedColumnName="id"),
-            inverseJoinColumns=@JoinColumn(name="friend_id", referencedColumnName="id"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "character_friends",
+        joinColumns = @JoinColumn(name = "source_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "friend_id", referencedColumnName = "id")
+    )
     @OrderBy("name ASC")
-    Set<Character> friends; 
+    Set<Character> friends;
 
-    @ManyToMany(fetch=FetchType.LAZY, mappedBy = "friends")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "friends")
     @OrderBy("name ASC")
-    Set<Character> friendsOf;     
-    
+    Set<Character> friendsOf;
+
     @GraphQLDescription("What Star Wars episodes does this character appear in")
-    @ElementCollection(targetClass = Episode.class, fetch=FetchType.LAZY)
+    @ElementCollection(targetClass = Episode.class, fetch = FetchType.LAZY)
     @Enumerated(EnumType.ORDINAL)
     @OrderBy
     Set<Episode> appearsIn;
-    
-    Character() {}
 
+    Character() {}
 }

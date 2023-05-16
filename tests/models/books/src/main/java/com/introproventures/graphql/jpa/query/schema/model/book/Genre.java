@@ -17,5 +17,7 @@
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
 public enum Genre {
-	NOVEL, PLAY, JAVA
+    NOVEL,
+    PLAY,
+    JAVA,
 }

@@ -24,12 +24,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Use this annotation on Java JPA Entity types or fields to exclude elements from GraphQLSchema  
- * 
+ * Use this annotation on Java JPA Entity types or fields to exclude elements from GraphQLSchema
+ *
  * @author Igor Dianov
  *
  */
-@Target( { TYPE, FIELD, METHOD })
+@Target({ TYPE, FIELD, METHOD })
 @Retention(RUNTIME)
 public @interface GraphQLIgnore {
 }

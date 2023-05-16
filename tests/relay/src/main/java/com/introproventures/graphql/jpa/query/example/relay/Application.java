@@ -26,20 +26,20 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * GraphQL JPA Query Example Relay with Spring Boot Autoconfiguration
- * 
- * You can configure GraphQL JPA Query properties in application.yml 
- * 
+ *
+ * You can configure GraphQL JPA Query properties in application.yml
+ *
  * @author Igor Dianov
  *
  */
 @SpringBootApplication
-@EnableGraphQLJpaQuerySchema(basePackageClasses=Book.class)
+@EnableGraphQLJpaQuerySchema(basePackageClasses = Book.class)
 public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    
+
     @Configuration
     public static class GraphQLJpaQuerySchemaConfigurer {
 
@@ -48,5 +48,4 @@ public class Application {
             return builder -> builder.enableRelay(properties.isEnableRelay());
         }
     }
-
 }

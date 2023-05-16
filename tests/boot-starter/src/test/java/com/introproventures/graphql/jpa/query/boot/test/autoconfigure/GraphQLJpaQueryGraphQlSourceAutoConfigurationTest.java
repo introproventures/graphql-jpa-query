@@ -41,9 +41,8 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
 
     @SpringBootApplication
-    @EnableGraphQLJpaQuerySchema(basePackageClasses=Author.class)
-    static class Application {
-    }
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = Author.class)
+    static class Application {}
 
     @Autowired
     private RuntimeWiringConfigurer javaScalarsRuntimeWiringConfigurer;
@@ -70,13 +69,12 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
         assertThat(graphQLSchemaBuilder).isInstanceOf(GraphQLJpaSchemaBuilder.class);
 
         assertThat(graphQLSchema.getQueryType())
-                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
-                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
+            .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+            .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
-        assertThat(graphQlSource.schema()
-                                .getQueryType())
-                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
-                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
+        assertThat(graphQlSource.schema().getQueryType())
+            .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+            .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
         DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
         batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());

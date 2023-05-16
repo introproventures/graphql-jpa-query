@@ -31,8 +31,14 @@ public class ClassDescriptor {
 
     private final Annotations annotations;
 
-    public ClassDescriptor(Class<?> type, boolean scanAccessible, boolean extendedProperties,
-            boolean includeFieldsAsProperties, boolean scanStatics, String propertyFieldPrefix) {
+    public ClassDescriptor(
+        Class<?> type,
+        boolean scanAccessible,
+        boolean extendedProperties,
+        boolean includeFieldsAsProperties,
+        boolean scanStatics,
+        String propertyFieldPrefix
+    ) {
         this.type = type;
         this.scanAccessible = scanAccessible;
         this.extendedProperties = extendedProperties;
@@ -233,19 +239,20 @@ public class ClassDescriptor {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ClassDescriptor [type=")
-               .append(type)
-               .append(", scanAccessible=")
-               .append(scanAccessible)
-               .append(", extendedProperties=")
-               .append(extendedProperties)
-               .append(", includeFieldsAsProperties=")
-               .append(includeFieldsAsProperties)
-               .append(", propertyFieldPrefix=")
-               .append(propertyFieldPrefix)
-               .append(", usageCount=")
-               .append(usageCount)
-               .append("]");
+        builder
+            .append("ClassDescriptor [type=")
+            .append(type)
+            .append(", scanAccessible=")
+            .append(scanAccessible)
+            .append(", extendedProperties=")
+            .append(extendedProperties)
+            .append(", includeFieldsAsProperties=")
+            .append(includeFieldsAsProperties)
+            .append(", propertyFieldPrefix=")
+            .append(propertyFieldPrefix)
+            .append(", usageCount=")
+            .append(usageCount)
+            .append("]");
         return builder.toString();
     }
 
@@ -256,17 +263,13 @@ public class ClassDescriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ClassDescriptor other = (ClassDescriptor) obj;
         return Objects.equals(type, other.type);
     }
 
-    
     public boolean isScanStatics() {
         return scanStatics;
     }

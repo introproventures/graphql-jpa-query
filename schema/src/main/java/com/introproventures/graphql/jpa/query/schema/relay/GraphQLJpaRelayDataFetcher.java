@@ -3,22 +3,20 @@ package com.introproventures.graphql.jpa.query.schema.relay;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaQueryFactory;
 import com.introproventures.graphql.jpa.query.schema.impl.PagedResult;
-
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaRelayDataFetcher.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaRelayDataFetcher.class);
 
     private static final String EDGES = "edges";
     private static final String FIRST = "first";
@@ -48,53 +46,46 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
 
         final Integer first = firstArgument.orElse(defaultFirstSize);
 
-        final String after = afterArgument.orElse(new OffsetBasedCursor(0L).toConnectionCursor()
-                                                                           .toString());
+        final String after = afterArgument.orElse(new OffsetBasedCursor(0L).toConnectionCursor().toString());
 
         final OffsetBasedCursor cursor = OffsetBasedCursor.fromCursor(after);
 
         final int firstResult = Integer.parseInt(Long.toString(cursor.getOffset()));
         final int maxResults = Integer.min(first, defaultMaxResults);
 
-        final PagedResult.Builder<Object> pagedResult = PagedResult.builder()
-                .withOffset(firstResult)
-                .withLimit(maxResults);
+        final PagedResult.Builder<Object> pagedResult = PagedResult
+            .builder()
+            .withOffset(firstResult)
+            .withLimit(maxResults);
 
         Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
-        
+
         if (edgesSelection.isPresent()) {
             if (restrictedKeys.isPresent()) {
                 final List<Object> queryKeys = new ArrayList<>();
-    
+
                 if (enableDefaultMaxResults || firstArgument.isPresent() || afterArgument.isPresent()) {
-                    queryKeys.addAll(queryFactory.queryKeys(environment,
-                                                            firstResult,
-                                                            maxResults,
-                                                            restrictedKeys.get()));
-                }
-                else {
+                    queryKeys.addAll(
+                        queryFactory.queryKeys(environment, firstResult, maxResults, restrictedKeys.get())
+                    );
+                } else {
                     queryKeys.addAll(restrictedKeys.get());
                 }
-    
-                final List<Object> resultList = queryFactory.queryResultList(environment,
-                                                                             maxResults,
-                                                                             queryKeys);
+
+                final List<Object> resultList = queryFactory.queryResultList(environment, maxResults, queryKeys);
                 pagedResult.withSelect(resultList);
-            } 
+            }
         }
 
         if (pageInfoSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment,
-                                                            restrictedKeys);
+            final Long total = queryFactory.queryTotalCount(environment, restrictedKeys);
 
             pagedResult.withTotal(total);
         }
 
         PagedResult<Object> result = pagedResult.build();
 
-        return PageFactory.createOffsetBasedPage(result.getSelect(),
-                                                 result.getTotal(),
-                                                 result.getOffset());
+        return PageFactory.createOffsetBasedPage(result.getSelect(), result.getTotal(), result.getOffset());
     }
 
     /**
@@ -109,12 +100,11 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IQueryFactoryStage {
-
         /**
-        * Builder method for queryFactory parameter.
-        * @param queryFactory field to set
-        * @return builder
-        */
+         * Builder method for queryFactory parameter.
+         * @param queryFactory field to set
+         * @return builder
+         */
         public IDefaultMaxResultsStage withQueryFactory(GraphQLJpaQueryFactory queryFactory);
     }
 
@@ -122,19 +112,18 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IDefaultMaxResultsStage {
-
         /**
-        * Builder method for defaultMaxResults parameter.
-        * @param defaultMaxResults field to set
-        * @return builder
-        */
+         * Builder method for defaultMaxResults parameter.
+         * @param defaultMaxResults field to set
+         * @return builder
+         */
         public IDefaultMaxResultsStage withDefaultMaxResults(int defaultMaxResults);
 
         /**
-        * Builder method for enableDefaultMaxResults parameter.
-        * @param enableDefaultMaxResults field to set
-        * @return builder
-        */
+         * Builder method for enableDefaultMaxResults parameter.
+         * @param enableDefaultMaxResults field to set
+         * @return builder
+         */
         public IDefaultFirstSizeStage withEnableDefaultMaxResults(boolean enableDefaultMaxResults);
     }
 
@@ -142,12 +131,11 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IDefaultFirstSizeStage {
-
         /**
-        * Builder method for defaultFirstSize parameter.
-        * @param defaultFirstSize field to set
-        * @return builder
-        */
+         * Builder method for defaultFirstSize parameter.
+         * @param defaultFirstSize field to set
+         * @return builder
+         */
         public IBuildStage withDefaultFirstSize(int defaultFirstSize);
     }
 
@@ -155,26 +143,25 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
      * Definition of a stage for staged builder.
      */
     public interface IBuildStage {
-
         /**
-        * Builder method of the builder.
-        * @return built class
-        */
+         * Builder method of the builder.
+         * @return built class
+         */
         public GraphQLJpaRelayDataFetcher build();
     }
 
     /**
      * Builder to build {@link GraphQLJpaRelayDataFetcher}.
      */
-    public static final class Builder implements IQueryFactoryStage, IDefaultMaxResultsStage, IDefaultFirstSizeStage, IBuildStage {
+    public static final class Builder
+        implements IQueryFactoryStage, IDefaultMaxResultsStage, IDefaultFirstSizeStage, IBuildStage {
 
         private GraphQLJpaQueryFactory queryFactory;
         private int defaultMaxResults;
         private int defaultFirstSize;
         private boolean enableDefaultMaxResults;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         @Override
         public IDefaultMaxResultsStage withQueryFactory(GraphQLJpaQueryFactory queryFactory) {
@@ -205,5 +192,4 @@ public class GraphQLJpaRelayDataFetcher implements DataFetcher<Page<Object>> {
             return this;
         }
     }
-
 }

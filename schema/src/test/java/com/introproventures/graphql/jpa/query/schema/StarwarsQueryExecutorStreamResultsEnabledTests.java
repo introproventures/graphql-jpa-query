@@ -31,6 +31,7 @@ public class StarwarsQueryExecutorStreamResultsEnabledTests extends StarwarsQuer
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class Application {
+
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
             return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
@@ -38,15 +39,10 @@ public class StarwarsQueryExecutorStreamResultsEnabledTests extends StarwarsQuer
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-
             return new GraphQLJpaSchemaBuilder(entityManager)
-                    .name("Starwars")
-                    .description("Starwars JPA test schema")
-                    .enableResultStream(true);
+                .name("Starwars")
+                .description("Starwars JPA test schema")
+                .enableResultStream(true);
         }
-
     }
-
-
-
 }

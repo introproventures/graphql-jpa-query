@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -29,17 +28,17 @@ public class Methods {
         boolean scanStatics = classDescriptor.isScanStatics();
         Class<?> type = classDescriptor.getType();
 
-        Method[] methods =
-                scanAccessible ? ReflectionUtil.getAccessibleMethods(type) : ReflectionUtil.getAllMethodsOfClass(type);
+        Method[] methods = scanAccessible
+            ? ReflectionUtil.getAccessibleMethods(type)
+            : ReflectionUtil.getAllMethodsOfClass(type);
 
         Map<String, MethodDescriptor[]> map = new LinkedHashMap<>(methods.length);
 
         for (Method method : methods) {
-            
-            if(!scanStatics && Modifier.isStatic(method.getModifiers())) {
+            if (!scanStatics && Modifier.isStatic(method.getModifiers())) {
                 continue;
             }
-                
+
             String methodName = method.getName();
 
             MethodDescriptor[] mds = map.get(methodName);
@@ -101,16 +100,18 @@ public class Methods {
 
             MethodDescriptor[] allMethods = allMethodsList.toArray(new MethodDescriptor[allMethodsList.size()]);
 
-            Arrays.sort(allMethods, new Comparator<MethodDescriptor>() {
-                @Override
-                public int compare(MethodDescriptor md1, MethodDescriptor md2) {
-                    return md1.getMethod().getName().compareTo(md2.getMethod().getName());
+            Arrays.sort(
+                allMethods,
+                new Comparator<MethodDescriptor>() {
+                    @Override
+                    public int compare(MethodDescriptor md1, MethodDescriptor md2) {
+                        return md1.getMethod().getName().compareTo(md2.getMethod().getName());
+                    }
                 }
-            });
+            );
 
             this.allMethods = allMethods;
         }
         return allMethods;
     }
-
 }

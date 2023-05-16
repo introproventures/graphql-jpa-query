@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PagedResult<T> {
+
     private final long limit;
     private final long total;
     private final long pages;
@@ -41,11 +42,11 @@ public class PagedResult<T> {
     public Long getPages() {
         return pages;
     }
-    
+
     public Integer getOffset() {
         return offset;
     }
-    
+
     public List<T> getSelect() {
         return select;
     }
@@ -73,67 +74,64 @@ public class PagedResult<T> {
         private int offset;
         private List<T> select = Collections.emptyList();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
-        * Builder method for limit parameter.
-        * @param limit field to set
-        * @return builder
-        */
+         * Builder method for limit parameter.
+         * @param limit field to set
+         * @return builder
+         */
         public Builder<T> withLimit(long limit) {
             this.limit = limit;
             return this;
         }
 
         /**
-        * Builder method for total parameter.
-        * @param total field to set
-        * @return builder
-        */
+         * Builder method for total parameter.
+         * @param total field to set
+         * @return builder
+         */
         public Builder<T> withTotal(long total) {
             this.total = total;
             return this;
         }
 
         /**
-        * Builder method for pages parameter.
-        * @param pages field to set
-        * @return builder
-        */
+         * Builder method for pages parameter.
+         * @param pages field to set
+         * @return builder
+         */
         public Builder<T> withPages(long pages) {
             this.pages = pages;
             return this;
         }
 
         /**
-        * Builder method for offset parameter.
-        * @param offset field to set
-        * @return builder
-        */
+         * Builder method for offset parameter.
+         * @param offset field to set
+         * @return builder
+         */
         public Builder<T> withOffset(int offset) {
             this.offset = offset;
             return this;
         }
 
         /**
-        * Builder method for select parameter.
-        * @param select field to set
-        * @return builder
-        */
+         * Builder method for select parameter.
+         * @param select field to set
+         * @return builder
+         */
         public Builder<T> withSelect(List<T> select) {
             this.select = select;
             return this;
         }
 
         /**
-        * Builder method of the builder.
-        * @return built class
-        */
+         * Builder method of the builder.
+         * @return built class
+         */
         public PagedResult<T> build() {
             return new PagedResult<>(this);
         }
     }
-
-
 }

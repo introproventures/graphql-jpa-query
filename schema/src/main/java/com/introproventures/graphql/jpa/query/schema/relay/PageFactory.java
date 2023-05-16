@@ -1,38 +1,64 @@
 package com.introproventures.graphql.jpa.query.schema.relay;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiFunction;
-
 import graphql.relay.ConnectionCursor;
 import graphql.relay.DefaultEdge;
 import graphql.relay.DefaultPageInfo;
 import graphql.relay.Edge;
 import graphql.relay.PageInfo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class PageFactory {
 
     public static <N> Page<N> createOffsetBasedPage(List<N> nodes, long count, long offset) {
-        return createOffsetBasedPage(nodes, offset, hasNextPage(nodes.size(), count, offset), hasPreviousPage(count, offset));
+        return createOffsetBasedPage(
+            nodes,
+            offset,
+            hasNextPage(nodes.size(), count, offset),
+            hasPreviousPage(count, offset)
+        );
     }
 
-    public static <N> Page<N> createOffsetBasedPage(List<N> nodes, long offset, boolean hasNextPage, boolean hasPreviousPage) {
+    public static <N> Page<N> createOffsetBasedPage(
+        List<N> nodes,
+        long offset,
+        boolean hasNextPage,
+        boolean hasPreviousPage
+    ) {
         return createPage(nodes, offsetBasedCursorProvider(offset), hasNextPage, hasPreviousPage);
     }
 
-    public static <N, P extends Page<N>> P createOffsetBasedPage(List<N> nodes, long count, long offset, BiFunction<List<Edge<N>>, PageInfo, P> pageCreator) {
+    public static <N, P extends Page<N>> P createOffsetBasedPage(
+        List<N> nodes,
+        long count,
+        long offset,
+        BiFunction<List<Edge<N>>, PageInfo, P> pageCreator
+    ) {
         BiFunction<N, ConnectionCursor, Edge<N>> edgeCreator = DefaultEdge::new;
         return createOffsetBasedConnection(nodes, count, offset, edgeCreator, pageCreator);
     }
 
     public static <N, E extends Edge<N>, C extends Connection<E>> C createOffsetBasedConnection(
-            List<N> nodes, long count, long offset, BiFunction<N, ConnectionCursor, E> edgeCreator, BiFunction<List<E>, PageInfo, C> connectionCreator) {
-
+        List<N> nodes,
+        long count,
+        long offset,
+        BiFunction<N, ConnectionCursor, E> edgeCreator,
+        BiFunction<List<E>, PageInfo, C> connectionCreator
+    ) {
         List<E> edges = createEdges(nodes, offsetBasedCursorProvider(offset), edgeCreator);
-        return connectionCreator.apply(edges, createPageInfo(edges, hasNextPage(nodes.size(), count, offset), hasPreviousPage(count, offset)));
+        return connectionCreator.apply(
+            edges,
+            createPageInfo(edges, hasNextPage(nodes.size(), count, offset), hasPreviousPage(count, offset))
+        );
     }
 
-    public static <N> Page<N> createPage(List<N> nodes, CursorProvider<N> cursorProvider, boolean hasNextPage, boolean hasPreviousPage) {
+    public static <N> Page<N> createPage(
+        List<N> nodes,
+        CursorProvider<N> cursorProvider,
+        boolean hasNextPage,
+        boolean hasPreviousPage
+    ) {
         List<Edge<N>> edges = createEdges(nodes, cursorProvider);
         return new GenericPage<>(edges, createPageInfo(edges, hasNextPage, hasPreviousPage));
     }
@@ -42,7 +68,11 @@ public class PageFactory {
         return createEdges(nodes, cursorProvider, edgeCreator);
     }
 
-    public static <N, E extends Edge<N>> List<E> createEdges(List<N> nodes, CursorProvider<N> cursorProvider, BiFunction<N, ConnectionCursor, E> edgeCreator) {
+    public static <N, E extends Edge<N>> List<E> createEdges(
+        List<N> nodes,
+        CursorProvider<N> cursorProvider,
+        BiFunction<N, ConnectionCursor, E> edgeCreator
+    ) {
         List<E> edges = new ArrayList<>(nodes.size());
         int index = 0;
         for (N node : nodes) {
@@ -55,7 +85,11 @@ public class PageFactory {
         return createPageInfo(edges, hasNextPage(edges.size(), count, offset), hasPreviousPage(count, offset));
     }
 
-    public static <N, E extends Edge<N>> PageInfo createPageInfo(List<E> edges, boolean hasNextPage, boolean hasPreviousPage) {
+    public static <N, E extends Edge<N>> PageInfo createPageInfo(
+        List<E> edges,
+        boolean hasNextPage,
+        boolean hasPreviousPage
+    ) {
         ConnectionCursor firstCursor = null;
         ConnectionCursor lastCursor = null;
         if (!edges.isEmpty()) {

@@ -25,6 +25,5 @@ import lombok.Data;
 @Table(name = "book")
 public class SuperBook extends BaseBook {
 
-	String title;
-
+    String title;
 }

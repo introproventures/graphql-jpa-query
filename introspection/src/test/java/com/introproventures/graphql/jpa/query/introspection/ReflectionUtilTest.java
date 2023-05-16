@@ -1,5 +1,10 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,11 +18,6 @@ import java.util.Date;
 import java.util.List;
 import javax.management.loading.MLet;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ReflectionUtilTest {
 
@@ -43,7 +43,7 @@ public class ReflectionUtilTest {
             interMethodLength += interMethods.length;
         }
 
-        assertTrue(methods.length > interMethodLength);    
+        assertTrue(methods.length > interMethodLength);
     }
 
     @Test
@@ -58,9 +58,9 @@ public class ReflectionUtilTest {
         Field[] instancefields = ReflectionUtil.getAllInstanceFields(String.class);
         assertTrue(instancefields.length > 0);
 
-        assertTrue(fields.length - instancefields.length > 0); 
+        assertTrue(fields.length - instancefields.length > 0);
     }
-    
+
     @Test
     public void getComponentType() throws Exception {
         Field f1 = BaseClass.class.getField("f1");
@@ -69,7 +69,7 @@ public class ReflectionUtilTest {
         assertNull(ReflectionUtil.getComponentType(f1.getGenericType()));
         assertEquals(Long.class, ReflectionUtil.getComponentType(f5.getGenericType()));
     }
-    
+
     @Test
     public void getAnnotationMethods() {
         assertNull(ReflectionUtil.getAnnotationMethods((Class<?>) null, (Class<? extends Annotation>) null));
@@ -77,8 +77,10 @@ public class ReflectionUtilTest {
         assertNull(ReflectionUtil.getAnnotationMethods((Class<?>) null, AnnotationClass.TestAnnotation.class));
         assertNull(ReflectionUtil.getAnnotationMethods(AnnotationClass.class, (Class<? extends Annotation>) null));
 
-        List<Method> list =
-                ReflectionUtil.getAnnotationMethods(AnnotationClass.class, AnnotationClass.TestAnnotation.class);
+        List<Method> list = ReflectionUtil.getAnnotationMethods(
+            AnnotationClass.class,
+            AnnotationClass.TestAnnotation.class
+        );
 
         assertTrue(list.size() == 8);
 
@@ -86,7 +88,7 @@ public class ReflectionUtilTest {
 
         assertTrue(list.size() == 0);
     }
-    
+
     @Test
     public void getAnnotationFields() {
         assertNull(ReflectionUtil.getAnnotationFields((Class<?>) null, (Class<? extends Annotation>) null));
@@ -94,24 +96,25 @@ public class ReflectionUtilTest {
         assertNull(ReflectionUtil.getAnnotationFields((Class<?>) null, AnnotationClass.TestAnnotation.class));
         assertNull(ReflectionUtil.getAnnotationFields(AnnotationClass.class, (Class<? extends Annotation>) null));
 
-        Field[] fields =
-                ReflectionUtil.getAnnotationFields(AnnotationClass.class, AnnotationClass.TestAnnotation.class);
+        Field[] fields = ReflectionUtil.getAnnotationFields(
+            AnnotationClass.class,
+            AnnotationClass.TestAnnotation.class
+        );
 
         assertTrue(fields.length == 2);
 
         fields = ReflectionUtil.getAnnotationFields(AnnotationClass.class, Test.class);
 
         assertTrue(ArrayUtil.isEmpty(fields));
+    }
 
-    }    
-    
     @Test
     public void getGenericSuperType() throws Exception {
         Class<?>[] genericSupertypes = ReflectionUtil.getGenericSuperTypes(ConcreteClass.class);
         assertEquals(String.class, genericSupertypes[0]);
         assertEquals(Integer.class, genericSupertypes[1]);
-    }    
-    
+    }
+
     @Test
     public void getRawType() throws Exception {
         Field f1 = BaseClass.class.getField("f1");
@@ -130,7 +133,7 @@ public class ReflectionUtilTest {
 
         assertEquals(Object.class, ReflectionUtil.getRawType(f1.getGenericType()));
     }
-    
+
     @Test
     public void invokeMethod() {
         assertNull(ReflectionUtil.invokeMethod(null, (Object) null));
@@ -156,7 +159,6 @@ public class ReflectionUtilTest {
             method = String.class.getMethod("trim");
             assertEquals("xxx", ReflectionUtil.invokeMethod(method, (Object) " xxx "));
             assertEquals("xxx", ReflectionUtil.invokeMethod(method, new Object()));
-
         } catch (Exception e) {
             assertTrue(e instanceof RuntimeException);
         }
@@ -175,10 +177,8 @@ public class ReflectionUtilTest {
         }
 
         try {
-
             assertEquals("xxx", ReflectionUtil.invokeMethod(" xxx ", "trim", null, (Object[]) null));
             assertEquals("xxx", ReflectionUtil.invokeMethod(new Object(), "trim", null, (Object[]) null));
-
         } catch (Exception e) {
             assertTrue(e instanceof RuntimeException);
         }
@@ -188,19 +188,16 @@ public class ReflectionUtilTest {
         try {
             ReflectionUtil.invokeMethod(list, "RangeCheck", new Class<?>[] { int.class }, Integer.MAX_VALUE);
         } catch (Exception e) {
-
-            if (e.getCause() instanceof NoSuchMethodException) {
-
-            } else {
-
+            if (e.getCause() instanceof NoSuchMethodException) {} else {
                 InvocationTargetException ex = (InvocationTargetException) e.getCause();
 
                 assertTrue(ex.getTargetException() instanceof IndexOutOfBoundsException);
             }
         }
+    }
 
-    }    
     public static class BaseClass<A, B> {
+
         public A f1;
         public B f2;
         public String f3;
@@ -208,17 +205,17 @@ public class ReflectionUtilTest {
     }
 
     public static class ConcreteClass extends BaseClass<String, Integer> {
+
         public Long f4;
         public List<Long> f5;
     }
 
-    public static class BaseClass2<X> extends BaseClass<X, Integer> {
-    }
+    public static class BaseClass2<X> extends BaseClass<X, Integer> {}
 
-    public static class ConcreteClass2 extends BaseClass2<String> {
-    }
+    public static class ConcreteClass2 extends BaseClass2<String> {}
 
     public static class Soo {
+
         public List<String> stringList;
         public String[] strings;
         public String string;
@@ -246,39 +243,33 @@ public class ReflectionUtilTest {
         public Collection<?> getCollection2() {
             return null;
         }
-    }    
-    
-    public interface SomeGuy {
     }
 
-    public interface Cool extends SomeGuy {
-    }
+    public interface SomeGuy {}
 
-    public interface Vigilante {
-    }
+    public interface Cool extends SomeGuy {}
 
-    public interface Flying extends Vigilante {
-    }
+    public interface Vigilante {}
 
-    public interface SuperMario extends Flying, Cool {
-    };
+    public interface Flying extends Vigilante {}
 
-    public class User implements SomeGuy {
-    }
+    public interface SuperMario extends Flying, Cool {}
 
-    public class SuperUser extends User implements Cool {
-    }
+    public class User implements SomeGuy {}
 
-    public class SuperMan extends SuperUser implements Flying {
-    }
-    
+    public class SuperUser extends User implements Cool {}
+
+    public class SuperMan extends SuperUser implements Flying {}
+
     public static class AnnotationClass {
 
         private int x;
+
         @TestAnnotation(value = "y")
         private int y;
 
         private String z;
+
         @TestAnnotation(value = "d")
         private Date d;
 
@@ -336,6 +327,5 @@ public class ReflectionUtilTest {
         public @interface TestAnnotation {
             String value();
         }
-
-    }    
+    }
 }

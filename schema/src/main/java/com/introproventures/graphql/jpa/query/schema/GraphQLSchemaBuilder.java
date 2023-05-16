@@ -20,45 +20,43 @@ import graphql.schema.GraphQLSchema;
 
 /**
  * GraphQL Schema Builder interface specification
- * 
+ *
  * @author Igor Dianov
  *
  */
 public interface GraphQLSchemaBuilder {
-    
     /**
      * Configures the name of GraphQL Schema. Cannot be null or empty;
-     * 
+     *
      * @param value GraphQL schema name
      * @return this builder instance
      */
     GraphQLSchemaBuilder name(String value);
-    
+
     /**
-     * Configures the description of GraphQL Schema. 
-     * 
+     * Configures the description of GraphQL Schema.
+     *
      * @param value GraphQL schema description
      * @return this builder instance
      */
     GraphQLSchemaBuilder description(String value);
 
     /**
-     * Add package path to scan for entities to be included in GraphQL Schema. 
+     * Add package path to scan for entities to be included in GraphQL Schema.
      * All Entities are included by default
-     * 
-     * @param path GraphQL entitys package path 
+     *
+     * @param path GraphQL entitys package path
      * @return this builder instance
      */
     GraphQLSchemaBuilder entityPath(String path);
 
     /**
-     * Add package path to scan for entities to be included in GraphQL Schema. 
-     * 
+     * Add package path to scan for entities to be included in GraphQL Schema.
+     *
      * @param instance GraphQL query naming strategy
      * @return this builder instance
      */
     GraphQLSchemaBuilder namingStrategy(NamingStrategy instance);
-
 
     /**
      * Register Java type scalar
@@ -71,9 +69,8 @@ public interface GraphQLSchemaBuilder {
 
     /**
      * Builds {code #GraphQLSchema} instance
-     * 
+     *
      * @return GraphQLSchema instance
      */
     GraphQLSchema build();
-    
 }

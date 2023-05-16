@@ -7,20 +7,16 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-
 @Entity
 @Table(name = "droid_function")
 @GraphQLDescription("Represents the functions a droid can have")
 @Data
-@EqualsAndHashCode()
+@EqualsAndHashCode
 public class DroidFunction {
 
     @Id
     @GraphQLDescription("Primary Key for the DroidFunction Class")
     String id;
-    
-    String function;
-    
-    
 
+    String function;
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Embeddable
 public class Publisher {
+
     private String name;
 
     private String country;

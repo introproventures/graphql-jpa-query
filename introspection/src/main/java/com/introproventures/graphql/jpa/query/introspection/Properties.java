@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -27,8 +26,9 @@ public class Properties {
 
         Map<String, PropertyDescriptor> map = new LinkedHashMap<>();
 
-        Method[] methods =
-                scanAccessible ? ReflectionUtil.getAccessibleMethods(type) : ReflectionUtil.getAllMethodsOfClass(type);
+        Method[] methods = scanAccessible
+            ? ReflectionUtil.getAccessibleMethods(type)
+            : ReflectionUtil.getAllMethodsOfClass(type);
 
         for (int iteration = 0; iteration < 2; iteration++) {
             // first find the getters, and then the setters!
@@ -57,8 +57,11 @@ public class Properties {
                 }
 
                 if (add == true) {
-                    MethodDescriptor methodDescriptor =
-                            classDescriptor.getMethodDescriptor(method.getName(), method.getParameterTypes(), true);
+                    MethodDescriptor methodDescriptor = classDescriptor.getMethodDescriptor(
+                        method.getName(),
+                        method.getParameterTypes(),
+                        true
+                    );
                     addProperty(map, propertyName, methodDescriptor, issetter);
                 }
             }
@@ -83,14 +86,17 @@ public class Properties {
                     map.put(name, createPropertyDescriptor(name, fieldDescriptor));
                 }
             }
-
         }
 
         return map;
     }
 
-    protected void addProperty(Map<String, PropertyDescriptor> map, String name, MethodDescriptor methodDescriptor,
-            boolean isSetter) {
+    protected void addProperty(
+        Map<String, PropertyDescriptor> map,
+        String name,
+        MethodDescriptor methodDescriptor,
+        boolean isSetter
+    ) {
         MethodDescriptor setterMethod = isSetter ? methodDescriptor : null;
         MethodDescriptor getterMethod = isSetter ? null : methodDescriptor;
 
@@ -116,8 +122,10 @@ public class Properties {
                 String methodName = methodDescriptor.getMethod().getName();
                 String existingMethodName = existingMethodDescriptor.getMethod().getName();
 
-                if (existingMethodName.startsWith(BeanUtil.METHOD_IS_PREFIX)
-                        && methodName.startsWith(BeanUtil.METHOD_GET_PREFIX)) {
+                if (
+                    existingMethodName.startsWith(BeanUtil.METHOD_IS_PREFIX) &&
+                    methodName.startsWith(BeanUtil.METHOD_GET_PREFIX)
+                ) {
                     return;
                 }
             }
@@ -136,8 +144,11 @@ public class Properties {
         map.put(name, propertyDescriptor);
     }
 
-    protected PropertyDescriptor createPropertyDescriptor(String name, MethodDescriptor getterMethod,
-            MethodDescriptor setterMethod) {
+    protected PropertyDescriptor createPropertyDescriptor(
+        String name,
+        MethodDescriptor getterMethod,
+        MethodDescriptor setterMethod
+    ) {
         return new PropertyDescriptor(classDescriptor, name, getterMethod, setterMethod);
     }
 
@@ -159,17 +170,19 @@ public class Properties {
                 index++;
             }
 
-            Arrays.sort(allProperties, new Comparator<PropertyDescriptor>() {
-                @Override
-                public int compare(PropertyDescriptor pd1, PropertyDescriptor pd2) {
-                    return pd1.getName().compareTo(pd2.getName());
+            Arrays.sort(
+                allProperties,
+                new Comparator<PropertyDescriptor>() {
+                    @Override
+                    public int compare(PropertyDescriptor pd1, PropertyDescriptor pd2) {
+                        return pd1.getName().compareTo(pd2.getName());
+                    }
                 }
-            });
+            );
 
             this.allProperties = allProperties;
         }
 
         return allProperties;
     }
-
 }

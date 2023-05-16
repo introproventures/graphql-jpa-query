@@ -24,31 +24,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-
 class ResultStreamWrapper<T> {
-    
+
     @SuppressWarnings("unchecked")
-    public static <T> List<T> wrap(Stream<T> stream,
-                                   int size) {
-        return (List<T>) Proxy.newProxyInstance(ResultStreamWrapper.class.getClassLoader(), 
-                                                new Class[] { List.class }, 
-                                                new ListProxyInvocationHandler<T>(stream,
-                                                                                  size));
+    public static <T> List<T> wrap(Stream<T> stream, int size) {
+        return (List<T>) Proxy.newProxyInstance(
+            ResultStreamWrapper.class.getClassLoader(),
+            new Class[] { List.class },
+            new ListProxyInvocationHandler<T>(stream, size)
+        );
     }
-    
+
     @SuppressWarnings("unchecked")
-    public static <T> List<T> wrap(Collection<T> collection,
-                                   int size) {
-        return wrap(collection.stream(),
-                    size);
+    public static <T> List<T> wrap(Collection<T> collection, int size) {
+        return wrap(collection.stream(), size);
     }
-    
+
     static class ListProxyInvocationHandler<T> implements InvocationHandler {
+
         private final Stream<T> stream;
         private final int size;
-        
-        public ListProxyInvocationHandler(Stream<T> stream,
-                                          int size) {
+
+        public ListProxyInvocationHandler(Stream<T> stream, int size) {
             this.stream = stream;
             this.size = size;
         }
@@ -56,36 +53,30 @@ class ResultStreamWrapper<T> {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if ("size".equals(method.getName())) {
-                return size; 
-            }
-            else if("iterator".equals(method.getName())) {
-                return new ResultIteratorWrapper(stream.iterator(),
-                                                 size);
+                return size;
+            } else if ("iterator".equals(method.getName())) {
+                return new ResultIteratorWrapper(stream.iterator(), size);
             } else if ("equals".equals(method.getName())) {
                 // Only consider equal when proxies are identical.
                 return (proxy == args[0]);
-            }
-            else if ("hashCode".equals(method.getName())) {
+            } else if ("hashCode".equals(method.getName())) {
                 // Use hashCode of service locator proxy.
                 return System.identityHashCode(proxy);
-            }
-            else if ("spliterator".equals(method.getName())) {
+            } else if ("spliterator".equals(method.getName())) {
                 return stream.spliterator();
             }
             throw new UnsupportedOperationException(method + " is not supported");
         }
 
         class ResultIteratorWrapper implements Iterator<T> {
-            
+
             final Iterator<T> delegate;
             final int size;
             int current = 0;
-            
-            ResultIteratorWrapper(Iterator<T> delegate,
-                                  int size) {
+
+            ResultIteratorWrapper(Iterator<T> delegate, int size) {
                 this.delegate = delegate;
                 this.size = size;
-                
             }
 
             @Override
@@ -96,7 +87,7 @@ class ResultStreamWrapper<T> {
             @Override
             public T next() {
                 T result = delegate.next();
-                
+
                 try {
                     return result;
                 } finally {

@@ -1,10 +1,10 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
-import java.util.Objects;
 import jakarta.persistence.MappedSuperclass;
+import java.util.Objects;
 
 @MappedSuperclass
-public abstract class ActivitiEntityMetadata  {
+public abstract class ActivitiEntityMetadata {
 
     protected String serviceName;
     protected String serviceFullName;
@@ -13,15 +13,15 @@ public abstract class ActivitiEntityMetadata  {
     protected String appVersion;
     protected String serviceType;
 
-    public ActivitiEntityMetadata() {
+    public ActivitiEntityMetadata() {}
 
-    }
-
-    public ActivitiEntityMetadata(String serviceName,
-                                  String serviceFullName,
-                                  String serviceVersion,
-                                  String appName,
-                                  String appVersion) {
+    public ActivitiEntityMetadata(
+        String serviceName,
+        String serviceFullName,
+        String serviceVersion,
+        String appName,
+        String appVersion
+    ) {
         this.serviceName = serviceName;
         this.serviceFullName = serviceFullName;
         this.serviceVersion = serviceVersion;
@@ -84,18 +84,17 @@ public abstract class ActivitiEntityMetadata  {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ActivitiEntityMetadata other = (ActivitiEntityMetadata) obj;
-        return Objects.equals(appName, other.appName) && Objects.equals(appVersion, other.appVersion) && Objects.equals(
-                                                                                                                        serviceFullName,
-                                                                                                                        other.serviceFullName) && Objects.equals(serviceName,
-                                                                                                                                                                 other.serviceName) && Objects.equals(serviceType,
-                                                                                                                                                                                                      other.serviceType) && Objects.equals(serviceVersion,
-                                                                                                                                                                                                                                           other.serviceVersion);
+        return (
+            Objects.equals(appName, other.appName) &&
+            Objects.equals(appVersion, other.appVersion) &&
+            Objects.equals(serviceFullName, other.serviceFullName) &&
+            Objects.equals(serviceName, other.serviceName) &&
+            Objects.equals(serviceType, other.serviceType) &&
+            Objects.equals(serviceVersion, other.serviceVersion)
+        );
     }
 }

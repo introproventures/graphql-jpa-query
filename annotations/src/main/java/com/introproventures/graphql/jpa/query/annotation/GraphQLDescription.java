@@ -16,8 +16,8 @@
 package com.introproventures.graphql.jpa.query.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
@@ -25,14 +25,12 @@ import java.lang.annotation.Target;
 
 /**
  * Use this annotation on Java types or fields to provide QraphQLSchema descriptions for QraphQLSchemaBuilder
- * 
+ *
  * @author Igor Dianov
  *
  */
-@Target( { TYPE, FIELD, METHOD })
+@Target({ TYPE, FIELD, METHOD })
 @Retention(RUNTIME)
 public @interface GraphQLDescription {
-
     String value();
-
 }

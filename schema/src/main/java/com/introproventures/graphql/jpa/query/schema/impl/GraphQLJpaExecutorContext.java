@@ -16,9 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContext;
 import graphql.ExecutionInput;
@@ -32,13 +29,16 @@ import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrume
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import org.dataloader.DataLoaderRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaExecutorContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaExecutorContext.class);
 
     private final GraphQLSchema graphQLSchema;
     private final GraphQLExecutionInputFactory executionInputFactory;
@@ -69,20 +69,19 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         DataLoaderRegistry dataLoaderRegistry = newDataLoaderRegistry();
         GraphQLContext context = newGraphQLContext();
 
-        return executionInputFactory.create()
-                                    .dataLoaderRegistry(dataLoaderRegistry)
-                                    .context(context);
+        return executionInputFactory.create().dataLoaderRegistry(dataLoaderRegistry).context(context);
     }
 
     @Override
     public GraphQL.Builder newGraphQL() {
         Instrumentation instrumentation = newIstrumentation();
 
-        return GraphQL.newGraphQL(getGraphQLSchema())
-                      .instrumentation(instrumentation)
-                      .queryExecutionStrategy(queryExecutionStrategy.get())
-                      .mutationExecutionStrategy(mutationExecutionStrategy.get())
-                      .subscriptionExecutionStrategy(subscriptionExecutionStrategy.get());
+        return GraphQL
+            .newGraphQL(getGraphQLSchema())
+            .instrumentation(instrumentation)
+            .queryExecutionStrategy(queryExecutionStrategy.get())
+            .mutationExecutionStrategy(mutationExecutionStrategy.get())
+            .subscriptionExecutionStrategy(subscriptionExecutionStrategy.get());
     }
 
     public GraphQLContext newGraphQLContext() {
@@ -96,18 +95,20 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     public Instrumentation newIstrumentation() {
         DataLoaderDispatcherInstrumentationOptions options = dataLoaderDispatcherInstrumentationOptions.get();
 
-        DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation(options);
+        DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation(
+            options
+        );
 
-        List<Instrumentation> list = Arrays.asList(dispatcherInstrumentation,
-                                                   instrumentation.get());
+        List<Instrumentation> list = Arrays.asList(dispatcherInstrumentation, instrumentation.get());
 
         return new ChainedInstrumentation(list);
     }
 
     @Override
     public GraphQLSchema getGraphQLSchema() {
-        GraphQLCodeRegistry codeRegistry = graphQLSchema.getCodeRegistry()
-                                                        .transform(builder -> builder.fieldVisibility(graphqlFieldVisibility.get()));
+        GraphQLCodeRegistry codeRegistry = graphQLSchema
+            .getCodeRegistry()
+            .transform(builder -> builder.fieldVisibility(graphqlFieldVisibility.get()));
 
         return graphQLSchema.transform(builder -> builder.codeRegistry(codeRegistry));
     }
@@ -121,12 +122,10 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     }
 
     public interface IGraphQLSchemaStage {
-
         public IBuildStage graphQLSchema(GraphQLSchema graphQLSchema);
     }
 
     public interface IBuildStage {
-
         public IBuildStage executionInputFactory(GraphQLExecutionInputFactory executionInputFactory);
 
         public IBuildStage graphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility);
@@ -135,7 +134,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
 
         public IBuildStage graphqlContext(Supplier<GraphQLContext> graphqlContext);
 
-        public IBuildStage dataLoaderDispatcherInstrumentationOptions(Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions);
+        public IBuildStage dataLoaderDispatcherInstrumentationOptions(
+            Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions
+        );
 
         public IBuildStage dataLoaderRegistry(Supplier<DataLoaderRegistry> dataLoaderRegistry);
 
@@ -164,8 +165,7 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         private Supplier<ExecutionStrategy> mutationExecutionStrategy;
         private Supplier<ExecutionStrategy> subscriptionExecutionStrategy;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         @Override
         public IBuildStage graphQLSchema(GraphQLSchema graphQLSchema) {
@@ -198,7 +198,9 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         }
 
         @Override
-        public IBuildStage dataLoaderDispatcherInstrumentationOptions(Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions) {
+        public IBuildStage dataLoaderDispatcherInstrumentationOptions(
+            Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions
+        ) {
             this.dataLoaderDispatcherInstrumentationOptions = dataLoaderDispatcherInstrumentationOptions;
 
             return this;

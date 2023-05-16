@@ -1,14 +1,13 @@
 package com.introproventures.graphql.jpa.query.schema.model.uuid;
 
-import java.util.UUID;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.util.UUID;
 
 @Entity
 @GraphQLDescription("Database Thing with UUID field")
-
 public class Thing {
 
     @Id

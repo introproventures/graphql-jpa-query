@@ -16,7 +16,10 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenCode;
+
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
@@ -28,6 +31,7 @@ import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLSchema;
 import jakarta.persistence.EntityManager;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +40,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.BDDAssertions.thenCode;
-
 @SpringBootTest
 public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class TestConfiguration {
+
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
@@ -58,13 +59,12 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
                 .description("Books Example Schema");
         }
     }
-    
+
     @Autowired
     private GraphQLJpaSchemaBuilder builder;
 
     @BeforeEach
-    public void setup() {
-    }
+    public void setup() {}
 
     @Test
     public void correctlyDerivesSchemaFromGivenEntities() {
@@ -72,27 +72,25 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the result is returned")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the result is returned").isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Book").getArgument("id"))
-            .describedAs( "Ensure that identity can be queried on")
+            .describedAs("Ensure that identity can be queried on")
             .isNotNull();
-        
+
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Books").getArgument("where"))
-            .describedAs( "Ensure that collections can be queried on")
+            .describedAs("Ensure that collections can be queried on")
             .isNotNull();
 
         //then
         assertThat(schema.getQueryType().getFieldDefinition("Author").getArgument("id"))
-            .describedAs( "Ensure that collections can be queried on")
+            .describedAs("Ensure that collections can be queried on")
             .isNotNull();
 
         assertThat(schema.getQueryType().getFieldDefinition("Authors").getArgument("where"))
-            .describedAs( "Ensure that collections can be queried on")
+            .describedAs("Ensure that collections can be queried on")
             .isNotNull();
     }
 
@@ -102,34 +100,40 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the result is returned")
-            .isNotNull();
-        
-        assertThat(schema.getQueryType()
-                         .getFieldDefinitions()).extracting(GraphQLFieldDefinition::getName)
-                                                .containsOnly("Book", "Books", "Author", "Authors", "Thing", "Things", "SuperBook", "SuperBooks", "SuperAuthor", "SuperAuthors");
-    }    
-    
+        assertThat(schema).describedAs("Ensure the result is returned").isNotNull();
+
+        assertThat(schema.getQueryType().getFieldDefinitions())
+            .extracting(GraphQLFieldDefinition::getName)
+            .containsOnly(
+                "Book",
+                "Books",
+                "Author",
+                "Authors",
+                "Thing",
+                "Things",
+                "SuperBook",
+                "SuperBooks",
+                "SuperAuthor",
+                "SuperAuthors"
+            );
+    }
+
     @Test
     public void correctlyDerivesToManyOptionalFromGivenEntities() {
         //when
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the schema is generated")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the schema is generated").isNotNull();
 
         //then
-        assertThat(getFieldForType("author",
-                                   "Book",
-                                   schema))
-                .isPresent().get()
-                .extracting(it -> it.getArgument("optional"))
-                .extracting("defaultValue")
-                .extracting("value")
-                .isEqualTo(Boolean.FALSE);
+        assertThat(getFieldForType("author", "Book", schema))
+            .isPresent()
+            .get()
+            .extracting(it -> it.getArgument("optional"))
+            .extracting("defaultValue")
+            .extracting("value")
+            .isEqualTo(Boolean.FALSE);
     }
 
     @Test
@@ -138,19 +142,16 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         // then
-        assertThat(schema)
-            .describedAs("Ensure the schema is generated")
-            .isNotNull();
+        assertThat(schema).describedAs("Ensure the schema is generated").isNotNull();
 
         //then
-        assertThat(getFieldForType("books",
-                                   "Author",
-                                   schema))
-                .isPresent().get()
-                .extracting(it -> it.getArgument("optional"))
-                .extracting("defaultValue")
-                .extracting("value")
-                .isEqualTo(Boolean.TRUE);
+        assertThat(getFieldForType("books", "Author", schema))
+            .isPresent()
+            .get()
+            .extracting(it -> it.getArgument("optional"))
+            .extracting("defaultValue")
+            .extracting("value")
+            .isEqualTo(Boolean.TRUE);
     }
 
     @Test
@@ -162,16 +163,15 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         GraphQLSchema schema = builder.build();
 
         //then
-        Optional<GraphQLFieldDefinition> tags = getFieldForType("tags",
-                                                                "SuperBook",
-                                                                schema);
+        Optional<GraphQLFieldDefinition> tags = getFieldForType("tags", "SuperBook", schema);
         then(tags)
-                .isPresent().get()
-                .extracting(GraphQLFieldDefinition::getType)
-                .isInstanceOf(GraphQLList.class)
-                .extracting("wrappedType")
-                .extracting("name")
-                .isEqualTo("String");
+            .isPresent()
+            .get()
+            .extracting(GraphQLFieldDefinition::getType)
+            .isInstanceOf(GraphQLList.class)
+            .extracting("wrappedType")
+            .extracting("name")
+            .isEqualTo("String");
     }
 
     @Test
@@ -184,7 +184,7 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
     }
 
     @Test
-    public void testBuildSchema(){
+    public void testBuildSchema() {
         //given
         GraphQLSchema schema = builder.build();
 
@@ -192,17 +192,15 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
         assertThat(schema).isNotNull();
     }
 
-    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName,
-                                                             String type,
-                                                             GraphQLSchema schema) {
-        return schema.getQueryType()
-                .getFieldDefinition(type)
-                .getType()
-                .getChildren()
-                .stream()
-                .map(GraphQLFieldDefinition.class::cast)
-                .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
-                .findFirst();
+    private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName, String type, GraphQLSchema schema) {
+        return schema
+            .getQueryType()
+            .getFieldDefinition(type)
+            .getType()
+            .getChildren()
+            .stream()
+            .map(GraphQLFieldDefinition.class::cast)
+            .filter(graphQLFieldDefinition -> graphQLFieldDefinition.getName().equals(fieldName))
+            .findFirst();
     }
-
 }

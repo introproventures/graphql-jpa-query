@@ -1,11 +1,11 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchException;
+
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchException;
 
 class ResultStreamWrapperTest {
 
@@ -31,7 +31,6 @@ class ResultStreamWrapperTest {
 
         assertThat(result.equals(result)).isTrue();
     }
-
 
     @Test
     void hasSize() {

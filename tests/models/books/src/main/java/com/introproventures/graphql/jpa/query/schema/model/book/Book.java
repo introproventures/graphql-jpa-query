@@ -16,9 +16,6 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDescription;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
@@ -31,43 +28,47 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@EqualsAndHashCode(exclude= {"author", "tags", "publishers"})
+@EqualsAndHashCode(exclude = { "author", "tags", "publishers" })
 public class Book {
-	@Id
-	Long id;
 
-	String title;
+    @Id
+    Long id;
 
-	@GraphQLIgnoreOrder
-	@GraphQLIgnoreFilter
-	String description;
-	
-	@GraphQLDescription("The price of the book visible only by authorized users")
-	Double price;
-	
-	@ElementCollection(fetch = FetchType.LAZY)
-	@GraphQLDescription("A set of user-defined tags")
-	private Set<String> tags = new LinkedHashSet<>();	
+    String title;
 
-	@ManyToOne(fetch=FetchType.LAZY, optional = false)
-	Author author;
+    @GraphQLIgnoreOrder
+    @GraphQLIgnoreFilter
+    String description;
 
-	@Enumerated(EnumType.STRING)
-	Genre genre;
-	
+    @GraphQLDescription("The price of the book visible only by authorized users")
+    Double price;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @GraphQLDescription("A set of user-defined tags")
+    private Set<String> tags = new LinkedHashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    Author author;
+
+    @Enumerated(EnumType.STRING)
+    Genre genre;
+
     Date publicationDate;
-    
+
     @ElementCollection(fetch = FetchType.LAZY)
     Set<Publisher> publishers;
 
     @Transient
-	@GraphQLIgnore
-    public String getAuthorName(){
-    	return author.getName();
-	}
+    @GraphQLIgnore
+    public String getAuthorName() {
+        return author.getName();
+    }
 }

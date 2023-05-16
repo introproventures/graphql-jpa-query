@@ -16,12 +16,12 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import jakarta.persistence.metamodel.Attribute;
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jakarta.persistence.metamodel.Attribute;
 
 class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
 
@@ -31,7 +31,6 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Criteria {
-
         /**
          * less than (numbers, dates)
          */
@@ -68,9 +67,10 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
         CASE,
         /**
          * case insensitive match
-         * <pre>LOWER(field) = LOWER(SEARCH)</pre> 
+         * <pre>LOWER(field) = LOWER(SEARCH)</pre>
          */
-        LOWER, EQ_,
+        LOWER,
+        EQ_,
         /**
          * end of the string matches, case sensitive
          */
@@ -85,7 +85,7 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          */
         STARTS,
         /**
-         * beginning of string matches, case insensitive   
+         * beginning of string matches, case insensitive
          * <pre>LIKE SEARCH%</pre>
          */
         STARTS_,
@@ -95,7 +95,7 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          */
         LIKE,
         /**
-         * any part of the string matches, case insensitive   
+         * any part of the string matches, case insensitive
          * <pre>LIKE %SEARCH%</pre>
          */
         LIKE_,
@@ -132,12 +132,13 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
          * JPA's LOCATE predicate for attributes annotated with @Convert
          */
         LOCATE;
-        
-        private static Set<String> names = EnumSet.allOf(Criteria.class)
-                                                  .stream()
-                                                  .map(it -> it.name().toString())
-                                                  .collect(Collectors.toSet());
-        
+
+        private static Set<String> names = EnumSet
+            .allOf(Criteria.class)
+            .stream()
+            .map(it -> it.name().toString())
+            .collect(Collectors.toSet());
+
         public static Set<String> names() {
             return names;
         }
@@ -182,10 +183,8 @@ class PredicateFilter implements Comparable<PredicateFilter>, Serializable {
     public int compareTo(PredicateFilter o) {
         return this.getField().compareTo(o.getField());
     }
-    
-    public boolean anyMatch(Criteria...criterias) {
-        return Stream.of(criterias)
-                     .anyMatch(criteria -> this.getCriterias()
-                                               .contains(criteria));
-    }    
+
+    public boolean anyMatch(Criteria... criterias) {
+        return Stream.of(criterias).anyMatch(criteria -> this.getCriterias().contains(criteria));
+    }
 }

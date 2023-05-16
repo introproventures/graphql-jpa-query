@@ -12,27 +12,27 @@ import lombok.Data;
 public class ParentCalculatedEntity {
 
     private Integer parentField; // persistent property
-    
+
     @GraphQLDescription("parentTransientModifier")
     private transient String parentTransientModifier; // transient property
 
     @GraphQLIgnore
     private transient String parentTransientModifierGraphQLIgnore; // transient property
-    
+
     @Transient
     private String parentTransient; // transient property
 
     @GraphQLIgnore
     @Transient
     private String parentTransientGraphQLIgnore; // transient property
-    
-    @GraphQLIgnore
-    private String parentGraphQLIgnore; 
-    
-    @Transient // transient getter property
-    private String parentTransientGetter; 
 
-    private String parentGraphQLIgnoreGetter; 
+    @GraphQLIgnore
+    private String parentGraphQLIgnore;
+
+    @Transient // transient getter property
+    private String parentTransientGetter;
+
+    private String parentGraphQLIgnoreGetter;
 
     private String parentTransientGraphQLIgnoreGetter;
 
@@ -42,15 +42,14 @@ public class ParentCalculatedEntity {
     public String getParentTransientGetter() {
         return parentTransientGetter;
     }
-    
+
     @GraphQLIgnore
     public String getParentTransientGraphQLIgnoreGetter() {
         return parentTransientGraphQLIgnoreGetter;
     }
-    
-    @GraphQLIgnore 
+
+    @GraphQLIgnore
     public String getParentGraphQLIgnoreGetter() {
         return parentGraphQLIgnoreGetter;
     }
-    
 }

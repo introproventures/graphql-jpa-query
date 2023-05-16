@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix="spring.graphql.jpa.query")
+@ConfigurationProperties(prefix = "spring.graphql.jpa.query")
 @Validated
 public class GraphQLJpaQueryProperties {
 
@@ -28,7 +28,7 @@ public class GraphQLJpaQueryProperties {
      */
     @NotEmpty
     private String name = "JPA";
-    
+
     /**
      * Provides the description of GraphQL schema. Cannot be null.
      */
@@ -54,7 +54,7 @@ public class GraphQLJpaQueryProperties {
      * Enable or disable GraphQL Relay Connection support. Default is false
      */
     private boolean enableRelay = false;
-    
+
     /**
      * Enable or disable QraphQL module services.
      */
@@ -68,11 +68,10 @@ public class GraphQLJpaQueryProperties {
     private String path;
 
     /**
-     * Default Constructor 
+     * Default Constructor
      */
-    GraphQLJpaQueryProperties() {
-    }
-    
+    GraphQLJpaQueryProperties() {}
+
     /**
      * @return the name
      */
@@ -157,24 +156,19 @@ public class GraphQLJpaQueryProperties {
         this.path = path;
     }
 
-    
     public boolean isToManyDefaultOptional() {
         return toManyDefaultOptional;
     }
 
-    
     public void setToManyDefaultOptional(boolean toManyDefaultOptional) {
         this.toManyDefaultOptional = toManyDefaultOptional;
     }
 
-    
     public boolean isEnableRelay() {
         return enableRelay;
     }
 
-    
     public void setEnableRelay(boolean enableRelay) {
         this.enableRelay = enableRelay;
     }
-    
 }

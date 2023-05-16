@@ -15,7 +15,6 @@
  */
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import java.util.function.Supplier;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutionInputFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutorContextFactory;
@@ -27,6 +26,7 @@ import graphql.execution.ExecutionStrategy;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -37,24 +37,33 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.context.annotation.Bean;
 import org.springframework.graphql.ExecutionGraphQlService;
 
-@AutoConfiguration(after = {
-    HibernateJpaAutoConfiguration.class,
-    GraphQLJpaQueryGraphQlExecutionAutoConfiguration.class,
-    GraphQLSchemaAutoConfiguration.class
-})
-@ConditionalOnClass({GraphQL.class, GraphQLExecutor.class})
-@ConditionalOnProperty(prefix = "spring.graphql.jpa.query", name = {"enabled", "executor.enabled"}, havingValue="true", matchIfMissing=true)
+@AutoConfiguration(
+    after = {
+        HibernateJpaAutoConfiguration.class,
+        GraphQLJpaQueryGraphQlExecutionAutoConfiguration.class,
+        GraphQLSchemaAutoConfiguration.class,
+    }
+)
+@ConditionalOnClass({ GraphQL.class, GraphQLExecutor.class })
+@ConditionalOnProperty(
+    prefix = "spring.graphql.jpa.query",
+    name = { "enabled", "executor.enabled" },
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class GraphQLJpaQueryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public GraphQLExecutorContextFactory graphQLJpaExecutorContextFactory(ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
-                                                                          ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
-                                                                          ObjectProvider<Supplier<Instrumentation>> instrumentation,
-                                                                          ObjectProvider<Supplier<GraphQLContext>> graphqlContext,
-                                                                          ObjectProvider<Supplier<ExecutionStrategy>> queryExecutionStrategy,
-                                                                          ObjectProvider<Supplier<ExecutionStrategy>> mutationExecutionStrategy,
-                                                                          ObjectProvider<Supplier<ExecutionStrategy>> subscriptionExecutionStrategy) {
+    public GraphQLExecutorContextFactory graphQLJpaExecutorContextFactory(
+        ObjectProvider<GraphQLExecutionInputFactory> graphQLExecutionInputFactory,
+        ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility,
+        ObjectProvider<Supplier<Instrumentation>> instrumentation,
+        ObjectProvider<Supplier<GraphQLContext>> graphqlContext,
+        ObjectProvider<Supplier<ExecutionStrategy>> queryExecutionStrategy,
+        ObjectProvider<Supplier<ExecutionStrategy>> mutationExecutionStrategy,
+        ObjectProvider<Supplier<ExecutionStrategy>> subscriptionExecutionStrategy
+    ) {
         GraphQLJpaExecutorContextFactory bean = new GraphQLJpaExecutorContextFactory();
 
         graphQLExecutionInputFactory.ifAvailable(bean::withExecutionInputFactory);
@@ -71,9 +80,10 @@ public class GraphQLJpaQueryAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ExecutionGraphQlService.class)
     @ConditionalOnBean(GraphQLSchema.class)
-    public GraphQLExecutor graphQLJpaExecutor(GraphQLSchema graphQLSchema,
-                                              GraphQLExecutorContextFactory graphQLExecutorContextFactory) {
-        return new GraphQLJpaExecutor(graphQLSchema,
-                                      graphQLExecutorContextFactory);
+    public GraphQLExecutor graphQLJpaExecutor(
+        GraphQLSchema graphQLSchema,
+        GraphQLExecutorContextFactory graphQLExecutorContextFactory
+    ) {
+        return new GraphQLJpaExecutor(graphQLSchema, graphQLExecutorContextFactory);
     }
 }

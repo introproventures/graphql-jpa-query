@@ -40,31 +40,35 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 
 @AutoConfiguration(before = GraphQlAutoConfiguration.class, after = GraphQLSchemaAutoConfiguration.class)
-@ConditionalOnClass({GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class})
-@ConditionalOnProperty(name="spring.graphql.jpa.query.enabled", havingValue="true", matchIfMissing=true)
+@ConditionalOnClass({ GraphQL.class, GraphQlSource.class, GraphQLSchemaConfigurer.class })
+@ConditionalOnProperty(name = "spring.graphql.jpa.query.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(GraphQlProperties.class)
 public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
 
     @Bean
     @ConditionalOnGraphQlSchema
-    GraphQLSchemaConfigurer graphQlSourceSchemaConfigurer(ListableBeanFactory beanFactory,
-                                                          ResourcePatternResolver resourcePatternResolver,
-                                                          GraphQlProperties properties,
-                                                          ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
-                                                          ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,
-                                                          ObjectProvider<Instrumentation> instrumentations,
-                                                          ObjectProvider<RuntimeWiringConfigurer> wiringConfigurers,
-                                                          ObjectProvider<GraphQlSourceBuilderCustomizer> sourceCustomizers) {
+    GraphQLSchemaConfigurer graphQlSourceSchemaConfigurer(
+        ListableBeanFactory beanFactory,
+        ResourcePatternResolver resourcePatternResolver,
+        GraphQlProperties properties,
+        ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
+        ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,
+        ObjectProvider<Instrumentation> instrumentations,
+        ObjectProvider<RuntimeWiringConfigurer> wiringConfigurers,
+        ObjectProvider<GraphQlSourceBuilderCustomizer> sourceCustomizers
+    ) {
         return registry -> {
             GraphQlAutoConfiguration graphQlAutoConfiguration = new GraphQlAutoConfiguration(beanFactory);
 
-            GraphQlSource graphQlSource = graphQlAutoConfiguration.graphQlSource(resourcePatternResolver,
-                                                                                 properties,
-                                                                                 exceptionResolvers,
-                                                                                 subscriptionExceptionResolvers,
-                                                                                 instrumentations,
-                                                                                 wiringConfigurers,
-                                                                                 sourceCustomizers);
+            GraphQlSource graphQlSource = graphQlAutoConfiguration.graphQlSource(
+                resourcePatternResolver,
+                properties,
+                exceptionResolvers,
+                subscriptionExceptionResolvers,
+                instrumentations,
+                wiringConfigurers,
+                sourceCustomizers
+            );
             registry.register(graphQlSource.schema());
         };
     }
@@ -72,21 +76,21 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GraphQlSource.class)
     @ConditionalOnBean(GraphQLSchema.class)
-    public GraphQlSource graphQlSource(GraphQLSchema graphQLSchema,
-                                       ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
-                                       ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,
-                                       ObjectProvider<Instrumentation> instrumentations,
-                                       ObjectProvider<Consumer<GraphQL.Builder>> configurers) {
+    public GraphQlSource graphQlSource(
+        GraphQLSchema graphQLSchema,
+        ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
+        ObjectProvider<SubscriptionExceptionResolver> subscriptionExceptionResolvers,
+        ObjectProvider<Instrumentation> instrumentations,
+        ObjectProvider<Consumer<GraphQL.Builder>> configurers
+    ) {
         GraphQlSource.Builder<?> builder = GraphQlSource.builder(graphQLSchema);
 
-        builder.exceptionResolvers(exceptionResolvers.orderedStream().collect(Collectors.toList()))
-               .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream()
-                                                                             .collect(Collectors.toList()))
-               .instrumentation(instrumentations.orderedStream()
-                                                .collect(Collectors.toList()));
+        builder
+            .exceptionResolvers(exceptionResolvers.orderedStream().collect(Collectors.toList()))
+            .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream().collect(Collectors.toList()))
+            .instrumentation(instrumentations.orderedStream().collect(Collectors.toList()));
 
-        configurers.orderedStream()
-                   .forEach(builder::configureGraphQl);
+        configurers.orderedStream().forEach(builder::configureGraphQl);
 
         return builder.build();
     }
@@ -96,5 +100,4 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     public JavaScalarsRuntimeWiringConfigurer javaScalarsRuntimeWiringConfigurer() {
         return new JavaScalarsRuntimeWiringConfigurer();
     }
-
 }

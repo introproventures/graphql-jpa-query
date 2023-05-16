@@ -15,6 +15,7 @@ public class GraphQLExecutorExperimentalTests extends GraphQLExecutorExperimenta
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class Application {
+
         @Bean
         public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
             return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
@@ -22,14 +23,11 @@ public class GraphQLExecutorExperimentalTests extends GraphQLExecutorExperimenta
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
-            
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
                 .enableSubscription(true)
                 .enableResultStream(false);
         }
-        
     }
-    
 }

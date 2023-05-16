@@ -45,6 +45,7 @@ public class GraphQLJpaQueryAutoConfigurationTest {
 
     @TestConfiguration
     static class Application {
+
         @MockBean
         private GraphQLExecutionInputFactory mockExecutionInputFactory;
 
@@ -53,61 +54,58 @@ public class GraphQLJpaQueryAutoConfigurationTest {
 
         @MockBean
         private Supplier<GraphqlFieldVisibility> mockGraphqlFieldVisibility;
-        
+
         @MockBean
         private Supplier<GraphQLContext> graphqlContext;
-        
+
         @MockBean
         private RestrictedKeysProvider restrictedKeysProvider;
 
         @MockBean
         private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
     }
-    
-    @Autowired(required=false)
+
+    @Autowired(required = false)
     private GraphQLExecutor graphQLExecutor;
 
-    @Autowired(required=false)
+    @Autowired(required = false)
     private GraphQLJpaSchemaBuilder graphQLSchemaBuilder;
-    
-    @Autowired(required=false)
-    private GraphQLJpaExecutorContextFactory executorContextFactory;   
+
+    @Autowired(required = false)
+    private GraphQLJpaExecutorContextFactory executorContextFactory;
 
     @Autowired
-    private ObjectProvider<GraphQLExecutionInputFactory> executionInputFactory;   
+    private ObjectProvider<GraphQLExecutionInputFactory> executionInputFactory;
 
     @Autowired
-    private ObjectProvider<Supplier<Instrumentation>> instrumentation;   
-    
-    @Autowired
-    private ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility;   
+    private ObjectProvider<Supplier<Instrumentation>> instrumentation;
 
     @Autowired
-    private ObjectProvider<Supplier<GraphQLContext>> graphqlContext;   
+    private ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility;
 
     @Autowired
-    private ObjectProvider<RestrictedKeysProvider> restrictedKeysObjectProvider;   
-    
+    private ObjectProvider<Supplier<GraphQLContext>> graphqlContext;
+
+    @Autowired
+    private ObjectProvider<RestrictedKeysProvider> restrictedKeysObjectProvider;
+
     @Autowired
     private GraphQLSchema graphQLSchema;
 
     @Autowired
     private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
-    
+
     @Test
     public void contextIsAutoConfigured() {
-        assertThat(graphQLExecutor).isNotNull()
-                                   .isInstanceOf(GraphQLJpaExecutor.class);
-        
-        assertThat(graphQLSchemaBuilder).isNotNull()
-                                        .isInstanceOf(GraphQLJpaSchemaBuilder.class);
+        assertThat(graphQLExecutor).isNotNull().isInstanceOf(GraphQLJpaExecutor.class);
 
-        assertThat(GraphQLJpaSchemaBuilder.class.cast(graphQLSchemaBuilder)
-                                                .getRestrictedKeysProvider()).isEqualTo(restrictedKeysObjectProvider.getObject());
-        
-        assertThat(executorContextFactory).isNotNull()
-                                          .isInstanceOf(GraphQLJpaExecutorContextFactory.class);
-        
+        assertThat(graphQLSchemaBuilder).isNotNull().isInstanceOf(GraphQLJpaSchemaBuilder.class);
+
+        assertThat(GraphQLJpaSchemaBuilder.class.cast(graphQLSchemaBuilder).getRestrictedKeysProvider())
+            .isEqualTo(restrictedKeysObjectProvider.getObject());
+
+        assertThat(executorContextFactory).isNotNull().isInstanceOf(GraphQLJpaExecutorContextFactory.class);
+
         assertThat(executionInputFactory.getIfAvailable()).isNotNull();
         assertThat(instrumentation.getIfAvailable()).isNotNull();
         assertThat(graphqlFieldVisibility.getIfAvailable()).isNotNull();
@@ -119,8 +117,8 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         assertThat(executorContextFactory.getGraphqlContext()).isEqualTo(graphqlContext.getObject());
 
         assertThat(graphQLSchema.getQueryType())
-                                .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
-                                .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
+            .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
+            .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
         verify(graphQLJPASchemaBuilderCustomizer).customize(eq(graphQLSchemaBuilder));
     }

@@ -23,9 +23,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
- * 
- * You can configure GraphQL JPA Query properties in application.yml 
- * 
+ *
+ * You can configure GraphQL JPA Query properties in application.yml
+ *
  * @author Igor Dianov
  *
  */
@@ -37,7 +37,6 @@ public class Application {
     }
 
     @Configuration
-    @EnableGraphQLJpaQuerySchema(basePackageClasses=Character.class)
-    static class StarwarsJpaModelConfiguration {
-    }
+    @EnableGraphQLJpaQuerySchema(basePackageClasses = Character.class)
+    static class StarwarsJpaModelConfiguration {}
 }

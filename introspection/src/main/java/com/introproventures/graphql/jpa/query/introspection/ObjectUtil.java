@@ -7,13 +7,13 @@ import java.util.stream.Stream;
 public class ObjectUtil {
 
     public static boolean isAnyNull(Object... objects) {
-        if(objects == null) {
+        if (objects == null) {
             return true;
         }
-        
+
         return Stream.of(objects).anyMatch(Objects::isNull);
     }
-    
+
     public static boolean isEquals(Object object1, Object object2) {
         if (object1 == object2) {
             return true;
@@ -55,6 +55,5 @@ public class ObjectUtil {
             return Arrays.equals((boolean[]) object1, (boolean[]) object2);
         }
         return object1.equals(object2);
-    }    
-
+    }
 }

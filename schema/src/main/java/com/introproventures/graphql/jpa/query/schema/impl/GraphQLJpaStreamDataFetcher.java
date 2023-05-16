@@ -19,34 +19,33 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.extr
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getPageArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.removeArgument;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 
 /**
- * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions   
- * 
+ * JPA Query DataFetcher implementation that fetches entities with page and where criteria expressions
+ *
  * @author Igor Dianov
  *
  */
 class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
-    private final static Logger logger = LoggerFactory.getLogger(GraphQLJpaStreamDataFetcher.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaStreamDataFetcher.class);
 
     private final GraphQLJpaQueryFactory queryFactory;
 
     private GraphQLJpaStreamDataFetcher(Builder builder) {
         this.queryFactory = builder.queryFactory;
     }
-    
+
     @Override
     public Object get(DataFetchingEnvironment environment) {
         Field field = environment.getField();
@@ -55,13 +54,12 @@ class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
         PageArgument page = extractPageArgument(environment, pageArgument, 100);
         field = removeArgument(field, pageArgument);
 
-        // Let's execute query and get results via stream 
+        // Let's execute query and get results via stream
         Stream<Object> resultStream = queryFactory.queryResultStream(environment, 100, Collections.emptyList());
-        
-        return Flux.fromIterable(ResultStreamWrapper.wrap(resultStream, 
-                                                          page.getLimit()));
+
+        return Flux.fromIterable(ResultStreamWrapper.wrap(resultStream, page.getLimit()));
     }
-    
+
     /**
      * Creates builder to build {@link GraphQLJpaStreamDataFetcher}.
      * @return created builder
@@ -74,12 +72,11 @@ class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
      * Definition of a stage for staged builder.
      */
     public interface IQueryFactoryStage {
-
         /**
-        * Builder method for queryFactory parameter.
-        * @param queryFactory field to set
-        * @return builder
-        */
+         * Builder method for queryFactory parameter.
+         * @param queryFactory field to set
+         * @return builder
+         */
         public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory);
     }
 
@@ -87,11 +84,10 @@ class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
      * Definition of a stage for staged builder.
      */
     public interface IBuildStage {
-
         /**
-        * Builder method of the builder.
-        * @return built class
-        */
+         * Builder method of the builder.
+         * @return built class
+         */
         public GraphQLJpaStreamDataFetcher build();
     }
 
@@ -102,8 +98,7 @@ class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
 
         private GraphQLJpaQueryFactory queryFactory;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         @Override
         public IBuildStage withQueryFactory(GraphQLJpaQueryFactory queryFactory) {
@@ -116,5 +111,4 @@ class GraphQLJpaStreamDataFetcher implements DataFetcher<Object> {
             return new GraphQLJpaStreamDataFetcher(this);
         }
     }
-
 }

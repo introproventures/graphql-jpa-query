@@ -1,7 +1,7 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
-
 public final class PageArgument {
+
     private int start;
     private int limit;
 
@@ -13,12 +13,12 @@ public final class PageArgument {
     public int getStart() {
         return start;
     }
-    
+
     public int getLimit() {
         return limit;
     }
-    
+
     public int getOffset() {
-        return (getStart() - 1) * getLimit();        
+        return (getStart() - 1) * getLimit();
     }
-}    
+}

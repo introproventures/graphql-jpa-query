@@ -28,9 +28,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(exclude={"books","phoneNumbers"}) // Fixes NPE in Hibernate when initializing loaded collections #1
+@EqualsAndHashCode(exclude = { "books", "phoneNumbers" }) // Fixes NPE in Hibernate when initializing loaded collections #1
 public class SuperAuthor extends BaseAuthor {
 
-	String name;
-
+    String name;
 }

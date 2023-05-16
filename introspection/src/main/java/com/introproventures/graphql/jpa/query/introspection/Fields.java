@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.introspection;
 
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -9,7 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Fields {
-    
+
     public static final String SERIAL_VERSION_UID = "serialVersionUID";
 
     protected final ClassDescriptor classDescriptor;
@@ -28,8 +27,9 @@ public class Fields {
         boolean scanStatics = classDescriptor.isScanStatics();
         Class<?> type = classDescriptor.getType();
 
-        Field[] fields =
-                scanAccessible ? ReflectionUtil.getAccessibleFields(type) : ReflectionUtil.getAllFieldsOfClass(type);
+        Field[] fields = scanAccessible
+            ? ReflectionUtil.getAccessibleFields(type)
+            : ReflectionUtil.getAllFieldsOfClass(type);
 
         Map<String, FieldDescriptor> map = new LinkedHashMap<>(fields.length);
 
@@ -43,7 +43,7 @@ public class Fields {
             if (!scanStatics && Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            
+
             map.put(fieldName, createFieldDescriptor(field));
         }
 
@@ -68,17 +68,19 @@ public class Fields {
                 index++;
             }
 
-            Arrays.sort(allFields, new Comparator<FieldDescriptor>() {
-                @Override
-                public int compare(FieldDescriptor fd1, FieldDescriptor fd2) {
-                    return fd1.getField().getName().compareTo(fd2.getField().getName());
+            Arrays.sort(
+                allFields,
+                new Comparator<FieldDescriptor>() {
+                    @Override
+                    public int compare(FieldDescriptor fd1, FieldDescriptor fd2) {
+                        return fd1.getField().getName().compareTo(fd2.getField().getName());
+                    }
                 }
-            });
+            );
 
             this.allFields = allFields;
         }
 
         return allFields;
     }
-
 }

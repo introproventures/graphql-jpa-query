@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.schema.relay;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

@@ -19,7 +19,5 @@ package com.introproventures.graphql.jpa.query.schema;
 import graphql.schema.GraphQLSchema;
 
 public interface GraphQLExecutorContextFactory {
-
     GraphQLExecutorContext newExecutorContext(GraphQLSchema graphQLSchema);
-
 }

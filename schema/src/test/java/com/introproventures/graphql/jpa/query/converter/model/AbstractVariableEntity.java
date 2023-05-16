@@ -1,13 +1,13 @@
 package com.introproventures.graphql.jpa.query.converter.model;
 
-import java.util.Date;
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import java.util.Date;
+import java.util.Objects;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @MappedSuperclass
@@ -30,33 +30,30 @@ public abstract class AbstractVariableEntity extends ActivitiEntityMetadata {
     private String executionId;
 
     @Convert(converter = VariableValueJsonConverter.class)
-    @Column(columnDefinition="text")
+    @Column(columnDefinition = "text")
     private VariableValue<?> value;
 
     private Boolean markedAsDeleted = false;
-    
+
     private String processInstanceId;
 
-    public AbstractVariableEntity() {
-    }
+    public AbstractVariableEntity() {}
 
-    public AbstractVariableEntity(Long id,
-                          String type,
-                          String name,
-                          String processInstanceId,
-                          String serviceName,
-                          String serviceFullName,
-                          String serviceVersion,
-                          String appName,
-                          String appVersion,
-                          Date createTime,
-                          Date lastUpdatedTime,
-                          String executionId) {
-        super(serviceName,
-              serviceFullName,
-              serviceVersion,
-              appName,
-              appVersion);
+    public AbstractVariableEntity(
+        Long id,
+        String type,
+        String name,
+        String processInstanceId,
+        String serviceName,
+        String serviceFullName,
+        String serviceVersion,
+        String appName,
+        String appVersion,
+        Date createTime,
+        Date lastUpdatedTime,
+        String executionId
+    ) {
+        super(serviceName, serviceFullName, serviceVersion, appName, appVersion);
         this.id = id;
         this.type = type;
         this.name = name;
@@ -126,12 +123,10 @@ public abstract class AbstractVariableEntity extends ActivitiEntityMetadata {
         this.markedAsDeleted = markedAsDeleted;
     }
 
-    
     public String getProcessInstanceId() {
         return processInstanceId;
     }
 
-    
     public void setProcessInstanceId(String processInstanceId) {
         this.processInstanceId = processInstanceId;
     }
@@ -146,13 +141,10 @@ public abstract class AbstractVariableEntity extends ActivitiEntityMetadata {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         AbstractVariableEntity other = (AbstractVariableEntity) obj;
         return Objects.equals(id, other.id);
     }
- }
+}

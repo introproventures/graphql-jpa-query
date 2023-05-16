@@ -13,8 +13,9 @@ public class SubscriptionController {
 
     @SubscriptionMapping
     Flux<String> greetings(@Argument String name) {
-      return Flux.fromStream(Stream.generate(() -> "Hello, " + name + "@ " + Instant.now()))
-                 .delayElements(Duration.ofMillis(100))
-                 .take(10);
+        return Flux
+            .fromStream(Stream.generate(() -> "Hello, " + name + "@ " + Instant.now()))
+            .delayElements(Duration.ofMillis(100))
+            .take(10);
     }
 }

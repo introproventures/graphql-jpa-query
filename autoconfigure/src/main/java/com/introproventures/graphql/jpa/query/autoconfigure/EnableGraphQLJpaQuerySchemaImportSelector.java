@@ -1,12 +1,11 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import org.springframework.context.annotation.ImportSelector;
-import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.core.type.AnnotationMetadata;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.type.AnnotationMetadata;
 
 class EnableGraphQLJpaQuerySchemaImportSelector implements ImportSelector {
 
@@ -15,14 +14,15 @@ class EnableGraphQLJpaQuerySchemaImportSelector implements ImportSelector {
     @Override
     public String[] selectImports(AnnotationMetadata importingClassMetadata) {
         AnnotationAttributes attributes = AnnotationAttributes.fromMap(
-                importingClassMetadata.getAnnotationAttributes(
-                        EnableGraphQLJpaQuerySchema.class.getName(), false));
+            importingClassMetadata.getAnnotationAttributes(EnableGraphQLJpaQuerySchema.class.getName(), false)
+        );
 
         if (attributes != null) {
-            Stream.of(attributes.getClassArray("basePackageClasses"))
-                  .map(Class::getPackage)
-                  .map(Package::getName)
-                  .forEach(packageNames::add);
+            Stream
+                .of(attributes.getClassArray("basePackageClasses"))
+                .map(Class::getPackage)
+                .map(Package::getName)
+                .forEach(packageNames::add);
         }
 
         return new String[0];
@@ -31,5 +31,4 @@ class EnableGraphQLJpaQuerySchemaImportSelector implements ImportSelector {
     static List<String> getPackageNames() {
         return packageNames;
     }
-
 }
