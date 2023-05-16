@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.introproventures</groupId>
+    <artifactId>graphql-jpa-query-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../build</relativePath>
+  </parent>
+
+  <artifactId>graphql-jpa-query-tests</artifactId>
+  <packaging>pom</packaging>
+
+  <description>
+    Provides GraphQL JPA Query Integration Tests Support
+  </description>
+
+  <modules>
+    <module>models</module>
+    <module>relay</module>
+    <module>multiple-datasources</module>
+    <module>starwars</module>
+    <module>boot-starter</module>
+    <module>web</module>
+  </modules>
+
+</project>

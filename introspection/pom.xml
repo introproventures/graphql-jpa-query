@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.introproventures</groupId>
+    <artifactId>graphql-jpa-query-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../build</relativePath>
+  </parent>
+  <artifactId>graphql-jpa-query-introspection</artifactId>
+
+  <description>
+    Provides Java Class Introspection Support for JPA Entities
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-annotations</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

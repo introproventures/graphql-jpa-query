@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>graphql-jpa-query-scalars</artifactId>
+  <name>graphql-jpa-query-scalars</name>
+
+  <description>
+    Provides GraphQL JPA Query Java Scalar Registry Support
+  </description>
+
+  <parent>
+    <groupId>com.introproventures</groupId>
+    <artifactId>graphql-jpa-query-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../build</relativePath>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java-extended-scalars</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+  </dependencies>
+
+</project>

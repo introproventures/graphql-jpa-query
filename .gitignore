@@ -1,7 +1,6 @@
 # Eclipse
 .project/
 .settings/
-build/
 .factorypath
 
 # Intellij

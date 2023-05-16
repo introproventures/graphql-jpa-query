@@ -1,0 +1,38 @@
+spring:
+  h2:
+    console.enabled: true
+  jpa:
+    open-in-view: false
+    defer-datasource-initialization: true
+  graphql:
+    graphiql:
+      enabled: true
+    jpa:
+      query:
+        name: Query
+        description: Combined GraphQL Jpa Query for Starwars and Books Example
+        use-distinct-parameter: true
+        enabled: true
+
+starwars:
+  hikari:
+      minimum-idle: 1
+      maximum-pool-size: 20
+  jdbcUrl: jdbc:h2:mem:starwars;DB_CLOSE_ON_EXIT=FALSE
+  username: sa
+  password:
+  driverClassName: org.h2.Driver
+
+books:
+  hikari:
+      minimum-idle: 1
+      maximum-pool-size: 20
+  jdbcUrl: jdbc:h2:mem:books;DB_CLOSE_ON_EXIT=FALSE
+  username: sa
+  password:
+  driverClassName: org.h2.Driver
+
+logging:
+  level:
+    com.introproventures.graphql.jpa.query.schema: DEBUG
+    com.introproventures.graphql.jpa.query.example: DEBUG

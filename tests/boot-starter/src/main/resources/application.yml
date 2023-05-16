@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate.ddl-auto: create-drop
+    show-sql: true
+    defer-datasource-initialization: true
+  h2:
+    console.enabled: true
+
+  graphql:
+    graphiql:
+      enabled: true
+    jpa:
+      query:
+        name: GraphQLBooks
+        description: GraphQL Books Schema Description
+        enabled: true
+  sql:
+    init:
+      data-locations:
+        - classpath:books.sql
