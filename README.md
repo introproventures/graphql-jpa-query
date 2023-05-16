@@ -1,4 +1,4 @@
-GraphQL Query Api for JPA Entity Models [![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com/?stack=https://raw.githubusercontent.com/introproventures/graphql-jpa-query/master/graphql-jpa-query-example-simple/docker-compose.yml&stack_name=graphhql)
+GraphQL Query Api for JPA Entity Models
 ===============
 
 [![CI](https://github.com/introproventures/graphql-jpa-query/actions/workflows/build.yml/badge.svg)](https://github.com/introproventures/graphql-jpa-query/actions/workflows/build.yml)
@@ -38,13 +38,16 @@ Supported Apis
 * graphql-java 13 for 0.4.x versions
 * spring-boot 2.6.x for 0.4.x versions
 * spring-boot 2.7.x for 0.5.x versions
+* spring-boot 3.0.x for 1.0.x versions
 * spring-graphql 1.0.x for 0.5.2+ versions
+* spring-graphql 1.1.x for 1.0.0+ versions
 
 Tested using JDK Versions
 ----------------------
 * Jdk 8
 * Jdk 11
 * Jdk 17
+* Jdk 19
 
 Modules
 -------
