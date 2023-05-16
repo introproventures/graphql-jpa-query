@@ -25,9 +25,9 @@
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
     <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
-    <plugin.prettier.goal>check</plugin.prettier.goal>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <skipPrettier>false</skipPrettier>
   </properties>
 
   <modules>
@@ -168,32 +168,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>com.hubspot.maven.plugins</groupId>
-        <artifactId>prettier-maven-plugin</artifactId>
-        <version>${prettier-maven-plugin.version}</version>
-        <configuration>
-          <prettierJavaVersion>1.5.0</prettierJavaVersion>
-          <printWidth>120</printWidth>
-          <tabWidth>4</tabWidth>
-          <useTabs>false</useTabs>
-          <ignoreConfigFile>true</ignoreConfigFile>
-          <ignoreEditorConfig>true</ignoreEditorConfig>
-          <inputGlobs>
-            <inputGlob>src/main/java/**/*.java</inputGlob>
-            <inputGlob>src/test/java/**/*.java</inputGlob>
-          </inputGlobs>
-        </configuration>
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <phase>validate</phase>-->
-<!--            <goals>-->
-<!--              <goal>${plugin.prettier.goal}</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
       </plugin>
 
       <!-- Optional: JVM version compliance and encoding: -->
@@ -357,12 +331,35 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>com.hubspot.maven.plugins</groupId>
+        <artifactId>prettier-maven-plugin</artifactId>
+        <version>${prettier-maven-plugin.version}</version>
+        <configuration>
+          <skip>${skipPrettier}</skip>
+          <printWidth>120</printWidth>
+          <tabWidth>4</tabWidth>
+          <useTabs>false</useTabs>
+          <prettierJavaVersion>1.5.0</prettierJavaVersion>
+          <ignoreEditorConfig>true</ignoreEditorConfig>
+          <inputGlobs>
+            <inputGlob>src/main/java/**/*.java</inputGlob>
+            <inputGlob>src/test/java/**/*.java</inputGlob>
+          </inputGlobs>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
   <profiles>
-
     <profile>
       <id>releases</id>
       <build>

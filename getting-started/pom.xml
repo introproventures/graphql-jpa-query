@@ -3,12 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.6</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>com.introproventures</groupId>
+		<artifactId>graphql-jpa-query-boot-starter</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	  <relativePath>../boot-starter</relativePath>
 	</parent>
-	<groupId>com.introproventures</groupId>
 	<artifactId>graphql-jpa-query-getting-started</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>graphql-jpa-query-getting-started</name>
@@ -33,7 +32,6 @@
 		<dependency>
 			<groupId>com.introproventures</groupId>
 			<artifactId>graphql-jpa-query-boot-starter</artifactId>
-			<version>${graphql-jpa.query.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.introproventures</groupId>
