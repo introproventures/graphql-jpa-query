@@ -35,6 +35,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
+import graphql.GraphQLContext;
 import graphql.GraphQLException;
 import graphql.execution.CoercedVariables;
 import graphql.execution.MergedField;
@@ -97,6 +98,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -703,7 +705,9 @@ public final class GraphQLJpaQueryFactory {
                     Map<String, Object> fieldArguments = ValuesResolver.getArgumentValues(
                         fieldDefinition.getArguments(),
                         values,
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        GraphQLContext.getDefault(),
+                        Locale.getDefault()
                     );
 
                     DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(
@@ -852,7 +856,9 @@ public final class GraphQLJpaQueryFactory {
                     .getArgumentValues(
                         fieldDef.getArguments(),
                         Collections.singletonList(where),
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        GraphQLContext.getDefault(),
+                        Locale.getDefault()
                     )
                     .get(WHERE);
 
