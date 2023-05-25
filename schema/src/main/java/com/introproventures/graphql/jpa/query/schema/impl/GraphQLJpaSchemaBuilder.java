@@ -968,6 +968,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 if (embeddableInputCache.containsKey(embeddableType.getJavaType())) {
                     return embeddableInputCache.get(embeddableType.getJavaType());
                 }
+
                 graphQLType =
                     GraphQLInputObjectType
                         .newInputObject()
@@ -981,10 +982,31 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                 .getAttributes()
                                 .stream()
                                 .filter(this::isNotIgnored)
-                                .map(this::getInputObjectField)
+                                .map(attribute -> {
+                                    if (isEmbeddable(attribute)) {
+                                        EmbeddableType nestedEmbeddableType = (EmbeddableType) (
+                                            (SingularAttribute) attribute
+                                        ).getType();
+                                        return GraphQLInputObjectField
+                                            .newInputObjectField()
+                                            .name(attribute.getName())
+                                            .description(getSchemaDescription(nestedEmbeddableType))
+                                            .type(
+                                                (GraphQLInputType) getEmbeddableType(
+                                                    nestedEmbeddableType,
+                                                    input,
+                                                    searchByIdArg
+                                                )
+                                            )
+                                            .build();
+                                    } else {
+                                        return getInputObjectField(attribute);
+                                    }
+                                })
                                 .collect(Collectors.toList())
                         )
                         .build();
+
                 embeddableInputCache.put(embeddableType.getJavaType(), (GraphQLInputObjectType) graphQLType);
                 return graphQLType;
             }
@@ -994,8 +1016,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             if (embeddableOutputCache.containsKey(embeddableType.getJavaType())) {
                 return embeddableOutputCache.get(embeddableType.getJavaType());
             }
+
             String embeddableTypeName =
                 namingStrategy.singularize(embeddableType.getJavaType().getSimpleName()) + "EmbeddableType";
+
             graphQLType =
                 GraphQLObjectType
                     .newObject()
@@ -1006,12 +1030,35 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                             .getAttributes()
                             .stream()
                             .filter(this::isNotIgnored)
-                            .map(this::getObjectField)
+                            .map(attribute -> {
+                                if (isEmbeddable(attribute)) {
+                                    EmbeddableType nestedEmbeddableType = (EmbeddableType) (
+                                        (SingularAttribute) attribute
+                                    ).getType();
+
+                                    return GraphQLFieldDefinition
+                                        .newFieldDefinition()
+                                        .name(attribute.getName())
+                                        .description(getSchemaDescription(nestedEmbeddableType))
+                                        .type(
+                                            (GraphQLOutputType) getEmbeddableType(
+                                                nestedEmbeddableType,
+                                                input,
+                                                searchByIdArg
+                                            )
+                                        )
+                                        .build();
+                                } else {
+                                    return getObjectField(attribute);
+                                }
+                            })
                             .collect(Collectors.toList())
                     )
                     .build();
+
             embeddableOutputCache.putIfAbsent(embeddableType.getJavaType(), (GraphQLObjectType) graphQLType);
         }
+
         return graphQLType;
     }
 
