@@ -990,7 +990,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                         return GraphQLInputObjectField
                                             .newInputObjectField()
                                             .name(attribute.getName())
-                                            .description(getSchemaDescription(nestedEmbeddableType))
+                                            .description(getSchemaDescription(attribute))
                                             .type(
                                                 (GraphQLInputType) getEmbeddableType(
                                                     nestedEmbeddableType,
@@ -1039,7 +1039,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                     return GraphQLFieldDefinition
                                         .newFieldDefinition()
                                         .name(attribute.getName())
-                                        .description(getSchemaDescription(nestedEmbeddableType))
+                                        .description(getSchemaDescription(attribute))
                                         .type(
                                             (GraphQLOutputType) getEmbeddableType(
                                                 nestedEmbeddableType,
