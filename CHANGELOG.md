@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.1.0
+## 1.1.1-SNAPSHOT
 * Update dependencies to Spring Boot 3.1.0 (#375) [af325eb](https://github.com/introproventures/graphql-jpa-query/commit/af325eb6913630b1855eaf9458b56ce57517b11e)
 * Update README.md [a89d73f](https://github.com/introproventures/graphql-jpa-query/commit/a89d73fafcccfeaa0e2c35f8c4e4d6eaa54d045c)
 * Update README.md [349c479](https://github.com/introproventures/graphql-jpa-query/commit/349c4791d9e43f4dff7de21bbb1fe34554c2cd9f)
