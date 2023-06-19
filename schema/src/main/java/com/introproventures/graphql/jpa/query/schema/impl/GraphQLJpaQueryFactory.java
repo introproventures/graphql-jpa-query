@@ -97,6 +97,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -703,7 +704,9 @@ public final class GraphQLJpaQueryFactory {
                     Map<String, Object> fieldArguments = ValuesResolver.getArgumentValues(
                         fieldDefinition.getArguments(),
                         values,
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        environment.getGraphQlContext(),
+                        Locale.ROOT
                     );
 
                     DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(
@@ -852,7 +855,9 @@ public final class GraphQLJpaQueryFactory {
                     .getArgumentValues(
                         fieldDef.getArguments(),
                         Collections.singletonList(where),
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        environment.getGraphQlContext(),
+                        Locale.ROOT
                     )
                     .get(WHERE);
 
