@@ -97,6 +97,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -245,8 +246,10 @@ public final class GraphQLJpaQueryFactory {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
         }
 
+        // FIXME result stream is broken in StarwarsQueryExecutorTestsSupport.queryWithWhereInsideManyToOneRelations test since Hibernate 6.2.x
         if (resultStream) {
-            return query.getResultStream().peek(entityManager::detach);
+            logger.warn("Skipping result stream query due to regression in Hibernate 6.2.x");
+            // return query.getResultStream().peek(entityManager::detach);
         }
 
         // Let's execute query and wrap result into stream
@@ -703,7 +706,9 @@ public final class GraphQLJpaQueryFactory {
                     Map<String, Object> fieldArguments = ValuesResolver.getArgumentValues(
                         fieldDefinition.getArguments(),
                         values,
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        environment.getGraphQlContext(),
+                        Locale.ROOT
                     );
 
                     DataFetchingEnvironment fieldEnvironment = wherePredicateEnvironment(
@@ -852,7 +857,9 @@ public final class GraphQLJpaQueryFactory {
                     .getArgumentValues(
                         fieldDef.getArguments(),
                         Collections.singletonList(where),
-                        new CoercedVariables(variables)
+                        new CoercedVariables(variables),
+                        environment.getGraphQlContext(),
+                        Locale.ROOT
                     )
                     .get(WHERE);
 
