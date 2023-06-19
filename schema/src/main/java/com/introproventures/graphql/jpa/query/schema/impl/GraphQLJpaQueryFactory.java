@@ -246,8 +246,10 @@ public final class GraphQLJpaQueryFactory {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
         }
 
+        // FIXME result stream is broken in StarwarsQueryExecutorTestsSupport.queryWithWhereInsideManyToOneRelations test since Hibernate 6.2.x
         if (resultStream) {
-            return query.getResultStream().peek(entityManager::detach);
+            logger.warn("Skipping result stream query due to regression in Hibernate 6.2.x");
+            // return query.getResultStream().peek(entityManager::detach);
         }
 
         // Let's execute query and wrap result into stream

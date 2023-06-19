@@ -732,6 +732,38 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     }
 
     @Test
+    public void queryWithWhereInsideManyToOneRelations() {
+        //given:
+        String query =
+            "query {" +
+            "  Humans(where: {" +
+            "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      favoriteDroid {" +
+            "        name" +
+            "        appearsIn" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Humans={select=[" +
+            "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}, " +
+            "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}" +
+            "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryWithWhereInsideManyToOneRelationsNotExisting() {
         //given:
         String query =
