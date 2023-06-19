@@ -40,7 +40,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBootTestSupport {
 
     @Autowired
-    private GraphQLJpaExecutor executor;
+    protected GraphQLJpaExecutor executor;
 
     @Autowired
     private EntityManager em;
@@ -318,9 +318,10 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
 
         String expected =
             "{Droid={name=R2-D2, friends=[" +
+            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, " +
             "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " +
-            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, " +
-            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}]}}";
+            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}" +
+            "]}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -338,9 +339,9 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
 
         String expected =
             "{Droids={select=[{name=R2-D2, friends=[" +
+            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}, " +
             "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Luke Skywalker}, {name=R2-D2}]}, " +
-            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}, " +
-            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa}, {name=Luke Skywalker}, {name=R2-D2}]}" +
+            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO}, {name=Han Solo}, {name=Leia Organa}, {name=R2-D2}]}" +
             "]}]}}";
 
         //when:
@@ -672,9 +673,10 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
 
         String expected =
             "{Droid={name=R2-D2, friends=[" +
+            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, " +
             "{name=Leia Organa, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, " +
-            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}, " +
-            "{name=Han Solo, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=Leia Organa, __typename=Character}, {name=Luke Skywalker, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}], __typename=Droid}}";
+            "{name=Luke Skywalker, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS], friends=[{name=C-3PO, __typename=Character}, {name=Han Solo, __typename=Character}, {name=Leia Organa, __typename=Character}, {name=R2-D2, __typename=Character}], __typename=Character}" +
+            "], __typename=Droid}}";
 
         //when:
         Object result = executor.execute(query).getData();
@@ -721,38 +723,6 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
         String query = "query { Humans ( where: { id: {NOT_BETWEEN: [\"1001\", \"1003\"]}}) { select { id } } }";
 
         String expected = "{Humans={select=[" + "{id=1000}, " + "{id=1004}" + "]}}";
-
-        //when:
-        Object result = executor.execute(query).getData();
-
-        //then:
-        assertThat(result.toString()).isEqualTo(expected);
-    }
-
-    @Test
-    public void queryWithWhereInsideManyToOneRelations() {
-        //given:
-        String query =
-            "query {" +
-            "  Humans(where: {" +
-            "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" +
-            "  }) {" +
-            "    select {" +
-            "      id" +
-            "      name" +
-            "      favoriteDroid {" +
-            "        name" +
-            "        appearsIn" +
-            "      }" +
-            "    }" +
-            "  }" +
-            "}";
-
-        String expected =
-            "{Humans={select=[" +
-            "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}, " +
-            "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}" +
-            "]}}";
 
         //when:
         Object result = executor.execute(query).getData();

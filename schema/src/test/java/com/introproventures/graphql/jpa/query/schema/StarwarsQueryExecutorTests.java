@@ -16,10 +16,13 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.support.StarwarsQueryExecutorTestsSupport;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,5 +47,37 @@ public class StarwarsQueryExecutorTests extends StarwarsQueryExecutorTestsSuppor
                 .description("Starwars JPA test schema")
                 .enableResultStream(false);
         }
+    }
+
+    @Test
+    public void queryWithWhereInsideManyToOneRelations() {
+        //given:
+        String query =
+            "query {" +
+            "  Humans(where: {" +
+            "    favoriteDroid: {appearsIn: {IN: [A_NEW_HOPE]}}" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      favoriteDroid {" +
+            "        name" +
+            "        appearsIn" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Humans={select=[" +
+            "{id=1000, name=Luke Skywalker, favoriteDroid={name=C-3PO, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}, " +
+            "{id=1001, name=Darth Vader, favoriteDroid={name=R2-D2, appearsIn=[A_NEW_HOPE, EMPIRE_STRIKES_BACK, RETURN_OF_THE_JEDI, THE_FORCE_AWAKENS]}}" +
+            "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
     }
 }
