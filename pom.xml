@@ -261,7 +261,7 @@
         <!-- just to make sure deployed artifacts are always built
             (and tested) using JDK 8 -->
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.1.1</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>enforce-java</id>
