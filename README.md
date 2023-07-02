@@ -34,13 +34,16 @@ Supported Apis
 ----------------------
 * jpa-api 2.1 for up to 0.5.x versions
 * jpa-api 3.1 for 1.0.x versions
+* graphql-java 20.x for 1.1.x versions
 * graphql-java 19.x for 0.5.x versions
 * graphql-java 13 for 0.4.x versions
 * spring-boot 2.6.x for 0.4.x versions
 * spring-boot 2.7.x for 0.5.x versions
 * spring-boot 3.0.x for 1.0.x versions
+* spring-boot 3.1.x for 1.1.x versions
 * spring-graphql 1.0.x for 0.5.2+ versions
 * spring-graphql 1.1.x for 1.0.0+ versions
+* spring-graphql 1.2.x for 1.1.0+ versions
 
 Tested using JDK Versions
 ----------------------
