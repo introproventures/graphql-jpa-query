@@ -19,6 +19,7 @@ package com.introproventures.graphql.jpa.query.schema.model.book;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,11 +34,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @EqualsAndHashCode(exclude = { "books", "phoneNumbers" }) // Fixes NPE in Hibernate when initializing loaded collections #1
 public class Author {
 
@@ -57,4 +60,7 @@ public class Author {
 
     @Enumerated(EnumType.STRING)
     Genre genre;
+
+    @Embedded
+    Address homeAddress;
 }

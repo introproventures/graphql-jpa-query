@@ -22,6 +22,7 @@ import static org.assertj.core.api.BDDAssertions.thenCode;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Address;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperAuthor;
@@ -155,6 +156,23 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
     }
 
     @Test
+    public void correctlyDerivesNestedEmbeddableFromGivenEntities() {
+        //when
+        GraphQLSchema schema = builder.build();
+
+        // then
+        assertThat(schema).describedAs("Ensure the schema is generated").isNotNull();
+
+        //then
+        assertThat(getFieldForType(Author.Fields.homeAddress, "Author", schema))
+            .isPresent()
+            .get()
+            .extracting(it -> getField(Address.Fields.zipcode, it).isPresent())
+            .describedAs("Ensure that a nested embeddable can be queried on")
+            .isEqualTo(Boolean.TRUE);
+    }
+
+    @Test
     public void shouldBuildSchemaWithStringArrayAsStringListType() {
         //given
         //there is a property in the model that is of array type
@@ -193,9 +211,11 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
     }
 
     private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName, String type, GraphQLSchema schema) {
-        return schema
-            .getQueryType()
-            .getFieldDefinition(type)
+        return getField(fieldName, schema.getQueryType().getFieldDefinition(type));
+    }
+
+    private Optional<GraphQLFieldDefinition> getField(String fieldName, GraphQLFieldDefinition fieldDefinition) {
+        return fieldDefinition
             .getType()
             .getChildren()
             .stream()
