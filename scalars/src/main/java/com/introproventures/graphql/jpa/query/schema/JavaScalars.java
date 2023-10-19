@@ -40,9 +40,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -333,13 +331,13 @@ public class JavaScalars {
 
     public static class GraphQLDateCoercing implements Coercing<Object, Object> {
 
-        final String dateFormatString;
+        final ThreadLocalDateFormat df;
 
         /**
          * Default to pattern 'yyyy-MM-dd'
          */
         public GraphQLDateCoercing() {
-            dateFormatString = "yyyy-MM-dd";
+            this("yyyy-MM-dd");
         }
 
         /**
@@ -348,7 +346,7 @@ public class JavaScalars {
          * @param dateFormatString e.g. "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" for "2001-07-04T12:08:56.235-07:00"
          */
         public GraphQLDateCoercing(String dateFormatString) {
-            this.dateFormatString = dateFormatString;
+            this.df = new ThreadLocalDateFormat(dateFormatString);
         }
 
         @Override
@@ -356,7 +354,7 @@ public class JavaScalars {
             if (input instanceof String) {
                 return parseStringToDate((String) input);
             } else if (input instanceof Date) {
-                return new SimpleDateFormat(dateFormatString).format(input);
+                return df.format(input);
             } else if (input instanceof Long) {
                 return new Date(((Long) input).longValue());
             } else if (input instanceof Integer) {
@@ -382,8 +380,6 @@ public class JavaScalars {
         }
 
         private Date parseStringToDate(String input) {
-            DateFormat df = new SimpleDateFormat(dateFormatString);
-
             try {
                 return df.parse(input);
             } catch (ParseException e) {
@@ -576,12 +572,30 @@ public class JavaScalars {
 
     public static class GraphQLSqlDateCoercing implements Coercing<Object, Object> {
 
+        final ThreadLocalDateFormat df;
+
+        /**
+         * Default to pattern 'yyyy-MM-dd'
+         */
+        public GraphQLSqlDateCoercing() {
+            this("yyyy-MM-dd");
+        }
+
+        /**
+         * Parse date strings according to the provided SimpleDateFormat pattern
+         *
+         * @param dateFormatString e.g. "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" for "2001-07-04T12:08:56.235-07:00"
+         */
+        public GraphQLSqlDateCoercing(String dateFormatString) {
+            this.df = new ThreadLocalDateFormat(dateFormatString);
+        }
+
         @Override
         public Object serialize(Object input) {
             if (input instanceof String) {
                 return parseStringToDate((String) input);
-            } else if (input instanceof Date) {
-                return new java.sql.Date(((Date) input).getTime());
+            } else if (input instanceof java.sql.Date) {
+                return df.format(input);
             } else if (input instanceof Long) {
                 return new java.sql.Date(((Long) input).longValue());
             } else if (input instanceof Integer) {
@@ -608,7 +622,7 @@ public class JavaScalars {
 
         private java.sql.Date parseStringToDate(String input) {
             try {
-                return new java.sql.Date(DateFormat.getInstance().parse(input).getTime());
+                return new java.sql.Date(df.parse(input).getTime());
             } catch (ParseException e) {
                 log.warn("Failed to parse SQL Date from input: " + input, e);
                 return null;

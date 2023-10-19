@@ -84,7 +84,9 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     @Transactional
     public void queryTester() {
         // given:
-        Query query = entityManager.createQuery("select json from JsonEntity json where json.attributes LIKE '%key%'");
+        Query query = entityManager.createQuery(
+            "select json from JsonEntity json where cast(json.attributes as string) LIKE '%key%'"
+        );
 
         // when:
         List<?> result = query.getResultList();

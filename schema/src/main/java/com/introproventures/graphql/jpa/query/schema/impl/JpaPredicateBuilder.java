@@ -456,6 +456,53 @@ class JpaPredicateBuilder {
         return null;
     }
 
+    protected Predicate getSqlDatePredicate(Path<? extends java.sql.Date> root, PredicateFilter filter) {
+        if (filter.getValue() != null && filter.getValue() instanceof java.sql.Date) {
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
+                return cb.lessThan(root, (java.sql.Date) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
+                return cb.greaterThan(root, (java.sql.Date) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
+                return cb.greaterThanOrEqualTo(root, (java.sql.Date) filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
+                return cb.equal(root, filter.getValue());
+            }
+            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
+                return cb.notEqual(root, filter.getValue());
+            }
+            // LE or default
+            return cb.lessThanOrEqualTo(root, (java.sql.Date) filter.getValue());
+        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
+            if (
+                !filter.getCriterias().contains(PredicateFilter.Criteria.NE) &&
+                (
+                    filter.getCriterias().contains(Criteria.BETWEEN) ||
+                    filter.getCriterias().contains(Criteria.NOT_BETWEEN)
+                )
+            ) {
+                Object[] values;
+                if (filter.getValue().getClass().isArray()) {
+                    values = (Object[]) filter.getValue();
+                } else {
+                    values = ((Collection<?>) filter.getValue()).toArray();
+                }
+
+                if (values.length == 2) {
+                    Expression<java.sql.Date> name = (Expression<java.sql.Date>) root;
+                    Expression<java.sql.Date> fromDate = cb.literal((java.sql.Date) values[0]);
+                    Expression<java.sql.Date> toDate = cb.literal((java.sql.Date) values[1]);
+                    Predicate between = cb.between(name, fromDate, toDate);
+                    if (filter.getCriterias().contains(Criteria.BETWEEN)) return between;
+                    return cb.not(between);
+                }
+            }
+        }
+        return null;
+    }
+
     protected Predicate getLocalDatePredicate(Path<? extends LocalDate> root, PredicateFilter filter) {
         if (filter.getValue() != null && filter.getValue() instanceof LocalDate) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
@@ -844,6 +891,8 @@ class JpaPredicateBuilder {
             return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, filter);
         } else if (type.equals(Timestamp.class)) {
             return getTimestampPredicate((Path<Timestamp>) field, filter);
+        } else if (type.equals(java.sql.Date.class)) {
+            return getSqlDatePredicate((Path<java.sql.Date>) field, filter);
         } else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, filter);
         } else if (type.equals(UUID.class)) {

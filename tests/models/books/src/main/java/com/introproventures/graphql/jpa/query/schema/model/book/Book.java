@@ -27,6 +27,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -67,6 +69,7 @@ public class Book {
     @Enumerated(EnumType.STRING)
     Genre genre;
 
+    @Temporal(TemporalType.DATE)
     Date publicationDate;
 
     @ElementCollection(fetch = FetchType.LAZY)
