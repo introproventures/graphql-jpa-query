@@ -43,6 +43,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -515,6 +516,30 @@ public class JavaScalarsTest {
 
         //then
         assertThat(result.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
+    public void shouldParseJavaDate() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+        // when
+        Object result = subject.parseValue(new Date(Instant.EPOCH.toEpochMilli()));
+
+        // then
+        assertThat(result).isEqualTo("1970-01-01T00:00:00.000Z");
+    }
+
+    @Test
+    public void shouldParseSqlDate() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+        // when
+        Object result = subject.parseValue(java.sql.Date.from(Instant.EPOCH));
+
+        // then
+        assertThat(result).isEqualTo("1970-01-01T00:00:00.000Z");
     }
 
     @Test

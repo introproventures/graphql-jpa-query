@@ -573,14 +573,14 @@ public class JavaScalars {
 
         @Override
         public Object serialize(Object input) {
-            if (input instanceof String) {
-                return parseStringToDate((String) input);
-            } else if (input instanceof java.sql.Date) {
+            if (input instanceof String stringInput) {
+                return parseStringToDate(stringInput);
+            } else if (input instanceof Date) {
                 return df.format(input);
-            } else if (input instanceof Long) {
-                return new java.sql.Date(((Long) input).longValue());
-            } else if (input instanceof Integer) {
-                return new java.sql.Date(((Integer) input).longValue());
+            } else if (input instanceof Long longInput) {
+                return new java.sql.Date(longInput);
+            } else if (input instanceof Integer intInput) {
+                return new java.sql.Date(intInput.longValue());
             }
             return null;
         }
@@ -592,10 +592,10 @@ public class JavaScalars {
 
         @Override
         public Object parseLiteral(Object input) {
-            if (input instanceof StringValue) {
-                return parseStringToDate(((StringValue) input).getValue());
-            } else if (input instanceof IntValue) {
-                BigInteger value = ((IntValue) input).getValue();
+            if (input instanceof StringValue stringValue) {
+                return parseStringToDate(stringValue.getValue());
+            } else if (input instanceof IntValue intValue) {
+                BigInteger value = intValue.getValue();
                 return new java.sql.Date(value.longValue());
             }
             return null;
