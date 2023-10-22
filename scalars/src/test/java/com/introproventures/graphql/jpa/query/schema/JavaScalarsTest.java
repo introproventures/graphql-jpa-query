@@ -563,5 +563,4 @@ public class JavaScalarsTest {
         assertThat(coercing.serialize(Time.valueOf(LocalTime.of(17, 59, 59, (int) TimeUnit.MILLISECONDS.toNanos(277)))))
             .isEqualTo("17:59:59");
     }
-
 }
