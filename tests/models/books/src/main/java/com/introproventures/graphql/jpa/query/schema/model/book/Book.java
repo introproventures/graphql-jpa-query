@@ -72,6 +72,12 @@ public class Book {
     @Temporal(TemporalType.DATE)
     Date publicationDate;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    Date publicationTimestamp;
+
+    @Temporal(TemporalType.TIME)
+    Date publicationTime;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

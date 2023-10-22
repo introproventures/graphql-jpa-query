@@ -367,7 +367,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
         Object input = Boolean.valueOf("true");
 
         //when
@@ -378,7 +378,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseValueWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
         Object input = Boolean.valueOf("true");
 
         //when
@@ -388,7 +388,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampSerializeWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
         Object input = BooleanValue.newBooleanValue(true).build();
 
         //when
@@ -453,7 +453,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralStringValueLocalDateTime() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
         LocalDateTime localDateTime = LocalDateTime.parse(
             "2019-08-05T07:15:07",
             DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.of("UTC"))
@@ -475,7 +475,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralStringValueLocalDate() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
         LocalDate localDate = LocalDate.parse(
             "2019-08-05",
             DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC"))
@@ -504,9 +504,7 @@ public class JavaScalarsTest {
 
         //when
         for (int i = 0; i < 1000; i++) {
-            CompletableFuture<Object> task = CompletableFuture.supplyAsync(() -> {
-                return subject.serialize(dateLiteral);
-            });
+            CompletableFuture<Object> task = CompletableFuture.supplyAsync(() -> subject.serialize(dateLiteral));
             dates.add(task);
         }
 
