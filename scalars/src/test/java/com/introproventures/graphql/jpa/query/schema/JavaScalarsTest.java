@@ -30,6 +30,7 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -515,4 +516,52 @@ public class JavaScalarsTest {
         //then
         assertThat(result.isCompletedExceptionally()).isFalse();
     }
+
+    @Test
+    public void testTimeParseLiteralStringValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimeCoercing();
+        Time time = Time.valueOf("12:00:00");
+
+        StringValue input = StringValue.newStringValue(time.toString()).build();
+
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Time.class, Assertions::assertThat))
+            .isEqualTo(time);
+    }
+
+    @Test
+    public void testTimeParseLiteralIntegerValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimeCoercing();
+        Time time = Time.valueOf("12:00:00");
+
+        IntValue input = IntValue.newIntValue(BigInteger.valueOf(time.getTime())).build();
+
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Time.class, Assertions::assertThat))
+            .isEqualTo(time);
+    }
+
+    @Test
+    public void testTimeSerializeValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.GraphQLTimeScalar.getCoercing();
+
+        //then
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.MIDNIGHT))).isEqualTo("00:00:00");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(10, 15, 30)))).isEqualTo("10:15:30");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(17, 59, 59)))).isEqualTo("17:59:59");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(17, 59, 59, (int) TimeUnit.MILLISECONDS.toNanos(277)))))
+            .isEqualTo("17:59:59");
+    }
+
 }

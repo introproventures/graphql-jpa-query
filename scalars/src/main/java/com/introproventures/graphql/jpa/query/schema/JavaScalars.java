@@ -76,9 +76,9 @@ import org.slf4j.LoggerFactory;
  */
 public class JavaScalars {
 
-    static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
+    private static final Logger log = LoggerFactory.getLogger(JavaScalars.class);
 
-    private static Map<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
+    private static final Map<Class<?>, GraphQLScalarType> scalarsRegistry = new HashMap<Class<?>, GraphQLScalarType>();
 
     private static final JavaScalars instance = new JavaScalars();
 
@@ -633,14 +633,14 @@ public class JavaScalars {
 
         @Override
         public Object serialize(Object input) {
-            if (input instanceof String) {
-                return parseStringToDate((String) input);
+            if (input instanceof String inputString) {
+                return parseStringToTime(inputString);
             } else if (input instanceof java.sql.Time) {
                 return df.format(input);
-            } else if (input instanceof Long) {
-                return new java.sql.Time(((Long) input).longValue());
-            } else if (input instanceof Integer) {
-                return new java.sql.Time(((Integer) input).longValue());
+            } else if (input instanceof Long longInput) {
+                return new java.sql.Time(longInput.longValue());
+            } else if (input instanceof Integer integerInput) {
+                return new java.sql.Time(integerInput.longValue());
             }
             return null;
         }
@@ -652,16 +652,16 @@ public class JavaScalars {
 
         @Override
         public Object parseLiteral(Object input) {
-            if (input instanceof StringValue) {
-                return parseStringToDate(((StringValue) input).getValue());
-            } else if (input instanceof IntValue) {
-                BigInteger value = ((IntValue) input).getValue();
+            if (input instanceof StringValue stringValue) {
+                return parseStringToTime(stringValue.getValue());
+            } else if (input instanceof IntValue intValue) {
+                BigInteger value = intValue.getValue();
                 return new java.sql.Time(value.longValue());
             }
             return null;
         }
 
-        private java.sql.Time parseStringToDate(String input) {
+        private java.sql.Time parseStringToTime(String input) {
             try {
                 return new java.sql.Time(df.parse(input).getTime());
             } catch (ParseException e) {
