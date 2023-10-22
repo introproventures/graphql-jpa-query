@@ -8,6 +8,7 @@ import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.CalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.calculated.ParentCalculatedEntity;
 import com.introproventures.graphql.jpa.query.schema.model.metamodel.ClassWithCustomMetamodel;
@@ -15,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -415,5 +417,28 @@ public class EntityIntrospectorTest extends AbstractSpringBootTestSupport {
         assertThat(resultPropertyDescriptor.equals(null)).isFalse();
         assertThat(resultPropertyDescriptor.equals(anotherResultPropertyDescriptor)).isFalse();
         assertThat(resultPropertyDescriptor.hashCode()).isNotEqualTo(anotherResultPropertyDescriptor.hashCode());
+    }
+
+    @Test
+    public void shouldIntrospectEntityWithTemporalTypes() {
+        //given
+        Class timeClass = java.sql.Time.class;
+        Class dateClass = java.sql.Date.class;
+        Class timestampClass = java.sql.Timestamp.class;
+
+        EntityType<Book> entity = entityManager.getMetamodel().entity(Book.class);
+
+        //when
+        EntityIntrospectionResult result = EntityIntrospector.introspect(entity);
+
+        //then
+        assertThat(result.getPropertyDescriptors())
+            .filteredOn(it ->
+                Arrays.asList("publicationDate", "publicationTime", "publicationTimestamp").contains(it.getName())
+            )
+            .extracting(AttributePropertyDescriptor::getAttribute)
+            .extracting(Optional::get)
+            .extracting(Attribute::getJavaType)
+            .containsOnly(dateClass, timeClass, timestampClass);
     }
 }
