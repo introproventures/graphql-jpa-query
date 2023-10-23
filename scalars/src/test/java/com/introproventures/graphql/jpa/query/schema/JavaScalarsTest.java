@@ -529,7 +529,7 @@ public class JavaScalarsTest {
     public void dateCoercionThreadSafe() throws InterruptedException, ExecutionException {
         //given
         String dateLiteral = "2018-06-22T10:00:00";
-        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
 
         List<CompletableFuture<Object>> dates = new ArrayList<>();
 
@@ -550,7 +550,7 @@ public class JavaScalarsTest {
     @Test
     public void shouldParseJavaDate() throws InterruptedException, ExecutionException {
         //given
-        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
         // when
         Object result = subject.parseValue(new Date(Instant.EPOCH.toEpochMilli()));
@@ -562,7 +562,7 @@ public class JavaScalarsTest {
     @Test
     public void shouldParseSqlDate() throws InterruptedException, ExecutionException {
         //given
-        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
         // when
         Object result = subject.parseValue(java.sql.Date.from(Instant.EPOCH));
@@ -574,7 +574,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimeParseLiteralStringValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimeCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimeCoercing();
         Time time = Time.valueOf("12:00:00");
 
         StringValue input = StringValue.newStringValue(time.toString()).build();
@@ -591,7 +591,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimeParseLiteralIntegerValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimeCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimeCoercing();
         Time time = Time.valueOf("12:00:00");
 
         IntValue input = IntValue.newIntValue(BigInteger.valueOf(time.getTime())).build();
@@ -608,7 +608,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimeSerializeValue() {
         //given
-        Coercing<?, ?> coercing = JavaScalars.GraphQLTimeScalar.getCoercing();
+        Coercing<?, ?> coercing = JavaScalars.GraphQLSqlTimeScalar.getCoercing();
 
         //then
         assertThat(coercing.serialize(Time.valueOf(LocalTime.MIDNIGHT))).isEqualTo("00:00:00");
