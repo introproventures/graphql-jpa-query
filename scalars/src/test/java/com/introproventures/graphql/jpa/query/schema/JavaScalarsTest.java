@@ -350,6 +350,35 @@ public class JavaScalarsTest {
     }
 
     @Test
+    public void testTimestampParseDateValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Date date = Date.from(Instant.EPOCH);
+        Timestamp expected = new Timestamp(date.getTime());
+
+        //when
+        Object result = coercing.parseValue(date);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+            .isEqualTo(expected);
+    }
+
+    @Test
+    public void testTimestampSerializeDateValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Date date = Date.from(Instant.EPOCH);
+
+        //when
+        Object result = coercing.serialize(date);
+
+        //then
+        assertThat(result).asString().isEqualTo("1970-01-01T00:00:00Z");
+    }
+
+    @Test
     public void testTimestampParseLiteralStringValue() {
         //given
         Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();

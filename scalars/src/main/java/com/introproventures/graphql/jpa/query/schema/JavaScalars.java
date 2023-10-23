@@ -40,7 +40,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -177,7 +179,7 @@ public class JavaScalars {
         scalarsRegistry.put(LocalDateTime.class, GraphQLLocalDateTimeScalar);
         scalarsRegistry.put(LocalDate.class, GraphQLLocalDateScalar);
         scalarsRegistry.put(LocalTime.class, GraphQLLocalTimeScalar);
-        scalarsRegistry.put(Date.class, GraphQLDateScalar);
+        scalarsRegistry.put(Date.class, GraphQLTimestampScalar);
         scalarsRegistry.put(UUID.class, GraphQLUUIDScalar);
         scalarsRegistry.put(Object.class, GraphQLObjectScalar);
         scalarsRegistry.put(java.sql.Date.class, GraphQLDateScalar);
@@ -553,7 +555,7 @@ public class JavaScalars {
 
     public static class GraphQLDateCoercing implements Coercing<Object, Object> {
 
-        final ThreadLocalDateFormat df;
+        private final ThreadLocal<DateFormat> df;
 
         /**
          * Default to pattern 'yyyy-MM-dd'
@@ -568,7 +570,7 @@ public class JavaScalars {
          * @param dateFormatString e.g. "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" for "2001-07-04T12:08:56.235-07:00"
          */
         public GraphQLDateCoercing(String dateFormatString) {
-            this.df = new ThreadLocalDateFormat(dateFormatString);
+            this.df = ThreadLocal.withInitial(() -> new SimpleDateFormat(dateFormatString));
         }
 
         @Override
@@ -576,7 +578,7 @@ public class JavaScalars {
             if (input instanceof String stringInput) {
                 return parseStringToDate(stringInput);
             } else if (input instanceof Date) {
-                return df.format(input);
+                return df.get().format(input);
             } else if (input instanceof Long longInput) {
                 return new java.sql.Date(longInput);
             } else if (input instanceof Integer intInput) {
@@ -603,7 +605,7 @@ public class JavaScalars {
 
         private java.sql.Date parseStringToDate(String input) {
             try {
-                return new java.sql.Date(df.parse(input).getTime());
+                return new java.sql.Date(df.get().parse(input).getTime());
             } catch (ParseException e) {
                 log.warn("Failed to parse SQL Date from input: " + input, e);
                 return null;
@@ -613,7 +615,7 @@ public class JavaScalars {
 
     public static class GraphQLTimeCoercing implements Coercing<Object, Object> {
 
-        final ThreadLocalDateFormat df;
+        private final ThreadLocal<DateFormat> df;
 
         /**
          * Default to pattern 'yyyy-MM-dd'
@@ -625,10 +627,10 @@ public class JavaScalars {
         /**
          * Parse time strings according to the provided SimpleDateFormat pattern
          *
-         * @param dateFormatString e.g. "HH:mm:ss.SSSXXX"
+         * @param timeFormatString e.g. "HH:mm:ss.SSSXXX"
          */
-        public GraphQLTimeCoercing(String dateFormatString) {
-            this.df = new ThreadLocalDateFormat(dateFormatString);
+        public GraphQLTimeCoercing(String timeFormatString) {
+            this.df = ThreadLocal.withInitial(() -> new SimpleDateFormat(timeFormatString));
         }
 
         @Override
@@ -636,9 +638,9 @@ public class JavaScalars {
             if (input instanceof String inputString) {
                 return parseStringToTime(inputString);
             } else if (input instanceof java.sql.Time) {
-                return df.format(input);
+                return df.get().format(input);
             } else if (input instanceof Long longInput) {
-                return new java.sql.Time(longInput.longValue());
+                return new java.sql.Time(longInput);
             } else if (input instanceof Integer integerInput) {
                 return new java.sql.Time(integerInput.longValue());
             }
@@ -663,7 +665,7 @@ public class JavaScalars {
 
         private java.sql.Time parseStringToTime(String input) {
             try {
-                return new java.sql.Time(df.parse(input).getTime());
+                return new java.sql.Time(df.get().parse(input).getTime());
             } catch (ParseException e) {
                 log.warn("Failed to parse SQL Date from input: " + input, e);
                 return null;
@@ -673,15 +675,18 @@ public class JavaScalars {
 
     public static class GraphQLTimestampCoercing implements Coercing<Timestamp, Object> {
 
-        private Timestamp doConvert(Object input) {
-            if (input instanceof Long) {
-                return new Timestamp(Long.class.cast(input));
-            } else if (input instanceof String) {
-                Instant instant = DateTimeHelper.parseDate(String.class.cast(input));
+        private final ThreadLocal<DateTimeFormatter> df = ThreadLocal.withInitial(() -> DateTimeFormatter.ISO_INSTANT);
 
+        private Timestamp doConvert(Object input) {
+            if (input instanceof Long longInput) {
+                return new Timestamp(longInput);
+            } else if (input instanceof String stringInput) {
+                Instant instant = DateTimeHelper.parseDate(stringInput);
                 return Timestamp.from(instant);
-            } else if (input instanceof Timestamp) {
-                return Timestamp.class.cast(input);
+            } else if (input instanceof Timestamp timestampInput) {
+                return timestampInput;
+            } else if (input instanceof Date dateInput) {
+                return new Timestamp(dateInput.getTime());
             }
 
             return null;
@@ -695,7 +700,7 @@ public class JavaScalars {
                 throw new CoercingSerializeException("Invalid value '" + input + "' for Timestamp");
             }
 
-            return DateTimeFormatter.ISO_INSTANT.format(result.toInstant());
+            return df.get().format(result.toInstant());
         }
 
         @Override
@@ -712,10 +717,10 @@ public class JavaScalars {
         public Timestamp parseLiteral(Object input) {
             Object value = null;
 
-            if (IntValue.class.isInstance(input)) {
-                value = IntValue.class.cast(input).getValue().longValue();
-            } else if (StringValue.class.isInstance(input)) {
-                value = StringValue.class.cast(input).getValue();
+            if (input instanceof IntValue intValue) {
+                value = intValue.getValue().longValue();
+            } else if (input instanceof StringValue stringValue) {
+                value = stringValue.getValue();
             } else {
                 throw new CoercingParseLiteralException("Invalid value '" + input + "' for Timestamp");
             }
