@@ -548,24 +548,48 @@ public class JavaScalarsTest {
     }
 
     @Test
-    public void shouldParseJavaDate() throws InterruptedException, ExecutionException {
+    public void shouldParseJavaDateWithGraphQLSqlDateCoercing() throws InterruptedException, ExecutionException {
         //given
-        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
 
         // when
-        Object result = subject.parseValue(new Date(Instant.EPOCH.toEpochMilli()));
+        Object result = subject.parseValue("1970-01-01");
 
         // then
-        assertThat(result).isEqualTo("1970-01-01T00:00:00.000Z");
+        assertThat(result).isEqualTo(Date.from(Instant.EPOCH));
     }
 
     @Test
-    public void shouldParseSqlDate() throws InterruptedException, ExecutionException {
+    public void shouldSerializeSqlDateWithGraphQLSqlDateCoercing() throws InterruptedException, ExecutionException {
         //given
-        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
 
         // when
-        Object result = subject.parseValue(java.sql.Date.from(Instant.EPOCH));
+        Object result = subject.serialize(java.sql.Date.from(Instant.EPOCH));
+
+        // then
+        assertThat(result).isEqualTo("1970-01-01");
+    }
+
+    @Test
+    public void shouldParseJavaDateWithGraphQLDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+
+        // when
+        Object result = subject.parseValue("1970-01-01T00:00:00.000Z");
+
+        // then
+        assertThat(result).isEqualTo(Date.from(Instant.EPOCH));
+    }
+
+    @Test
+    public void shouldSerializeDateWithGraphQLDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+
+        // when
+        Object result = subject.serialize(java.sql.Date.from(Instant.EPOCH));
 
         // then
         assertThat(result).isEqualTo("1970-01-01T00:00:00.000Z");
