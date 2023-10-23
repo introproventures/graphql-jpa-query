@@ -97,7 +97,7 @@ public class JavaScalars {
     public static final GraphQLScalarType GraphQLTimestampScalar = newScalarType(
         "Timestamp",
         "Timestamp type",
-        new GraphQLTimestampCoercing()
+        new GraphQLSqlTimestampCoercing()
     );
     public static final GraphQLScalarType GraphQLLocalDateTimeScalar = newScalarType(
         "LocalDateTime",
@@ -673,7 +673,7 @@ public class JavaScalars {
         }
     }
 
-    public static class GraphQLTimestampCoercing implements Coercing<Timestamp, Object> {
+    public static class GraphQLSqlTimestampCoercing implements Coercing<Timestamp, Object> {
 
         private final ThreadLocal<DateTimeFormatter> df = ThreadLocal.withInitial(() -> DateTimeFormatter.ISO_INSTANT);
 

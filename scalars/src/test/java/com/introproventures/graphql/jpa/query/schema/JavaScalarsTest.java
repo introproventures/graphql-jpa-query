@@ -398,7 +398,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = Boolean.valueOf("true");
 
         //when
@@ -409,7 +409,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseValueWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = Boolean.valueOf("true");
 
         //when
@@ -419,7 +419,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampSerializeWrongValue() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         Object input = BooleanValue.newBooleanValue(true).build();
 
         //when
@@ -484,7 +484,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralStringValueLocalDateTime() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         LocalDateTime localDateTime = LocalDateTime.parse(
             "2019-08-05T07:15:07",
             DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.of("UTC"))
@@ -506,7 +506,7 @@ public class JavaScalarsTest {
     @Test
     public void testTimestampParseLiteralStringValueLocalDate() {
         //given
-        Coercing<?, ?> coercing = new JavaScalars.GraphQLTimestampCoercing();
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimestampCoercing();
         LocalDate localDate = LocalDate.parse(
             "2019-08-05",
             DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.of("UTC"))
