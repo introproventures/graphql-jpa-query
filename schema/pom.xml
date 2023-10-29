@@ -15,10 +15,6 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <properties>
-    <gmavenplus-plugin.version>2.1.0</gmavenplus-plugin.version>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -135,18 +131,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.gmavenplus</groupId>
-        <artifactId>gmavenplus-plugin</artifactId>
-        <version>${gmavenplus-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compileTests</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
