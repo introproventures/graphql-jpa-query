@@ -18,7 +18,7 @@ package com.introproventures.graphql.jpa.query.schema;
 
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.support.GraphQLExecutorTestConfiguration;
-import com.introproventures.graphql.jpa.query.support.StarwarsQueryExecutorTestsSupport;
+import com.introproventures.graphql.jpa.query.support.GraphQLExecutorTestsSupport;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @SpringBootTest
-public class StarwarsQueryExecutorTests extends StarwarsQueryExecutorTestsSupport {
+public class GraphQLExecutorWithGraphQLIDTypeTests extends GraphQLExecutorTestsSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
@@ -37,9 +37,9 @@ public class StarwarsQueryExecutorTests extends StarwarsQueryExecutorTestsSuppor
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
-                .name("Starwars")
-                .description("Starwars JPA test schema")
-                .enableResultStream(false);
+                .name("GraphQLBooks")
+                .description("Books JPA test schema")
+                .graphQLIDType(true);
         }
     }
 }

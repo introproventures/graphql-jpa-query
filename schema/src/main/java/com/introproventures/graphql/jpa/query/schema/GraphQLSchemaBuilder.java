@@ -68,6 +68,14 @@ public interface GraphQLSchemaBuilder {
     GraphQLSchemaBuilder scalar(Class<?> javaType, GraphQLScalarType scalarType);
 
     /**
+     * Use GraphQLIDType attribute for entity identifier attributes. Defaults to false.
+     *
+     * @param useGraphQLIDType fl
+     * @return this builder instance
+     */
+    GraphQLSchemaBuilder graphQLIDType(boolean useGraphQLIDType);
+
+    /**
      * Builds {code #GraphQLSchema} instance
      *
      * @return GraphQLSchema instance

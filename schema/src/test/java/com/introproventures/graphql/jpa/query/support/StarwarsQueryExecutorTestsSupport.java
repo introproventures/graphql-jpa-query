@@ -21,6 +21,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
 import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
@@ -40,7 +41,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBootTestSupport {
 
     @Autowired
-    protected GraphQLJpaExecutor executor;
+    private GraphQLJpaExecutor executor;
 
     @Autowired
     private EntityManager em;
@@ -48,7 +49,9 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     @Autowired
     private PlatformTransactionManager txManager;
 
-    @Test
+    @Autowired
+    private GraphQLJpaSchemaBuilder graphQLSchemaBuilder;
+
     public void contextLoads() {}
 
     @Test
@@ -264,7 +267,10 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     @Test
     public void queryWithIdArgument() {
         //given:
-        String query = "query humanByIdQuery($id: String!) { Human(id: $id) { name, homePlanet } }";
+        String query = String.format(
+            "query humanByIdQuery($id: %s!) { Human(id: $id) { name, homePlanet } }",
+            graphQLSchemaBuilder.isGraphQLIDType() ? "ID" : "String"
+        );
         Map<String, Object> variables = new HashMap<String, Object>() {
             {
                 put("id", "1001");
