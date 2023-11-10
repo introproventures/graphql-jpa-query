@@ -121,6 +121,25 @@ public final class GraphQLJpaQueryFactory {
     private static final String DESC = "DESC";
 
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
+    private static Function<Object, Object> unproxy;
+
+    static {
+        try {
+            Class<?> hibernateClass = Class.forName("org.hibernate.Hibernate");
+            Method unproxyMethod = hibernateClass.getDeclaredMethod("unproxy", Object.class);
+
+            unproxy =
+                proxy -> {
+                    try {
+                        return unproxyMethod.invoke(null, proxy);
+                    } catch (Exception ignored) {}
+
+                    return proxy;
+                };
+        } catch (Exception ignored) {
+            unproxy = Function.identity();
+        }
+    }
 
     protected static final String WHERE = "where";
     protected static final String OPTIONAL = "optional";
@@ -253,7 +272,7 @@ public final class GraphQLJpaQueryFactory {
         }
 
         // Let's execute query and wrap result into stream
-        return query.getResultList().stream().peek(entityManager::detach);
+        return query.getResultList().stream().map(this::unproxyAndDetach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
@@ -275,13 +294,7 @@ public final class GraphQLJpaQueryFactory {
                 logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
             }
 
-            Object result = query.getSingleResult();
-
-            if (result != null) {
-                entityManager.detach(result);
-            }
-
-            return result;
+            return Optional.ofNullable(query.getSingleResult()).map(this::unproxyAndDetach).orElse(null);
         }
 
         return null;
@@ -416,8 +429,12 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, List<Object>> batch = resultList
             .stream()
-            .peek(t -> entityManager.detach(t[1]))
-            .collect(groupingBy(t -> t[0], Collectors.mapping(t -> t[1], GraphQLSupport.toResultList())));
+            .collect(
+                groupingBy(
+                    t -> t[0],
+                    Collectors.mapping(t -> this.unproxyAndDetach(t[1]), GraphQLSupport.toResultList())
+                )
+            );
         Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
         keys.forEach(it -> {
@@ -438,7 +455,7 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
-        resultList.stream().peek(t -> entityManager.detach(t[1])).forEach(item -> resultMap.put(item[0], item[1]));
+        resultList.forEach(item -> resultMap.put(item[0], this.unproxyAndDetach(item[1])));
 
         return resultMap;
     }
@@ -1917,6 +1934,15 @@ public final class GraphQLJpaQueryFactory {
 
                 return false;
             });
+    }
+
+    protected <T> T unproxyAndDetach(T entityProxy) {
+        return (T) unproxy
+            .andThen(it -> {
+                entityManager.detach(it);
+                return it;
+            })
+            .apply(entityProxy);
     }
 
     /**
