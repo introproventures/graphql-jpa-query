@@ -18,27 +18,6 @@ package com.introproventures.graphql.jpa.query.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
-import javax.transaction.Transactional;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
@@ -50,6 +29,23 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import javax.transaction.Transactional;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 
 
 @SpringBootTest(properties = {
@@ -891,6 +887,31 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
                 "{id=6, businessKey=bk6, name=task6, status=ASSIGNED, priority=10, dueDate=null, assignee=assignee}, " +
                 "{id=1, businessKey=bk1, name=task1, status=COMPLETED, priority=5, dueDate=null, assignee=assignee}" +
                 "]}}";
+
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void testGraphqlTasksQueryWithEmbeddedVariablesWhereCriteria() throws InterruptedException {
+        // @formatter:off
+        String query =
+            "query getTasks {" +
+                "  Tasks(where: {businessKey: {EQ: \"bk1\"}}) {" +
+                "    select {" +
+                "      businessKey" +
+                "      variables(where: {name: {EQ: \"variable1\"}}) {" +
+                "        name" +
+                "        value" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
+        // @formatter:on
+
+        Object result = executor.execute(query)
+            .getData();
+
+        String expected = "{Tasks={select=[{businessKey=bk1, variables=[{name=variable1, value=data}]}]}}";
 
         assertThat(result.toString()).isEqualTo(expected);
     }
