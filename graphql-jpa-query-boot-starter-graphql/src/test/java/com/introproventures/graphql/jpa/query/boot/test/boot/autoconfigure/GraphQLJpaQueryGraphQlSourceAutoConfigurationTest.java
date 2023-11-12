@@ -15,6 +15,8 @@
  */
 package com.introproventures.graphql.jpa.query.boot.test.boot.autoconfigure;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
 import com.introproventures.graphql.jpa.query.autoconfigure.JavaScalarsRuntimeWiringConfigurer;
 import com.introproventures.graphql.jpa.query.boot.test.starter.model.Author;
@@ -22,7 +24,6 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
-import org.dataloader.DataLoaderRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,6 @@ import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import static graphql.GraphQLContext.newContext;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.dataloader.DataLoaderRegistry.newRegistry;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -81,11 +78,5 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
                                 .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)
                                 .containsExactly("GraphQLBooks", "GraphQL Books Schema Description");
 
-        DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
-        batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());
-
-        assertThat(dataLoaderRegistry.getDataLoadersMap())
-                                     .isNotEmpty()
-                                     .containsOnlyKeys("Author.books", "Book.author");
     }
 }

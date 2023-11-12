@@ -18,22 +18,17 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
 
-import java.util.Optional;
-
-import javax.persistence.metamodel.SingularAttribute;
-
-import graphql.schema.GraphQLNamedType;
-import org.dataloader.DataLoader;
-import org.dataloader.DataLoaderOptions;
-import org.dataloader.DataLoaderRegistry;
-import org.dataloader.MappedBatchLoaderWithContext;
-
-import graphql.GraphQLContext;
 import graphql.language.Argument;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLNamedType;
+import java.util.Optional;
+import javax.persistence.metamodel.SingularAttribute;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderOptions;
+import org.dataloader.DataLoaderRegistry;
+import org.dataloader.MappedBatchLoaderWithContext;
 
 /**
  * One-To-Many DataFetcher that uses where argument to filter collection attributes
@@ -81,8 +76,7 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
 
     protected DataLoader<Object, Object> getDataLoader(DataFetchingEnvironment environment,
                                                        String dataLoaderKey) {
-        GraphQLContext context = environment.getContext();
-        DataLoaderRegistry dataLoaderRegistry = context.get("dataLoaderRegistry");
+        DataLoaderRegistry dataLoaderRegistry = environment.getDataLoaderRegistry();
 
         if (!dataLoaderRegistry.getKeys()
                                .contains(dataLoaderKey)) {
