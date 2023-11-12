@@ -280,13 +280,13 @@ public final class GraphQLJpaQueryFactory {
 
         if (resultStream) {
             return query.getResultStream()
-                        .map(this::unproxyAndDetach);
+                        .map(this::applyUnproxy);
         }
 
         // Let's execute query and wrap result into stream
         return query.getResultList()
                     .stream()
-                    .map(this::unproxyAndDetach);
+                    .map(this::applyUnproxy);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
@@ -310,7 +310,7 @@ public final class GraphQLJpaQueryFactory {
             }
     
             return Optional.ofNullable(query.getSingleResult())
-                .map(this::unproxyAndDetach)
+                .map(this::applyUnproxy)
                 .orElse(null);
         }
         
@@ -434,7 +434,7 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, List<Object>> batch = resultList.stream()
                                                     .collect(groupingBy(t -> t[0],
-                                                                        Collectors.mapping(t -> this.unproxyAndDetach(t[1]),
+                                                                        Collectors.mapping(t -> this.applyUnproxy(t[1]),
                                                                                            GraphQLSupport.toResultList())));
         Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
@@ -457,7 +457,7 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
-        resultList.forEach(item -> resultMap.put(item[0], this.unproxyAndDetach(item[1])));
+        resultList.forEach(item -> resultMap.put(item[0], this.applyUnproxy(item[1])));
 
         return resultMap;
     }
@@ -1884,10 +1884,8 @@ public final class GraphQLJpaQueryFactory {
 
     }
 
-    protected <T> T unproxyAndDetach(T entityProxy) {
-        return (T) unproxy
-            .andThen(it -> { entityManager.detach(it); return it; })
-            .apply(entityProxy);
+    private <T> T applyUnproxy(T entity) {
+        return (T) unproxy.apply(entity);
     }
 
     /**

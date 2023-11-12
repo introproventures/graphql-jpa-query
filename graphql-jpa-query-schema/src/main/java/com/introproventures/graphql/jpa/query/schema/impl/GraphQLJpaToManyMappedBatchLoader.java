@@ -1,15 +1,13 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import graphql.schema.DataFetchingEnvironment;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.MappedBatchLoaderWithContext;
-
-import graphql.schema.DataFetchingEnvironment;
 
 // a batch loader function that will be called with N or more keys for batch loading
 class GraphQLJpaToManyMappedBatchLoader implements MappedBatchLoaderWithContext<Object, List<Object>> {
@@ -26,7 +24,7 @@ class GraphQLJpaToManyMappedBatchLoader implements MappedBatchLoaderWithContext<
         DataFetchingEnvironment context = (DataFetchingEnvironment) environment.getKeyContexts()
                                                                                .get(key);
 
-        return CompletableFuture.supplyAsync(() -> queryFactory.loadOneToMany(context, keys));
+        return CompletableFuture.supplyAsync(() -> queryFactory.loadOneToMany(context, keys), Runnable::run);
     }
 
 
