@@ -23,6 +23,6 @@ class GraphQLJpaToManyMappedBatchLoader implements MappedBatchLoaderWithContext<
         Object key = keys.iterator().next();
         DataFetchingEnvironment context = (DataFetchingEnvironment) environment.getKeyContexts().get(key);
 
-        return CompletableFuture.supplyAsync(() -> queryFactory.loadOneToMany(context, keys));
+        return CompletableFuture.supplyAsync(() -> queryFactory.loadOneToMany(context, keys), Runnable::run);
     }
 }
