@@ -947,4 +947,28 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void testGraphqlTasksQueryWithEmbeddedVariablesWhereCriteria() throws InterruptedException {
+        // @formatter:off
+        String query =
+            "query getTasks {" +
+                "  Tasks(where: {businessKey: {EQ: \"bk1\"}}) {" +
+                "    select {" +
+                "      businessKey" +
+                "      variables(where: {name: {EQ: \"variable1\"}}) {" +
+                "        name" +
+                "        value" +
+                "      }" +
+                "    }" +
+                "  }" +
+                "}";
+        // @formatter:on
+
+        Object result = executor.execute(query).getData();
+
+        String expected = "{Tasks={select=[{businessKey=bk1, variables=[{name=variable1, value=data}]}]}}";
+
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 }

@@ -36,6 +36,7 @@ import java.util.Optional;
  * @author Igor Dianov
  *
  */
+@Transactional(TxType.SUPPORTS)
 public class GraphQLJpaExecutor implements GraphQLExecutor {
 
     private final GraphQLSchema graphQLSchema;
@@ -66,7 +67,6 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String)
      */
     @Override
-    @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query) {
         return execute(query, Collections.emptyMap());
     }
@@ -75,13 +75,11 @@ public class GraphQLJpaExecutor implements GraphQLExecutor {
      * @see org.activiti.services.query.qraphql.jpa.QraphQLExecutor#execute(java.lang.String, java.util.Map)
      */
     @Override
-    @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, Map<String, Object> arguments) {
         return execute(query, null, arguments);
     }
 
     @Override
-    @Transactional(TxType.REQUIRED)
     public ExecutionResult execute(String query, String operationName, Map<String, Object> arguments) {
         Map<String, Object> variables = Optional.ofNullable(arguments).orElseGet(Collections::emptyMap);
 

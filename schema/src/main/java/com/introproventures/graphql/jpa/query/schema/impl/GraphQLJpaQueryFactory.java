@@ -121,6 +121,25 @@ public final class GraphQLJpaQueryFactory {
     private static final String DESC = "DESC";
 
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
+    private static Function<Object, Object> unproxy;
+
+    static {
+        try {
+            Class<?> hibernateClass = Class.forName("org.hibernate.Hibernate");
+            Method unproxyMethod = hibernateClass.getDeclaredMethod("unproxy", Object.class);
+
+            unproxy =
+                proxy -> {
+                    try {
+                        return unproxyMethod.invoke(null, proxy);
+                    } catch (Exception ignored) {}
+
+                    return proxy;
+                };
+        } catch (Exception ignored) {
+            unproxy = Function.identity();
+        }
+    }
 
     protected static final String WHERE = "where";
     protected static final String OPTIONAL = "optional";
@@ -207,6 +226,15 @@ public final class GraphQLJpaQueryFactory {
             logger.info("\nGraphQL JPQL Keys Query String:\n    {}", getJPQLQueryString(keysQuery));
         }
 
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "Query keys in session {} for field {} on {}",
+                entityManager,
+                environment.getField().getName(),
+                Thread.currentThread()
+            );
+        }
+
         return keysQuery.getResultList();
     }
 
@@ -245,15 +273,22 @@ public final class GraphQLJpaQueryFactory {
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
         }
-
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "Query results in session {} for query {} running on {}",
+                entityManager,
+                getJPQLQueryString(query),
+                Thread.currentThread()
+            );
+        }
+        // Let's execute query and wrap result into stream
         // FIXME result stream is broken in StarwarsQueryExecutorTestsSupport.queryWithWhereInsideManyToOneRelations test since Hibernate 6.2.x
         if (resultStream) {
             logger.warn("Skipping result stream query due to regression in Hibernate 6.2.x");
-            // return query.getResultStream().peek(entityManager::detach);
+            // return query.getResultStream().map(this::unproxy).peek(this::detach);
         }
 
-        // Let's execute query and wrap result into stream
-        return query.getResultList().stream().peek(entityManager::detach);
+        return query.getResultList().stream().map(this::unproxy).peek(this::detach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
@@ -275,13 +310,7 @@ public final class GraphQLJpaQueryFactory {
                 logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
             }
 
-            Object result = query.getSingleResult();
-
-            if (result != null) {
-                entityManager.detach(result);
-            }
-
-            return result;
+            return Optional.ofNullable(query.getSingleResult()).map(this::unproxyAndThenDetach).orElse(null);
         }
 
         return null;
@@ -414,10 +443,24 @@ public final class GraphQLJpaQueryFactory {
 
         List<Object[]> resultList = getResultList(query);
 
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "loadOneToMany in session {} for field {} with keys {} on {}",
+                entityManager,
+                environment.getField().getName(),
+                keys,
+                Thread.currentThread()
+            );
+        }
+
         Map<Object, List<Object>> batch = resultList
             .stream()
-            .peek(t -> entityManager.detach(t[1]))
-            .collect(groupingBy(t -> t[0], Collectors.mapping(t -> t[1], GraphQLSupport.toResultList())));
+            .collect(
+                groupingBy(
+                    t -> t[0],
+                    Collectors.mapping(t -> this.unproxyAndThenDetach(t[1]), GraphQLSupport.toResultList())
+                )
+            );
         Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
         keys.forEach(it -> {
@@ -438,7 +481,7 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
-        resultList.stream().peek(t -> entityManager.detach(t[1])).forEach(item -> resultMap.put(item[0], item[1]));
+        resultList.forEach(item -> resultMap.put(item[0], this.unproxyAndThenDetach(item[1])));
 
         return resultMap;
     }
@@ -1917,6 +1960,20 @@ public final class GraphQLJpaQueryFactory {
 
                 return false;
             });
+    }
+
+    private <T> T unproxy(T entityProxy) {
+        return (T) unproxy.apply(entityProxy);
+    }
+
+    private <T> T unproxyAndThenDetach(T entityProxy) {
+        return (T) unproxy.andThen(this::detach).apply(entityProxy);
+    }
+
+    private <T> T detach(T entity) {
+        entityManager.detach(entity);
+
+        return entity;
     }
 
     /**

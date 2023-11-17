@@ -17,6 +17,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.support.Subscription
 import com.introproventures.graphql.jpa.query.autoconfigure.support.TestEntity;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.Scalars;
@@ -39,6 +40,8 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -59,6 +62,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -73,11 +77,34 @@ public class GraphQLSchemaAutoConfigurationTest {
     private GraphQLSchema graphQLSchema;
 
     @Autowired
+    private GraphQLJpaSchemaBuilder graphQLJpaSchemaBuilder;
+
+    @Autowired
+    private GraphQLSchemaEntityManager entityManagerSupplier;
+
+    @Autowired
+    private QueryExecutionStrategyProvider queryExecutionStrategy;
+
+    @Autowired
+    private MutationExecutionStrategyProvider mutationExecutionStrategy;
+
+    @Autowired
+    private SubscriptionExecutionStrategyProvider subscriptionExecutionStrategy;
+
+    @Autowired
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
 
     @SpringBootApplication
     @EnableGraphQLJpaQuerySchema(basePackageClasses = TestEntity.class)
     static class Application {
+
+        @PersistenceContext
+        EntityManager entityManager;
+
+        @Bean
+        GraphQLSchemaEntityManager persistentContextEntityManager() {
+            return () -> entityManager;
+        }
 
         @Configuration
         static class GraphQLAnnotationsSchemaConfigurer implements GraphQLSchemaConfigurer {
@@ -376,10 +403,16 @@ public class GraphQLSchemaAutoConfigurationTest {
     }
 
     @Test
-    public void defaultConfigurationProperties() {
+    void defaultConfigurationProperties() {
         // given
         assertThat(graphQLJpaQueryProperties.isDefaultDistinct()).isTrue();
         assertThat(graphQLJpaQueryProperties.isUseDistinctParameter()).isFalse();
         assertThat(graphQLJpaQueryProperties.isToManyDefaultOptional()).isTrue();
+    }
+
+    @Test
+    void configuresSharedEntityManager() {
+        // given
+        assertThat(graphQLJpaSchemaBuilder.getEntityManager()).isEqualTo(entityManagerSupplier.get());
     }
 }

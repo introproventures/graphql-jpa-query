@@ -19,7 +19,6 @@ import graphql.GraphQL;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -44,6 +43,28 @@ import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 @ConditionalOnProperty(name = "spring.graphql.jpa.query.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(GraphQlProperties.class)
 public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
+
+    @Bean
+    @ConditionalOnBean(GraphQLSchema.class)
+    Consumer<GraphQL.Builder> graphQlExecutionStrategyConfigurer(
+        ObjectProvider<QueryExecutionStrategyProvider> queryExecutionStrategy,
+        ObjectProvider<MutationExecutionStrategyProvider> mutationExecutionStrategy,
+        ObjectProvider<SubscriptionExecutionStrategyProvider> subscriptionExecutionStrategy
+    ) {
+        return builder -> {
+            queryExecutionStrategy.ifAvailable(it -> builder.queryExecutionStrategy(it.get()));
+            mutationExecutionStrategy.ifAvailable(it -> builder.mutationExecutionStrategy(it.get()));
+            subscriptionExecutionStrategy.ifAvailable(it -> builder.subscriptionExecutionStrategy(it.get()));
+        };
+    }
+
+    @Bean
+    @ConditionalOnGraphQlSchema
+    GraphQlSourceBuilderCustomizer graphQlSourceBuilderExecutionStrategyCustomizer(
+        Consumer<GraphQL.Builder> graphQlExecutionStrategyConfigurer
+    ) {
+        return builder -> builder.configureGraphQl(graphQlExecutionStrategyConfigurer);
+    }
 
     @Bean
     @ConditionalOnGraphQlSchema
@@ -86,9 +107,9 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
         GraphQlSource.Builder<?> builder = GraphQlSource.builder(graphQLSchema);
 
         builder
-            .exceptionResolvers(exceptionResolvers.orderedStream().collect(Collectors.toList()))
-            .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream().collect(Collectors.toList()))
-            .instrumentation(instrumentations.orderedStream().collect(Collectors.toList()));
+            .exceptionResolvers(exceptionResolvers.orderedStream().toList())
+            .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream().toList())
+            .instrumentation(instrumentations.orderedStream().toList());
 
         configurers.orderedStream().forEach(builder::configureGraphQl);
 
