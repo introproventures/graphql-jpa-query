@@ -1,6 +1,8 @@
 # Change Log
 
-## 1.1.1-SNAPSHOT
+## 1.1.1
+* Fix auto-configuration to apply a shared container entity manager instance for GraphQLJPASchemaBuilder  (#380) [f19c603](https://github.com/introproventures/graphql-jpa-query/commit/f19c6034f49ff0c15da15fddea73b2b0b55ff2ca)
+* Update README.md [ceed90a](https://github.com/introproventures/graphql-jpa-query/commit/ceed90a378790cad163b51d041b256485a8bc53f)
 * Update dependencies to Spring Boot 3.1.0 (#375) [af325eb](https://github.com/introproventures/graphql-jpa-query/commit/af325eb6913630b1855eaf9458b56ce57517b11e)
 * Update README.md [a89d73f](https://github.com/introproventures/graphql-jpa-query/commit/a89d73fafcccfeaa0e2c35f8c4e4d6eaa54d045c)
 * Update README.md [349c479](https://github.com/introproventures/graphql-jpa-query/commit/349c4791d9e43f4dff7de21bbb1fe34554c2cd9f)
