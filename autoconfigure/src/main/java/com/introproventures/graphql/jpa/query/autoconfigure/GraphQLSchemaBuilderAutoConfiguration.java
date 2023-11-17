@@ -25,14 +25,24 @@ import org.springframework.context.annotation.Bean;
 public class GraphQLSchemaBuilderAutoConfiguration {
 
     @Bean
+    @GraphQLSchemaEntityManager
+    @ConditionalOnMissingBean(value = EntityManager.class, parameterizedContainer = Supplier.class)
+    @ConditionalOnSingleCandidate(EntityManagerFactory.class)
+    Supplier<EntityManager> graphQLSchemaEntityManager(EntityManagerFactory entityManagerFactory) {
+        return () -> SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
     GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(
-        EntityManagerFactory entityManagerFactory,
+        @GraphQLSchemaEntityManager Supplier<EntityManager> graphQLSchemaEntityManager,
         GraphQLJpaQueryProperties properties,
         ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider
     ) {
-        GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
+        final EntityManager entityManager = graphQLSchemaEntityManager.get();
+
+        GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManager);
 
         builder
             .name(properties.getName())
@@ -45,6 +55,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames().stream().forEach(builder::entityPath);
 
         restrictedKeysProvider.ifAvailable(builder::restrictedKeysProvider);
+
+        log.warn("Configured {} for {} GraphQL schema", entityManager, properties.getName());
 
         return builder;
     }

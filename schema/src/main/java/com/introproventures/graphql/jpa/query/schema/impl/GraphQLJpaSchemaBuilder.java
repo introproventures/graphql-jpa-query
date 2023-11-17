@@ -115,7 +115,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     private String name = "GraphQLJPA";
 
@@ -145,6 +145,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
+    }
+
+    public EntityManager getEntityManager() {
+        return entityManager;
     }
 
     /* (non-Javadoc)
