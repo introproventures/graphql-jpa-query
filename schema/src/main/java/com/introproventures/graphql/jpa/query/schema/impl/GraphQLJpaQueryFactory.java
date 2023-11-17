@@ -226,7 +226,16 @@ public final class GraphQLJpaQueryFactory {
             logger.info("\nGraphQL JPQL Keys Query String:\n    {}", getJPQLQueryString(keysQuery));
         }
 
-        return new ArrayList<>(keysQuery.getResultList());
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "Query keys in session {} for field {} on {}",
+                entityManager,
+                environment.getField().getName(),
+                Thread.currentThread()
+            );
+        }
+
+        return keysQuery.getResultList();
     }
 
     public List<Object> queryResultList(DataFetchingEnvironment environment, int maxResults, List<Object> keys) {
@@ -264,15 +273,18 @@ public final class GraphQLJpaQueryFactory {
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
         }
-
-        // FIXME result stream is broken in StarwarsQueryExecutorTestsSupport.queryWithWhereInsideManyToOneRelations test since Hibernate 6.2.x
-        if (resultStream) {
-            logger.warn("Skipping result stream query due to regression in Hibernate 6.2.x");
-            // return query.getResultStream().peek(entityManager::detach);
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "Query results in session {} for query {} running on {}",
+                entityManager,
+                getJPQLQueryString(query),
+                Thread.currentThread()
+            );
         }
-
         // Let's execute query and wrap result into stream
-        return query.getResultList().stream().map(this::applyUnproxy);
+        final Stream<T> resultStream = this.resultStream ? query.getResultStream() : query.getResultList().stream();
+
+        return resultStream.map(this::unproxy).peek(this::detach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
@@ -294,7 +306,7 @@ public final class GraphQLJpaQueryFactory {
                 logger.info("\nGraphQL JPQL Single Result Query String:\n    {}", getJPQLQueryString(query));
             }
 
-            return Optional.ofNullable(query.getSingleResult()).map(this::applyUnproxy).orElse(null);
+            return Optional.ofNullable(query.getSingleResult()).map(this::unproxyAndThenDetach).orElse(null);
         }
 
         return null;
@@ -427,10 +439,23 @@ public final class GraphQLJpaQueryFactory {
 
         List<Object[]> resultList = getResultList(query);
 
+        if (logger.isTraceEnabled()) {
+            logger.trace(
+                "loadOneToMany in session {} for field {} with keys {} on {}",
+                entityManager,
+                environment.getField().getName(),
+                keys,
+                Thread.currentThread()
+            );
+        }
+
         Map<Object, List<Object>> batch = resultList
             .stream()
             .collect(
-                groupingBy(t -> t[0], Collectors.mapping(t -> this.applyUnproxy(t[1]), GraphQLSupport.toResultList()))
+                groupingBy(
+                    t -> t[0],
+                    Collectors.mapping(t -> this.unproxyAndThenDetach(t[1]), GraphQLSupport.toResultList())
+                )
             );
         Map<Object, List<Object>> resultMap = new LinkedHashMap<>(keys.size());
 
@@ -452,7 +477,7 @@ public final class GraphQLJpaQueryFactory {
 
         Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
-        resultList.forEach(item -> resultMap.put(item[0], this.applyUnproxy(item[1])));
+        resultList.forEach(item -> resultMap.put(item[0], this.unproxyAndThenDetach(item[1])));
 
         return resultMap;
     }
@@ -1933,8 +1958,18 @@ public final class GraphQLJpaQueryFactory {
             });
     }
 
-    protected <T> T applyUnproxy(T entityProxy) {
+    private <T> T unproxy(T entityProxy) {
         return (T) unproxy.apply(entityProxy);
+    }
+
+    private <T> T unproxyAndThenDetach(T entityProxy) {
+        return (T) unproxy.andThen(this::detach).apply(entityProxy);
+    }
+
+    private <T> T detach(T entity) {
+        entityManager.detach(entity);
+
+        return entity;
     }
 
     /**

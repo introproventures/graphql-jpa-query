@@ -83,6 +83,15 @@ public class GraphQLSchemaAutoConfigurationTest {
     private Supplier<EntityManager> entityManagerSupplier;
 
     @Autowired
+    private QueryExecutionStrategyProvider queryExecutionStrategy;
+
+    @Autowired
+    private MutationExecutionStrategyProvider mutationExecutionStrategy;
+
+    @Autowired
+    private SubscriptionExecutionStrategyProvider subscriptionExecutionStrategy;
+
+    @Autowired
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
 
     @SpringBootApplication
