@@ -80,7 +80,7 @@ public class GraphQLSchemaAutoConfigurationTest {
     private GraphQLJpaSchemaBuilder graphQLJpaSchemaBuilder;
 
     @Autowired
-    private Supplier<EntityManager> entityManagerSupplier;
+    private GraphQLSchemaEntityManager entityManagerSupplier;
 
     @Autowired
     private QueryExecutionStrategyProvider queryExecutionStrategy;
@@ -102,8 +102,7 @@ public class GraphQLSchemaAutoConfigurationTest {
         EntityManager entityManager;
 
         @Bean
-        @GraphQLSchemaEntityManager
-        Supplier<EntityManager> persistentContextEntityManager() {
+        GraphQLSchemaEntityManager persistentContextEntityManager() {
             return () -> entityManager;
         }
 

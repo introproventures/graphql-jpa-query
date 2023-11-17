@@ -47,15 +47,15 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     @Bean
     @ConditionalOnBean(GraphQLSchema.class)
     Consumer<GraphQL.Builder> graphQlExecutionStrategyConfigurer(
-        QueryExecutionStrategyProvider queryExecutionStrategy,
-        MutationExecutionStrategyProvider mutationExecutionStrategy,
-        SubscriptionExecutionStrategyProvider subscriptionExecutionStrategy
+        ObjectProvider<QueryExecutionStrategyProvider> queryExecutionStrategy,
+        ObjectProvider<MutationExecutionStrategyProvider> mutationExecutionStrategy,
+        ObjectProvider<SubscriptionExecutionStrategyProvider> subscriptionExecutionStrategy
     ) {
-        return builder ->
-            builder
-                .queryExecutionStrategy(queryExecutionStrategy.get())
-                .mutationExecutionStrategy(mutationExecutionStrategy.get())
-                .subscriptionExecutionStrategy(subscriptionExecutionStrategy.get());
+        return builder -> {
+            queryExecutionStrategy.ifAvailable(it -> builder.queryExecutionStrategy(it.get()));
+            mutationExecutionStrategy.ifAvailable(it -> builder.mutationExecutionStrategy(it.get()));
+            subscriptionExecutionStrategy.ifAvailable(it -> builder.subscriptionExecutionStrategy(it.get()));
+        };
     }
 
     @Bean

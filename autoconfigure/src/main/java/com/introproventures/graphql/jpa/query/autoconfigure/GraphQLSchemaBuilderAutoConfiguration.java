@@ -8,7 +8,6 @@ import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilde
 import graphql.GraphQL;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -37,15 +36,19 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     private static final Logger log = LoggerFactory.getLogger(GraphQLSchemaBuilderAutoConfiguration.class);
 
     @Bean
-    @ConditionalOnMissingBean(value = TransactionTemplate.class, parameterizedContainer = Supplier.class)
-    Supplier<TransactionTemplate> transactionTemplateSupplier(PlatformTransactionManager transactionManager) {
+    @ConditionalOnMissingBean(GraphQLSchemaTransactionTemplate.class)
+    @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
+    GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate(PlatformTransactionManager transactionManager) {
         return () -> new TransactionTemplate(transactionManager);
     }
 
     @Bean
     @ConditionalOnMissingBean(QueryExecutionStrategyProvider.class)
-    QueryExecutionStrategyProvider queryExecutionStrategy(Supplier<TransactionTemplate> transactionTemplateSupplier) {
-        var transactionTemplate = transactionTemplateSupplier.get();
+    @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
+    QueryExecutionStrategyProvider queryExecutionStrategy(
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
+    ) {
+        var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setReadOnly(true);
 
         return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
@@ -53,10 +56,11 @@ public class GraphQLSchemaBuilderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MutationExecutionStrategyProvider.class)
+    @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
     MutationExecutionStrategyProvider mutationExecutionStrategy(
-        Supplier<TransactionTemplate> transactionTemplateSupplier
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
     ) {
-        var transactionTemplate = transactionTemplateSupplier.get();
+        var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
         return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
@@ -64,20 +68,20 @@ public class GraphQLSchemaBuilderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(SubscriptionExecutionStrategyProvider.class)
+    @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
     SubscriptionExecutionStrategyProvider subscriptionExecutionStrategy(
-        Supplier<TransactionTemplate> transactionTemplateSupplier
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
     ) {
-        var transactionTemplate = transactionTemplateSupplier.get();
+        var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
 
         return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
     }
 
     @Bean
-    @GraphQLSchemaEntityManager
-    @ConditionalOnMissingBean(value = EntityManager.class, parameterizedContainer = Supplier.class)
+    @ConditionalOnMissingBean(GraphQLSchemaEntityManager.class)
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
-    Supplier<EntityManager> graphQLSchemaEntityManager(EntityManagerFactory entityManagerFactory) {
+    GraphQLSchemaEntityManager graphQLSchemaEntityManager(EntityManagerFactory entityManagerFactory) {
         return () -> SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
     }
 
@@ -85,7 +89,7 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnSingleCandidate(EntityManagerFactory.class)
     GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(
-        @GraphQLSchemaEntityManager Supplier<EntityManager> graphQLSchemaEntityManager,
+        GraphQLSchemaEntityManager graphQLSchemaEntityManager,
         GraphQLJpaQueryProperties properties,
         ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider
     ) {
