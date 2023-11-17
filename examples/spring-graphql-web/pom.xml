@@ -34,7 +34,7 @@
   </dependency>
   <dependency>
     <groupId>com.introproventures</groupId>
-    <artifactId>graphql-jpa-query-test-model-starwars</artifactId>
+    <artifactId>graphql-jpa-query-test-model-books</artifactId>
   </dependency>
   <dependency>
     <groupId>com.h2database</groupId>
