@@ -22,6 +22,7 @@
     <module>starwars</module>
     <module>boot-starter</module>
     <module>web</module>
+    <module>gatling</module>
   </modules>
 
 </project>
