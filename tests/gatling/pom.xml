@@ -136,6 +136,7 @@
         </executions>
         <configuration>
           <skip>${skipTests}</skip>
+          <runMultipleSimulations>true</runMultipleSimulations>
           <jvmArgs>
             <arg>-XX:ActiveProcessorCount=2</arg>
             <arg>-Djava.net.preferIPv6Addresses=false</arg>

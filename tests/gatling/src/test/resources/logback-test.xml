@@ -7,7 +7,7 @@
   <logger name="io.gatling" level="WARN"/>
   <!-- uncomment and set to DEBUG to log all failing HTTP requests -->
   <!-- uncomment and set to TRACE to log all HTTP requests -->
-  <logger name="io.gatling.http.engine.response" level="INFO" />
+  <logger name="io.gatling.http.engine.response" level="DEBUG" />
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>
