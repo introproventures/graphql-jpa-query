@@ -1,0 +1,50 @@
+
+server:
+  compression:
+    enabled: false
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 200
+      min-spare: 100
+
+spring:
+  jpa:
+    hibernate.ddl-auto: validate
+    generate-ddl: false
+    show-sql: false
+    defer-datasource-initialization: false
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate.format_sql: true
+      hibernate.temp.use_jdbc_metadata_defaults: false
+      hibernate.query.fail_on_pagination_over_collection_fetch: true
+  h2:
+    console.enabled: true
+    
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: password
+
+  graphql:
+    jpa:
+      query:
+        name: Activiti
+        description: GraphQL Jpa Query Activiti Schema Example
+        enabled: true
+        web:
+          enabled: true
+    graphiql:
+      enabled: true
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org.hibernate: INFO
+    com.introproventures.graphql.jpa.query.schema: INFO
+
+debug: false
