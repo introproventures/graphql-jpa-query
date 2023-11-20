@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.1.2
+## 1.1.3-SNAPSHOT
 * Add gatling integration tests module (#381) [213784e](https://github.com/introproventures/graphql-jpa-query/commit/213784e667e0148d1233cd6c634cae7de5d7c9be)
 * Fix auto-configuration to apply a shared container entity manager instance for GraphQLJPASchemaBuilder  (#380) [f19c603](https://github.com/introproventures/graphql-jpa-query/commit/f19c6034f49ff0c15da15fddea73b2b0b55ff2ca)
 * Update README.md [ceed90a](https://github.com/introproventures/graphql-jpa-query/commit/ceed90a378790cad163b51d041b256485a8bc53f)
