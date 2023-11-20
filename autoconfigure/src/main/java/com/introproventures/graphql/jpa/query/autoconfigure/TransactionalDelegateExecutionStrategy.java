@@ -8,6 +8,7 @@ import graphql.execution.ExecutionStrategyParameters;
 import graphql.execution.NonNullableFieldWasNullException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -96,8 +97,14 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
 
     public static final class Builder {
 
+        private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+
+        static {
+            Runtime.getRuntime().addShutdownHook(new Thread(EXECUTOR_SERVICE::shutdown));
+        }
+
         private TransactionTemplate transactionTemplate;
-        private Supplier<Executor> executor = Executors::newCachedThreadPool;
+        private Supplier<Executor> executor = () -> EXECUTOR_SERVICE;
         private ExecutionStrategy delegate = new AsyncExecutionStrategy();
 
         private Builder() {}
