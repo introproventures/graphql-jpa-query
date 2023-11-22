@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.1.3
+## 1.1.4-SNAPSHOT
 * bump activiti-cloud.version to 8.1.0 (#388) [be548ae](https://github.com/introproventures/graphql-jpa-query/commit/be548ae4ed8f0baf61f8fa1f1a001a66ed4c2e31)
 * Add support for lazy loaded attribute fetching with JPA entity graph query hint (#387) [715021d](https://github.com/introproventures/graphql-jpa-query/commit/715021ded185956ad40a481c9d270532c0950e79)
 * chore(deps): bump maven-compiler-plugin from 3.10.1 to 3.11.0 (#369) [17120b6](https://github.com/introproventures/graphql-jpa-query/commit/17120b6c0cd908ab5619193cf0ff25c53b736a8d)
