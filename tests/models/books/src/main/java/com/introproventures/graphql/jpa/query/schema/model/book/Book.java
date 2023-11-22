@@ -33,10 +33,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @Entity
-@EqualsAndHashCode(exclude = { "author", "tags", "publishers" })
+@EqualsAndHashCode
+@ToString
 public class Book {
 
     @Id
@@ -53,9 +55,13 @@ public class Book {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @GraphQLDescription("A set of user-defined tags")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<String> tags = new LinkedHashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     Author author;
 
     @Enumerated(EnumType.STRING)
@@ -64,6 +70,8 @@ public class Book {
     Date publicationDate;
 
     @ElementCollection(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     Set<Publisher> publishers;
 
     @Transient

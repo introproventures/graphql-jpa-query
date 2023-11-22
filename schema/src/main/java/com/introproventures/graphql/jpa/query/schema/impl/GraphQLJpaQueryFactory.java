@@ -22,6 +22,7 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isFi
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isLogicalArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isPageArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.isWhereArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.selections;
 import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
@@ -60,7 +61,9 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Subgraph;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.AbstractQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -121,6 +124,7 @@ public final class GraphQLJpaQueryFactory {
     private static final String DESC = "DESC";
 
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryFactory.class);
+    public static final String JAKARTA_PERSISTENCE_FETCHGRAPH = "jakarta.persistence.fetchgraph";
     private static Function<Object, Object> unproxy;
 
     static {
@@ -260,15 +264,26 @@ public final class GraphQLJpaQueryFactory {
             keys.toArray()
         );
 
+        // Let's create entity graph from selection
+        var entityGraph = createEntityGraph(queryEnvironment);
+
         // Let's execute query and get wrap result into stream
-        return getResultStream(query, fetchSize, isDistinct);
+        return getResultStream(query, fetchSize, isDistinct, entityGraph);
     }
 
-    protected <T> Stream<T> getResultStream(TypedQuery<T> query, int fetchSize, boolean isDistinct) {
+    protected <T> Stream<T> getResultStream(
+        TypedQuery<T> query,
+        int fetchSize,
+        boolean isDistinct,
+        EntityGraph<?> entityGraph
+    ) {
         // Let' try reduce overhead and disable all caching
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+        if (entityGraph != null) {
+            query.setHint(JAKARTA_PERSISTENCE_FETCHGRAPH, entityGraph);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Fetch Query String:\n    {}", getJPQLQueryString(query));
@@ -441,7 +456,9 @@ public final class GraphQLJpaQueryFactory {
 
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
-        List<Object[]> resultList = getResultList(query);
+        var entityGraph = createEntityGraph(environment);
+
+        List<Object[]> resultList = getResultList(query, entityGraph);
 
         if (logger.isTraceEnabled()) {
             logger.trace(
@@ -477,7 +494,9 @@ public final class GraphQLJpaQueryFactory {
 
         TypedQuery<Object[]> query = getBatchQuery(environment, field, isDefaultDistinct(), keys);
 
-        List<Object[]> resultList = getResultList(query);
+        var entityGraph = createEntityGraph(environment);
+
+        List<Object[]> resultList = getResultList(query, entityGraph);
 
         Map<Object, Object> resultMap = new LinkedHashMap<>(resultList.size());
 
@@ -486,7 +505,7 @@ public final class GraphQLJpaQueryFactory {
         return resultMap;
     }
 
-    protected <T> List<T> getResultList(TypedQuery<T> query) {
+    protected <T> List<T> getResultList(TypedQuery<T> query, EntityGraph<?> entityGraph) {
         if (logger.isDebugEnabled()) {
             logger.info("\nGraphQL JPQL Batch Query String:\n    {}", getJPQLQueryString(query));
         }
@@ -495,6 +514,10 @@ public final class GraphQLJpaQueryFactory {
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, defaultFetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
+
+        if (entityGraph != null) {
+            query.setHint(JAKARTA_PERSISTENCE_FETCHGRAPH, entityGraph);
+        }
 
         return query.getResultList();
     }
@@ -1693,8 +1716,10 @@ public final class GraphQLJpaQueryFactory {
      * @return resolved GraphQL object type or null if no output type is provided
      */
     private GraphQLObjectType getObjectType(DataFetchingEnvironment environment) {
-        GraphQLType outputType = environment.getFieldType();
+        return getObjectType(environment.getFieldType());
+    }
 
+    private GraphQLObjectType getObjectType(GraphQLType outputType) {
         if (outputType instanceof GraphQLList) outputType = ((GraphQLList) outputType).getWrappedType();
 
         if (outputType instanceof GraphQLObjectType) return (GraphQLObjectType) outputType;
@@ -1974,6 +1999,88 @@ public final class GraphQLJpaQueryFactory {
         entityManager.detach(entity);
 
         return entity;
+    }
+
+    EntityGraph<?> createEntityGraph(DataFetchingEnvironment environment) {
+        Field root = environment.getMergedField().getSingleField();
+        GraphQLObjectType fieldType = getObjectType(environment);
+        EntityType<?> entityType = getEntityType(fieldType);
+
+        EntityGraph<?> entityGraph = entityManager.createEntityGraph(entityType.getJavaType());
+
+        var entityDescriptor = EntityIntrospector.introspect(entityType);
+
+        selections(root)
+            .forEach(selectedField -> {
+                var propertyDescriptor = entityDescriptor.getPropertyDescriptor(selectedField.getName());
+
+                propertyDescriptor
+                    .flatMap(AttributePropertyDescriptor::getAttribute)
+                    .ifPresent(attribute -> {
+                        if (
+                            isManagedType(attribute) && hasSelectionSet(selectedField) && hasNoArguments(selectedField)
+                        ) {
+                            var attributeFieldDefinition = fieldType.getFieldDefinition(attribute.getName());
+                            entityGraph.addAttributeNodes(attribute.getName());
+                            addSubgraph(
+                                selectedField,
+                                attributeFieldDefinition,
+                                entityGraph.addSubgraph(attribute.getName())
+                            );
+                        } else if (isBasic(attribute)) {
+                            entityGraph.addAttributeNodes(attribute.getName());
+                        }
+                    });
+            });
+
+        return entityGraph;
+    }
+
+    void addSubgraph(Field field, GraphQLFieldDefinition fieldDefinition, Subgraph<?> subgraph) {
+        var fieldObjectType = getObjectType(fieldDefinition.getType());
+        var fieldEntityType = getEntityType(fieldObjectType);
+        var fieldEntityDescriptor = EntityIntrospector.introspect(fieldEntityType);
+
+        selections(field)
+            .forEach(selectedField -> {
+                var propertyDescriptor = fieldEntityDescriptor.getPropertyDescriptor(selectedField.getName());
+
+                propertyDescriptor
+                    .flatMap(AttributePropertyDescriptor::getAttribute)
+                    .ifPresent(attribute -> {
+                        var selectedName = selectedField.getName();
+
+                        if (
+                            hasSelectionSet(selectedField) && isManagedType(attribute) && hasNoArguments(selectedField)
+                        ) {
+                            var selectedFieldDefinition = fieldObjectType.getFieldDefinition(selectedName);
+                            subgraph.addAttributeNodes(selectedName);
+                            addSubgraph(selectedField, selectedFieldDefinition, subgraph.addSubgraph(selectedName));
+                        } else if (isBasic(attribute)) {
+                            subgraph.addAttributeNodes(selectedName);
+                        }
+                    });
+            });
+    }
+
+    static boolean isManagedType(Attribute<?, ?> attribute) {
+        return (
+            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.EMBEDDED &&
+            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC &&
+            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.ELEMENT_COLLECTION
+        );
+    }
+
+    static boolean isBasic(Attribute<?, ?> attribute) {
+        return !isManagedType(attribute);
+    }
+
+    static boolean hasNoArguments(Field field) {
+        return !hasArguments(field);
+    }
+
+    static boolean hasArguments(Field field) {
+        return field.getArguments() != null && !field.getArguments().isEmpty();
     }
 
     /**
