@@ -16,6 +16,7 @@
 
 package com.introproventures.graphql.jpa.query.schema.model.book;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -25,6 +26,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import java.util.HashSet;
@@ -38,7 +40,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode(exclude = { "books", "phoneNumbers" }) // Fixes NPE in Hibernate when initializing loaded collections #1
+@EqualsAndHashCode // Fixes NPE in Hibernate when initializing loaded collections #1
 public class Author {
 
     @Id
@@ -48,13 +50,23 @@ public class Author {
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     @OrderBy("id ASC")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     Set<Book> books;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "author_phone_numbers", joinColumns = @JoinColumn(name = "author_id"))
     @Column(name = "phone_number")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<String> phoneNumbers = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     Genre genre;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private byte[] profilePicture;
 }

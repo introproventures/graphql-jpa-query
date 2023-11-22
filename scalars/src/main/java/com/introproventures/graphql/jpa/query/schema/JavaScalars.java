@@ -139,6 +139,7 @@ public class JavaScalars {
             newScalarType("SqlTimestamp", "SQL Timestamp type", new GraphQLSqlTimestampCoercing())
         );
         scalarsRegistry.put(Byte[].class, newScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
+        scalarsRegistry.put(byte[].class, newScalarType("ByteArray", "ByteArray type", new GraphQLLOBCoercing()));
         scalarsRegistry.put(Instant.class, newScalarType("Instant", "Instant type", new GraphQLInstantCoercing()));
         scalarsRegistry.put(
             ZonedDateTime.class,
@@ -156,6 +157,10 @@ public class JavaScalars {
 
     public static Collection<GraphQLScalarType> scalars() {
         return Collections.unmodifiableCollection(scalarsRegistry.values());
+    }
+
+    public static boolean contains(Class<?> key) {
+        return scalarsRegistry.containsKey(key);
     }
 
     public static GraphQLScalarType of(Class<?> key) {
@@ -669,7 +674,7 @@ public class JavaScalars {
         @Override
         public Object serialize(Object input) {
             if (input.getClass() == byte[].class) {
-                return input;
+                return new String((byte[]) input, StandardCharsets.UTF_8);
             }
             return null;
         }

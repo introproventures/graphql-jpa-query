@@ -792,6 +792,59 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void queryAuthorsWithLazyLoadProfilePicture() {
+        //given
+        String query =
+            """
+            query {
+                Authors {
+                    select {
+                      id
+                      name
+                      profilePicture
+                    }
+                  }
+                }
+        """;
+
+        String expected =
+            """
+            {Authors={select=[{id=1, name=Leo Tolstoy, profilePicture=base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==}, {id=4, name=Anton Chekhov, profilePicture=base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==}, {id=8, name=Igor Dianov, profilePicture=base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==}]}}        
+        """;
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected.strip());
+    }
+
+    @Test
+    public void queryAuthorsWithNoProfilePicture() {
+        //given
+        String query =
+            """
+            query {
+                Authors {
+                    select {
+                      id
+                      name
+                    }
+                  }
+                }
+        """;
+
+        String expected =
+            "{Authors={select=[{id=1, name=Leo Tolstoy}, {id=4, name=Anton Chekhov}, {id=8, name=Igor Dianov}]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected.strip());
+    }
+
     // https://github.com/introproventures/graphql-jpa-query/issues/30
     @Test
     public void queryForEntityWithMappedSuperclass() {

@@ -1412,7 +1412,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             classCache.putIfAbsent(clazz, enumType);
 
             return enumType;
-        } else if (clazz.isArray()) {
+        } else if (clazz.isArray() && !JavaScalars.contains(clazz)) {
             return GraphQLList.list(JavaScalars.of(clazz.getComponentType()));
         }
 
