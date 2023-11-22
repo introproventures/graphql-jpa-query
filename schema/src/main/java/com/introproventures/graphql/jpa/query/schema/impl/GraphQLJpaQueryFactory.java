@@ -282,7 +282,7 @@ public final class GraphQLJpaQueryFactory {
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
         if (entityGraph != null) {
-            query.setHint("jakarta.persistence.loadgraph", entityGraph);
+            query.setHint(JAKARTA_PERSISTENCE_FETCHGRAPH, entityGraph);
         }
 
         if (logger.isDebugEnabled()) {
