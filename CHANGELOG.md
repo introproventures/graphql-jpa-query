@@ -1,6 +1,11 @@
 # Change Log
 
-## 1.1.3-SNAPSHOT
+## 1.1.3
+* bump activiti-cloud.version to 8.1.0 (#388) [be548ae](https://github.com/introproventures/graphql-jpa-query/commit/be548ae4ed8f0baf61f8fa1f1a001a66ed4c2e31)
+* Add support for lazy loaded attribute fetching with JPA entity graph query hint (#387) [715021d](https://github.com/introproventures/graphql-jpa-query/commit/715021ded185956ad40a481c9d270532c0950e79)
+* chore(deps): bump maven-compiler-plugin from 3.10.1 to 3.11.0 (#369) [17120b6](https://github.com/introproventures/graphql-jpa-query/commit/17120b6c0cd908ab5619193cf0ff25c53b736a8d)
+* chore(deps): bump maven-surefire-plugin from 3.0.0-M7 to 3.1.2 (#373) [380a425](https://github.com/introproventures/graphql-jpa-query/commit/380a4254ca5dce394de231fe111702e8d8da9845)
+* chore(deps): bump joda-time from 2.10.5 to 2.12.5 (#372) [8ff09bf](https://github.com/introproventures/graphql-jpa-query/commit/8ff09bf81dd4f38abc12209137ee5ef52da0b440)
 * Add gatling integration tests module (#381) [213784e](https://github.com/introproventures/graphql-jpa-query/commit/213784e667e0148d1233cd6c634cae7de5d7c9be)
 * Fix auto-configuration to apply a shared container entity manager instance for GraphQLJPASchemaBuilder  (#380) [f19c603](https://github.com/introproventures/graphql-jpa-query/commit/f19c6034f49ff0c15da15fddea73b2b0b55ff2ca)
 * Update README.md [ceed90a](https://github.com/introproventures/graphql-jpa-query/commit/ceed90a378790cad163b51d041b256485a8bc53f)
