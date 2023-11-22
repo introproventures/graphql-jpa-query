@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootTest
+@SpringBootTest(properties = "logging.level.com.introproventures.graphql.jpa.query.schema=DEBUG")
 public class GraphQLJpaExecutorContextFactoryTest {
 
     @Autowired

@@ -11,7 +11,7 @@
   <artifactId>graphql-jpa-query-tests-gatling</artifactId>
 
   <properties>
-    <activiti-cloud.version>8.0.0</activiti-cloud.version>
+    <activiti-cloud.version>8.1.0</activiti-cloud.version>
     <gatling.version>3.9.5</gatling.version>
     <gatling-maven-plugin.version>4.6.0</gatling-maven-plugin.version>
   </properties>
@@ -21,10 +21,6 @@
       <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-boot-starter</artifactId>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>com.introproventures</groupId>-->
-<!--      <artifactId>graphql-jpa-query-web</artifactId>-->
-<!--    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-graphql</artifactId>
