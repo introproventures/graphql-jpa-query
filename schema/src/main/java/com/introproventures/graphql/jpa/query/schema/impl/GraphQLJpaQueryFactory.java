@@ -296,12 +296,11 @@ public final class GraphQLJpaQueryFactory {
                 Thread.currentThread()
             );
         }
-        // Let's execute query and wrap result into stream
-        if (resultStream) {
-            return query.getResultStream().map(this::unproxy).peek(this::detach);
-        }
 
-        return query.getResultList().stream().map(this::unproxy).peek(this::detach);
+        // Let's execute query and wrap result into stream
+        final Stream<T> resultStream = this.resultStream ? query.getResultStream() : query.getResultList().stream();
+
+        return resultStream.map(this::unproxy).peek(this::detach);
     }
 
     protected Object querySingleResult(final DataFetchingEnvironment environment) {
