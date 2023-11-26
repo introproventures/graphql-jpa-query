@@ -60,14 +60,6 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
 
     @Bean
     @ConditionalOnGraphQlSchema
-    GraphQlSourceBuilderCustomizer graphQlSourceBuilderExecutionStrategyCustomizer(
-        Consumer<GraphQL.Builder> graphQlExecutionStrategyConfigurer
-    ) {
-        return builder -> builder.configureGraphQl(graphQlExecutionStrategyConfigurer);
-    }
-
-    @Bean
-    @ConditionalOnGraphQlSchema
     GraphQLSchemaConfigurer graphQlSourceSchemaConfigurer(
         ListableBeanFactory beanFactory,
         ResourcePatternResolver resourcePatternResolver,
