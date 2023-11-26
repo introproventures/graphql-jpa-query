@@ -23,7 +23,7 @@
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-    <prettier-maven-plugin.version>0.16</prettier-maven-plugin.version>
+    <prettier-maven-plugin.version>0.21</prettier-maven-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipPrettier>false</skipPrettier>
@@ -325,7 +325,7 @@
           <printWidth>120</printWidth>
           <tabWidth>4</tabWidth>
           <useTabs>false</useTabs>
-          <prettierJavaVersion>1.5.0</prettierJavaVersion>
+          <prettierJavaVersion>2.0.0</prettierJavaVersion>
           <ignoreEditorConfig>true</ignoreEditorConfig>
           <inputGlobs>
             <inputGlob>src/main/java/**/*.java</inputGlob>
