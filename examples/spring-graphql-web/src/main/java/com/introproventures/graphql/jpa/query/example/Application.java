@@ -16,10 +16,9 @@
 package com.introproventures.graphql.jpa.query.example;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
-import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
@@ -30,13 +29,10 @@ import org.springframework.context.annotation.Configuration;
  *
  */
 @SpringBootApplication
+@EnableGraphQLJpaQuerySchema(basePackageClasses = Book.class)
 public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-
-    @Configuration
-    @EnableGraphQLJpaQuerySchema(basePackageClasses = Character.class)
-    static class StarwarsJpaModelConfiguration {}
 }
