@@ -16,26 +16,23 @@
 
 package com.introproventures.graphql.jpa.query.schema;
 
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.support.GraphQLExecutorTestConfiguration;
 import com.introproventures.graphql.jpa.query.support.StarwarsQueryExecutorTestsSupport;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 public class StarwarsQueryExecutorStreamResultsEnabledTests extends StarwarsQueryExecutorTestsSupport {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
+    @Import(GraphQLExecutorTestConfiguration.class)
     static class Application {
-
-        @Bean
-        public GraphQLExecutor graphQLExecutor(final GraphQLSchemaBuilder graphQLSchemaBuilder) {
-            return new GraphQLJpaExecutor(graphQLSchemaBuilder.build());
-        }
 
         @Bean
         public GraphQLSchemaBuilder graphQLSchemaBuilder(final EntityManager entityManager) {

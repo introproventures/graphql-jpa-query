@@ -131,6 +131,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private int defaultPageLimitSize = 100;
     private boolean enableDefaultMaxResults = true;
     private boolean enableResultStream = false;
+    private boolean graphQLIDType = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = entityDescriptor -> Optional.of(Collections.emptyList());
     private Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
@@ -1246,7 +1247,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     @SuppressWarnings("rawtypes")
     protected GraphQLType getAttributeType(Attribute<?, ?> attribute, boolean input, boolean searchByIdArgType) {
         if (isBasic(attribute)) {
-            return getGraphQLTypeFromJavaType(attribute.getJavaType());
+            return searchByIdArgType && isGraphQLIDType()
+                ? Scalars.GraphQLID
+                : getGraphQLTypeFromJavaType(attribute.getJavaType());
         } else if (isEmbeddable(attribute)) {
             EmbeddableType embeddableType = (EmbeddableType) ((SingularAttribute) attribute).getType();
             return getEmbeddableType(embeddableType, input, searchByIdArgType);
@@ -1666,5 +1669,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         this.enableResultStream = enableResultStream;
 
         return this;
+    }
+
+    @Override
+    public GraphQLJpaSchemaBuilder graphQLIDType(boolean graphQLIDType) {
+        this.graphQLIDType = graphQLIDType;
+
+        return this;
+    }
+
+    public boolean isGraphQLIDType() {
+        return this.graphQLIDType;
     }
 }

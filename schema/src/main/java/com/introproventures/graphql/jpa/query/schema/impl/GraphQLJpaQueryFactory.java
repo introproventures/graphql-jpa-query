@@ -1501,8 +1501,11 @@ public final class GraphQLJpaQueryFactory {
         } else if (value instanceof StringValue) {
             Object convertedValue = environment.getArgument(argument.getName());
             if (convertedValue != null) {
+                Class javaType = getJavaType(environment, argument);
                 // Return real typed resolved value even if the Value is a StringValue
-                return convertedValue;
+                return javaType.isInstance(convertedValue)
+                    ? convertedValue
+                    : JavaScalars.of(javaType).getCoercing().parseValue(convertedValue);
             } else {
                 // Return provided StringValue
                 return ((StringValue) value).getValue();
@@ -1522,7 +1525,9 @@ public final class GraphQLJpaQueryFactory {
                 }
             } else {
                 // Get resolved variable in environment arguments
-                return argumentValue;
+                return javaType.isInstance(argumentValue)
+                    ? argumentValue
+                    : JavaScalars.of(javaType).getCoercing().parseValue(argumentValue);
             }
         } else if (value instanceof ArrayValue) {
             Collection arrayValue = environment.getArgument(argument.getName());
