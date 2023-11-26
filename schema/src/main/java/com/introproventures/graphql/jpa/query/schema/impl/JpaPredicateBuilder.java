@@ -29,7 +29,6 @@ import jakarta.persistence.metamodel.PluralAttribute;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -400,53 +399,6 @@ class JpaPredicateBuilder {
                     Expression<Date> name = (Expression<Date>) root;
                     Expression<Date> fromDate = cb.literal((Date) values[0]);
                     Expression<Date> toDate = cb.literal((Date) values[1]);
-                    Predicate between = cb.between(name, fromDate, toDate);
-                    if (filter.getCriterias().contains(Criteria.BETWEEN)) return between;
-                    return cb.not(between);
-                }
-            }
-        }
-        return null;
-    }
-
-    protected Predicate getTimestampPredicate(Path<? extends Timestamp> root, PredicateFilter filter) {
-        if (filter.getValue() != null && filter.getValue() instanceof Timestamp) {
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.LT)) {
-                return cb.lessThan(root, (Timestamp) filter.getValue());
-            }
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.GT)) {
-                return cb.greaterThan(root, (Timestamp) filter.getValue());
-            }
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.GE)) {
-                return cb.greaterThanOrEqualTo(root, (Timestamp) filter.getValue());
-            }
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.EQ)) {
-                return cb.equal(root, filter.getValue());
-            }
-            if (filter.getCriterias().contains(PredicateFilter.Criteria.NE)) {
-                return cb.notEqual(root, filter.getValue());
-            }
-            // LE or default
-            return cb.lessThanOrEqualTo(root, (Timestamp) filter.getValue());
-        } else if (filter.getValue().getClass().isArray() || filter.getValue() instanceof Collection) {
-            if (
-                !filter.getCriterias().contains(PredicateFilter.Criteria.NE) &&
-                (
-                    filter.getCriterias().contains(Criteria.BETWEEN) ||
-                    filter.getCriterias().contains(Criteria.NOT_BETWEEN)
-                )
-            ) {
-                Object[] values;
-                if (filter.getValue().getClass().isArray()) {
-                    values = (Object[]) filter.getValue();
-                } else {
-                    values = ((Collection<?>) filter.getValue()).toArray();
-                }
-
-                if (values.length == 2) {
-                    Expression<Timestamp> name = (Expression<Timestamp>) root;
-                    Expression<Timestamp> fromDate = cb.literal((Timestamp) values[0]);
-                    Expression<Timestamp> toDate = cb.literal((Timestamp) values[1]);
                     Predicate between = cb.between(name, fromDate, toDate);
                     if (filter.getCriterias().contains(Criteria.BETWEEN)) return between;
                     return cb.not(between);
@@ -828,7 +780,7 @@ class JpaPredicateBuilder {
             return getIntegerPredicate((Path<Number>) field, filter);
         } else if (type.equals(BigDecimal.class) || type.equals(Double.class) || type.equals(Float.class)) {
             return getFloatingPointPredicate((Path<Number>) field, filter);
-        } else if (type.equals(java.util.Date.class)) {
+        } else if (java.util.Date.class.isAssignableFrom(type)) {
             return getDatePredicate((Path<Date>) field, filter);
         } else if (type.equals(java.time.LocalDate.class)) {
             return getLocalDatePredicate((Path<LocalDate>) field, filter);
@@ -842,8 +794,6 @@ class JpaPredicateBuilder {
             return getZonedDateTimePredicate((Path<ZonedDateTime>) field, filter);
         } else if (type.equals(OffsetDateTime.class)) {
             return getOffsetDateTimePredicate((Path<OffsetDateTime>) field, filter);
-        } else if (type.equals(Timestamp.class)) {
-            return getTimestampPredicate((Path<Timestamp>) field, filter);
         } else if (type.equals(Boolean.class)) {
             return getBooleanPredicate(field, filter);
         } else if (type.equals(UUID.class)) {

@@ -113,17 +113,17 @@ insert into thing (id, type) values
     
 -- Books
 insert into author (id, name, genre, profile_picture) values (1, 'Leo Tolstoy', 'NOVEL', 'base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==');
-insert into book (id, title, author_id, genre, publication_date, description)
-values (2, 'War and Peace', 1, 'NOVEL', '1869-01-01', 'The novel chronicles the history of the French invasion of Russia and the impact of the Napoleonic era on Tsarist society through the stories of five Russian aristocratic families.');
-insert into book (id, title, author_id, genre, publication_date, description)
-values (3, 'Anna Karenina', 1, 'NOVEL', '1877-04-01', 'A complex novel in eight parts, with more than a dozen major characters, it is spread over more than 800 pages (depending on the translation), typically contained in two volumes.');
+insert into book (id, title, author_id, genre, publication_date, publication_time, publication_timestamp, description)
+values (2, 'War and Peace', 1, 'NOVEL', '1869-01-01', '13:00:00', '1869-01-01T13:00:00Z', 'The novel chronicles the history of the French invasion of Russia and the impact of the Napoleonic era on Tsarist society through the stories of five Russian aristocratic families.');
+insert into book (id, title, author_id, genre, publication_date, publication_time, publication_timestamp, description)
+values (3, 'Anna Karenina', 1, 'NOVEL', '1877-04-01', '12:00:00', '1877-04-01T12:00:00Z', 'A complex novel in eight parts, with more than a dozen major characters, it is spread over more than 800 pages (depending on the translation), typically contained in two volumes.');
 insert into author (id, name, genre, profile_picture) values (4, 'Anton Chekhov', 'PLAY', 'base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==');
-insert into book (id, title, author_id, genre, publication_date, description)
-values (5, 'The Cherry Orchard', 4, 'PLAY', '1904-01-17', 'The play concerns an aristocratic Russian landowner who returns to her family estate (which includes a large and well-known cherry orchard) just before it is auctioned to pay the mortgage.');
-insert into book (id, title, author_id, genre, publication_date, description)
-values (6, 'The Seagull', 4, 'PLAY', '1896-10-17', 'It dramatises the romantic and artistic conflicts between four characters');
-insert into book (id, title, author_id, genre, publication_date, description)
-values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01', 'The play is sometimes included on the short list of Chekhov''s outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]');
+insert into book (id, title, author_id, genre, publication_date, publication_time, publication_timestamp, description)
+values (5, 'The Cherry Orchard', 4, 'PLAY', '1904-01-17', '00:00:00', '1904-01-17T00:00:00Z', 'The play concerns an aristocratic Russian landowner who returns to her family estate (which includes a large and well-known cherry orchard) just before it is auctioned to pay the mortgage.');
+insert into book (id, title, author_id, genre, publication_date, publication_time, publication_timestamp, description)
+values (6, 'The Seagull', 4, 'PLAY', '1896-10-17', '00:00:00', '1896-10-17T00:00:00Z', 'It dramatises the romantic and artistic conflicts between four characters');
+insert into book (id, title, author_id, genre, publication_date, publication_time, publication_timestamp, description)
+values (7, 'Three Sisters', 4, 'PLAY', '1900-01-01', '00:00:00', '1900-01-01T00:00:00Z', 'The play is sometimes included on the short list of Chekhov''s outstanding plays, along with The Cherry Orchard, The Seagull and Uncle Vanya.[1]');
 insert into author (id, name, genre, profile_picture) values (8, 'Igor Dianov', 'JAVA', 'base64:iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAlElEQVR4nO2UQQrEIAxFe/8jSRUrKtZFEasIQs7yh3RRKEOnixmYjYsQ0OT5E2ImIsIvbRpAjB7iq7GptcIYg947rLUopbwl5JzPGPattXtgSgkhBAghsG3b4fncOQfv/RnDIL7jB+d5/qxQKYV1XS9ArTWWZbkoZHsExhgPICfdlcxKpZTY9/25ZBp/mcb6on9s7Bc+TJAvSO7XjwAAAABJRU5ErkJggg==');
 
 insert into book_tags (book_id, tags) values (2, 'war'), (2, 'piece');

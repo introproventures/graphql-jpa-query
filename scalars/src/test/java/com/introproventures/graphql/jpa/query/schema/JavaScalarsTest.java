@@ -30,6 +30,7 @@ import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -348,6 +350,35 @@ public class JavaScalarsTest {
     }
 
     @Test
+    public void testTimestampParseDateValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Date date = Date.from(Instant.EPOCH);
+        Timestamp expected = new Timestamp(date.getTime());
+
+        //when
+        Object result = coercing.parseValue(date);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
+            .isEqualTo(expected);
+    }
+
+    @Test
+    public void testTimestampSerializeDateValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+        Date date = Date.from(Instant.EPOCH);
+
+        //when
+        Object result = coercing.serialize(date);
+
+        //then
+        assertThat(result).asString().isEqualTo("1970-01-01T00:00:00Z");
+    }
+
+    @Test
     public void testTimestampParseLiteralStringValue() {
         //given
         Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
@@ -498,15 +529,13 @@ public class JavaScalarsTest {
     public void dateCoercionThreadSafe() throws InterruptedException, ExecutionException {
         //given
         String dateLiteral = "2018-06-22T10:00:00";
-        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
 
         List<CompletableFuture<Object>> dates = new ArrayList<>();
 
         //when
         for (int i = 0; i < 1000; i++) {
-            CompletableFuture<Object> task = CompletableFuture.supplyAsync(() -> {
-                return subject.serialize(dateLiteral);
-            });
+            CompletableFuture<Object> task = CompletableFuture.supplyAsync(() -> subject.serialize(dateLiteral));
             dates.add(task);
         }
 
@@ -516,5 +545,100 @@ public class JavaScalarsTest {
 
         //then
         assertThat(result.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
+    public void shouldParseJavaDateWithGraphQLSqlDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
+
+        // when
+        Object result = subject.parseValue("1970-01-01");
+
+        // then
+        assertThat(result).isEqualTo(Date.from(Instant.EPOCH));
+    }
+
+    @Test
+    public void shouldSerializeSqlDateWithGraphQLSqlDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLSqlDateCoercing();
+
+        // when
+        Object result = subject.serialize(java.sql.Date.from(Instant.EPOCH));
+
+        // then
+        assertThat(result).isEqualTo("1970-01-01");
+    }
+
+    @Test
+    public void shouldParseJavaDateWithGraphQLDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+
+        // when
+        Object result = subject.parseValue("1970-01-01T00:00:00.000Z");
+
+        // then
+        assertThat(result).isEqualTo(Date.from(Instant.EPOCH));
+    }
+
+    @Test
+    public void shouldSerializeDateWithGraphQLDateCoercing() throws InterruptedException, ExecutionException {
+        //given
+        Coercing<?, ?> subject = new JavaScalars.GraphQLDateCoercing();
+
+        // when
+        Object result = subject.serialize(java.sql.Date.from(Instant.EPOCH));
+
+        // then
+        assertThat(result).isEqualTo("1970-01-01T00:00:00.000Z");
+    }
+
+    @Test
+    public void testTimeParseLiteralStringValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimeCoercing();
+        Time time = Time.valueOf("12:00:00");
+
+        StringValue input = StringValue.newStringValue(time.toString()).build();
+
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Time.class, Assertions::assertThat))
+            .isEqualTo(time);
+    }
+
+    @Test
+    public void testTimeParseLiteralIntegerValue() {
+        //given
+        Coercing<?, ?> coercing = new JavaScalars.GraphQLSqlTimeCoercing();
+        Time time = Time.valueOf("12:00:00");
+
+        IntValue input = IntValue.newIntValue(BigInteger.valueOf(time.getTime())).build();
+
+        //when
+        Object result = coercing.parseLiteral(input);
+
+        //then
+        assertThat(result)
+            .asInstanceOf(new InstanceOfAssertFactory<>(Time.class, Assertions::assertThat))
+            .isEqualTo(time);
+    }
+
+    @Test
+    public void testTimeSerializeValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.GraphQLSqlTimeScalar.getCoercing();
+
+        //then
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.MIDNIGHT))).isEqualTo("00:00:00");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(10, 15, 30)))).isEqualTo("10:15:30");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(17, 59, 59)))).isEqualTo("17:59:59");
+        assertThat(coercing.serialize(Time.valueOf(LocalTime.of(17, 59, 59, (int) TimeUnit.MILLISECONDS.toNanos(277)))))
+            .isEqualTo("17:59:59");
     }
 }

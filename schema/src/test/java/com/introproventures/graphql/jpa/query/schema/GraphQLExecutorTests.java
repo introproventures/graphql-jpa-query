@@ -25,12 +25,19 @@ import static org.assertj.core.util.Maps.newHashMap;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import graphql.ErrorType;
 import graphql.ExecutionResult;
 import graphql.GraphQLError;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import jakarta.transaction.Transactional;
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +75,9 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     @Autowired
     private GraphQLExecutor executor;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @BeforeAll
     public static void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
@@ -76,6 +86,41 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
     @Test
     public void contextLoads() {
         Assert.isAssignable(GraphQLExecutor.class, executor.getClass());
+    }
+
+    @Test
+    @Transactional
+    public void queryTimeTester() {
+        // given:
+        Query query = entityManager.createQuery(
+            "select book from Book book where book.publicationTime between cast('12:00:00' as time) and cast('13:00:00' as time)"
+        );
+
+        // when:
+        List<?> result = query.getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    @Transactional
+    public void criteriaCriteriaTimeTester() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Book> criteria = cb.createQuery(Book.class);
+        Root<Book> book = criteria.from(Book.class);
+
+        criteria
+            .select(book)
+            .where(cb.between(book.get("publicationTime"), Time.valueOf("12:00:00"), Time.valueOf("13:00:00")));
+
+        // when:
+        List<?> result = entityManager.createQuery(criteria).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -974,6 +1019,63 @@ public class GraphQLExecutorTests extends AbstractSpringBootTestSupport {
             "{Books={select=[" +
             "{id=2, title=War and Peace, publicationDate=1869-01-01}, " +
             "{id=3, title=Anna Karenina, publicationDate=1877-04-01}" +
+            "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithTimestampBetweenPredicate() {
+        //given:
+        String query =
+            """
+            query {
+                Books( where: { publicationTimestamp: {BETWEEN: ["1869-01-01T00:00:00Z", "1896-01-01T00:00:00Z"] } } ) {
+                    select {
+                        id title publicationTimestamp
+                    }
+                }
+            }
+        """;
+
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, publicationTimestamp=1869-01-01T13:00:00Z}, " +
+            "{id=3, title=Anna Karenina, publicationTimestamp=1877-04-01T12:00:00Z}" +
+            "]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryWithDateAndTimeBetweenPredicate() {
+        //given:
+        String query =
+            """
+        query {
+            Books(
+                where: {
+                    publicationDate: { BETWEEN: ["1869-01-01", "1896-01-01"] }
+                    publicationTime: { BETWEEN: ["12:00:00", "13:00:00"] }
+                }
+            ) {
+                select { id title publicationDate publicationTime }
+            }
+        }
+        """;
+
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, publicationDate=1869-01-01, publicationTime=13:00:00}, " +
+            "{id=3, title=Anna Karenina, publicationDate=1877-04-01, publicationTime=12:00:00}" +
             "]}}";
 
         //when:
