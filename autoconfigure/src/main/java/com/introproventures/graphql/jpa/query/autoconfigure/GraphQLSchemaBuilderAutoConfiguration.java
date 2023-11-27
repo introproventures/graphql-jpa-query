@@ -46,36 +46,51 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     @ConditionalOnMissingBean(QueryExecutionStrategyProvider.class)
     @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
     QueryExecutionStrategyProvider queryExecutionStrategy(
-        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate,
+        ObjectProvider<TransactionalExecutionStrategyCustomizer<QueryExecutionStrategyProvider>> executionStrategyCustomizer
     ) {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setReadOnly(true);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+
+        executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
+
+        return executionStrategy::build;
     }
 
     @Bean
     @ConditionalOnMissingBean(MutationExecutionStrategyProvider.class)
     @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
     MutationExecutionStrategyProvider mutationExecutionStrategy(
-        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate,
+        ObjectProvider<TransactionalExecutionStrategyCustomizer<MutationExecutionStrategyProvider>> executionStrategyCustomizer
     ) {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+
+        executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
+
+        return executionStrategy::build;
     }
 
     @Bean
     @ConditionalOnMissingBean(SubscriptionExecutionStrategyProvider.class)
     @ConditionalOnSingleCandidate(GraphQLSchemaTransactionTemplate.class)
     SubscriptionExecutionStrategyProvider subscriptionExecutionStrategy(
-        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate
+        GraphQLSchemaTransactionTemplate graphQLSchemaTransactionTemplate,
+        ObjectProvider<TransactionalExecutionStrategyCustomizer<SubscriptionExecutionStrategyProvider>> executionStrategyCustomizer
     ) {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+
+        executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
+
+        return executionStrategy::build;
     }
 
     @Bean
