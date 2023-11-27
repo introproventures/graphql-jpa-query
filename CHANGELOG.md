@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.5
+## 0.5.6-SNAPSHOT
 * Fix incorrect query intermittent results due to result list proxies (#379) [ee57b69](https://github.com/introproventures/graphql-jpa-query/commit/ee57b696b9ea699ba700cf08f7dba93fb1e1b8c8)
 * chore(deps): bump evo-inflector from 1.2.2 to 1.3 (#346) [f7fbd31](https://github.com/introproventures/graphql-jpa-query/commit/f7fbd31920fe4c2ac149dad6a716ae1834d74199)
 * fix: update release.yml dependencies emojii [d0afde4](https://github.com/introproventures/graphql-jpa-query/commit/d0afde4f955e2cb944d8334afb5c655a76194737)
