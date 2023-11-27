@@ -16,6 +16,14 @@
 
 package com.introproventures.graphql.jpa.query.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+
+import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
+import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
+import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,18 +32,10 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
-import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
-import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
-import com.introproventures.graphql.jpa.query.schema.model.starwars.Character;
-import com.introproventures.graphql.jpa.query.schema.model.starwars.Droid;
-import com.introproventures.graphql.jpa.query.schema.model.starwars.Human;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBootTestSupport {
 
@@ -2116,6 +2116,7 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
 
     // https://github.com/introproventures/graphql-jpa-query/issues/273
     @Test
+    @Transactional
     public void testGH273Plural() {
 
         //given:

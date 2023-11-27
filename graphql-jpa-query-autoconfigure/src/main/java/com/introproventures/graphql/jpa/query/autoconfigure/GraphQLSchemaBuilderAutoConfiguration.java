@@ -1,10 +1,11 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import javax.persistence.EntityManagerFactory;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.GraphQL;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
 @AutoConfiguration(
         before = {GraphQLSchemaAutoConfiguration.class, GraphQLJpaQueryGraphQlSourceAutoConfiguration.class},
@@ -28,7 +30,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     GraphQLJpaSchemaBuilder defaultGraphQLJpaSchemaBuilder(EntityManagerFactory entityManagerFactory,
                                                            GraphQLJpaQueryProperties properties,
                                                            ObjectProvider<RestrictedKeysProvider> restrictedKeysProvider) {
-        GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManagerFactory.createEntityManager());
+        EntityManager entityManager = SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
+        GraphQLJpaSchemaBuilder builder = new GraphQLJpaSchemaBuilder(entityManager);
 
         builder.name(properties.getName())
                .description(properties.getDescription())

@@ -1,17 +1,15 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
+import static graphql.schema.FieldCoordinates.coordinates;
+import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+import static graphql.schema.GraphQLObjectType.newObject;
+import static graphql.schema.GraphQLSchema.newSchema;
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
+import static java.util.Collections.emptyMap;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.QueryRoot;
@@ -41,6 +39,18 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -58,16 +68,6 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
-import static graphql.schema.FieldCoordinates.coordinates;
-import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
-import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
-import static graphql.schema.GraphQLObjectType.newObject;
-import static graphql.schema.GraphQLSchema.newSchema;
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static java.util.Collections.emptyMap;
-import static org.assertj.core.api.Assertions.assertThat;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment=WebEnvironment.NONE)
 public class GraphQLSchemaAutoConfigurationTest {
@@ -77,11 +77,11 @@ public class GraphQLSchemaAutoConfigurationTest {
 
     @Autowired
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
-    
+
     @SpringBootApplication
     @EnableGraphQLJpaQuerySchema(basePackageClasses = TestEntity.class)
     static class Application {
-        
+
         @Configuration
         static class GraphQLAnnotationsSchemaConfigurer implements GraphQLSchemaConfigurer {
             @Autowired(required = false)
@@ -383,6 +383,4 @@ public class GraphQLSchemaAutoConfigurationTest {
         assertThat(graphQLJpaQueryProperties.isUseDistinctParameter()).isFalse();
         assertThat(graphQLJpaQueryProperties.isToManyDefaultOptional()).isTrue();
     }
-        
-
 }
