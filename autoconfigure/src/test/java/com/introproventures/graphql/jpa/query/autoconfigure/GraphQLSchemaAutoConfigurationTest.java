@@ -9,6 +9,7 @@ import static graphql.schema.GraphQLSchema.newSchema;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
 import com.introproventures.graphql.jpa.query.autoconfigure.support.MutationRoot;
@@ -26,6 +27,7 @@ import graphql.annotations.annotationTypes.GraphQLField;
 import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
 import graphql.annotations.annotationTypes.GraphQLName;
 import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
+import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLCodeRegistry;
@@ -54,6 +56,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reflections.Reflections;
@@ -65,7 +68,10 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -104,6 +110,40 @@ public class GraphQLSchemaAutoConfigurationTest {
         @Bean
         GraphQLSchemaEntityManager persistentContextEntityManager() {
             return () -> entityManager;
+        }
+
+        @Bean
+        TransactionalExecutionStrategyCustomizer<QueryExecutionStrategyProvider> queryExecutionStrategyCustomizer(
+            ThreadPoolTaskExecutor threadPoolTaskExecutor
+        ) {
+            return builder ->
+                builder
+                    .executor(threadPoolTaskExecutor)
+                    .delegate(new AsyncSerialExecutionStrategy())
+                    .transactionTemplate(transactionTemplate -> transactionTemplate.setTimeout(999));
+        }
+
+        @Bean
+        TransactionalExecutionStrategyCustomizer<MutationExecutionStrategyProvider> mutationExecutionStrategyCustomizer(
+            ThreadPoolTaskExecutor threadPoolTaskExecutor
+        ) {
+            return builder ->
+                builder
+                    .executor(threadPoolTaskExecutor)
+                    .delegate(new AsyncSerialExecutionStrategy())
+                    .transactionTemplate(transactionTemplate -> transactionTemplate.setTimeout(999));
+        }
+
+        @Bean
+        TransactionalExecutionStrategyCustomizer<SubscriptionExecutionStrategyProvider> subscriptionExecutionStrategyCustomizer(
+            ThreadPoolTaskExecutor threadPoolTaskExecutor
+        ) {
+            return builder ->
+                builder
+                    .executor(threadPoolTaskExecutor)
+                    .delegate(new AsyncSerialExecutionStrategy())
+                    .transactionTemplate(transactionTemplate -> transactionTemplate.setTimeout(999))
+                    .transactionTemplate(transactionTemplate -> transactionTemplate.setReadOnly(true));
         }
 
         @Configuration
@@ -414,5 +454,71 @@ public class GraphQLSchemaAutoConfigurationTest {
     void configuresSharedEntityManager() {
         // given
         assertThat(graphQLJpaSchemaBuilder.getEntityManager()).isEqualTo(entityManagerSupplier.get());
+    }
+
+    @Test
+    void configuresQueryTransactionalExecutionStrategyCustomizer() {
+        // given
+        assertThat(queryExecutionStrategy)
+            .isInstanceOf(QueryExecutionStrategyProvider.class)
+            .extracting(Supplier::get)
+            .asInstanceOf(InstanceOfAssertFactories.type(TransactionalDelegateExecutionStrategy.class))
+            .satisfies(result -> {
+                assertThat(result.getDelegate()).isInstanceOf(AsyncSerialExecutionStrategy.class);
+                assertThat(result.getExecutor()).extracting(Supplier::get).isInstanceOf(ThreadPoolTaskExecutor.class);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getTimeout)
+                    .isEqualTo(999);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getPropagationBehavior)
+                    .isEqualTo(PROPAGATION_REQUIRED);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::isReadOnly)
+                    .isEqualTo(true);
+            });
+    }
+
+    @Test
+    void configuresMutationTransactionalExecutionStrategyCustomizer() {
+        // given
+        assertThat(mutationExecutionStrategy)
+            .isInstanceOf(MutationExecutionStrategyProvider.class)
+            .extracting(Supplier::get)
+            .asInstanceOf(InstanceOfAssertFactories.type(TransactionalDelegateExecutionStrategy.class))
+            .satisfies(result -> {
+                assertThat(result.getDelegate()).isInstanceOf(AsyncSerialExecutionStrategy.class);
+                assertThat(result.getExecutor()).extracting(Supplier::get).isInstanceOf(ThreadPoolTaskExecutor.class);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getTimeout)
+                    .isEqualTo(999);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getPropagationBehavior)
+                    .isEqualTo(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::isReadOnly)
+                    .isEqualTo(false);
+            });
+    }
+
+    @Test
+    void configuresSubscriptionTransactionalExecutionStrategyCustomizer() {
+        // given
+        assertThat(subscriptionExecutionStrategy)
+            .isInstanceOf(SubscriptionExecutionStrategyProvider.class)
+            .extracting(Supplier::get)
+            .asInstanceOf(InstanceOfAssertFactories.type(TransactionalDelegateExecutionStrategy.class))
+            .satisfies(result -> {
+                assertThat(result.getDelegate()).isInstanceOf(AsyncSerialExecutionStrategy.class);
+                assertThat(result.getExecutor()).extracting(Supplier::get).isInstanceOf(ThreadPoolTaskExecutor.class);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getTimeout)
+                    .isEqualTo(999);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::getPropagationBehavior)
+                    .isEqualTo(TransactionDefinition.PROPAGATION_SUPPORTS);
+                assertThat(result.getTransactionTemplate())
+                    .extracting(DefaultTransactionDefinition::isReadOnly)
+                    .isEqualTo(true);
+            });
     }
 }

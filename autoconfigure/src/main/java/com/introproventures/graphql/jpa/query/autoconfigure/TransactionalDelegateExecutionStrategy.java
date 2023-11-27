@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +51,8 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
                 );
             }
             return CompletableFuture.supplyAsync(
-                () -> {
-                    return transactionTemplate.execute(status -> {
+                () ->
+                    transactionTemplate.execute(status -> {
                         if (log.isTraceEnabled()) {
                             log.trace(
                                 "Begin transaction for {} on {}",
@@ -78,8 +79,7 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
                                 );
                             }
                         }
-                    });
-                },
+                    }),
                 executor.get()
             );
         } else {
@@ -93,6 +93,18 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
             }
             return delegate.execute(executionContext, parameters);
         }
+    }
+
+    public TransactionTemplate getTransactionTemplate() {
+        return transactionTemplate;
+    }
+
+    public ExecutionStrategy getDelegate() {
+        return delegate;
+    }
+
+    public Supplier<Executor> getExecutor() {
+        return executor;
     }
 
     public static final class Builder {
@@ -118,6 +130,11 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
             return this;
         }
 
+        public Builder transactionTemplate(Consumer<TransactionTemplate> transactionTemplateCustomizer) {
+            transactionTemplateCustomizer.accept(transactionTemplate);
+            return this;
+        }
+
         public Builder delegate(ExecutionStrategy delegate) {
             this.delegate = delegate;
             return this;
@@ -126,6 +143,10 @@ public class TransactionalDelegateExecutionStrategy extends ExecutionStrategy {
         public Builder executor(Supplier<Executor> executor) {
             this.executor = executor;
             return this;
+        }
+
+        public Builder executor(Executor executor) {
+            return executor(() -> executor);
         }
 
         public TransactionalDelegateExecutionStrategy build() {
