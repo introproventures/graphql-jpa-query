@@ -53,9 +53,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setReadOnly(true);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate)
-            .delegate(new AsyncExecutionStrategy())
-            .build();
+        return () ->
+            newTransactionalExecutionStrategy(transactionTemplate).delegate(new AsyncExecutionStrategy()).build();
     }
 
     @Bean
@@ -67,9 +66,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate)
-            .delegate(new AsyncExecutionStrategy())
-            .build();
+        return () ->
+            newTransactionalExecutionStrategy(transactionTemplate).delegate(new AsyncExecutionStrategy()).build();
     }
 
     @Bean
@@ -82,9 +80,10 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
         transactionTemplate.setReadOnly(true);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate)
-            .delegate(new SubscriptionExecutionStrategy())
-            .build();
+        return () ->
+            newTransactionalExecutionStrategy(transactionTemplate)
+                .delegate(new SubscriptionExecutionStrategy())
+                .build();
     }
 
     @Bean
