@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.1
+## 1.2.2-SNAPSHOT
 * Revert &quot;revert nexus-staging-maven-plugin version to 1.6.7&quot; [443b500](https://github.com/introproventures/graphql-jpa-query/commit/443b5009a089fdb66a116f1cb6053554cf7b12aa)
 * Fix auto configuration to use operation&#39;s default execution strategy delegate (#411) [1d59de7](https://github.com/introproventures/graphql-jpa-query/commit/1d59de707692413d9162b6b142e6adfef1a64393)
 * revert nexus-staging-maven-plugin version to 1.6.7 [f2fc163](https://github.com/introproventures/graphql-jpa-query/commit/f2fc16315b6bc665935757b313f3a13373e35046)
