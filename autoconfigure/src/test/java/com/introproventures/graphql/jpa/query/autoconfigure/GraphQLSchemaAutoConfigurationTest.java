@@ -28,6 +28,7 @@ import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
 import graphql.annotations.annotationTypes.GraphQLName;
 import graphql.annotations.annotationTypes.directives.definition.GraphQLDirectiveDefinition;
 import graphql.execution.AsyncSerialExecutionStrategy;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLCodeRegistry;
@@ -141,9 +142,7 @@ public class GraphQLSchemaAutoConfigurationTest {
             return builder ->
                 builder
                     .executor(threadPoolTaskExecutor)
-                    .delegate(new AsyncSerialExecutionStrategy())
-                    .transactionTemplate(transactionTemplate -> transactionTemplate.setTimeout(999))
-                    .transactionTemplate(transactionTemplate -> transactionTemplate.setReadOnly(true));
+                    .transactionTemplate(transactionTemplate -> transactionTemplate.setTimeout(999));
         }
 
         @Configuration
@@ -508,7 +507,7 @@ public class GraphQLSchemaAutoConfigurationTest {
             .extracting(Supplier::get)
             .asInstanceOf(InstanceOfAssertFactories.type(TransactionalDelegateExecutionStrategy.class))
             .satisfies(result -> {
-                assertThat(result.getDelegate()).isInstanceOf(AsyncSerialExecutionStrategy.class);
+                assertThat(result.getDelegate()).isInstanceOf(SubscriptionExecutionStrategy.class);
                 assertThat(result.getExecutor()).extracting(Supplier::get).isInstanceOf(ThreadPoolTaskExecutor.class);
                 assertThat(result.getTransactionTemplate())
                     .extracting(DefaultTransactionDefinition::getTimeout)

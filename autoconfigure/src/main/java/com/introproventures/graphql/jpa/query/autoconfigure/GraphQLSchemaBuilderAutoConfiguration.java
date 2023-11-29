@@ -6,6 +6,8 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.GraphQL;
+import graphql.execution.AsyncExecutionStrategy;
+import graphql.execution.SubscriptionExecutionStrategy;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
@@ -52,7 +54,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setReadOnly(true);
 
-        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new AsyncExecutionStrategy());
 
         executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
 
@@ -69,7 +72,8 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new AsyncExecutionStrategy());
 
         executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
 
@@ -85,8 +89,10 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     ) {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+        transactionTemplate.setReadOnly(true);
 
-        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate);
+        var executionStrategy = newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new SubscriptionExecutionStrategy());
 
         executionStrategyCustomizer.ifAvailable(customizer -> customizer.accept(executionStrategy));
 
