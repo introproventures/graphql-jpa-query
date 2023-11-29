@@ -1,6 +1,18 @@
 # Change Log
 
-## 1.1.4-SNAPSHOT
+## 1.1.4
+* update maven-javadoc-plugin config to use java.version (#398) [2888d39](https://github.com/introproventures/graphql-jpa-query/commit/2888d394f1c1da5327368eb628a2bb3a7d1e0a77)
+* update prettier-maven-plugin.version to 0.21 (#396) [c6b25ab](https://github.com/introproventures/graphql-jpa-query/commit/c6b25ab150a83f6fa00e5a8a4e56d68bd8a74abe)
+* chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#395) [11a6ee7](https://github.com/introproventures/graphql-jpa-query/commit/11a6ee7902592a7a2d0f1162ed5254ab664fcd78)
+* chore(deps): bump org.apache.maven.plugins:maven-surefire-plugin (#394) [cd15d96](https://github.com/introproventures/graphql-jpa-query/commit/cd15d96960eac7c178eec8c2944e6181829d0301)
+* chore(deps): bump org.jacoco:jacoco-maven-plugin from 0.8.8 to 0.8.11 (#392) [781004a](https://github.com/introproventures/graphql-jpa-query/commit/781004abe7fb25b866b01ab1bd2bbffbc72e9b47)
+* update spring-boot.version to 3.1.6 (#391) [d462752](https://github.com/introproventures/graphql-jpa-query/commit/d46275288e535ee90434e176dd90f4bf632bfb90)
+* chore(deps): bump actions/checkout from 3 to 4 (#386) [d72a194](https://github.com/introproventures/graphql-jpa-query/commit/d72a1942e47e4b37fcbf62dc50f8447dae7486cb)
+* chore(deps): bump com.graphql-java:graphql-java-extended-scalars (#383) [a42aac8](https://github.com/introproventures/graphql-jpa-query/commit/a42aac89d7d73097a3bedab0d666ec605c5ae879)
+* chore(deps): bump org.apache.maven.plugins:maven-javadoc-plugin (#384) [abc9e96](https://github.com/introproventures/graphql-jpa-query/commit/abc9e96c9ceb22c0a11d5be2f59564f70e2c775b)
+* chore(deps): bump org.apache.maven.plugins:maven-enforcer-plugin (#385) [daabbd1](https://github.com/introproventures/graphql-jpa-query/commit/daabbd1046c5e78457cf81631e838e5e841ef273)
+* chore(deps): bump org.apache.maven.plugins:maven-dependency-plugin (#382) [e88c1f7](https://github.com/introproventures/graphql-jpa-query/commit/e88c1f705dd9fa006a818c84cf4ca25d56633702)
+* Update hibernate.version to 6.2.13.Final (#389) [64a0ea7](https://github.com/introproventures/graphql-jpa-query/commit/64a0ea75fb32121c33b7750dc59ba4442946181f)
 * bump activiti-cloud.version to 8.1.0 (#388) [be548ae](https://github.com/introproventures/graphql-jpa-query/commit/be548ae4ed8f0baf61f8fa1f1a001a66ed4c2e31)
 * Add support for lazy loaded attribute fetching with JPA entity graph query hint (#387) [715021d](https://github.com/introproventures/graphql-jpa-query/commit/715021ded185956ad40a481c9d270532c0950e79)
 * chore(deps): bump maven-compiler-plugin from 3.10.1 to 3.11.0 (#369) [17120b6](https://github.com/introproventures/graphql-jpa-query/commit/17120b6c0cd908ab5619193cf0ff25c53b736a8d)
