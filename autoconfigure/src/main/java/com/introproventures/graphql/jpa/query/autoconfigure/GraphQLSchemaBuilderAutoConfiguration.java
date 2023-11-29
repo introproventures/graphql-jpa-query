@@ -6,6 +6,8 @@ import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.GraphQL;
+import graphql.execution.AsyncExecutionStrategy;
+import graphql.execution.SubscriptionExecutionStrategy;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
@@ -51,7 +53,9 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setReadOnly(true);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        return () -> newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new AsyncExecutionStrategy())
+            .build();
     }
 
     @Bean
@@ -63,7 +67,9 @@ public class GraphQLSchemaBuilderAutoConfiguration {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        return () -> newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new AsyncExecutionStrategy())
+            .build();
     }
 
     @Bean
@@ -74,8 +80,11 @@ public class GraphQLSchemaBuilderAutoConfiguration {
     ) {
         var transactionTemplate = graphQLSchemaTransactionTemplate.get();
         transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_SUPPORTS);
+        transactionTemplate.setReadOnly(true);
 
-        return () -> newTransactionalExecutionStrategy(transactionTemplate).build();
+        return () -> newTransactionalExecutionStrategy(transactionTemplate)
+            .delegate(new SubscriptionExecutionStrategy())
+            .build();
     }
 
     @Bean
