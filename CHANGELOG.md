@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.0
+## 1.2.1-SNAPSHOT
 * chore(deps): bump git-changelog-maven-plugin from 0.4.0 to 0.6.0 (#340) [2be873d](https://github.com/introproventures/graphql-jpa-query/commit/2be873db9a012e9491f45d7ac2b65688e5046a64)
 * chore(deps): bump maven-source-plugin from 2.1.2 to 3.3.0 (#368) [035b97c](https://github.com/introproventures/graphql-jpa-query/commit/035b97ca2edf18b98929e080978c79917d8c8be0)
 * chore(deps): bump maven-deploy-plugin from 2.8.2 to 3.1.1 (#361) [8d3f497](https://github.com/introproventures/graphql-jpa-query/commit/8d3f4976ee43a6d9fe6817562af6458bd3516107)
