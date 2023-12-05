@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.1.5
+## 1.1.6-SNAPSHOT
 * update plugin versions [144ebc4](https://github.com/introproventures/graphql-jpa-query/commit/144ebc492c734554ce25bf8f9be2a02c3283f306)
 * Backport fix for auto configuration to use operation&#39;s default execution strategy delegate (#412) [cc68c04](https://github.com/introproventures/graphql-jpa-query/commit/cc68c04c66f0acfb4c07e1d545c4d8d9d3bb44e9)
 * update maven-javadoc-plugin config to use java.version (#398) [2888d39](https://github.com/introproventures/graphql-jpa-query/commit/2888d394f1c1da5327368eb628a2bb3a7d1e0a77)
