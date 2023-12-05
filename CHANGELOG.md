@@ -1,6 +1,8 @@
 # Change Log
 
-## 1.1.5-SNAPSHOT
+## 1.1.5
+* update plugin versions [144ebc4](https://github.com/introproventures/graphql-jpa-query/commit/144ebc492c734554ce25bf8f9be2a02c3283f306)
+* Backport fix for auto configuration to use operation&#39;s default execution strategy delegate (#412) [cc68c04](https://github.com/introproventures/graphql-jpa-query/commit/cc68c04c66f0acfb4c07e1d545c4d8d9d3bb44e9)
 * update maven-javadoc-plugin config to use java.version (#398) [2888d39](https://github.com/introproventures/graphql-jpa-query/commit/2888d394f1c1da5327368eb628a2bb3a7d1e0a77)
 * update prettier-maven-plugin.version to 0.21 (#396) [c6b25ab](https://github.com/introproventures/graphql-jpa-query/commit/c6b25ab150a83f6fa00e5a8a4e56d68bd8a74abe)
 * chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#395) [11a6ee7](https://github.com/introproventures/graphql-jpa-query/commit/11a6ee7902592a7a2d0f1162ed5254ab664fcd78)
