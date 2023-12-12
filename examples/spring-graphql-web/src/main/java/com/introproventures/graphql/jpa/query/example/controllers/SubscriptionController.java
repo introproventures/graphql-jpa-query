@@ -31,6 +31,4 @@ public class SubscriptionController {
     Publisher<List<CreateBookResult>> notifyBookCreated() {
         return createBookResultSink.asFlux().buffer(Duration.ofSeconds(1));
     }
-
-
 }

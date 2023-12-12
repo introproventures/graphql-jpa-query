@@ -35,14 +35,12 @@ public class MutationController {
 
     @MutationMapping
     public Mono<CreateBookResult> createBook(@Argument CreateBookInput bookInput) {
-        return Mono.just(bookInput)
-            .map(this.createBook());
+        return Mono.just(bookInput).map(this.createBook());
     }
 
     @MutationMapping
     public Flux<CreateBookResult> createBooks(@Argument List<CreateBookInput> bookInputs) {
-        return Flux.fromStream(bookInputs.stream())
-            .map(this.createBook());
+        return Flux.fromStream(bookInputs.stream()).map(this.createBook());
     }
 
     Function<CreateBookResult, CreateBookResult> notifyCreateBookResult() {
@@ -69,10 +67,6 @@ public class MutationController {
     }
 
     Function<Book, CreateBookResult> createBookResultFunction() {
-        return book -> CreateBookResult
-            .builder()
-            .id(book.getId())
-            .build();
+        return book -> CreateBookResult.builder().id(book.getId()).build();
     }
-
 }

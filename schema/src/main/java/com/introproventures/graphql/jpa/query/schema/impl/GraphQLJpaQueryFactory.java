@@ -2126,7 +2126,9 @@ public final class GraphQLJpaQueryFactory {
          * @param entityObjectTypeResolver resolver to
          * @return builder
          */
-        public IEntityObjectTypeStage withEntityObjectTypeResolver(Function<String, EntityType<?>> entityObjectTypeResolver);
+        public IEntityObjectTypeStage withEntityObjectTypeResolver(
+            Function<String, EntityType<?>> entityObjectTypeResolver
+        );
     }
 
     /**
@@ -2203,7 +2205,13 @@ public final class GraphQLJpaQueryFactory {
      * Builder to build {@link GraphQLJpaQueryFactory}.
      */
     public static final class Builder
-        implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeResolverStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
+        implements
+            IEntityManagerStage,
+            IEntityTypeStage,
+            IEntityObjectTypeResolverStage,
+            IEntityObjectTypeStage,
+            ISelectNodeNameStage,
+            IBuildStage {
 
         private RestrictedKeysProvider restrictedKeysProvider;
         private EntityManager entityManager;
@@ -2231,7 +2239,9 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
-        public IEntityObjectTypeStage withEntityObjectTypeResolver(Function<String, EntityType<?>> entityObjectTypeResolver) {
+        public IEntityObjectTypeStage withEntityObjectTypeResolver(
+            Function<String, EntityType<?>> entityObjectTypeResolver
+        ) {
             this.entityObjectTypeResolver = entityObjectTypeResolver;
 
             return this;
@@ -2285,8 +2295,6 @@ public final class GraphQLJpaQueryFactory {
 
             return new GraphQLJpaQueryFactory(this);
         }
-
-
     }
 
     public RestrictedKeysProvider getRestrictedKeysProvider() {

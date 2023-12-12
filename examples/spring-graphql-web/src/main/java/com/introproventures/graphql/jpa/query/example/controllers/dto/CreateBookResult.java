@@ -1,10 +1,12 @@
 package com.introproventures.graphql.jpa.query.example.controllers.dto;
 
 public record CreateBookResult(Long id) {
-
-    public static Builder builder() {return new Builder();}
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static final class Builder {
+
         private Long id;
 
         private Builder() {}
@@ -14,6 +16,8 @@ public record CreateBookResult(Long id) {
             return this;
         }
 
-        public CreateBookResult build() {return new CreateBookResult(id);}
+        public CreateBookResult build() {
+            return new CreateBookResult(id);
+        }
     }
 }

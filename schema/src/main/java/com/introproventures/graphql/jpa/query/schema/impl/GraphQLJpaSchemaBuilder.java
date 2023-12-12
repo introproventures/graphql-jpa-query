@@ -121,8 +121,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Function<String, String> queryTypeNameCustomizer = name -> name.concat("Query");
     private Function<String, String> queryWhereArgumentTypeNameCustomizer = name -> name.concat("CriteriaExpression");
     private Function<String, String> queryEmbeddableTypeNameCustomizer = it -> it.concat("EmbeddableType");
-    private Function<String, String> subqueryArgumentTypeNameCustomizer = name -> name.concat("SubqueryCriteriaExpression");
-    private Function<String, String> queryWhereInputTypeNameCustomizer = name -> name.concat("RelationCriteriaExpression");
+    private Function<String, String> subqueryArgumentTypeNameCustomizer = name ->
+        name.concat("SubqueryCriteriaExpression");
+    private Function<String, String> queryWhereInputTypeNameCustomizer = name ->
+        name.concat("RelationCriteriaExpression");
     private Function<String, String> singularize = namingStrategy::singularize;
     private Function<String, String> pluralize = namingStrategy::pluralize;
 
@@ -1023,10 +1025,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             if (embeddableOutputCache.containsKey(embeddableType.getJavaType())) {
                 return embeddableOutputCache.get(embeddableType.getJavaType());
             }
-            String embeddableTypeName =
-                singularize
-                    .andThen(queryEmbeddableTypeNameCustomizer)
-                    .apply(embeddableType.getJavaType().getSimpleName());
+            String embeddableTypeName = singularize
+                .andThen(queryEmbeddableTypeNameCustomizer)
+                .apply(embeddableType.getJavaType().getSimpleName());
 
             graphQLType =
                 GraphQLObjectType
@@ -1145,7 +1146,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // to-one end could be optional
             arguments.add(optionalArgument(singularAttribute.isOptional()));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType.newObject().name(resolveEntityObjectTypeName(baseEntity)).build();
+            GraphQLObjectType entityObjectType = GraphQLObjectType
+                .newObject()
+                .name(resolveEntityObjectTypeName(baseEntity))
+                .build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
@@ -1187,7 +1191,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType.newObject().name(resolveEntityObjectTypeName(baseEntity)).build();
+            GraphQLObjectType entityObjectType = GraphQLObjectType
+                .newObject()
+                .name(resolveEntityObjectTypeName(baseEntity))
+                .build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
@@ -1298,7 +1305,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         } else if (isToOne(attribute)) {
             EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
 
-            return input ? getWhereInputType(foreignType) : new GraphQLTypeReference(resolveEntityObjectTypeName(foreignType));
+            return input
+                ? getWhereInputType(foreignType)
+                : new GraphQLTypeReference(resolveEntityObjectTypeName(foreignType));
         } else if (isElementCollection(attribute)) {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
 
@@ -1621,31 +1630,41 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return this;
     }
 
-    public GraphQLJpaSchemaBuilder queryResultTypeNameCustomizer(Function<String, String> queryResultTypeNameCustomizer) {
+    public GraphQLJpaSchemaBuilder queryResultTypeNameCustomizer(
+        Function<String, String> queryResultTypeNameCustomizer
+    ) {
         this.queryResultTypeNameCustomizer = queryResultTypeNameCustomizer;
 
         return this;
     }
 
-    public GraphQLJpaSchemaBuilder queryWhereArgumentTypeNameCustomizer(Function<String, String> queryWhereArgumentTypeNameCustomizer) {
+    public GraphQLJpaSchemaBuilder queryWhereArgumentTypeNameCustomizer(
+        Function<String, String> queryWhereArgumentTypeNameCustomizer
+    ) {
         this.queryWhereArgumentTypeNameCustomizer = queryWhereArgumentTypeNameCustomizer;
 
         return this;
     }
 
-    public GraphQLJpaSchemaBuilder queryEmbeddableTypeNameCustomizer(Function<String, String> queryEmbeddableTypeNameCustomizer) {
+    public GraphQLJpaSchemaBuilder queryEmbeddableTypeNameCustomizer(
+        Function<String, String> queryEmbeddableTypeNameCustomizer
+    ) {
         this.queryEmbeddableTypeNameCustomizer = queryEmbeddableTypeNameCustomizer;
 
         return this;
     }
 
-    public GraphQLJpaSchemaBuilder subqueryArgumentTypeNameCustomizer(Function<String, String> subqueryArgumentTypeNameCustomizer) {
+    public GraphQLJpaSchemaBuilder subqueryArgumentTypeNameCustomizer(
+        Function<String, String> subqueryArgumentTypeNameCustomizer
+    ) {
         this.subqueryArgumentTypeNameCustomizer = subqueryArgumentTypeNameCustomizer;
 
         return this;
     }
 
-    public GraphQLJpaSchemaBuilder queryWhereInputTypeNameCustomizer(Function<String, String> queryWhereInputTypeNameCustomizer) {
+    public GraphQLJpaSchemaBuilder queryWhereInputTypeNameCustomizer(
+        Function<String, String> queryWhereInputTypeNameCustomizer
+    ) {
         this.queryWhereInputTypeNameCustomizer = queryWhereInputTypeNameCustomizer;
 
         return this;

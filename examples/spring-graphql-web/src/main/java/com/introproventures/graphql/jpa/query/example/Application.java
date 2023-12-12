@@ -47,9 +47,10 @@ public class Application {
 
     @Bean
     GraphQLJPASchemaBuilderCustomizer graphQlSourceBuilderCustomizer() {
-        return builder -> builder
-            .queryByIdFieldNameCustomizer("find%sById"::formatted)
-            .queryAllFieldNameCustomizer("findAll%s"::formatted);
+        return builder ->
+            builder
+                .queryByIdFieldNameCustomizer("find%sById"::formatted)
+                .queryAllFieldNameCustomizer("findAll%s"::formatted);
     }
 
     @Bean
@@ -58,18 +59,16 @@ public class Application {
         return Sinks.many().replay().latest();
     }
 
-//    @Bean
+    //    @Bean
     GraphQlSourceBuilderCustomizer booksMutationCustomizer() {
-        return customizer -> customizer
-            .configureTypeDefinitions(configurer -> configurer
-                .add(newObjectTypeDefinition()
-                    .name("Book")
-                    .fieldDefinition(
-                        newFieldDefinition()
-                            .name("id")
-                            .type(newTypeName("ID")
-                                .build())
-                            .build())
-                    .build()));
+        return customizer ->
+            customizer.configureTypeDefinitions(configurer ->
+                configurer.add(
+                    newObjectTypeDefinition()
+                        .name("Book")
+                        .fieldDefinition(newFieldDefinition().name("id").type(newTypeName("ID").build()).build())
+                        .build()
+                )
+            );
     }
 }
