@@ -30,9 +30,11 @@ import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.idl.SchemaPrinter;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -190,6 +192,25 @@ public class BooksSchemaBuildTest extends AbstractSpringBootTestSupport {
 
         //then
         assertThat(schema).isNotNull();
+    }
+
+    @Test
+    @Disabled
+    public void testBuildSchemaCustomizer() {
+        //given
+        GraphQLSchema schema = builder
+            .queryByIdFieldNameCustomizer("find%sById"::formatted)
+            .queryAllFieldNameCustomizer("findAll%s"::formatted)
+            .queryResultTypeNameCustomizer("Query%sResult"::formatted)
+            .queryTypeNameCustomizer("%sQueries"::formatted)
+            .build();
+
+        //then
+        assertThat(schema).isNotNull();
+
+        SchemaPrinter schemaPrinter = new SchemaPrinter();
+
+        System.out.println(schemaPrinter.print(schema));
     }
 
     private Optional<GraphQLFieldDefinition> getFieldForType(String fieldName, String type, GraphQLSchema schema) {

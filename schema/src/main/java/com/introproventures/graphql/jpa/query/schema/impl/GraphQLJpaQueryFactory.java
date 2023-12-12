@@ -165,6 +165,7 @@ public final class GraphQLJpaQueryFactory {
     private final int defaultFetchSize;
     private final RestrictedKeysProvider restrictedKeysProvider;
     private final boolean resultStream;
+    private final Function<String, EntityType<?>> entityObjectTypeResolver;
 
     private GraphQLJpaQueryFactory(Builder builder) {
         this.entityManager = builder.entityManager;
@@ -176,6 +177,7 @@ public final class GraphQLJpaQueryFactory {
         this.defaultFetchSize = builder.defaultFetchSize;
         this.restrictedKeysProvider = builder.restrictedKeysProvider;
         this.resultStream = builder.resultStream;
+        this.entityObjectTypeResolver = builder.entityObjectTypeResolver;
     }
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment, MergedField queryField) {
@@ -1694,13 +1696,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     private EntityType<?> computeEntityType(GraphQLObjectType objectType) {
-        return entityManager
-            .getMetamodel()
-            .getEntities()
-            .stream()
-            .filter(it -> it.getName().equals(objectType.getName()))
-            .findFirst()
-            .orElse(null);
+        return entityObjectTypeResolver.apply(objectType.getName());
     }
 
     private EmbeddableType<?> getEmbeddableType(GraphQLObjectType objectType) {
@@ -2121,7 +2117,16 @@ public final class GraphQLJpaQueryFactory {
          * @param entityType field to set
          * @return builder
          */
-        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType);
+        public IEntityObjectTypeResolverStage withEntityType(EntityType<?> entityType);
+    }
+
+    public interface IEntityObjectTypeResolverStage {
+        /**
+         * Builder method for entityType parameter.
+         * @param entityObjectTypeResolver resolver to
+         * @return builder
+         */
+        public IEntityObjectTypeStage withEntityObjectTypeResolver(Function<String, EntityType<?>> entityObjectTypeResolver);
     }
 
     /**
@@ -2198,7 +2203,7 @@ public final class GraphQLJpaQueryFactory {
      * Builder to build {@link GraphQLJpaQueryFactory}.
      */
     public static final class Builder
-        implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
+        implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeResolverStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
 
         private RestrictedKeysProvider restrictedKeysProvider;
         private EntityManager entityManager;
@@ -2209,6 +2214,7 @@ public final class GraphQLJpaQueryFactory {
         private boolean defaultDistinct = true;
         private int defaultFetchSize = 100;
         private boolean resultStream = false;
+        private Function<String, EntityType<?>> entityObjectTypeResolver;
 
         private Builder() {}
 
@@ -2219,8 +2225,15 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
-        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType) {
+        public IEntityObjectTypeResolverStage withEntityType(EntityType<?> entityType) {
             this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public IEntityObjectTypeStage withEntityObjectTypeResolver(Function<String, EntityType<?>> entityObjectTypeResolver) {
+            this.entityObjectTypeResolver = entityObjectTypeResolver;
+
             return this;
         }
 
@@ -2272,6 +2285,8 @@ public final class GraphQLJpaQueryFactory {
 
             return new GraphQLJpaQueryFactory(this);
         }
+
+
     }
 
     public RestrictedKeysProvider getRestrictedKeysProvider() {
