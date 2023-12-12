@@ -15,10 +15,19 @@
  */
 package com.introproventures.graphql.jpa.query.example;
 
+import static graphql.language.FieldDefinition.newFieldDefinition;
+import static graphql.language.ObjectTypeDefinition.newObjectTypeDefinition;
+import static graphql.language.TypeName.newTypeName;
+
 import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuerySchema;
+import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
+import com.introproventures.graphql.jpa.query.example.controllers.dto.CreateBookResult;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
+import org.springframework.context.annotation.Bean;
+import reactor.core.publisher.Sinks;
 
 /**
  * GraphQL JPA Query Example with Spring Boot Autoconfiguration
@@ -34,5 +43,33 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    GraphQLJPASchemaBuilderCustomizer graphQlSourceBuilderCustomizer() {
+        return builder -> builder
+            .queryByIdFieldNameCustomizer("find%sById"::formatted)
+            .queryAllFieldNameCustomizer("findAll%s"::formatted);
+    }
+
+    @Bean
+    // sink of `commentAdded` event
+    Sinks.Many<CreateBookResult> createBookResultSink() {
+        return Sinks.many().replay().latest();
+    }
+
+//    @Bean
+    GraphQlSourceBuilderCustomizer booksMutationCustomizer() {
+        return customizer -> customizer
+            .configureTypeDefinitions(configurer -> configurer
+                .add(newObjectTypeDefinition()
+                    .name("Book")
+                    .fieldDefinition(
+                        newFieldDefinition()
+                            .name("id")
+                            .type(newTypeName("ID")
+                                .build())
+                            .build())
+                    .build()));
     }
 }

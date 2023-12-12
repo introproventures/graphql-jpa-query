@@ -9,9 +9,20 @@ type Query {
 
 type Mutation {
    echo(name: String): String
+   createBook(bookInput: CreateBookInput!): CreateBookResult
+   createBooks(bookInputs: [CreateBookInput!]!): [CreateBookResult]
+}
+
+type CreateBookResult {
+   id: Long
+}
+
+input CreateBookInput {
+   title: String!
+   authorId: Long!
 }
 
 type Subscription {
    greetings(name: String): String
+   notifyBookCreated: [CreateBookResult]
 }
-
