@@ -49,6 +49,7 @@ public class Application {
     GraphQLJPASchemaBuilderCustomizer graphQlSourceBuilderCustomizer() {
         return builder ->
             builder
+                .graphQLIDType(true)
                 .queryByIdFieldNameCustomizer("find%sById"::formatted)
                 .queryAllFieldNameCustomizer("findAll%s"::formatted);
     }
