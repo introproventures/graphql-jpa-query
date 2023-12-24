@@ -24,6 +24,7 @@ import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreOrder;
+import com.introproventures.graphql.jpa.query.schema.EntityObjectTypeMetadata;
 import com.introproventures.graphql.jpa.query.schema.GraphQLSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.NamingStrategy;
@@ -90,6 +91,8 @@ import org.slf4j.LoggerFactory;
  */
 public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
+    private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
+
     private static final String NODE = "node";
     public static final String PAGE_PARAM_NAME = "page";
     public static final String PAGE_TOTAL_PARAM_NAME = "total";
@@ -111,6 +114,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
     private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
     private Map<String, EntityType<?>> entityTypeMap = new ConcurrentHashMap<>();
+    private Map<String, EmbeddableType<?>> embeddableTypeMap = new ConcurrentHashMap<>();
     private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
     private Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
     private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
@@ -125,10 +129,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         name.concat("SubqueryCriteriaExpression");
     private Function<String, String> queryWhereInputTypeNameCustomizer = name ->
         name.concat("RelationCriteriaExpression");
-    private Function<String, String> singularize = namingStrategy::singularize;
-    private Function<String, String> pluralize = namingStrategy::pluralize;
-
-    private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
+    private final Function<String, String> singularize = namingStrategy::singularize;
+    private final Function<String, String> pluralize = namingStrategy::pluralize;
 
     private final EntityManager entityManager;
 
@@ -149,7 +151,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean graphQLIDType = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = entityDescriptor -> Optional.of(Collections.emptyList());
-    private Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
+    private final Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
 
     private final Relay relay = new Relay();
 
@@ -157,6 +159,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private final Supplier<BatchLoaderRegistry> batchLoadersRegistry = BatchLoaderRegistry::getInstance;
     private final Function<String, EntityType<?>> entityObjectTypeResolver = entityTypeMap::get;
+    private final Function<String, EmbeddableType<?>> embeddableObjectTypeResolver = embeddableTypeMap::get;
+    private final EntityObjectTypeMetadata entityObjectTypeMetadata = new EntityObjectTypeMetadataImpl();
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -184,6 +188,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         }
 
         entityCache.forEach((entity, type) -> entityTypeMap.put(type.getName(), entity));
+
+        entityManager
+            .getMetamodel()
+            .getEmbeddables()
+            .stream()
+            .filter(it -> embeddableOutputCache.containsKey(it.getJavaType()))
+            .forEach(it -> embeddableTypeMap.put(embeddableOutputCache.get(it.getJavaType()).getName(), it));
 
         return schema.build();
     }
@@ -249,7 +260,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
-            .withEntityObjectTypeResolver(entityObjectTypeResolver)
+            .withEntityObjectTypeMetadata(entityObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(entityObjectType.getName())
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -298,7 +309,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
-            .withEntityObjectTypeResolver(entityObjectTypeResolver)
+            .withEntityObjectTypeMetadata(entityObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(enableRelay ? NODE : QUERY_SELECT_PARAM_NAME)
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -413,7 +424,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
-            .withEntityObjectTypeResolver(entityObjectTypeResolver)
+            .withEntityObjectTypeMetadata(entityObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(SELECT_DISTINCT_PARAM_NAME)
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -1155,7 +1166,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .builder()
                 .withEntityManager(entityManager)
                 .withEntityType(baseEntity)
-                .withEntityObjectTypeResolver(entityObjectTypeResolver)
+                .withEntityObjectTypeMetadata(entityObjectTypeMetadata)
                 .withEntityObjectType(entityObjectType)
                 .withSelectNodeName(baseEntity.getName())
                 .withDefaultDistinct(isDefaultDistinct)
@@ -1200,7 +1211,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .builder()
                 .withEntityManager(entityManager)
                 .withEntityType(baseEntity)
-                .withEntityObjectTypeResolver(entityObjectTypeResolver)
+                .withEntityObjectTypeMetadata(entityObjectTypeMetadata)
                 .withEntityObjectType(entityObjectType)
                 .withSelectNodeName(baseEntity.getName())
                 .withDefaultDistinct(isDefaultDistinct)
@@ -1783,5 +1794,18 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public boolean isGraphQLIDType() {
         return this.graphQLIDType;
+    }
+
+    final class EntityObjectTypeMetadataImpl implements EntityObjectTypeMetadata {
+
+        @Override
+        public EntityType<?> entity(String objectType) {
+            return entityObjectTypeResolver.apply(objectType);
+        }
+
+        @Override
+        public EmbeddableType<?> embeddable(String objectType) {
+            return embeddableObjectTypeResolver.apply(objectType);
+        }
     }
 }

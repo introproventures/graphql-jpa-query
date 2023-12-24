@@ -30,6 +30,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
 import com.introproventures.graphql.jpa.query.introspection.ReflectionUtil;
+import com.introproventures.graphql.jpa.query.schema.EntityObjectTypeMetadata;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.RestrictedKeysProvider;
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult;
@@ -165,7 +166,7 @@ public final class GraphQLJpaQueryFactory {
     private final int defaultFetchSize;
     private final RestrictedKeysProvider restrictedKeysProvider;
     private final boolean resultStream;
-    private final Function<String, EntityType<?>> entityObjectTypeResolver;
+    private final EntityObjectTypeMetadata entityObjectTypeMetadata;
 
     private GraphQLJpaQueryFactory(Builder builder) {
         this.entityManager = builder.entityManager;
@@ -177,7 +178,7 @@ public final class GraphQLJpaQueryFactory {
         this.defaultFetchSize = builder.defaultFetchSize;
         this.restrictedKeysProvider = builder.restrictedKeysProvider;
         this.resultStream = builder.resultStream;
-        this.entityObjectTypeResolver = builder.entityObjectTypeResolver;
+        this.entityObjectTypeMetadata = builder.entityObjectTypeMetadata;
     }
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment, MergedField queryField) {
@@ -1696,7 +1697,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     private EntityType<?> computeEntityType(GraphQLObjectType objectType) {
-        return entityObjectTypeResolver.apply(objectType.getName());
+        return entityObjectTypeMetadata.entity(objectType.getName());
     }
 
     private EmbeddableType<?> getEmbeddableType(GraphQLObjectType objectType) {
@@ -1704,14 +1705,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     private EmbeddableType<?> computeEmbeddableType(GraphQLObjectType objectType) {
-        String javaType = objectType.getName().replace("EmbeddableType", "");
-        return entityManager
-            .getMetamodel()
-            .getEmbeddables()
-            .stream()
-            .filter(it -> it.getJavaType().getSimpleName().equals(javaType))
-            .findFirst()
-            .orElse(null);
+        return entityObjectTypeMetadata.embeddable(objectType.getName());
     }
 
     /**
@@ -2117,18 +2111,16 @@ public final class GraphQLJpaQueryFactory {
          * @param entityType field to set
          * @return builder
          */
-        public IEntityObjectTypeResolverStage withEntityType(EntityType<?> entityType);
+        public IEntityObjectTypeMetadataStage withEntityType(EntityType<?> entityType);
     }
 
-    public interface IEntityObjectTypeResolverStage {
+    public interface IEntityObjectTypeMetadataStage {
         /**
-         * Builder method for entityType parameter.
-         * @param entityObjectTypeResolver resolver to
+         * Builder method for entityObjectTypeMetadata parameter.
+         * @param entityObjectTypeMetadata metadata
          * @return builder
          */
-        public IEntityObjectTypeStage withEntityObjectTypeResolver(
-            Function<String, EntityType<?>> entityObjectTypeResolver
-        );
+        public IEntityObjectTypeStage withEntityObjectTypeMetadata(EntityObjectTypeMetadata entityObjectTypeMetadata);
     }
 
     /**
@@ -2208,7 +2200,7 @@ public final class GraphQLJpaQueryFactory {
         implements
             IEntityManagerStage,
             IEntityTypeStage,
-            IEntityObjectTypeResolverStage,
+            IEntityObjectTypeMetadataStage,
             IEntityObjectTypeStage,
             ISelectNodeNameStage,
             IBuildStage {
@@ -2222,7 +2214,7 @@ public final class GraphQLJpaQueryFactory {
         private boolean defaultDistinct = true;
         private int defaultFetchSize = 100;
         private boolean resultStream = false;
-        private Function<String, EntityType<?>> entityObjectTypeResolver;
+        private EntityObjectTypeMetadata entityObjectTypeMetadata;
 
         private Builder() {}
 
@@ -2233,16 +2225,14 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
-        public IEntityObjectTypeResolverStage withEntityType(EntityType<?> entityType) {
+        public IEntityObjectTypeMetadataStage withEntityType(EntityType<?> entityType) {
             this.entityType = entityType;
             return this;
         }
 
         @Override
-        public IEntityObjectTypeStage withEntityObjectTypeResolver(
-            Function<String, EntityType<?>> entityObjectTypeResolver
-        ) {
-            this.entityObjectTypeResolver = entityObjectTypeResolver;
+        public IEntityObjectTypeStage withEntityObjectTypeMetadata(EntityObjectTypeMetadata entityObjectTypeMetadata) {
+            this.entityObjectTypeMetadata = entityObjectTypeMetadata;
 
             return this;
         }
