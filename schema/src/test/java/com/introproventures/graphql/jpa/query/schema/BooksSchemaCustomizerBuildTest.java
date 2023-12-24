@@ -22,12 +22,10 @@ import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import com.introproventures.graphql.jpa.query.schema.model.book.Author;
 import com.introproventures.graphql.jpa.query.schema.model.book.Book;
-import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperAuthor;
-import com.introproventures.graphql.jpa.query.schema.model.book_superclass.SuperBook;
 import com.introproventures.graphql.jpa.query.schema.model.uuid.Thing;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -46,10 +44,8 @@ public class BooksSchemaCustomizerBuildTest extends AbstractSpringBootTestSuppor
         public GraphQLSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("BooksExampleSchema")
-                .namingStrategy(new NamingStrategy() {})
+                .namingStrategy(new CustomNamingStrategy())
                 .entityPath(Book.class.getName())
-                .entityPath(SuperBook.class.getName())
-                .entityPath(SuperAuthor.class.getName())
                 .entityPath(Author.class.getName())
                 .entityPath(Thing.class.getPackage().getName())
                 .queryByIdFieldNameCustomizer("find%sById"::formatted)
@@ -64,19 +60,103 @@ public class BooksSchemaCustomizerBuildTest extends AbstractSpringBootTestSuppor
         }
     }
 
-    @Autowired
-    private GraphQLJpaSchemaBuilder builder;
+    private static String schema;
+
+    @BeforeAll
+    static void buildSchema(@Autowired GraphQLJpaSchemaBuilder builder) {
+        schema = new SchemaPrinter().print(builder.build());
+
+        System.out.println(schema);
+    }
 
     @Test
-    public void testBuildSchemaCustomizer() {
-        //given
-        GraphQLSchema schema = builder.build();
-
+    public void queryByIdFieldNameCustomizer() {
         //then
-        assertThat(schema).isNotNull();
+        assertThat(schema).contains("findAuthorEntityById", "findBookEntityById");
+    }
 
-        SchemaPrinter schemaPrinter = new SchemaPrinter();
+    @Test
+    public void queryAllFieldNameCustomizer() {
+        //then
+        assertThat(schema).contains("findAllAuthorsEntities", "findAllBooksEntities");
+    }
 
-        System.out.println(schemaPrinter.print(schema));
+    @Test
+    public void queryResultTypeNameCustomizer() {
+        //then
+        assertThat(schema)
+            .contains("type QueryAuthorEntityResult", "type QueryBookEntityResult", "type QueryThingEntityResult");
+    }
+
+    @Test
+    public void queryTypeNameCustomizer() {
+        //then
+        assertThat(schema).contains("query: BooksExampleSchemaQueries", "type BooksExampleSchemaQueries");
+    }
+
+    @Test
+    public void queryEmbeddableTypeNameCustomizer() {
+        //then
+        assertThat(schema)
+            .contains("type PublisherEntityCustomEmbeddableType", "publishers: [PublisherEntityCustomEmbeddableType]");
+    }
+
+    @Test
+    public void subqueryArgumentTypeNameCustomizer() {
+        //then
+        assertThat(schema)
+            .contains(
+                "input AuthorsEntitiesCustomSubqueryCriteriaExpression",
+                "input BooksEntitiesCustomSubqueryCriteriaExpression"
+            );
+    }
+
+    @Test
+    public void queryWhereArgumentTypeNameCustomizer() {
+        //then
+        assertThat(schema)
+            .contains(
+                "input AuthorsEntitiesCustomWhereArgumentType",
+                "where: AuthorsEntitiesCustomWhereArgumentType",
+                "input BooksEntitiesCustomWhereArgumentType",
+                "where: BooksEntitiesCustomWhereArgumentType"
+            );
+    }
+
+    @Test
+    public void queryWhereInputTypeNameCustomizer() {
+        //then
+        assertThat(schema)
+            .contains(
+                "books: BooksEntitiesCustomWhereInputType",
+                "input PublishersEntitiesCustomWhereInputType",
+                "input AuthorsEntitiesCustomWhereInputType",
+                "author: AuthorsEntitiesCustomWhereInputType"
+            );
+    }
+
+    @Test
+    public void namingStrategy() {
+        //then
+        assertThat(schema)
+            .contains(
+                "input countryEntityPublisherCriteria",
+                "input genreEntityAuthorCriteria",
+                "input genreEntityBookCriteria",
+                "input idEntityAuthorCriteria"
+            );
+    }
+
+    static class CustomNamingStrategy implements NamingStrategy {
+
+        @Override
+        public String singularize(String word) {
+            return NamingStrategy.super.singularize(word).concat("Entity");
+        }
+
+        @Override
+        public String pluralize(String word) {
+            return NamingStrategy.super.pluralize(word).concat("Entities");
+        }
     }
 }

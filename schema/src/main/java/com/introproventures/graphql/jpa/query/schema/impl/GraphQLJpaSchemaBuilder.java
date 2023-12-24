@@ -129,8 +129,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         name.concat("SubqueryCriteriaExpression");
     private Function<String, String> queryWhereInputTypeNameCustomizer = name ->
         name.concat("RelationCriteriaExpression");
-    private final Function<String, String> singularize = namingStrategy::singularize;
-    private final Function<String, String> pluralize = namingStrategy::pluralize;
+    private final Function<String, String> singularize = word -> namingStrategy.singularize(word);
+    private final Function<String, String> pluralize = word -> namingStrategy.pluralize(word);
 
     private final EntityManager entityManager;
 
@@ -1592,6 +1592,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     /**
      * @param namingStrategy the namingStrategy to set
      */
+    @Deprecated
     public void setNamingStrategy(NamingStrategy namingStrategy) {
         this.namingStrategy = namingStrategy;
     }
