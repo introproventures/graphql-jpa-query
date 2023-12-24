@@ -46,6 +46,7 @@ public class BooksSchemaCustomizerBuildTest extends AbstractSpringBootTestSuppor
         public GraphQLSchemaBuilder graphQLSchemaBuilder(EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("BooksExampleSchema")
+                .namingStrategy(new NamingStrategy() {})
                 .entityPath(Book.class.getName())
                 .entityPath(SuperBook.class.getName())
                 .entityPath(SuperAuthor.class.getName())
@@ -55,6 +56,8 @@ public class BooksSchemaCustomizerBuildTest extends AbstractSpringBootTestSuppor
                 .queryAllFieldNameCustomizer("findAll%s"::formatted)
                 .queryResultTypeNameCustomizer("Query%sResult"::formatted)
                 .queryTypeNameCustomizer("%sQueries"::formatted)
+                .queryEmbeddableTypeNameCustomizer("%sCustomEmbeddableType"::formatted)
+                .subqueryArgumentTypeNameCustomizer("%sCustomSubqueryCriteriaExpression"::formatted)
                 .queryWhereArgumentTypeNameCustomizer("%sCustomWhereArgumentType"::formatted)
                 .queryWhereInputTypeNameCustomizer("%sCustomWhereInputType"::formatted)
                 .description("Books Example Schema");
