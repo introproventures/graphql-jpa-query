@@ -29,11 +29,6 @@ public class MutationController {
     private Sinks.Many<CreateBookResult> createBookResultSink;
 
     @MutationMapping
-    String echo(@Argument String name) {
-        return name;
-    }
-
-    @MutationMapping
     public Mono<CreateBookResult> createBook(@Argument CreateBookInput bookInput) {
         return Mono.just(bookInput).map(this.createBook());
     }

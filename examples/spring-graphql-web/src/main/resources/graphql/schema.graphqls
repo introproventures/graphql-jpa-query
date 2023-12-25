@@ -3,23 +3,20 @@ scalar Date
 
 type Query {
    hello(name: String!): String
-   random: Long
-   now: Date
 }
 
 type Mutation {
-   echo(name: String): String
    createBook(bookInput: CreateBookInput!): CreateBookResult
    createBooks(bookInputs: [CreateBookInput!]!): [CreateBookResult]
 }
 
 type CreateBookResult {
-   id: Long
+   id: ID
 }
 
 input CreateBookInput {
    title: String!
-   authorId: Long!
+   authorId: ID!
 }
 
 type Subscription {
