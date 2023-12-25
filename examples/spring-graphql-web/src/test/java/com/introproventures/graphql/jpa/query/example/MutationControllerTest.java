@@ -26,10 +26,9 @@ public class MutationControllerTest {
             """
                 mutation createBook($authorId: ID!) {
                     createBook(bookInput: {title: "My Book", authorId: $authorId}) {
-                      id
+                        id
                     }
-                  }
-                  
+                }
             """;
 
         var bookId = graphQlTester
@@ -48,16 +47,15 @@ public class MutationControllerTest {
     void createBooks() {
         var createBooks =
             """
-                mutation createBooks($authorId: ID!) {
-                  createBooks(bookInputs: [
-                    {title: "My Book 1", authorId: $authorId}
-                    {title: "My Book 2", authorId: $authorId}
-                    {title: "My Book 3", authorId: $authorId}
-                  ]
-                  ) {
-                    id
-                  }
+              mutation createBooks($authorId: ID!) {
+                createBooks(bookInputs: [
+                  {title: "My Book 1", authorId: $authorId}
+                  {title: "My Book 2", authorId: $authorId}
+                  {title: "My Book 3", authorId: $authorId}
+                ]) {
+                  id
                 }
+              }
             """;
 
         var bookIds = graphQlTester

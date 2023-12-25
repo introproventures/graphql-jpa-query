@@ -2,6 +2,7 @@ package com.introproventures.graphql.jpa.query.example;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
@@ -44,8 +45,8 @@ public class QueryControllerTest {
     void findAllBooks() {
         var allBooks =
             """
-            query {
-              findAllBooks {
+            query findAllBooks($authorNames: [String]!){
+              findAllBooks(where: {author: {name: {IN: $authorNames}}}) {
                 select {
                   id
                   title
@@ -60,6 +61,7 @@ public class QueryControllerTest {
 
         graphQlTester
             .document(allBooks)
+            .variable("authorNames", Arrays.asList("Leo Tolstoy", "Anton Chekhov"))
             .execute()
             .path("findAllBooks.select[*].title")
             .entityList(String.class)
