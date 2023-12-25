@@ -226,6 +226,25 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
         assertThat(result.toString()).isEqualTo(expected);
     }
 
+    @Test
+    public void queryForThingByIdViaWhereINVariables() {
+        //given:
+
+        String query = "query things($ids: [UUID]!){ Things(where: {id: {IN: $ids}}) { select { id }}}";
+        String expected = "{Things={select=[{id=2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1}]}}";
+
+        //when:
+        Object result = executor
+            .execute(
+                query,
+                Map.of("ids", List.of("2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1", "2d1ebc5b-7d27-4197-9cf0-e84451c5bbb1"))
+            )
+            .getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
     @SuppressWarnings({ "rawtypes", "unchecked", "serial" })
     @Test
     public void queryForThingByIdViaWhereNE() {
