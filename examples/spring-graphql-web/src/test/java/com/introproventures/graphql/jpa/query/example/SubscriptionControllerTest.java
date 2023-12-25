@@ -72,4 +72,57 @@ public class SubscriptionControllerTest {
             .thenCancel()
             .verify();
     }
+
+    @Test
+    void notifyBooksCreated() {
+        var createBook =
+            """
+                mutation createBooks {
+                  createBooks(bookInputs: [
+                    {title: "My Book 1", authorId:8}
+                    {title: "My Book 2", authorId:8}
+                    {title: "My Book 3", authorId:8}
+                  ]
+                  ) {
+                    id
+                  }
+                }
+            """;
+
+        var notifyBookCreated =
+            """
+                subscription {
+                  notifyBookCreated {
+                    id
+                  }
+                }
+            """;
+
+        Flux<List<CreateBookResult>> result = graphQlTester
+            .document(notifyBookCreated)
+            .executeSubscription()
+            .toFlux()
+            .map(spec ->
+                spec.path("notifyBookCreated").entity(new ParameterizedTypeReference<List<CreateBookResult>>() {}).get()
+            );
+
+        var bookIds = graphQlTester
+            .document(createBook)
+            .variable("authorId", 8)
+            .execute()
+            .path("createBooks[*].id")
+            .entityList(Long.class)
+            .satisfies(id -> assertThat(id).isNotNull())
+            .get();
+
+        StepVerifier
+            .create(result)
+            .consumeNextWith(c ->
+                assertThat(c)
+                    .extracting(CreateBookResult::id)
+                    .satisfies(id -> assertThat(bookIds.containsAll(id)).isTrue())
+            )
+            .thenCancel()
+            .verify();
+    }
 }
