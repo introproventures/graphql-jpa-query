@@ -1,17 +1,31 @@
 scalar Long
 scalar Date
 
+schema {
+   query: Query
+   mutation: Mutation
+   subscription: Subscription
+}
+
 type Query {
-   hello(name: String!): String
-   random: Long
-   now: Date
+   null: String
 }
 
 type Mutation {
-   echo(name: String): String
+   createBook(bookInput: CreateBookInput!): CreateBookResult
+   createBooks(bookInputs: [CreateBookInput!]!): [CreateBookResult]
+}
+
+type CreateBookResult {
+   id: ID
+}
+
+input CreateBookInput {
+   title: String!
+   authorId: ID!
 }
 
 type Subscription {
    greetings(name: String): String
+   notifyBookCreated: [CreateBookResult]
 }
-

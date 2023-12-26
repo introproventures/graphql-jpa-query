@@ -165,6 +165,7 @@ public final class GraphQLJpaQueryFactory {
     private final int defaultFetchSize;
     private final RestrictedKeysProvider restrictedKeysProvider;
     private final boolean resultStream;
+    private final GraphQLObjectTypeMetadata graphQLObjectTypeMetadata;
 
     private GraphQLJpaQueryFactory(Builder builder) {
         this.entityManager = builder.entityManager;
@@ -176,6 +177,7 @@ public final class GraphQLJpaQueryFactory {
         this.defaultFetchSize = builder.defaultFetchSize;
         this.restrictedKeysProvider = builder.restrictedKeysProvider;
         this.resultStream = builder.resultStream;
+        this.graphQLObjectTypeMetadata = builder.graphQLObjectTypeMetadata;
     }
 
     public DataFetchingEnvironment getQueryEnvironment(DataFetchingEnvironment environment, MergedField queryField) {
@@ -1694,13 +1696,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     private EntityType<?> computeEntityType(GraphQLObjectType objectType) {
-        return entityManager
-            .getMetamodel()
-            .getEntities()
-            .stream()
-            .filter(it -> it.getName().equals(objectType.getName()))
-            .findFirst()
-            .orElse(null);
+        return graphQLObjectTypeMetadata.entity(objectType.getName());
     }
 
     private EmbeddableType<?> getEmbeddableType(GraphQLObjectType objectType) {
@@ -1708,14 +1704,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     private EmbeddableType<?> computeEmbeddableType(GraphQLObjectType objectType) {
-        String javaType = objectType.getName().replace("EmbeddableType", "");
-        return entityManager
-            .getMetamodel()
-            .getEmbeddables()
-            .stream()
-            .filter(it -> it.getJavaType().getSimpleName().equals(javaType))
-            .findFirst()
-            .orElse(null);
+        return graphQLObjectTypeMetadata.embeddable(objectType.getName());
     }
 
     /**
@@ -2121,7 +2110,18 @@ public final class GraphQLJpaQueryFactory {
          * @param entityType field to set
          * @return builder
          */
-        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType);
+        public IGraphQLObjectTypeMetadataStage withEntityType(EntityType<?> entityType);
+    }
+
+    public interface IGraphQLObjectTypeMetadataStage {
+        /**
+         * Builder method for graphQLObjectTypeMetadata parameter.
+         * @param graphQLObjectTypeMetadata metadata
+         * @return builder
+         */
+        public IEntityObjectTypeStage withGraphQLObjectTypeMetadata(
+            GraphQLObjectTypeMetadata graphQLObjectTypeMetadata
+        );
     }
 
     /**
@@ -2198,7 +2198,13 @@ public final class GraphQLJpaQueryFactory {
      * Builder to build {@link GraphQLJpaQueryFactory}.
      */
     public static final class Builder
-        implements IEntityManagerStage, IEntityTypeStage, IEntityObjectTypeStage, ISelectNodeNameStage, IBuildStage {
+        implements
+            IEntityManagerStage,
+            IEntityTypeStage,
+            IGraphQLObjectTypeMetadataStage,
+            IEntityObjectTypeStage,
+            ISelectNodeNameStage,
+            IBuildStage {
 
         private RestrictedKeysProvider restrictedKeysProvider;
         private EntityManager entityManager;
@@ -2209,6 +2215,7 @@ public final class GraphQLJpaQueryFactory {
         private boolean defaultDistinct = true;
         private int defaultFetchSize = 100;
         private boolean resultStream = false;
+        private GraphQLObjectTypeMetadata graphQLObjectTypeMetadata;
 
         private Builder() {}
 
@@ -2219,8 +2226,17 @@ public final class GraphQLJpaQueryFactory {
         }
 
         @Override
-        public IEntityObjectTypeStage withEntityType(EntityType<?> entityType) {
+        public IGraphQLObjectTypeMetadataStage withEntityType(EntityType<?> entityType) {
             this.entityType = entityType;
+            return this;
+        }
+
+        @Override
+        public IEntityObjectTypeStage withGraphQLObjectTypeMetadata(
+            GraphQLObjectTypeMetadata graphQLObjectTypeMetadata
+        ) {
+            this.graphQLObjectTypeMetadata = graphQLObjectTypeMetadata;
+
             return this;
         }
 

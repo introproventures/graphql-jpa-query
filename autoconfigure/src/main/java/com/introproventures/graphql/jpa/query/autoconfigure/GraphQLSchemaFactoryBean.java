@@ -121,6 +121,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
             .map(GraphQLSchema::getQueryType)
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
+            .filter(fd -> !"null".equals(fd.getName()))
             .collect(Collectors.toList());
 
         List<GraphQLFieldDefinition> subscriptions = Stream
@@ -270,7 +271,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
             GraphQLFieldDefinition node,
             TraverserContext<GraphQLSchemaElement> context
         ) {
-            GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer) context.getParentContext().thisNode();
+            GraphQLObjectType parentContainerType = (GraphQLObjectType) context.getParentContext().thisNode();
             FieldCoordinates coordinates = parentContainerType.equals(containerType)
                 ? coordinates(typeName, node.getName())
                 : coordinates(parentContainerType, node);

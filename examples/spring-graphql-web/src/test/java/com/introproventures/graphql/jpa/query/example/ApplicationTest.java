@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 public class ApplicationTest {
 
     @Test
-    public void contextLoads() {
+    void contextLoads() {
         // success
     }
 }

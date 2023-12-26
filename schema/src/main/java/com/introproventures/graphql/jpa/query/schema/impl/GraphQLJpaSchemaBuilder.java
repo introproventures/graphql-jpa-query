@@ -72,7 +72,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,6 +89,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
 
     private static final String NODE = "node";
     public static final String PAGE_PARAM_NAME = "page";
@@ -106,14 +110,24 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
 
-    private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
-    private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
-    private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
-    private Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
-    private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
-    private Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
-
-    private static final Logger log = LoggerFactory.getLogger(GraphQLJpaSchemaBuilder.class);
+    private final Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
+    private final Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
+    private final Map<String, EntityType<?>> entityTypeMap = new ConcurrentHashMap<>();
+    private final Map<String, EmbeddableType<?>> embeddableTypeMap = new ConcurrentHashMap<>();
+    private final Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
+    private final Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
+    private final Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
+    private final Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
+    private Function<String, String> queryByIdFieldNameCustomizer = Function.identity();
+    private Function<String, String> queryAllFieldNameCustomizer = Function.identity();
+    private Function<String, String> queryResultTypeNameCustomizer = Function.identity();
+    private Function<String, String> queryTypeNameCustomizer = it -> it.concat("Query");
+    private Function<String, String> queryWhereArgumentTypeNameCustomizer = name -> name.concat("CriteriaExpression");
+    private Function<String, String> queryEmbeddableTypeNameCustomizer = it -> it.concat("EmbeddableType");
+    private Function<String, String> subqueryArgumentTypeNameCustomizer = it -> it.concat("SubqueryCriteriaExpression");
+    private Function<String, String> queryWhereInputTypeNameCustomizer = it -> it.concat("RelationCriteriaExpression");
+    private final Function<String, String> singularize = word -> namingStrategy.singularize(word);
+    private final Function<String, String> pluralize = word -> namingStrategy.pluralize(word);
 
     private final EntityManager entityManager;
 
@@ -134,15 +148,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean graphQLIDType = false;
 
     private RestrictedKeysProvider restrictedKeysProvider = entityDescriptor -> Optional.of(Collections.emptyList());
-    private Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
+    private final Map<Class<?>, GraphQLScalarType> scalars = new LinkedHashMap<>();
 
     private final Relay relay = new Relay();
 
     private final List<String> entityPaths = new ArrayList<>();
 
-    private Supplier<BatchLoaderRegistry> batchLoadersRegistry = () -> {
-        return BatchLoaderRegistry.getInstance();
-    };
+    private final Supplier<BatchLoaderRegistry> batchLoadersRegistry = BatchLoaderRegistry::getInstance;
+    private final Function<String, EntityType<?>> entityObjectTypeResolver = entityTypeMap::get;
+    private final Function<String, EmbeddableType<?>> embeddableObjectTypeResolver = embeddableTypeMap::get;
+    private final GraphQLObjectTypeMetadata graphQLObjectTypeMetadata = new GraphQLObjectTypeMetadataImpl();
 
     public GraphQLJpaSchemaBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -157,7 +172,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
      */
     @Override
     public GraphQLSchema build() {
-        scalars.forEach((javaType, scalarType) -> JavaScalars.register(javaType, scalarType));
+        scalars.forEach(JavaScalars::register);
 
         GraphQLSchema.Builder schema = GraphQLSchema.newSchema().query(getQueryType());
 
@@ -168,6 +183,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         if (enableRelay) {
             schema.additionalType(Relay.pageInfoType);
         }
+
+        entityCache.forEach((entity, type) -> entityTypeMap.put(type.getName(), entity));
+
+        entityManager
+            .getMetamodel()
+            .getEmbeddables()
+            .stream()
+            .filter(it -> embeddableOutputCache.containsKey(it.getJavaType()))
+            .forEach(it -> embeddableTypeMap.put(embeddableOutputCache.get(it.getJavaType()).getName(), it));
 
         return schema.build();
     }
@@ -181,7 +205,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private GraphQLObjectType getQueryType() {
         GraphQLObjectType.Builder queryType = GraphQLObjectType
             .newObject()
-            .name(this.name + "Query")
+            .name(queryTypeNameCustomizer.apply(this.name))
             .description(this.description);
 
         queryType.fields(
@@ -191,7 +215,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .stream()
                 .filter(this::isNotIgnored)
                 .map(this::getQueryFieldByIdDefinition)
-                .collect(Collectors.toList())
+                .toList()
         );
 
         queryType.fields(
@@ -201,7 +225,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .stream()
                 .filter(this::isNotIgnored)
                 .map(this::getQueryFieldSelectDefinition)
-                .collect(Collectors.toList())
+                .toList()
         );
 
         return queryType.build();
@@ -227,12 +251,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLFieldDefinition getQueryFieldByIdDefinition(EntityType<?> entityType) {
-        GraphQLObjectType entityObjectType = getObjectType(entityType);
+        GraphQLObjectType entityObjectType = getEntityObjectType(entityType);
 
         GraphQLJpaQueryFactory queryFactory = GraphQLJpaQueryFactory
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
+            .withGraphQLObjectTypeMetadata(graphQLObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(entityObjectType.getName())
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -241,7 +266,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaSimpleDataFetcher.builder().withQueryFactory(queryFactory).build();
-        String fieldName = entityType.getName();
+
+        String fieldName = singularize.andThen(queryByIdFieldNameCustomizer).apply(entityType.getName());
 
         return GraphQLFieldDefinition
             .newFieldDefinition()
@@ -269,7 +295,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLFieldDefinition getQueryFieldSelectDefinition(EntityType<?> entityType) {
-        final GraphQLObjectType entityObjectType = getObjectType(entityType);
+        final GraphQLObjectType entityObjectType = getEntityObjectType(entityType);
         final GraphQLObjectType outputType = enableRelay
             ? getConnectionType(entityObjectType)
             : getSelectType(entityType);
@@ -280,6 +306,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
+            .withGraphQLObjectTypeMetadata(graphQLObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(enableRelay ? NODE : QUERY_SELECT_PARAM_NAME)
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -309,7 +336,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .build();
         }
 
-        String fieldName = namingStrategy.pluralize(entityType.getName());
+        String fieldName = pluralize.andThen(queryAllFieldNameCustomizer).apply(entityType.getName());
 
         GraphQLFieldDefinition.Builder fieldDefinition = GraphQLFieldDefinition
             .newFieldDefinition()
@@ -342,12 +369,17 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return fieldDefinition.build();
     }
 
+    private String resolveSelectTypeName(EntityType<?> entityType) {
+        return pluralize.andThen(queryResultTypeNameCustomizer).apply(entityType.getName());
+    }
+
     private GraphQLObjectType getSelectType(EntityType<?> entityType) {
-        GraphQLObjectType selectObjectType = getObjectType(entityType);
+        final GraphQLObjectType selectObjectType = getEntityObjectType(entityType);
+        final var selectTypeName = resolveSelectTypeName(entityType);
 
         GraphQLObjectType selectPagedResultType = GraphQLObjectType
             .newObject()
-            .name(namingStrategy.pluralize(entityType.getName()))
+            .name(selectTypeName)
             .description(
                 "Query response wrapper object for " +
                 entityType.getName() +
@@ -383,12 +415,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLFieldDefinition getQueryFieldStreamDefinition(EntityType<?> entityType) {
-        GraphQLObjectType entityObjectType = getObjectType(entityType);
+        GraphQLObjectType entityObjectType = getEntityObjectType(entityType);
 
         GraphQLJpaQueryFactory queryFactory = GraphQLJpaQueryFactory
             .builder()
             .withEntityManager(entityManager)
             .withEntityType(entityType)
+            .withGraphQLObjectTypeMetadata(graphQLObjectTypeMetadata)
             .withEntityObjectType(entityObjectType)
             .withSelectNodeName(SELECT_DISTINCT_PARAM_NAME)
             .withToManyDefaultOptional(toManyDefaultOptional)
@@ -398,10 +431,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .build();
 
         DataFetcher<Object> dataFetcher = GraphQLJpaStreamDataFetcher.builder().withQueryFactory(queryFactory).build();
+        var fieldName = pluralize.andThen(queryResultTypeNameCustomizer).apply(entityType.getName());
 
         GraphQLFieldDefinition.Builder fieldDefinition = GraphQLFieldDefinition
             .newFieldDefinition()
-            .name(namingStrategy.pluralize(entityType.getName()))
+            .name(fieldName)
             .description(
                 "Query request wrapper for " +
                 entityType.getName() +
@@ -520,15 +554,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private String resolveWhereArgumentTypeName(ManagedType<?> managedType) {
-        String typeName = resolveTypeName(managedType);
+        String typeName = resolveManagedTypeName(managedType);
 
-        return namingStrategy.pluralize(typeName) + "CriteriaExpression";
+        return pluralize.andThen(queryWhereArgumentTypeNameCustomizer).apply(typeName);
     }
 
     private String resolveSubqueryArgumentTypeName(ManagedType<?> managedType) {
-        String typeName = resolveTypeName(managedType);
+        String typeName = resolveManagedTypeName(managedType);
 
-        return namingStrategy.pluralize(typeName) + "SubqueryCriteriaExpression";
+        return pluralize.andThen(subqueryArgumentTypeNameCustomizer).apply(typeName);
     }
 
     private GraphQLInputObjectType getSubqueryInputType(ManagedType<?> managedType) {
@@ -588,13 +622,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return whereInputObject.build();
     }
 
-    private String resolveTypeName(ManagedType<?> managedType) {
+    private String resolveManagedTypeName(ManagedType<?> managedType) {
         String typeName = "";
 
         if (managedType instanceof EmbeddableType) {
             typeName = managedType.getJavaType().getSimpleName();
-        } else if (managedType instanceof EntityType) {
-            typeName = ((EntityType<?>) managedType).getName();
+        } else if (managedType instanceof EntityType<?> entityType) {
+            typeName = entityType.getName();
         }
 
         return typeName;
@@ -611,9 +645,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private String resolveWhereInputTypeName(ManagedType<?> managedType) {
-        String typeName = resolveTypeName(managedType);
+        String typeName = resolveManagedTypeName(managedType);
 
-        return namingStrategy.pluralize(typeName) + "RelationCriteriaExpression";
+        return pluralize.andThen(queryWhereInputTypeNameCustomizer).apply(typeName);
     }
 
     private GraphQLInputObjectType computeWhereInputType(ManagedType<?> managedType) {
@@ -999,8 +1033,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             if (embeddableOutputCache.containsKey(embeddableType.getJavaType())) {
                 return embeddableOutputCache.get(embeddableType.getJavaType());
             }
-            String embeddableTypeName =
-                namingStrategy.singularize(embeddableType.getJavaType().getSimpleName()) + "EmbeddableType";
+            String embeddableTypeName = singularize
+                .andThen(queryEmbeddableTypeNameCustomizer)
+                .apply(embeddableType.getJavaType().getSimpleName());
+
             graphQLType =
                 GraphQLObjectType
                     .newObject()
@@ -1020,14 +1056,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return graphQLType;
     }
 
-    private GraphQLObjectType getObjectType(EntityType<?> entityType) {
-        return entityCache.computeIfAbsent(entityType, this::computeObjectType);
+    private GraphQLObjectType getEntityObjectType(EntityType<?> entityType) {
+        return entityCache.computeIfAbsent(entityType, this::computeEntityObjectType);
     }
 
-    private GraphQLObjectType computeObjectType(EntityType<?> entityType) {
+    private String resolveEntityObjectTypeName(EntityType<?> entityType) {
+        var entityTypeName = resolveManagedTypeName(entityType);
+
+        return singularize.andThen(queryResultTypeNameCustomizer).apply(entityTypeName);
+    }
+
+    private GraphQLObjectType computeEntityObjectType(EntityType<?> entityType) {
+        var typeName = resolveEntityObjectTypeName(entityType);
         return GraphQLObjectType
             .newObject()
-            .name(entityType.getName())
+            .name(typeName)
             .description(getSchemaDescription(entityType))
             .fields(getEntityAttributesFields(entityType))
             .fields(getTransientFields(entityType))
@@ -1111,20 +1154,24 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // to-one end could be optional
             arguments.add(optionalArgument(singularAttribute.isOptional()));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType.newObject().name(baseEntity.getName()).build();
+            GraphQLObjectType entityObjectType = GraphQLObjectType
+                .newObject()
+                .name(resolveEntityObjectTypeName(baseEntity))
+                .build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
                 .withEntityManager(entityManager)
                 .withEntityType(baseEntity)
+                .withGraphQLObjectTypeMetadata(graphQLObjectTypeMetadata)
                 .withEntityObjectType(entityObjectType)
-                .withSelectNodeName(entityObjectType.getName())
+                .withSelectNodeName(baseEntity.getName())
                 .withDefaultDistinct(isDefaultDistinct)
                 .withRestrictedKeysProvider(restrictedKeysProvider)
                 .withResultStream(enableResultStream)
                 .build();
 
-            String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
+            String dataLoaderKey = entityObjectType.getName() + "." + attribute.getName();
 
             MappedBatchLoaderWithContext<Object, Object> mappedBatchLoader = new GraphQLJpaToOneMappedBatchLoader(
                 graphQLJpaQueryFactory
@@ -1152,20 +1199,24 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType.newObject().name(baseEntity.getName()).build();
+            GraphQLObjectType entityObjectType = GraphQLObjectType
+                .newObject()
+                .name(resolveEntityObjectTypeName(baseEntity))
+                .build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
                 .withEntityManager(entityManager)
                 .withEntityType(baseEntity)
+                .withGraphQLObjectTypeMetadata(graphQLObjectTypeMetadata)
                 .withEntityObjectType(entityObjectType)
-                .withSelectNodeName(entityObjectType.getName())
+                .withSelectNodeName(baseEntity.getName())
                 .withDefaultDistinct(isDefaultDistinct)
                 .withRestrictedKeysProvider(restrictedKeysProvider)
                 .withResultStream(enableResultStream)
                 .build();
 
-            String dataLoaderKey = baseEntity.getName() + "." + attribute.getName();
+            String dataLoaderKey = entityObjectType.getName() + "." + attribute.getName();
 
             MappedBatchLoaderWithContext<Object, List<Object>> mappedBatchLoader = new GraphQLJpaToManyMappedBatchLoader(
                 graphQLJpaQueryFactory
@@ -1258,11 +1309,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             return input
                 ? getWhereInputType(foreignType)
-                : new GraphQLList(new GraphQLTypeReference(foreignType.getName()));
+                : new GraphQLList(new GraphQLTypeReference(resolveEntityObjectTypeName(foreignType)));
         } else if (isToOne(attribute)) {
             EntityType foreignType = (EntityType) ((SingularAttribute) attribute).getType();
 
-            return input ? getWhereInputType(foreignType) : new GraphQLTypeReference(foreignType.getName());
+            return input
+                ? getWhereInputType(foreignType)
+                : new GraphQLTypeReference(resolveEntityObjectTypeName(foreignType));
         } else if (isElementCollection(attribute)) {
             Type foreignType = ((PluralAttribute) attribute).getElementType();
 
@@ -1536,6 +1589,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     /**
      * @param namingStrategy the namingStrategy to set
      */
+    @Deprecated
     public void setNamingStrategy(NamingStrategy namingStrategy) {
         this.namingStrategy = namingStrategy;
     }
@@ -1563,6 +1617,64 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         Assert.assertNotNull(path, () -> "path is null");
 
         entityPaths.add(path);
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryByIdFieldNameCustomizer(Function<String, String> queryByIdFieldNameCustomizer) {
+        this.queryByIdFieldNameCustomizer = queryByIdFieldNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryAllFieldNameCustomizer(Function<String, String> queryAllFieldNameCustomizer) {
+        this.queryAllFieldNameCustomizer = queryAllFieldNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryTypeNameCustomizer(Function<String, String> queryTypeNameCustomizer) {
+        this.queryTypeNameCustomizer = queryTypeNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryResultTypeNameCustomizer(
+        Function<String, String> queryResultTypeNameCustomizer
+    ) {
+        this.queryResultTypeNameCustomizer = queryResultTypeNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryWhereArgumentTypeNameCustomizer(
+        Function<String, String> queryWhereArgumentTypeNameCustomizer
+    ) {
+        this.queryWhereArgumentTypeNameCustomizer = queryWhereArgumentTypeNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryEmbeddableTypeNameCustomizer(
+        Function<String, String> queryEmbeddableTypeNameCustomizer
+    ) {
+        this.queryEmbeddableTypeNameCustomizer = queryEmbeddableTypeNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder subqueryArgumentTypeNameCustomizer(
+        Function<String, String> subqueryArgumentTypeNameCustomizer
+    ) {
+        this.subqueryArgumentTypeNameCustomizer = subqueryArgumentTypeNameCustomizer;
+
+        return this;
+    }
+
+    public GraphQLJpaSchemaBuilder queryWhereInputTypeNameCustomizer(
+        Function<String, String> queryWhereInputTypeNameCustomizer
+    ) {
+        this.queryWhereInputTypeNameCustomizer = queryWhereInputTypeNameCustomizer;
 
         return this;
     }
@@ -1680,5 +1792,18 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public boolean isGraphQLIDType() {
         return this.graphQLIDType;
+    }
+
+    final class GraphQLObjectTypeMetadataImpl implements GraphQLObjectTypeMetadata {
+
+        @Override
+        public EntityType<?> entity(String objectType) {
+            return entityObjectTypeResolver.apply(objectType);
+        }
+
+        @Override
+        public EmbeddableType<?> embeddable(String objectType) {
+            return embeddableObjectTypeResolver.apply(objectType);
+        }
     }
 }

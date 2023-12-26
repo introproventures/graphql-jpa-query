@@ -25,8 +25,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
@@ -44,6 +46,8 @@ import lombok.ToString;
 public class Book {
 
     @Id
+    @GeneratedValue(generator = "books_seq")
+    @SequenceGenerator(name = "books_seq", initialValue = 100)
     Long id;
 
     String title;
@@ -86,6 +90,6 @@ public class Book {
     @Transient
     @GraphQLIgnore
     public String getAuthorName() {
-        return author.getName();
+        return getAuthor().getName();
     }
 }
