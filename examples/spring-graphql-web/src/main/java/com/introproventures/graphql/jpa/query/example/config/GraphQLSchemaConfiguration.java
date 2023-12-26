@@ -18,7 +18,8 @@ public class GraphQLSchemaConfiguration {
             builder
                 .graphQLIDType(true)
                 .queryByIdFieldNameCustomizer("find%sById"::formatted)
-                .queryAllFieldNameCustomizer("findAll%s"::formatted);
+                .queryAllFieldNameCustomizer("findAll%s"::formatted)
+                .queryResultTypeNameCustomizer("%sQueryResult"::formatted);
     }
 
     @Bean
