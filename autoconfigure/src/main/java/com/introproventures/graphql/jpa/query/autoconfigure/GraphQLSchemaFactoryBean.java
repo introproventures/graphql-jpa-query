@@ -121,6 +121,7 @@ public class GraphQLSchemaFactoryBean extends AbstractFactoryBean<GraphQLSchema>
             .map(GraphQLSchema::getQueryType)
             .map(GraphQLObjectType::getFieldDefinitions)
             .flatMap(Collection::stream)
+            .filter(fd -> !"null".equals(fd.getName()))
             .collect(Collectors.toList());
 
         List<GraphQLFieldDefinition> subscriptions = Stream

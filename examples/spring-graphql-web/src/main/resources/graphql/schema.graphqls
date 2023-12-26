@@ -1,8 +1,14 @@
 scalar Long
 scalar Date
 
+schema {
+   query: Query
+   mutation: Mutation
+   subscription: Subscription
+}
+
 type Query {
-   hello(name: String!): String
+   null: String
 }
 
 type Mutation {
