@@ -12,7 +12,7 @@
 
   <properties>
     <activiti-cloud.version>8.1.0</activiti-cloud.version>
-    <gatling.version>3.9.5</gatling.version>
+    <gatling.version>3.10.3</gatling.version>
     <gatling-maven-plugin.version>4.6.0</gatling-maven-plugin.version>
   </properties>
 
