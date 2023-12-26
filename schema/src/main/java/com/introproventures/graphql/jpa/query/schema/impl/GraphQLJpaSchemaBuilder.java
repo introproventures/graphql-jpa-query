@@ -110,14 +110,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     public static final String ORDER_BY_PARAM_NAME = "orderBy";
 
-    private Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
-    private Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
-    private Map<String, EntityType<?>> entityTypeMap = new ConcurrentHashMap<>();
-    private Map<String, EmbeddableType<?>> embeddableTypeMap = new ConcurrentHashMap<>();
-    private Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
-    private Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
-    private Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
-    private Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
+    private final Map<Class<?>, GraphQLOutputType> classCache = new HashMap<>();
+    private final Map<EntityType<?>, GraphQLObjectType> entityCache = new HashMap<>();
+    private final Map<String, EntityType<?>> entityTypeMap = new ConcurrentHashMap<>();
+    private final Map<String, EmbeddableType<?>> embeddableTypeMap = new ConcurrentHashMap<>();
+    private final Map<ManagedType<?>, GraphQLInputObjectType> inputObjectCache = new HashMap<>();
+    private final Map<ManagedType<?>, GraphQLInputObjectType> subqueryInputObjectCache = new HashMap<>();
+    private final Map<Class<?>, GraphQLObjectType> embeddableOutputCache = new HashMap<>();
+    private final Map<Class<?>, GraphQLInputObjectType> embeddableInputCache = new HashMap<>();
     private Function<String, String> queryByIdFieldNameCustomizer = Function.identity();
     private Function<String, String> queryAllFieldNameCustomizer = Function.identity();
     private Function<String, String> queryResultTypeNameCustomizer = Function.identity();

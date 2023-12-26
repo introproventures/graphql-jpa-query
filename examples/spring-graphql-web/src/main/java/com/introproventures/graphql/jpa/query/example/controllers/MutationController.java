@@ -8,7 +8,6 @@ import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
@@ -19,23 +18,47 @@ import reactor.core.publisher.Sinks;
 @Controller
 public class MutationController {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
-    @Autowired
-    private Sinks.Many<CreateBookResult> createBookResultSink;
+    private final Sinks.Many<CreateBookResult> createBookResultSink;
+
+    public MutationController(
+        EntityManager entityManager,
+        BookRepository bookRepository,
+        Sinks.Many<CreateBookResult> createBookResultSink
+    ) {
+        this.entityManager = entityManager;
+        this.bookRepository = bookRepository;
+        this.createBookResultSink = createBookResultSink;
+    }
 
     @MutationMapping
     public Mono<CreateBookResult> createBook(@Argument CreateBookInput bookInput) {
-        return Mono.just(bookInput).map(this.createBook());
+        return Mono.just(bookInput).map(this::doCreateBook);
     }
 
     @MutationMapping
     public Flux<CreateBookResult> createBooks(@Argument List<CreateBookInput> bookInputs) {
-        return Flux.fromStream(bookInputs.stream()).map(this.createBook());
+        return Flux.fromStream(bookInputs.stream()).map(this::doCreateBook);
+    }
+
+    CreateBookResult doCreateBook(CreateBookInput input) {
+        return createBookEntity()
+            .andThen(bookRepository::save)
+            .andThen(createBookResult())
+            .andThen(notifyCreateBookResult())
+            .apply(input);
+    }
+
+    Function<CreateBookInput, Book> createBookEntity() {
+        return bookInput -> {
+            Book book = new Book();
+            book.setTitle(bookInput.title());
+            book.setAuthor(entityManager.getReference(Author.class, bookInput.authorId()));
+            return book;
+        };
     }
 
     Function<CreateBookResult, CreateBookResult> notifyCreateBookResult() {
@@ -45,23 +68,7 @@ public class MutationController {
         };
     }
 
-    Function<CreateBookInput, CreateBookResult> createBook() {
-        return createBookInputBookFunction()
-            .andThen(bookRepository::save)
-            .andThen(createBookResultFunction())
-            .andThen(notifyCreateBookResult());
-    }
-
-    Function<CreateBookInput, Book> createBookInputBookFunction() {
-        return bookInput -> {
-            Book book = new Book();
-            book.setTitle(bookInput.title());
-            book.setAuthor(entityManager.getReference(Author.class, bookInput.authorId()));
-            return book;
-        };
-    }
-
-    Function<Book, CreateBookResult> createBookResultFunction() {
+    Function<Book, CreateBookResult> createBookResult() {
         return book -> CreateBookResult.builder().id(book.getId()).build();
     }
 }
