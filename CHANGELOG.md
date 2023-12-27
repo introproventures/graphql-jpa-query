@@ -1,6 +1,21 @@
 # Change Log
 
-## 1.2.2-SNAPSHOT
+## 1.2.2
+* chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#415) [0865893](https://github.com/introproventures/graphql-jpa-query/commit/0865893f846025f8ba65bddd70aa9559c4e79ae4)
+* chore(deps): bump org.apache.maven.plugins:maven-javadoc-plugin (#418) [77b3bff](https://github.com/introproventures/graphql-jpa-query/commit/77b3bff63166a542bd0e5ffedf3aa47831ba106a)
+* chore(deps): bump org.apache.maven.plugins:maven-source-plugin (#417) [19d798e](https://github.com/introproventures/graphql-jpa-query/commit/19d798e157d5340215b7ccd3aaf539363d77608f)
+* chore(deps): bump org.apache.maven.plugins:maven-compiler-plugin (#429) [071d253](https://github.com/introproventures/graphql-jpa-query/commit/071d253a9ca5e7babb4ce8db6b548d0bd5303f76)
+* chore(deps): bump org.apache.maven.plugins:maven-surefire-plugin (#420) [f862661](https://github.com/introproventures/graphql-jpa-query/commit/f86266105904a19a81f6cc11374a462c10288d61)
+* update spring-boot.version to 3.2.1 (#430) [c51a5f4](https://github.com/introproventures/graphql-jpa-query/commit/c51a5f41157055cfcdeb4c61d2a4df8a21e1748f)
+* chore(deps): bump hibernate.version from 6.3.1.Final to 6.4.1.Final (#421) [f600f4e](https://github.com/introproventures/graphql-jpa-query/commit/f600f4e41259f36fd7625b9eb0574758892c9064)
+* chore(deps): bump io.gatling:gatling-maven-plugin from 4.6.0 to 4.7.0 (#422) [caeb732](https://github.com/introproventures/graphql-jpa-query/commit/caeb7329e5f69d40a0460f1827c604dba6624d73)
+* chore(deps-dev): bump io.gatling.highcharts:gatling-charts-highcharts (#426) [44313d4](https://github.com/introproventures/graphql-jpa-query/commit/44313d4d227ff98154aa94f5d46cd92b9cf2aeb5)
+* Add support for GraphQL schema query field names and result types customizations (#419) [6787f20](https://github.com/introproventures/graphql-jpa-query/commit/6787f2014217d9445572dc9832812fc9f7aa0e60)
+* Fix variable value conversion for array of values (#428) [a19f2cb](https://github.com/introproventures/graphql-jpa-query/commit/a19f2cb75aeaf9413bc1288efd101edaa93b7ddf)
+* chore(deps): bump actions/setup-java from 3 to 4 (#414) [48d1ebd](https://github.com/introproventures/graphql-jpa-query/commit/48d1ebdd86ec848b85e5133c29acce99c67a561a)
+* chore(deps-dev): bump io.github.graphql-java:graphql-java-annotations (#408) [ee60f15](https://github.com/introproventures/graphql-jpa-query/commit/ee60f15c9abb7cc9110c04561abdbd1ab1984779)
+* update plugin versions [bc6b9de](https://github.com/introproventures/graphql-jpa-query/commit/bc6b9de9341016020ab1d251cef9dceb08a39fdf)
+* Revert &quot;chore(deps): bump maven-deploy-plugin from 2.8.2 to 3.1.1 (#361)&quot; [b038580](https://github.com/introproventures/graphql-jpa-query/commit/b0385807dab1fac956ee12954636e539495faff1)
 * Revert &quot;revert nexus-staging-maven-plugin version to 1.6.7&quot; [443b500](https://github.com/introproventures/graphql-jpa-query/commit/443b5009a089fdb66a116f1cb6053554cf7b12aa)
 * Fix auto configuration to use operation&#39;s default execution strategy delegate (#411) [1d59de7](https://github.com/introproventures/graphql-jpa-query/commit/1d59de707692413d9162b6b142e6adfef1a64393)
 * revert nexus-staging-maven-plugin version to 1.6.7 [f2fc163](https://github.com/introproventures/graphql-jpa-query/commit/f2fc16315b6bc665935757b313f3a13373e35046)
