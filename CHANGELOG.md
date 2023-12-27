@@ -1,6 +1,7 @@
 # Change Log
 
-## 1.1.6-SNAPSHOT
+## 1.1.6
+* Backport fix variable value conversion for array of values (#428) (#431) [3fb339c](https://github.com/introproventures/graphql-jpa-query/commit/3fb339cbd042627ade4d0cb1e8526b11e2e996b5)
 * update plugin versions [144ebc4](https://github.com/introproventures/graphql-jpa-query/commit/144ebc492c734554ce25bf8f9be2a02c3283f306)
 * Backport fix for auto configuration to use operation&#39;s default execution strategy delegate (#412) [cc68c04](https://github.com/introproventures/graphql-jpa-query/commit/cc68c04c66f0acfb4c07e1d545c4d8d9d3bb44e9)
 * update maven-javadoc-plugin config to use java.version (#398) [2888d39](https://github.com/introproventures/graphql-jpa-query/commit/2888d394f1c1da5327368eb628a2bb3a7d1e0a77)
