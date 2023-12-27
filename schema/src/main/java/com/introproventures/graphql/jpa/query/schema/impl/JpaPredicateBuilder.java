@@ -794,7 +794,7 @@ class JpaPredicateBuilder {
         Class<?> type = filter.getJavaType();
         Object value = filter.getValue();
         Set<Criteria> criterias = filter.getCriterias();
-        Attribute attribute = filter.getAttribute();
+        Attribute<?, ?> attribute = filter.getAttribute();
 
         if (value == null) {
             return cb.disjunction();

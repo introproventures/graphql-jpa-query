@@ -53,6 +53,7 @@ import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.language.VariableReference;
+import graphql.schema.Coercing;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
@@ -1507,22 +1508,30 @@ public final class GraphQLJpaQueryFactory {
                 // Return provided StringValue
                 return ((StringValue) value).getValue();
             }
-        } else if (value instanceof VariableReference) {
+        } else if (value instanceof VariableReference variableReference) {
             Class javaType = getJavaType(environment, argument);
-            Object argumentValue = environment.getVariables().get(VariableReference.class.cast(value).getName());
+            Object argumentValue = environment.getVariables().get(variableReference.getName());
+
             if (javaType.isEnum()) {
-                if (argumentValue instanceof Collection) {
+                if (argumentValue instanceof Collection argumentValues) {
                     List<Enum> values = new ArrayList<>();
 
-                    Collection.class.cast(argumentValue)
-                        .forEach(it -> values.add(Enum.valueOf(javaType, it.toString())));
+                    argumentValues.forEach(it -> values.add(Enum.valueOf(javaType, it.toString())));
+
                     return values;
                 } else {
                     return Enum.valueOf(javaType, argumentValue.toString());
                 }
             } else {
-                // Get resolved variable in environment arguments
-                return argumentValue;
+                Coercing<?, ?> coercing = JavaScalars.of(javaType).getCoercing();
+                Function<Object, Object> valueConverter = it -> javaType.isInstance(it) ? it : coercing.parseValue(it);
+
+                if (argumentValue instanceof Collection<?> argumentValues) {
+                    return argumentValues.stream().map(valueConverter).toList();
+                } else {
+                    // Get resolved variable in environment arguments
+                    return valueConverter.apply(argumentValue);
+                }
             }
         } else if (value instanceof ArrayValue) {
             Collection arrayValue = environment.getArgument(argument.getName());
