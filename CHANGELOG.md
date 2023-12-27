@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.2
+## 1.2.3-SNAPSHOT
 * chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#415) [0865893](https://github.com/introproventures/graphql-jpa-query/commit/0865893f846025f8ba65bddd70aa9559c4e79ae4)
 * chore(deps): bump org.apache.maven.plugins:maven-javadoc-plugin (#418) [77b3bff](https://github.com/introproventures/graphql-jpa-query/commit/77b3bff63166a542bd0e5ffedf3aa47831ba106a)
 * chore(deps): bump org.apache.maven.plugins:maven-source-plugin (#417) [19d798e](https://github.com/introproventures/graphql-jpa-query/commit/19d798e157d5340215b7ccd3aaf539363d77608f)
