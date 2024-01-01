@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -55,7 +54,7 @@ class ResultStreamWrapper<T> {
             if ("size".equals(method.getName())) {
                 return size;
             } else if ("iterator".equals(method.getName())) {
-                return new ResultIteratorWrapper(stream.iterator(), size);
+                return stream.limit(size).iterator();
             } else if ("equals".equals(method.getName())) {
                 // Only consider equal when proxies are identical.
                 return (proxy == args[0]);
@@ -66,34 +65,6 @@ class ResultStreamWrapper<T> {
                 return stream.spliterator();
             }
             throw new UnsupportedOperationException(method + " is not supported");
-        }
-
-        class ResultIteratorWrapper implements Iterator<T> {
-
-            final Iterator<T> delegate;
-            final int size;
-            int current = 0;
-
-            ResultIteratorWrapper(Iterator<T> delegate, int size) {
-                this.delegate = delegate;
-                this.size = size;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return (current < size) && delegate.hasNext();
-            }
-
-            @Override
-            public T next() {
-                T result = delegate.next();
-
-                try {
-                    return result;
-                } finally {
-                    current++;
-                }
-            }
         }
     }
 }
