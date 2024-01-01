@@ -121,9 +121,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.spockframework</groupId>
-      <artifactId>spock-core</artifactId>
-      <version>2.3-groovy-3.0</version>
+      <groupId>org.springframework.graphql</groupId>
+      <artifactId>spring-graphql-test</artifactId>
       <scope>test</scope>
     </dependency>
 
