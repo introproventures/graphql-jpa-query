@@ -322,15 +322,7 @@
         <version>${prettier-maven-plugin.version}</version>
         <configuration>
           <skip>${skipPrettier}</skip>
-          <printWidth>120</printWidth>
-          <tabWidth>4</tabWidth>
-          <useTabs>false</useTabs>
           <prettierJavaVersion>2.0.0</prettierJavaVersion>
-          <ignoreEditorConfig>true</ignoreEditorConfig>
-          <inputGlobs>
-            <inputGlob>src/main/java/**/*.java</inputGlob>
-            <inputGlob>src/test/java/**/*.java</inputGlob>
-          </inputGlobs>
         </configuration>
         <executions>
           <execution>
