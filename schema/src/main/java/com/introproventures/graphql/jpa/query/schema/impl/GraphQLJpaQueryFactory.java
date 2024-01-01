@@ -26,6 +26,7 @@ import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.sele
 import static graphql.introspection.Introspection.SchemaMetaFieldDef;
 import static graphql.introspection.Introspection.TypeMetaFieldDef;
 import static graphql.introspection.Introspection.TypeNameMetaFieldDef;
+import static java.lang.Integer.min;
 import static java.util.stream.Collectors.groupingBy;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLDefaultOrderBy;
@@ -248,8 +249,9 @@ public final class GraphQLJpaQueryFactory {
     public List<Object> queryResultList(DataFetchingEnvironment environment, int maxResults, List<Object> keys) {
         // Let's execute query and get result as stream
         Stream<Object> resultStream = queryResultStream(environment, maxResults, keys);
+        var size = keys.isEmpty() ? maxResults : min(keys.size(), maxResults);
         // Let's wrap stream into lazy list to pass it downstream
-        return ResultStreamWrapper.wrap(resultStream, maxResults);
+        return ResultStreamWrapper.wrap(resultStream, size);
     }
 
     protected Stream<Object> queryResultStream(DataFetchingEnvironment environment, int maxResults, List<Object> keys) {
@@ -257,7 +259,7 @@ public final class GraphQLJpaQueryFactory {
 
         // Override query environment with associated entity object type and
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
-        final int fetchSize = Integer.min(maxResults, defaultFetchSize);
+        final int fetchSize = min(maxResults, defaultFetchSize);
         final boolean isDistinct = resolveDistinctArgument(queryEnvironment.getField());
 
         final TypedQuery<Object> query = getQuery(
@@ -280,7 +282,7 @@ public final class GraphQLJpaQueryFactory {
         boolean isDistinct,
         EntityGraph<?> entityGraph
     ) {
-        // Let' try reduce overhead and disable all caching
+        // Let's try to reduce overhead and disable all caching
         query.setHint(ORG_HIBERNATE_READ_ONLY, true);
         query.setHint(ORG_HIBERNATE_FETCH_SIZE, fetchSize);
         query.setHint(ORG_HIBERNATE_CACHEABLE, false);
