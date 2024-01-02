@@ -8,7 +8,6 @@ import com.introproventures.graphql.jpa.query.schema.model.book.Book;
 import graphql.schema.GraphQLSchema;
 import jakarta.persistence.EntityManager;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -25,7 +24,8 @@ import org.springframework.graphql.test.tester.GraphQlTester;
 @SpringBootTest(properties = "spring.sql.init.data-locations=classpath:books.sql")
 public class ExecutionGraphQlServiceTest extends AbstractSpringBootTestSupport {
 
-    protected static GraphQlTester graphQlTester;
+    @Autowired
+    private GraphQlTester graphQlTester;
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
@@ -33,7 +33,7 @@ public class ExecutionGraphQlServiceTest extends AbstractSpringBootTestSupport {
     static class Application {
 
         @Bean
-        public GraphQLSchema graphQLSchemaBuilder(final EntityManager entityManager) {
+        public GraphQLSchema graphQLSchema(final EntityManager entityManager) {
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("GraphQLBooks")
                 .description("Books JPA test schema")
@@ -41,19 +41,16 @@ public class ExecutionGraphQlServiceTest extends AbstractSpringBootTestSupport {
         }
 
         @Bean
-        GraphQlSource graphQlSource(GraphQLSchema graphQLSchema) {
-            return GraphQlSource.builder(graphQLSchema).build();
+        ExecutionGraphQlService executionGraphQlService(GraphQLSchema graphQLSchema) {
+            GraphQlSource graphQlSource = GraphQlSource.builder(graphQLSchema).build();
+
+            return new DefaultExecutionGraphQlService(graphQlSource);
         }
 
         @Bean
-        ExecutionGraphQlService executionGraphQlService(GraphQlSource graphQlSource) {
-            return new DefaultExecutionGraphQlService(graphQlSource);
+        GraphQlTester graphQlTester(ExecutionGraphQlService executionGraphQlService) {
+            return ExecutionGraphQlServiceTester.create(executionGraphQlService);
         }
-    }
-
-    @BeforeAll
-    static void configureGraphQlServiceTester(@Autowired ExecutionGraphQlService executionGraphQlService) {
-        graphQlTester = ExecutionGraphQlServiceTester.create(executionGraphQlService);
     }
 
     @Test
