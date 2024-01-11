@@ -1,6 +1,11 @@
 # Change Log
 
-## 1.2.3-SNAPSHOT
+## 1.2.3
+* chore(deps): bump joda-time:joda-time from 2.12.5 to 2.12.6 (#435) [fcd667f](https://github.com/introproventures/graphql-jpa-query/commit/fcd667f43d17aebca6b3206f2335d516ae7e8530)
+* Add spring-graphql-test unit tests (#434) [b89a062](https://github.com/introproventures/graphql-jpa-query/commit/b89a062571a8c0bc37ccc321440e36464320d0b3)
+* chore(deps): bump org.apache.maven.plugins:maven-surefire-plugin (#436) [8aeaeb6](https://github.com/introproventures/graphql-jpa-query/commit/8aeaeb682d0a76f9d1aeb4f11700c401689c9701)
+* Add .prettierrc.yaml editor configuration (#433) [b2abae2](https://github.com/introproventures/graphql-jpa-query/commit/b2abae236d36083e70563d9054650df7f4aa84bc)
+* Simplify ResultStreamWrapper to use native Java stream iterator (#432) [d6099a6](https://github.com/introproventures/graphql-jpa-query/commit/d6099a690b0b5c40d70a8741878631736bffd1f5)
 * chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#415) [0865893](https://github.com/introproventures/graphql-jpa-query/commit/0865893f846025f8ba65bddd70aa9559c4e79ae4)
 * chore(deps): bump org.apache.maven.plugins:maven-javadoc-plugin (#418) [77b3bff](https://github.com/introproventures/graphql-jpa-query/commit/77b3bff63166a542bd0e5ffedf3aa47831ba106a)
 * chore(deps): bump org.apache.maven.plugins:maven-source-plugin (#417) [19d798e](https://github.com/introproventures/graphql-jpa-query/commit/19d798e157d5340215b7ccd3aaf539363d77608f)
