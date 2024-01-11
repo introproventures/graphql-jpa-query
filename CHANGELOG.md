@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.3
+## 1.2.4-SNAPSHOT
 * chore(deps): bump joda-time:joda-time from 2.12.5 to 2.12.6 (#435) [fcd667f](https://github.com/introproventures/graphql-jpa-query/commit/fcd667f43d17aebca6b3206f2335d516ae7e8530)
 * Add spring-graphql-test unit tests (#434) [b89a062](https://github.com/introproventures/graphql-jpa-query/commit/b89a062571a8c0bc37ccc321440e36464320d0b3)
 * chore(deps): bump org.apache.maven.plugins:maven-surefire-plugin (#436) [8aeaeb6](https://github.com/introproventures/graphql-jpa-query/commit/8aeaeb682d0a76f9d1aeb4f11700c401689c9701)
