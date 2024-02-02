@@ -28,6 +28,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipPrettier>false</skipPrettier>
     <skipStaging>false</skipStaging>
+    <generateBackupPoms>false</generateBackupPoms> 
   </properties>
 
   <distributionManagement>
