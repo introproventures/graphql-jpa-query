@@ -15,7 +15,7 @@
   </description>
 
   <properties>
-    <java.version>21</java.version>
+    <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
@@ -28,7 +28,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipPrettier>false</skipPrettier>
     <skipStaging>false</skipStaging>
-    <generateBackupPoms>false</generateBackupPoms>
+    <generateBackupPoms>false</generateBackupPoms> 
   </properties>
 
   <distributionManagement>

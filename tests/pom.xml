@@ -22,7 +22,17 @@
     <module>starwars</module>
     <module>boot-starter</module>
     <module>web</module>
-    <module>gatling</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>java21</id>
+      <activation>
+        <jdk>21</jdk>
+      </activation>
+      <modules>
+        <module>gatling</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
