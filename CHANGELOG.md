@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.4
+## 1.2.5-SNAPSHOT
 * chore(deps): bump hibernate.version from 6.4.3.Final to 6.4.4.Final (#452) [7d4e37c](https://github.com/introproventures/graphql-jpa-query/commit/7d4e37ccf39ec79ad831acef038e132e1bd10b96)
 * Remove hibernate-core from graphql-jpa-query-dependencies managed dependencies (#454) [196d6c3](https://github.com/introproventures/graphql-jpa-query/commit/196d6c35c226ddce659b059de1979405c5f99d76)
 * chore(deps): bump io.gatling:gatling-maven-plugin from 4.8.1 to 4.8.2 (#453) [7c4ba52](https://github.com/introproventures/graphql-jpa-query/commit/7c4ba524687af6119f1f1d9111a51012f11dacc3)
