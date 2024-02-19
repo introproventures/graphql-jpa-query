@@ -1,6 +1,21 @@
 # Change Log
 
-## 1.2.4-SNAPSHOT
+## 1.2.4
+* chore(deps): bump hibernate.version from 6.4.3.Final to 6.4.4.Final (#452) [7d4e37c](https://github.com/introproventures/graphql-jpa-query/commit/7d4e37ccf39ec79ad831acef038e132e1bd10b96)
+* Remove hibernate-core from graphql-jpa-query-dependencies managed dependencies (#454) [196d6c3](https://github.com/introproventures/graphql-jpa-query/commit/196d6c35c226ddce659b059de1979405c5f99d76)
+* chore(deps): bump io.gatling:gatling-maven-plugin from 4.8.1 to 4.8.2 (#453) [7c4ba52](https://github.com/introproventures/graphql-jpa-query/commit/7c4ba524687af6119f1f1d9111a51012f11dacc3)
+* Add setup Maven v3.9.6 action step in the build workflow (#451) [c33627b](https://github.com/introproventures/graphql-jpa-query/commit/c33627b4f0930abe73ac09ebfacb11a7201acfb3)
+* chore(deps): bump io.gatling:gatling-maven-plugin from 4.8.0 to 4.8.1 (#449) [d43a30f](https://github.com/introproventures/graphql-jpa-query/commit/d43a30ffdf0a798c43b57d8730d90b0d41fe5a5c)
+* chore(deps): bump joda-time:joda-time from 2.12.6 to 2.12.7 (#448) [a5e7b7e](https://github.com/introproventures/graphql-jpa-query/commit/a5e7b7e6a28064638b65f1dd903a173ee7f321ff)
+* chore(deps): bump hibernate.version from 6.4.2.Final to 6.4.3.Final (#447) [e77e40b](https://github.com/introproventures/graphql-jpa-query/commit/e77e40b02a746c10ebd928386f2ee3c0e9313c53)
+* Fix hibernate dependency management (#446) [00985bf](https://github.com/introproventures/graphql-jpa-query/commit/00985bf0d34f62a74a3d2675b79022fbe50396a2)
+* chore(deps): bump activiti-cloud.version from 8.1.0 to 8.2.0 (#440) [4b1e7a4](https://github.com/introproventures/graphql-jpa-query/commit/4b1e7a4e3f2d59823afef79bf9f4fba374d4bc63)
+* chore(deps): bump io.gatling:gatling-maven-plugin from 4.7.0 to 4.8.0 (#444) [308d68d](https://github.com/introproventures/graphql-jpa-query/commit/308d68dd0bb763872b91204f055602456a44ff57)
+* Activate Gatling test modute on jdk21 profile (#445) [73f3be4](https://github.com/introproventures/graphql-jpa-query/commit/73f3be4c6237410c32db409994282611ad6b0802)
+* Update Java release build version to 21 (#441) [fd42ca9](https://github.com/introproventures/graphql-jpa-query/commit/fd42ca9af72f5e6080754f80b2b2809e82696925)
+* chore(deps): bump spring-boot.version from 3.2.1 to 3.2.2 (#439) [b7dd144](https://github.com/introproventures/graphql-jpa-query/commit/b7dd144685f515be8f28c11ff43ea557e49d92c3)
+* chore(deps): bump com.hubspot.maven.plugins:prettier-maven-plugin (#437) [feea55c](https://github.com/introproventures/graphql-jpa-query/commit/feea55c85a7bd3605cabf4e4d7955fe6fcf493d1)
+* chore(deps): bump hibernate.version from 6.4.1.Final to 6.4.2.Final (#438) [2423bab](https://github.com/introproventures/graphql-jpa-query/commit/2423babac755d3eece559746db90cf6af295ed23)
 * chore(deps): bump joda-time:joda-time from 2.12.5 to 2.12.6 (#435) [fcd667f](https://github.com/introproventures/graphql-jpa-query/commit/fcd667f43d17aebca6b3206f2335d516ae7e8530)
 * Add spring-graphql-test unit tests (#434) [b89a062](https://github.com/introproventures/graphql-jpa-query/commit/b89a062571a8c0bc37ccc321440e36464320d0b3)
 * chore(deps): bump org.apache.maven.plugins:maven-surefire-plugin (#436) [8aeaeb6](https://github.com/introproventures/graphql-jpa-query/commit/8aeaeb682d0a76f9d1aeb4f11700c401689c9701)
