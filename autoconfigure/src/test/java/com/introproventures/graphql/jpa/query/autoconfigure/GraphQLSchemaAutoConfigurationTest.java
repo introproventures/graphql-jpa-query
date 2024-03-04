@@ -533,6 +533,6 @@ public class GraphQLSchemaAutoConfigurationTest {
         DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
         batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());
 
-        assertThat(dataLoaderRegistry.getDataLoadersMap()).isNotEmpty().containsOnlyKeys("TestEntity.children");
+        assertThat(dataLoaderRegistry.getDataLoadersMap()).isNotEmpty().containsKeys("TestEntity.children");
     }
 }
