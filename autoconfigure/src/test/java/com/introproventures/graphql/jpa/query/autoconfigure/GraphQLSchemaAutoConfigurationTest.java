@@ -1,5 +1,6 @@
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import static graphql.GraphQLContext.newContext;
 import static graphql.annotations.AnnotationsSchemaCreator.newAnnotationsSchema;
 import static graphql.schema.FieldCoordinates.coordinates;
 import static graphql.schema.GraphQLCodeRegistry.newCodeRegistry;
@@ -9,6 +10,7 @@ import static graphql.schema.GraphQLSchema.newSchema;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.dataloader.DataLoaderRegistry.newRegistry;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.support.AdditionalGraphQLType;
@@ -58,6 +60,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.dataloader.DataLoaderRegistry;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reflections.Reflections;
@@ -69,6 +72,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.graphql.execution.BatchLoaderRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
@@ -100,6 +104,9 @@ public class GraphQLSchemaAutoConfigurationTest {
 
     @Autowired
     private GraphQLJpaQueryProperties graphQLJpaQueryProperties;
+
+    @Autowired
+    BatchLoaderRegistry batchLoaderRegistry;
 
     @SpringBootApplication
     @EnableGraphQLJpaQuerySchema(basePackageClasses = TestEntity.class)
@@ -519,5 +526,13 @@ public class GraphQLSchemaAutoConfigurationTest {
                     .extracting(DefaultTransactionDefinition::isReadOnly)
                     .isEqualTo(true);
             });
+    }
+
+    @Test
+    void batchLoaderRegistry() {
+        DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
+        batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());
+
+        assertThat(dataLoaderRegistry.getDataLoadersMap()).isNotEmpty().containsOnlyKeys("TestEntity.children");
     }
 }
