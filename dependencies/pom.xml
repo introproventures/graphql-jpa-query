@@ -20,7 +20,7 @@
     <joda-time.version>2.12.7</joda-time.version>
     <graphql-java-extended-scalars.version>21.0</graphql-java-extended-scalars.version>
     <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
-    <hibernate.version>6.4.4.Final</hibernate.version>
+    <hibernate.version>6.4.5.Final</hibernate.version>
   </properties>
 
   <dependencyManagement>
