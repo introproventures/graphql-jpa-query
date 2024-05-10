@@ -33,6 +33,15 @@ public class BatchLoaderRegistry {
         mappedToOneBatchLoaders.putIfAbsent(batchLoaderKey, mappedBatchLoader);
     }
 
+    public static Map<String, MappedBatchLoaderWithContext> getMappedBatchDataLoaderMap() {
+        var loaders = new LinkedHashMap<String, MappedBatchLoaderWithContext>();
+
+        loaders.putAll(mappedToManyBatchLoaders);
+        loaders.putAll(mappedToOneBatchLoaders);
+
+        return loaders;
+    }
+
     public static DataLoaderRegistry newDataLoaderRegistry(DataLoaderOptions dataLoaderOptions) {
         DataLoaderRegistry dataLoaderRegistry = new DataLoaderRegistry();
 

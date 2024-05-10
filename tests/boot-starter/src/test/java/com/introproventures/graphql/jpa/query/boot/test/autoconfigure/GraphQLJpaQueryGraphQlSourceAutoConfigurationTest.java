@@ -79,6 +79,6 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfigurationTest {
         DataLoaderRegistry dataLoaderRegistry = newRegistry().build();
         batchLoaderRegistry.registerDataLoaders(dataLoaderRegistry, newContext().build());
 
-        assertThat(dataLoaderRegistry.getDataLoadersMap()).isEmpty();
+        assertThat(dataLoaderRegistry.getDataLoadersMap()).isNotEmpty().containsKeys("Author.books", "Book.author");
     }
 }
