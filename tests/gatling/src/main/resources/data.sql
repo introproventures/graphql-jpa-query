@@ -1090,3 +1090,10 @@ insert into INTEGRATION_CONTEXT (id, client_id, client_name, execution_id, proce
 	('2', '1', 'serviceTask', '2', '1'),
 	('3', '1', 'serviceTask', '3', '1');
 
+insert into TASK_PROCESS_VARIABLE (task_id, process_variable_id) values
+    (1,1),
+    (1,2),
+    (1,3),
+    (1,4),
+    (1,5),
+    (1,6);

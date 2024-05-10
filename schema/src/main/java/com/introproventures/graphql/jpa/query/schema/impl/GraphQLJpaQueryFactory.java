@@ -1108,12 +1108,23 @@ public final class GraphQLJpaQueryFactory {
 
                 AbstractQuery<?> query = environment.getRoot();
                 Boolean isFetch = environment.getLocalContext();
-                Boolean isOptional = isOptionalAttribute(attribute);
+                boolean isOptional = isOptionalAttribute(attribute);
+                List<Map<String, Object>> logicalArguments = Optional
+                    .ofNullable(environment.getArgument(logical.name()))
+                    .filter(List.class::isInstance)
+                    .map(List.class::cast)
+                    .orElseGet(List::of);
 
-                From<?, ?> context = (isSubquery(query) || isCountQuery(query) || !isFetch)
-                    ? reuseJoin(from, objectField.getName(), isOptional)
-                    : reuseFetch(from, objectField.getName(), isOptional);
-
+                From<?, ?> context;
+                if (logicalArguments.stream().filter(it -> it.containsKey(objectField.getName())).count() > 1) {
+                    context =
+                        isOptional ? from.join(objectField.getName(), JoinType.LEFT) : from.join(objectField.getName());
+                } else {
+                    context =
+                        (isSubquery(query) || isCountQuery(query) || !isFetch)
+                            ? reuseJoin(from, objectField.getName(), isOptional)
+                            : reuseFetch(from, objectField.getName(), isOptional);
+                }
                 return getArgumentPredicate(
                     cb,
                     context,
