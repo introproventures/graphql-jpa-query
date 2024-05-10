@@ -1,6 +1,23 @@
 # Change Log
 
-## 1.2.5-SNAPSHOT
+## 1.2.5
+* revert maven-gpg-plugin version to 3.1.0 [3fcb6e3](https://github.com/introproventures/graphql-jpa-query/commit/3fcb6e32df3549f70aaa2b611c81605f746b30fe)
+* Fix where query criteria with multiple associations joins (#485) [026068d](https://github.com/introproventures/graphql-jpa-query/commit/026068df2768d010acc1004760028deefcfd229c)
+* chore(deps): bump spring-boot.version from 3.2.2 to 3.2.3 (#456) [35975f1](https://github.com/introproventures/graphql-jpa-query/commit/35975f104cae8879ab936a72441042ebdbcae2d2)
+* chore(deps): bump hibernate.version from 6.4.4.Final to 6.4.6.Final (#481) [98257d8](https://github.com/introproventures/graphql-jpa-query/commit/98257d81dddfee0b684dcbf527a5e5718139322d)
+* chore(deps): bump org.apache.maven.plugins:maven-jar-plugin (#478) [54d081f](https://github.com/introproventures/graphql-jpa-query/commit/54d081f81939931295a6d55d2e6042df9b7a278f)
+* chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#477) [336fa94](https://github.com/introproventures/graphql-jpa-query/commit/336fa94b8dea09128c6fbb48350a600f3cb045d2)
+* chore(deps): bump activiti-cloud.version from 8.3.0 to 8.4.0 (#470) [7d952c0](https://github.com/introproventures/graphql-jpa-query/commit/7d952c0c25ab6a207c675e9de0c9d03f6361aec1)
+* chore(deps): bump org.apache.maven.plugins:maven-source-plugin (#469) [a934c8c](https://github.com/introproventures/graphql-jpa-query/commit/a934c8c508d62fa2d2afd6f72ffae5a4eec5fdd8)
+* chore(deps): bump org.jacoco:jacoco-maven-plugin from 0.8.11 to 0.8.12 (#468) [89ec1a4](https://github.com/introproventures/graphql-jpa-query/commit/89ec1a42d9fffc6dc66a5f651e27be872fdcd511)
+* chore(deps-dev): bump io.gatling.highcharts:gatling-charts-highcharts (#465) [5af6265](https://github.com/introproventures/graphql-jpa-query/commit/5af62650782fa99426db8319af843d538d1ab133)
+* chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#462) [64e722a](https://github.com/introproventures/graphql-jpa-query/commit/64e722a56f2baceb3deed47656729e54bf370119)
+* chore(deps): bump org.apache.maven.plugins:maven-assembly-plugin (#461) [033275f](https://github.com/introproventures/graphql-jpa-query/commit/033275fdac87547cf129a7a4235a7b9c10ff5e31)
+* chore(deps): bump com.graphql-java:graphql-java from 21.3 to 21.4 (#463) [8d53368](https://github.com/introproventures/graphql-jpa-query/commit/8d5336881f07250fd3e73fd3954473eae5a331ca)
+* chore(deps): bump org.apache.maven.plugins:maven-gpg-plugin (#458) [3ed49c6](https://github.com/introproventures/graphql-jpa-query/commit/3ed49c69e44568681213bdd5c22f2fc12d255ae8)
+* chore(deps): bump org.apache.maven.plugins:maven-assembly-plugin (#459) [890945f](https://github.com/introproventures/graphql-jpa-query/commit/890945fbc4d3f96f8badac908fcb0c0408ca262b)
+* chore(deps): bump activiti-cloud.version from 8.2.0 to 8.3.0 (#457) [fe61ce9](https://github.com/introproventures/graphql-jpa-query/commit/fe61ce9ad0bea9a532ac78723dfdc72e75365431)
+* chore(deps-dev): bump io.gatling.highcharts:gatling-charts-highcharts (#455) [0fa1ebb](https://github.com/introproventures/graphql-jpa-query/commit/0fa1ebb6441f88c6ff7d36d9c16275a4b066b013)
 * chore(deps): bump hibernate.version from 6.4.3.Final to 6.4.4.Final (#452) [7d4e37c](https://github.com/introproventures/graphql-jpa-query/commit/7d4e37ccf39ec79ad831acef038e132e1bd10b96)
 * Remove hibernate-core from graphql-jpa-query-dependencies managed dependencies (#454) [196d6c3](https://github.com/introproventures/graphql-jpa-query/commit/196d6c35c226ddce659b059de1979405c5f99d76)
 * chore(deps): bump io.gatling:gatling-maven-plugin from 4.8.1 to 4.8.2 (#453) [7c4ba52](https://github.com/introproventures/graphql-jpa-query/commit/7c4ba524687af6119f1f1d9111a51012f11dacc3)
