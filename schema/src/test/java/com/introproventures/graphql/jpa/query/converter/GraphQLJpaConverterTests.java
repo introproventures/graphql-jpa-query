@@ -181,6 +181,42 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
     @Test
     @Transactional
+    public void criteriaTesterMultipleJoinWhereCriteria() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<TaskEntity> tasksQuery = cb.createQuery(TaskEntity.class);
+        Root<TaskEntity> task = tasksQuery.from(TaskEntity.class);
+
+        Join<TaskEntity, TaskVariableEntity> taskVariableEntityJoin1 = task.join("variables");
+
+        Predicate var1 = cb.and(
+            cb.equal(taskVariableEntityJoin1.get("name"), "variable2"),
+            cb.equal(taskVariableEntityJoin1.get("value"), new VariableValue<>(Boolean.TRUE))
+        );
+
+        taskVariableEntityJoin1.on(var1);
+        taskVariableEntityJoin1.alias("var1");
+
+        Join<TaskEntity, TaskVariableEntity> taskVariableEntityJoin2 = task.join("variables");
+        Predicate var2 = cb.and(
+            cb.equal(taskVariableEntityJoin2.get("name"), "variable1"),
+            cb.equal(taskVariableEntityJoin2.get("value"), new VariableValue<>(new String("data")))
+        );
+
+        taskVariableEntityJoin2.on(var2);
+        taskVariableEntityJoin2.alias("var2");
+
+        tasksQuery.select(task);
+        // when:
+        List<TaskEntity> result = entityManager.createQuery(tasksQuery).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @Transactional
     public void criteriaTester4() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
@@ -812,6 +848,51 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
             "        }" +
             "      }" +
             "    }]" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      status" +
+            "      variables {" +
+            "        name" +
+            "        value" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Tasks={select=[" +
+            "{id=1, status=COMPLETED, variables=[" +
+            "{name=variable2, value=true}, " +
+            "{name=variable1, value=data}]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryTasksVariablesWhereWithExplicitANDByMultipleNameAndValueCriteria() {
+        //given
+        String query =
+            "query {" +
+            "  Tasks(where: {" +
+            "    status: {EQ: COMPLETED}" +
+            "    AND: [" +
+            "      {" +
+            "        variables: {" +
+            "          name: {EQ: \"variable1\"}" +
+            "          value: {EQ: \"data\"} }" +
+            "      }" +
+            "      {" +
+            "        variables: {" +
+            "          name: {EQ: \"variable2\"}" +
+            "          value: {EQ: true} }" +
+            "      }" +
+            "    ]" +
             "  }) {" +
             "    select {" +
             "      id" +
