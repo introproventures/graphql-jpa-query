@@ -19,17 +19,27 @@ import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchem
 import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME;
 import static com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.extractPageArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.findArgument;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getAliasOrName;
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getFields;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getPageArgument;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getSelectionField;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.searchByFieldName;
 
+import com.introproventures.graphql.jpa.query.schema.JavaScalars;
+import graphql.GraphQLException;
 import graphql.language.Argument;
+import graphql.language.EnumValue;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLScalarType;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +75,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         Optional<Field> pagesSelection = getSelectionField(rootNode, PAGE_PAGES_PARAM_NAME);
         Optional<Field> totalSelection = getSelectionField(rootNode, PAGE_TOTAL_PARAM_NAME);
         Optional<Field> recordsSelection = searchByFieldName(rootNode, QUERY_SELECT_PARAM_NAME);
+        Optional<Field> aggregateSelection = getSelectionField(rootNode, "aggregate");
 
         final int firstResult = page.getOffset();
         final int maxResults = Integer.min(page.getLimit(), defaultMaxResults); // Limit max results to avoid OoM
@@ -98,8 +109,94 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
             pagedResult.withTotal(total);
         }
 
+        aggregateSelection.ifPresent(aggregateField -> {
+            Map<String, Object> aggregate = new LinkedHashMap<>();
+
+            getFields(aggregateField.getSelectionSet(), "count")
+                .forEach(countField -> {
+                    getCountOfArgument(countField)
+                        .ifPresentOrElse(argument ->
+                                aggregate.put(getAliasOrName(countField), queryFactory.queryAggregateCount(argument, environment, restrictedKeys))
+                            ,
+                            () ->
+                                aggregate.put(getAliasOrName(countField), queryFactory.queryTotalCount(environment, restrictedKeys))
+                        );
+                });
+
+            getFields(aggregateField.getSelectionSet(), "group")
+                .forEach(groupField -> {
+                    var countField = getFields(groupField.getSelectionSet(), "count")
+                        .stream()
+                        .findFirst()
+                        .orElseThrow(() -> new GraphQLException("Missing aggregate count for group: " + groupField));
+
+                    var countOfArgumentValue = getCountOfArgument(groupField);
+
+                    Map.Entry<String, String>[] groupings =
+                        getFields(groupField.getSelectionSet(), "by")
+                           .stream()
+                           .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
+                           .toArray(Map.Entry[]::new);
+
+                    if (groupings.length == 0) {
+                        throw new GraphQLException("At least one field is required for aggregate group: " + groupField);
+                    }
+
+                    var resultList = queryFactory.queryAggregateGroupByCount(getAliasOrName(countField), countOfArgumentValue, environment, restrictedKeys, groupings)
+                        .stream()
+                        .peek(map ->
+                            Stream
+                                .of(groupings)
+                                .forEach(group -> {
+                                    var value = map.get(group.getKey());
+
+                                    Optional
+                                        .ofNullable(value)
+                                        .map(Object::getClass)
+                                        .map(JavaScalars::of)
+                                        .map(GraphQLScalarType::getCoercing)
+                                        .ifPresent(coercing -> map.put(group.getKey(), coercing.serialize(value)));
+                                })
+                        )
+                        .toList();
+
+                    aggregate.put(getAliasOrName(groupField), resultList);
+                });
+
+            pagedResult.withAggregate(aggregate);
+        });
+
         return pagedResult.build();
     }
+
+    static Map.Entry<String, String> groupByFieldEntry(Field selectedField) {
+        String key = Optional.ofNullable(selectedField.getAlias()).orElse(selectedField.getName());
+
+        String value = findArgument(selectedField, "field")
+            .map(Argument::getValue)
+            .map(EnumValue.class::cast)
+            .map(EnumValue::getName)
+            .orElseThrow(() -> new GraphQLException("group by argument is required."));
+
+        return Map.entry(key, value);
+    }
+
+    static Map.Entry<String, String> countFieldEntry(Field selectedField) {
+        String key = Optional.ofNullable(selectedField.getAlias()).orElse(selectedField.getName());
+
+        String value = getCountOfArgument(selectedField)
+            .orElse(selectedField.getName());
+
+        return Map.entry(key, value);
+    }
+
+    static Optional<String> getCountOfArgument(Field selectedField) {
+        return findArgument(selectedField, "of")
+            .map(Argument::getValue)
+            .map(EnumValue.class::cast)
+            .map(EnumValue::getName);
+    }
+
 
     public int getDefaultMaxResults() {
         return defaultMaxResults;

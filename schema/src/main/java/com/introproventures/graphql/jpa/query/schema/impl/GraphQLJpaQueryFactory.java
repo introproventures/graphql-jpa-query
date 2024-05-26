@@ -70,6 +70,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.AbstractQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Fetch;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
@@ -355,6 +356,54 @@ public final class GraphQLJpaQueryFactory {
         return 0L;
     }
 
+    public Long queryAggregateCount(String aggregate, DataFetchingEnvironment environment, Optional<List<Object>> restrictedKeys) {
+        final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
+
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
+
+        if (restrictedKeys.isPresent()) {
+            TypedQuery<Long> countQuery = getAggregateCountQuery(
+                queryEnvironment,
+                queryEnvironment.getField(),
+                aggregate,
+                restrictedKeys.get()
+            );
+
+            if (logger.isDebugEnabled()) {
+                logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+            }
+
+            return countQuery.getSingleResult();
+        }
+
+        return 0L;
+    }
+
+    public List<Map> queryAggregateGroupByCount(String alias, Optional<String> countOf, DataFetchingEnvironment environment, Optional<List<Object>> restrictedKeys, Map.Entry<String,String>... groupings) {
+        final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
+
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
+
+        if (restrictedKeys.isPresent()) {
+            TypedQuery<Map> countQuery = getAggregateGroupByCountQuery(
+                queryEnvironment,
+                queryEnvironment.getField(),
+                alias,
+                countOf,
+                restrictedKeys.get(),
+                groupings
+            );
+
+            if (logger.isDebugEnabled()) {
+                logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+            }
+
+            return countQuery.getResultList();
+        }
+
+        return Collections.emptyList();
+    }
+
     protected <T> TypedQuery<T> getQuery(
         DataFetchingEnvironment environment,
         Field field,
@@ -384,6 +433,83 @@ public final class GraphQLJpaQueryFactory {
         root.alias("root");
 
         query.select(cb.count(root));
+
+        List<Predicate> predicates = field
+            .getArguments()
+            .stream()
+            .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
+            .filter(it -> it != null)
+            .collect(Collectors.toList());
+
+        if (!keys.isEmpty() && hasIdAttribute()) {
+            Predicate restrictions = root.get(idAttributeName()).in(keys);
+            predicates.add(restrictions);
+        }
+
+        query.where(predicates.toArray(new Predicate[0]));
+
+        return entityManager.createQuery(query);
+    }
+
+    protected TypedQuery<Long> getAggregateCountQuery(DataFetchingEnvironment environment, Field field, String aggregate, List<Object> keys, String... groupings) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<?> root = query.from(entityType);
+        Join<?,?> join = root.join(aggregate);
+
+        DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder
+            .newDataFetchingEnvironment(environment)
+            .root(query)
+            .localContext(Boolean.FALSE) // Join mode
+            .build();
+
+        query.select(cb.count(join));
+
+        List<Predicate> predicates = field
+            .getArguments()
+            .stream()
+            .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
+            .filter(it -> it != null)
+            .collect(Collectors.toList());
+
+        if (!keys.isEmpty() && hasIdAttribute()) {
+            Predicate restrictions = root.get(idAttributeName()).in(keys);
+            predicates.add(restrictions);
+        }
+
+        query.where(predicates.toArray(new Predicate[0]));
+
+        return entityManager.createQuery(query);
+    }
+
+    protected TypedQuery<Map> getAggregateGroupByCountQuery(DataFetchingEnvironment environment, Field field, String alias, Optional<String> countOfJoin, List<Object> keys, Map.Entry<String,String>... groupBy) {
+        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        final CriteriaQuery<Map> query = cb.createQuery(Map.class);
+        final Root<?> root = query.from(entityType);
+        final DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder
+            .newDataFetchingEnvironment(environment)
+            .root(query)
+            .localContext(Boolean.FALSE) // Join mode
+            .build();
+
+        final List<Selection<?>> selections = new ArrayList<>();
+
+        Stream.of(groupBy)
+            .map(group ->  root.get(group.getValue()).alias(group.getKey()))
+            .forEach(selections::add);
+
+        final Expression<?>[] groupings = Stream
+            .of(groupBy)
+            .map(group ->  root.get(group.getValue()))
+            .toArray(Expression[]::new);
+
+        countOfJoin
+            .ifPresentOrElse(
+                it ->selections.add(cb.count(root.join(it)).alias(alias)),
+                () -> selections.add(cb.count(root).alias(alias))
+            );
+
+        query.multiselect(selections).groupBy(groupings);
 
         List<Predicate> predicates = field
             .getArguments()
@@ -1116,7 +1242,7 @@ public final class GraphQLJpaQueryFactory {
                     .orElseGet(List::of);
 
                 From<?, ?> context;
-                if (logicalArguments.stream().filter(it -> it.containsKey(objectField.getName())).count() > 1) {
+                if (logicalArguments.stream().filter(it -> it.containsKey(objectField.getName())).count() >= 1) {
                     context =
                         isOptional ? from.join(objectField.getName(), JoinType.LEFT) : from.join(objectField.getName());
                 } else {

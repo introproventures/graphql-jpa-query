@@ -16,10 +16,17 @@
 
 package com.introproventures.graphql.jpa.query.schema.impl;
 
+import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getAliasOrName;
 import static graphql.Scalars.GraphQLBoolean;
+import static graphql.Scalars.GraphQLInt;
+import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLArgument.newArgument;
+import static graphql.schema.GraphQLEnumType.newEnum;
+import static graphql.schema.GraphQLEnumValueDefinition.newEnumValueDefinition;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
+import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnore;
 import com.introproventures.graphql.jpa.query.annotation.GraphQLIgnoreFilter;
@@ -203,8 +210,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLObjectType getQueryType() {
-        GraphQLObjectType.Builder queryType = GraphQLObjectType
-            .newObject()
+        GraphQLObjectType.Builder queryType = newObject()
             .name(queryTypeNameCustomizer.apply(this.name))
             .description(this.description);
 
@@ -232,8 +238,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     private GraphQLObjectType getSubscriptionType() {
-        GraphQLObjectType.Builder queryType = GraphQLObjectType
-            .newObject()
+        GraphQLObjectType.Builder queryType = newObject()
             .name(this.name + "Subscription")
             .description(this.description);
 
@@ -269,8 +274,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         String fieldName = singularize.andThen(queryByIdFieldNameCustomizer).apply(entityType.getName());
 
-        return GraphQLFieldDefinition
-            .newFieldDefinition()
+        return newFieldDefinition()
             .name(enableRelay ? Introspector.decapitalize(fieldName) : fieldName)
             .description(getSchemaDescription(entityType))
             .type(entityObjectType)
@@ -338,8 +342,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         String fieldName = pluralize.andThen(queryAllFieldNameCustomizer).apply(entityType.getName());
 
-        GraphQLFieldDefinition.Builder fieldDefinition = GraphQLFieldDefinition
-            .newFieldDefinition()
+        GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition()
             .name(enableRelay ? Introspector.decapitalize(fieldName) : fieldName)
             .description(
                 "Query request wrapper for " +
@@ -377,8 +380,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         final GraphQLObjectType selectObjectType = getEntityObjectType(entityType);
         final var selectTypeName = resolveSelectTypeName(entityType);
 
-        GraphQLObjectType selectPagedResultType = GraphQLObjectType
-            .newObject()
+        GraphQLObjectType selectPagedResultType = newObject()
             .name(selectTypeName)
             .description(
                 "Query response wrapper object for " +
@@ -386,32 +388,121 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 ".  When page is requested, this object will be returned with query metadata."
             )
             .field(
-                GraphQLFieldDefinition
-                    .newFieldDefinition()
+                newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_PAGES_PARAM_NAME)
                     .description("Total number of pages calculated on the database for this page size.")
                     .type(JavaScalars.of(Long.class))
                     .build()
             )
             .field(
-                GraphQLFieldDefinition
-                    .newFieldDefinition()
+                newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.PAGE_TOTAL_PARAM_NAME)
                     .description("Total number of records in the database for this query.")
                     .type(JavaScalars.of(Long.class))
                     .build()
             )
             .field(
-                GraphQLFieldDefinition
-                    .newFieldDefinition()
+                newFieldDefinition()
                     .name(GraphQLJpaSchemaBuilder.QUERY_SELECT_PARAM_NAME)
                     .description("The queried records container")
                     .type(new GraphQLList(selectObjectType))
                     .build()
             )
+            .field(getAggregateFieldDefinition(entityType))
             .build();
 
         return selectPagedResultType;
+    }
+
+    private GraphQLFieldDefinition getAggregateFieldDefinition(EntityType<?> entityType) {
+        final var selectTypeName = resolveSelectTypeName(entityType);
+        final var aggregateObjectTypeName = selectTypeName.concat("Aggregate");
+
+        var aggregateObjectType = newObject().name(aggregateObjectTypeName);
+
+        DataFetcher<Object> aggregateDataFetcher = environment -> {
+            Map<String, Object> source = environment.getSource();
+
+            return source.get(getAliasOrName(environment.getField()));
+        };
+
+        var countFieldDefinition = newFieldDefinition()
+            .name("count")
+            .dataFetcher(aggregateDataFetcher)
+            .type(GraphQLInt);
+
+        var associationEnumValueDefinitions = entityType
+            .getAttributes()
+            .stream()
+            .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
+            .filter(Attribute::isAssociation)
+            .map(Attribute::getName)
+            .map(name -> newEnumValueDefinition().name(name).build())
+            .toList();
+
+        var fieldsEnumValueDefinitions = entityType
+            .getAttributes()
+            .stream()
+            .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
+            .filter(this::isBasic)
+            .map(Attribute::getName)
+            .map(name -> newEnumValueDefinition().name(name).build())
+            .toList();
+
+        if (entityType.getAttributes()
+            .stream()
+            .anyMatch(Attribute::isAssociation)) {
+            countFieldDefinition
+                .argument(newArgument()
+                    .name("of")
+                    .type(newEnum()
+                        .name(aggregateObjectTypeName.concat("CountOfAssociationsEnum"))
+                        .values(associationEnumValueDefinitions)
+                        .build()));
+        }
+
+
+        var groupFieldDefinition = newFieldDefinition()
+            .name("group")
+            .dataFetcher(aggregateDataFetcher)
+            .type(new GraphQLList(newObject()
+                .name(aggregateObjectTypeName.concat("GroupBy"))
+                .field(newFieldDefinition()
+                    .name("by")
+                    .dataFetcher(aggregateDataFetcher)
+                    .argument(newArgument()
+                        .name("field")
+                        .type(newEnum()
+                            .name(aggregateObjectTypeName.concat("GroupByFieldsEnum"))
+                            .values(fieldsEnumValueDefinitions)
+                            .build()))
+                    .type(GraphQLString))
+                .field(newFieldDefinition()
+                    .name("count")
+                    .type(GraphQLInt))
+                .build()));
+
+        if (entityType.getAttributes()
+            .stream()
+            .anyMatch(Attribute::isAssociation)) {
+            groupFieldDefinition
+                .argument(newArgument()
+                    .name("of")
+                    .type(newEnum()
+                        .name(aggregateObjectTypeName.concat("GroupOfAssociationsEnum"))
+                        .values(associationEnumValueDefinitions)
+                        .build()));
+        }
+
+        aggregateObjectType
+            .field(countFieldDefinition)
+            .field(groupFieldDefinition);
+
+        var aggregateFieldDefinition = newFieldDefinition()
+            .name("aggregate")
+            .type(aggregateObjectType);
+
+        return aggregateFieldDefinition.build();
     }
 
     private GraphQLFieldDefinition getQueryFieldStreamDefinition(EntityType<?> entityType) {
@@ -433,8 +524,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         DataFetcher<Object> dataFetcher = GraphQLJpaStreamDataFetcher.builder().withQueryFactory(queryFactory).build();
         var fieldName = pluralize.andThen(queryResultTypeNameCustomizer).apply(entityType.getName());
 
-        GraphQLFieldDefinition.Builder fieldDefinition = GraphQLFieldDefinition
-            .newFieldDefinition()
+        GraphQLFieldDefinition.Builder fieldDefinition = newFieldDefinition()
             .name(fieldName)
             .description(
                 "Query request wrapper for " +
@@ -1038,8 +1128,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 .apply(embeddableType.getJavaType().getSimpleName());
 
             graphQLType =
-                GraphQLObjectType
-                    .newObject()
+                newObject()
                     .name(embeddableTypeName)
                     .description(getSchemaDescription(embeddableType))
                     .fields(
@@ -1068,8 +1157,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
     private GraphQLObjectType computeEntityObjectType(EntityType<?> entityType) {
         var typeName = resolveEntityObjectTypeName(entityType);
-        return GraphQLObjectType
-            .newObject()
+        return newObject()
             .name(typeName)
             .description(getSchemaDescription(entityType))
             .fields(getEntityAttributesFields(entityType))
@@ -1103,8 +1191,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         String description = propertyDescriptor.getSchemaDescription().orElse(null);
 
-        return GraphQLFieldDefinition
-            .newFieldDefinition()
+        return newFieldDefinition()
             .name(propertyDescriptor.getName())
             .description(description)
             .type(type)
@@ -1124,10 +1211,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
 
         // Only add the orderBy argument for basic attribute types
-        if (
-            attribute instanceof SingularAttribute &&
-            attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC &&
-            isNotIgnoredOrder(attribute)
+        if (isBasic(attribute) && isNotIgnoredOrder(attribute)
         ) {
             arguments.add(
                 GraphQLArgument
@@ -1141,10 +1225,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         }
 
         // Get the fields that can be queried on (i.e. Simple Types, no Sub-Objects)
-        if (
-            attribute instanceof SingularAttribute &&
-            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC
-        ) {
+        if (isSingular(attribute)) {
             ManagedType foreignType = getForeignType(attribute);
             SingularAttribute<?, ?> singularAttribute = SingularAttribute.class.cast(attribute);
 
@@ -1154,8 +1235,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // to-one end could be optional
             arguments.add(optionalArgument(singularAttribute.isOptional()));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType
-                .newObject()
+            GraphQLObjectType entityObjectType = newObject()
                 .name(resolveEntityObjectTypeName(baseEntity))
                 .build();
 
@@ -1181,13 +1261,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
             dataFetcher = new GraphQLJpaToOneDataFetcher(graphQLJpaQueryFactory, (SingularAttribute) attribute);
         } //  Get Sub-Objects fields queries via DataFetcher
-        else if (
-            attribute instanceof PluralAttribute &&
-            (
-                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY ||
-                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY
-            )
-        ) {
+        else if (isPlural(attribute)) {
             Assert.assertNotNull(
                 baseEntity,
                 () -> "For attribute " + attribute.getName() + " cannot find declaring type!"
@@ -1199,8 +1273,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
 
-            GraphQLObjectType entityObjectType = GraphQLObjectType
-                .newObject()
+            GraphQLObjectType entityObjectType = newObject()
                 .name(resolveEntityObjectTypeName(baseEntity))
                 .build();
 
@@ -1227,8 +1300,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             dataFetcher = new GraphQLJpaToManyDataFetcher(graphQLJpaQueryFactory, (PluralAttribute) attribute);
         }
 
-        return GraphQLFieldDefinition
-            .newFieldDefinition()
+        return newFieldDefinition()
             .name(attribute.getName())
             .description(getSchemaDescription(attribute))
             .type(type)
@@ -1348,7 +1420,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     protected final boolean isBasic(Attribute<?, ?> attribute) {
-        return attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
+        return attribute instanceof SingularAttribute &&
+            attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
     }
 
     protected final boolean isElementCollection(Attribute<?, ?> attribute) {
@@ -1371,6 +1444,19 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_ONE ||
             attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_ONE
         );
+    }
+
+    private boolean isPlural(Attribute<?,?> attribute) {
+        return attribute instanceof PluralAttribute &&
+            (
+                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY ||
+                    attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY
+            );
+    }
+
+    private boolean isSingular(Attribute<?,?> attribute) {
+        return attribute instanceof SingularAttribute &&
+            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC;
     }
 
     protected final boolean isValidInput(Attribute<?, ?> attribute) {
@@ -1459,7 +1545,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         if (clazz.isEnum()) {
             if (classCache.containsKey(clazz)) return classCache.get(clazz);
 
-            GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(clazz.getSimpleName());
+            GraphQLEnumType.Builder enumBuilder = newEnum().name(clazz.getSimpleName());
             int ordinal = 0;
             for (Enum<?> enumValue : ((Class<Enum<?>>) clazz).getEnumConstants()) enumBuilder.value(enumValue.name());
 
@@ -1476,7 +1562,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     protected GraphQLInputType getFieldsEnumType(EntityType<?> entityType) {
-        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(entityType.getName() + "FieldsEnum");
+        GraphQLEnumType.Builder enumBuilder = newEnum().name(entityType.getName() + "FieldsEnum");
         final AtomicInteger ordinal = new AtomicInteger();
 
         entityType
@@ -1517,8 +1603,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         )
         .build();
 
-    private static final GraphQLEnumType orderByDirectionEnum = GraphQLEnumType
-        .newEnum()
+    private static final GraphQLEnumType orderByDirectionEnum = newEnum()
         .name("OrderBy")
         .description("Specifies the direction (Ascending / Descending) to sort a field.")
         .value("ASC", "ASC", "Ascending")
