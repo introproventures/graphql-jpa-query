@@ -220,6 +220,7 @@
         <version>3.6.3</version>
         <configuration>
           <source>${java.version}</source>
+          <doclint>none</doclint>
         </configuration>
         <executions>
           <execution>
