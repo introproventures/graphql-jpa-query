@@ -139,10 +139,7 @@ public class GraphQLSupport {
     public static Optional<Argument> findArgument(Field selectedField, String name) {
         return Optional
             .ofNullable(selectedField.getArguments())
-            .flatMap(arguments -> arguments
-                .stream()
-                .filter(argument -> name.equals(argument.getName()))
-                .findFirst());
+            .flatMap(arguments -> arguments.stream().filter(argument -> name.equals(argument.getName())).findFirst());
     }
 
     public static List<Field> getFields(SelectionSet selections, String fieldName) {

@@ -115,11 +115,17 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
             getFields(aggregateField.getSelectionSet(), "count")
                 .forEach(countField -> {
                     getCountOfArgument(countField)
-                        .ifPresentOrElse(argument ->
-                                aggregate.put(getAliasOrName(countField), queryFactory.queryAggregateCount(argument, environment, restrictedKeys))
-                            ,
+                        .ifPresentOrElse(
+                            argument ->
+                                aggregate.put(
+                                    getAliasOrName(countField),
+                                    queryFactory.queryAggregateCount(argument, environment, restrictedKeys)
+                                ),
                             () ->
-                                aggregate.put(getAliasOrName(countField), queryFactory.queryTotalCount(environment, restrictedKeys))
+                                aggregate.put(
+                                    getAliasOrName(countField),
+                                    queryFactory.queryTotalCount(environment, restrictedKeys)
+                                )
                         );
                 });
 
@@ -132,17 +138,23 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
 
                     var countOfArgumentValue = getCountOfArgument(groupField);
 
-                    Map.Entry<String, String>[] groupings =
-                        getFields(groupField.getSelectionSet(), "by")
-                           .stream()
-                           .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
-                           .toArray(Map.Entry[]::new);
+                    Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), "by")
+                        .stream()
+                        .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
+                        .toArray(Map.Entry[]::new);
 
                     if (groupings.length == 0) {
                         throw new GraphQLException("At least one field is required for aggregate group: " + groupField);
                     }
 
-                    var resultList = queryFactory.queryAggregateGroupByCount(getAliasOrName(countField), countOfArgumentValue, environment, restrictedKeys, groupings)
+                    var resultList = queryFactory
+                        .queryAggregateGroupByCount(
+                            getAliasOrName(countField),
+                            countOfArgumentValue,
+                            environment,
+                            restrictedKeys,
+                            groupings
+                        )
                         .stream()
                         .peek(map ->
                             Stream
@@ -184,8 +196,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
     static Map.Entry<String, String> countFieldEntry(Field selectedField) {
         String key = Optional.ofNullable(selectedField.getAlias()).orElse(selectedField.getName());
 
-        String value = getCountOfArgument(selectedField)
-            .orElse(selectedField.getName());
+        String value = getCountOfArgument(selectedField).orElse(selectedField.getName());
 
         return Map.entry(key, value);
     }
@@ -196,7 +207,6 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
             .map(EnumValue.class::cast)
             .map(EnumValue::getName);
     }
-
 
     public int getDefaultMaxResults() {
         return defaultMaxResults;

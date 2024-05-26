@@ -66,21 +66,24 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("CustomAttributeConverterSchema")
                 .description("Custom Attribute Converter Schema")
-                .scalar(VariableValue.class,
+                .scalar(
+                    VariableValue.class,
                     newScalar()
                         .name("VariableValue")
-                        .coercing(new JavaScalars.GraphQLObjectCoercing() {
-                            public Object serialize(final Object input) {
-                                return Optional
-                                    .ofNullable(input)
-                                    .filter(VariableValue.class::isInstance)
-                                    .map(VariableValue.class::cast)
-                                    .map(it -> Optional.ofNullable(it.getValue()).orElse("null"))
-                                    .orElse(input);
+                        .coercing(
+                            new JavaScalars.GraphQLObjectCoercing() {
+                                public Object serialize(final Object input) {
+                                    return Optional
+                                        .ofNullable(input)
+                                        .filter(VariableValue.class::isInstance)
+                                        .map(VariableValue.class::cast)
+                                        .map(it -> Optional.ofNullable(it.getValue()).orElse("null"))
+                                        .orElse(input);
+                                }
                             }
-                        })
-                        .build());
-
+                        )
+                        .build()
+                );
         }
     }
 
@@ -101,7 +104,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         Root<TaskVariableEntity> taskVariable = query.from(TaskVariableEntity.class);
         var taskJoin = taskVariable.join("task");
 
-        Selection<?>[] selections = List.of(taskVariable.get("name"),cb.count(taskJoin)).toArray(Selection[]::new);
+        Selection<?>[] selections = List.of(taskVariable.get("name"), cb.count(taskJoin)).toArray(Selection[]::new);
         Expression<?>[] groupings = List.of(taskVariable.get("name")).toArray(Expression[]::new);
 
         query.multiselect(selections).groupBy(groupings);
@@ -113,13 +116,15 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         assertThat(result)
             .isNotEmpty()
             .hasSize(7)
-            .contains(new Object[]{"variable1", 1L},
-                new Object[]{"variable2", 1L},
-                new Object[]{"variable3", 1L},
-                new Object[]{"variable4", 1L},
-                new Object[]{"variable5", 2L},
-                new Object[]{"variable6", 1L},
-                new Object[]{"variable7", 1L});
+            .contains(
+                new Object[] { "variable1", 1L },
+                new Object[] { "variable2", 1L },
+                new Object[] { "variable3", 1L },
+                new Object[] { "variable4", 1L },
+                new Object[] { "variable5", 2L },
+                new Object[] { "variable6", 1L },
+                new Object[] { "variable7", 1L }
+            );
     }
 
     @Test
@@ -130,7 +135,9 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         Root<TaskVariableEntity> taskVariable = query.from(TaskVariableEntity.class);
         var taskJoin = taskVariable.join("task");
 
-        Selection<?>[] selections = List.of(taskVariable.get("name").alias("by"),cb.count(taskJoin).alias("count")).toArray(Selection[]::new);
+        Selection<?>[] selections = List
+            .of(taskVariable.get("name").alias("by"), cb.count(taskJoin).alias("count"))
+            .toArray(Selection[]::new);
         Expression<?>[] groupings = List.of(taskVariable.get("name")).toArray(Expression[]::new);
 
         query.multiselect(selections).groupBy(groupings);
@@ -142,13 +149,15 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         assertThat(result)
             .isNotEmpty()
             .hasSize(7)
-            .contains(Map.of("by", "variable1", "count", 1L),
+            .contains(
+                Map.of("by", "variable1", "count", 1L),
                 Map.of("by", "variable2", "count", 1L),
                 Map.of("by", "variable3", "count", 1L),
                 Map.of("by", "variable4", "count", 1L),
                 Map.of("by", "variable5", "count", 2L),
                 Map.of("by", "variable6", "count", 1L),
-                Map.of("by", "variable7", "count", 1L));
+                Map.of("by", "variable7", "count", 1L)
+            );
     }
 
     @Test
@@ -168,10 +177,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         List<Object> result = entityManager.createQuery(query).getResultList();
 
         // then:
-        assertThat(result)
-            .isNotEmpty()
-            .hasSize(1)
-            .contains(6L);
+        assertThat(result).isNotEmpty().hasSize(1).contains(6L);
     }
 
     @Test
@@ -191,10 +197,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         List<Object> result = entityManager.createQuery(query).getResultList();
 
         // then:
-        assertThat(result)
-            .isNotEmpty()
-            .hasSize(1)
-            .contains(8L);
+        assertThat(result).isNotEmpty().hasSize(1).contains(8L);
     }
 
     @Test
@@ -205,7 +208,9 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         Root<TaskEntity> tasks = query.from(TaskEntity.class);
         var variablesJoin = tasks.join("variables");
 
-        Selection<?>[] selections = List.of(variablesJoin.get("name"), cb.count(variablesJoin)).toArray(Selection[]::new);
+        Selection<?>[] selections = List
+            .of(variablesJoin.get("name"), cb.count(variablesJoin))
+            .toArray(Selection[]::new);
         Expression<?>[] groupings = List.of(variablesJoin.get("name")).toArray(Expression[]::new);
 
         query.distinct(true).multiselect(selections).groupBy(groupings);
@@ -217,13 +222,15 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         assertThat(result)
             .isNotEmpty()
             .hasSize(7)
-            .contains(new Object[]{"variable1", 1L},
-                new Object[]{"variable2", 1L},
-                new Object[]{"variable3", 1L},
-                new Object[]{"variable4", 1L},
-                new Object[]{"variable5", 2L},
-                new Object[]{"variable6", 1L},
-                new Object[]{"variable7", 1L});
+            .contains(
+                new Object[] { "variable1", 1L },
+                new Object[] { "variable2", 1L },
+                new Object[] { "variable3", 1L },
+                new Object[] { "variable4", 1L },
+                new Object[] { "variable5", 2L },
+                new Object[] { "variable6", 1L },
+                new Object[] { "variable7", 1L }
+            );
     }
 
     @Test
@@ -231,34 +238,34 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         //given
         String query =
             "query {" +
-                "  Tasks(where: {" +
-                "    status: {EQ: COMPLETED}" +
-                "    AND: [" +
-                "      {  " +
-                "         variables: {" +
-                "           name: {EQ: \"variable1\"}" +
-                "        value: {EQ: \"data\"}" +
-                "        }" +
-                "      }" +
-                "    ]" +
-                "  }) {" +
-                "    select {" +
-                "      id" +
-                "      status" +
-                "      variables(where: {name: {IN: [\"variable2\",\"variable1\"]}} ) {" +
-                "        name" +
-                "        value" +
-                "      }" +
-                "    }" +
-                "  }" +
-                "}";
+            "  Tasks(where: {" +
+            "    status: {EQ: COMPLETED}" +
+            "    AND: [" +
+            "      {  " +
+            "         variables: {" +
+            "           name: {EQ: \"variable1\"}" +
+            "        value: {EQ: \"data\"}" +
+            "        }" +
+            "      }" +
+            "    ]" +
+            "  }) {" +
+            "    select {" +
+            "      id" +
+            "      status" +
+            "      variables(where: {name: {IN: [\"variable2\",\"variable1\"]}} ) {" +
+            "        name" +
+            "        value" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
 
         String expected =
             "{Tasks={select=[" +
-                "{id=1, status=COMPLETED, variables=[" +
-                "{name=variable1, value=data}, " +
-                "{name=variable2, value=true}]}" +
-                "]}}";
+            "{id=1, status=COMPLETED, variables=[" +
+            "{name=variable1, value=data}, " +
+            "{name=variable2, value=true}]}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -270,7 +277,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryTasksVariablesAggregateCount() {
         //given
-        String query = """
+        String query =
+            """
                 query {
                   Tasks(
                     where: {
@@ -288,8 +296,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                 }
             """;
 
-        String expected =
-            "{Tasks={select=[{id=1, status=COMPLETED}, {id=5, status=COMPLETED}], aggregate={count=2}}}";
+        String expected = "{Tasks={select=[{id=1, status=COMPLETED}, {id=5, status=COMPLETED}], aggregate={count=2}}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -301,7 +308,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryTasksVariablesNestedAggregateCount() {
         //given
-        String query = """
+        String query =
+            """
                 query {
                   Tasks(
                     where: {
@@ -333,7 +341,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryVariablesTaskNestedAggregateCount() {
         //given
-        String query = """
+        String query =
+            """
                 query {
                   TaskVariables {
                     aggregate {
@@ -344,8 +353,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                 }
             """;
 
-        String expected =
-            "{TaskVariables={aggregate={count=8, tasks=8}}}";
+        String expected = "{TaskVariables={aggregate={count=8, tasks=8}}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -357,7 +365,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryVariablesTaskNestedAggregateCountWhere() {
         //given
-        String query = """
+        String query =
+            """
                 query {
                   TaskVariables(where:{task: {status: {EQ: COMPLETED}}}) {
                     aggregate {
@@ -368,8 +377,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                 }
             """;
 
-        String expected =
-            "{TaskVariables={aggregate={count=2, tasks=2}}}";
+        String expected = "{TaskVariables={aggregate={count=2, tasks=2}}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -381,7 +389,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryVariablesTaskNestedAggregateCountGroupBy() {
         //given
-        String query = """
+        String query =
+            """
             query {
               TaskVariables {
                 aggregate {
@@ -409,7 +418,8 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
     @Test
     public void queryVariablesTaskNestedAggregateCountGroupByMultipleFields() {
         //given
-        String query = """
+        String query =
+            """
             query {
               TaskVariables {
                 aggregate {
@@ -434,6 +444,4 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getData().toString()).isEqualTo(expected);
     }
-
-
 }

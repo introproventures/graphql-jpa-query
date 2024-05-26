@@ -55,16 +55,18 @@ public class Application {
                         newScalar()
                             .name("VariableValue")
                             .description("VariableValue type")
-                            .coercing(new JavaScalars.GraphQLObjectCoercing() {
-                                public Object serialize(final Object input) {
-                                    return Optional
-                                        .ofNullable(input)
-                                        .filter(VariableValue.class::isInstance)
-                                        .map(VariableValue.class::cast)
-                                        .map(it -> Optional.ofNullable(it.getValue()).orElse("null"))
-                                        .orElse(input);
+                            .coercing(
+                                new JavaScalars.GraphQLObjectCoercing() {
+                                    public Object serialize(final Object input) {
+                                        return Optional
+                                            .ofNullable(input)
+                                            .filter(VariableValue.class::isInstance)
+                                            .map(VariableValue.class::cast)
+                                            .map(it -> Optional.ofNullable(it.getValue()).orElse("null"))
+                                            .orElse(input);
+                                    }
                                 }
-                            })
+                            )
                             .build()
                     )
                     .scalar(

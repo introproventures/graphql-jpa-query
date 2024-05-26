@@ -449,58 +449,63 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .map(name -> newEnumValueDefinition().name(name).build())
             .toList();
 
-        if (entityType.getAttributes()
-            .stream()
-            .anyMatch(Attribute::isAssociation)) {
-            countFieldDefinition
-                .argument(newArgument()
+        if (entityType.getAttributes().stream().anyMatch(Attribute::isAssociation)) {
+            countFieldDefinition.argument(
+                newArgument()
                     .name("of")
-                    .type(newEnum()
-                        .name(aggregateObjectTypeName.concat("CountOfAssociationsEnum"))
-                        .values(associationEnumValueDefinitions)
-                        .build()));
+                    .type(
+                        newEnum()
+                            .name(aggregateObjectTypeName.concat("CountOfAssociationsEnum"))
+                            .values(associationEnumValueDefinitions)
+                            .build()
+                    )
+            );
         }
-
 
         var groupFieldDefinition = newFieldDefinition()
             .name("group")
             .dataFetcher(aggregateDataFetcher)
-            .type(new GraphQLList(newObject()
-                .name(aggregateObjectTypeName.concat("GroupBy"))
-                .field(newFieldDefinition()
-                    .name("by")
-                    .dataFetcher(aggregateDataFetcher)
-                    .argument(newArgument()
-                        .name("field")
-                        .type(newEnum()
-                            .name(aggregateObjectTypeName.concat("GroupByFieldsEnum"))
-                            .values(fieldsEnumValueDefinitions)
-                            .build()))
-                    .type(GraphQLString))
-                .field(newFieldDefinition()
-                    .name("count")
-                    .type(GraphQLInt))
-                .build()));
+            .type(
+                new GraphQLList(
+                    newObject()
+                        .name(aggregateObjectTypeName.concat("GroupBy"))
+                        .field(
+                            newFieldDefinition()
+                                .name("by")
+                                .dataFetcher(aggregateDataFetcher)
+                                .argument(
+                                    newArgument()
+                                        .name("field")
+                                        .type(
+                                            newEnum()
+                                                .name(aggregateObjectTypeName.concat("GroupByFieldsEnum"))
+                                                .values(fieldsEnumValueDefinitions)
+                                                .build()
+                                        )
+                                )
+                                .type(GraphQLString)
+                        )
+                        .field(newFieldDefinition().name("count").type(GraphQLInt))
+                        .build()
+                )
+            );
 
-        if (entityType.getAttributes()
-            .stream()
-            .anyMatch(Attribute::isAssociation)) {
-            groupFieldDefinition
-                .argument(newArgument()
+        if (entityType.getAttributes().stream().anyMatch(Attribute::isAssociation)) {
+            groupFieldDefinition.argument(
+                newArgument()
                     .name("of")
-                    .type(newEnum()
-                        .name(aggregateObjectTypeName.concat("GroupOfAssociationsEnum"))
-                        .values(associationEnumValueDefinitions)
-                        .build()));
+                    .type(
+                        newEnum()
+                            .name(aggregateObjectTypeName.concat("GroupOfAssociationsEnum"))
+                            .values(associationEnumValueDefinitions)
+                            .build()
+                    )
+            );
         }
 
-        aggregateObjectType
-            .field(countFieldDefinition)
-            .field(groupFieldDefinition);
+        aggregateObjectType.field(countFieldDefinition).field(groupFieldDefinition);
 
-        var aggregateFieldDefinition = newFieldDefinition()
-            .name("aggregate")
-            .type(aggregateObjectType);
+        var aggregateFieldDefinition = newFieldDefinition().name("aggregate").type(aggregateObjectType);
 
         return aggregateFieldDefinition.build();
     }
@@ -1211,8 +1216,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         DataFetcher dataFetcher = PropertyDataFetcher.fetching(attribute.getName());
 
         // Only add the orderBy argument for basic attribute types
-        if (isBasic(attribute) && isNotIgnoredOrder(attribute)
-        ) {
+        if (isBasic(attribute) && isNotIgnoredOrder(attribute)) {
             arguments.add(
                 GraphQLArgument
                     .newArgument()
@@ -1235,9 +1239,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // to-one end could be optional
             arguments.add(optionalArgument(singularAttribute.isOptional()));
 
-            GraphQLObjectType entityObjectType = newObject()
-                .name(resolveEntityObjectTypeName(baseEntity))
-                .build();
+            GraphQLObjectType entityObjectType = newObject().name(resolveEntityObjectTypeName(baseEntity)).build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
@@ -1273,9 +1275,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             // make it configurable via builder api
             arguments.add(optionalArgument(toManyDefaultOptional));
 
-            GraphQLObjectType entityObjectType = newObject()
-                .name(resolveEntityObjectTypeName(baseEntity))
-                .build();
+            GraphQLObjectType entityObjectType = newObject().name(resolveEntityObjectTypeName(baseEntity)).build();
 
             GraphQLJpaQueryFactory graphQLJpaQueryFactory = GraphQLJpaQueryFactory
                 .builder()
@@ -1420,8 +1420,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     }
 
     protected final boolean isBasic(Attribute<?, ?> attribute) {
-        return attribute instanceof SingularAttribute &&
-            attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC;
+        return (
+            attribute instanceof SingularAttribute &&
+            attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC
+        );
     }
 
     protected final boolean isElementCollection(Attribute<?, ?> attribute) {
@@ -1446,17 +1448,21 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         );
     }
 
-    private boolean isPlural(Attribute<?,?> attribute) {
-        return attribute instanceof PluralAttribute &&
+    private boolean isPlural(Attribute<?, ?> attribute) {
+        return (
+            attribute instanceof PluralAttribute &&
             (
                 attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.ONE_TO_MANY ||
-                    attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY
-            );
+                attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.MANY_TO_MANY
+            )
+        );
     }
 
-    private boolean isSingular(Attribute<?,?> attribute) {
-        return attribute instanceof SingularAttribute &&
-            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC;
+    private boolean isSingular(Attribute<?, ?> attribute) {
+        return (
+            attribute instanceof SingularAttribute &&
+            attribute.getPersistentAttributeType() != Attribute.PersistentAttributeType.BASIC
+        );
     }
 
     protected final boolean isValidInput(Attribute<?, ?> attribute) {

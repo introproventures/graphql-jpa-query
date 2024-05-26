@@ -356,7 +356,11 @@ public final class GraphQLJpaQueryFactory {
         return 0L;
     }
 
-    public Long queryAggregateCount(String aggregate, DataFetchingEnvironment environment, Optional<List<Object>> restrictedKeys) {
+    public Long queryAggregateCount(
+        String aggregate,
+        DataFetchingEnvironment environment,
+        Optional<List<Object>> restrictedKeys
+    ) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
 
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
@@ -379,7 +383,13 @@ public final class GraphQLJpaQueryFactory {
         return 0L;
     }
 
-    public List<Map> queryAggregateGroupByCount(String alias, Optional<String> countOf, DataFetchingEnvironment environment, Optional<List<Object>> restrictedKeys, Map.Entry<String,String>... groupings) {
+    public List<Map> queryAggregateGroupByCount(
+        String alias,
+        Optional<String> countOf,
+        DataFetchingEnvironment environment,
+        Optional<List<Object>> restrictedKeys,
+        Map.Entry<String, String>... groupings
+    ) {
         final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
 
         final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
@@ -451,11 +461,17 @@ public final class GraphQLJpaQueryFactory {
         return entityManager.createQuery(query);
     }
 
-    protected TypedQuery<Long> getAggregateCountQuery(DataFetchingEnvironment environment, Field field, String aggregate, List<Object> keys, String... groupings) {
+    protected TypedQuery<Long> getAggregateCountQuery(
+        DataFetchingEnvironment environment,
+        Field field,
+        String aggregate,
+        List<Object> keys,
+        String... groupings
+    ) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<?> root = query.from(entityType);
-        Join<?,?> join = root.join(aggregate);
+        Join<?, ?> join = root.join(aggregate);
 
         DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder
             .newDataFetchingEnvironment(environment)
@@ -482,7 +498,14 @@ public final class GraphQLJpaQueryFactory {
         return entityManager.createQuery(query);
     }
 
-    protected TypedQuery<Map> getAggregateGroupByCountQuery(DataFetchingEnvironment environment, Field field, String alias, Optional<String> countOfJoin, List<Object> keys, Map.Entry<String,String>... groupBy) {
+    protected TypedQuery<Map> getAggregateGroupByCountQuery(
+        DataFetchingEnvironment environment,
+        Field field,
+        String alias,
+        Optional<String> countOfJoin,
+        List<Object> keys,
+        Map.Entry<String, String>... groupBy
+    ) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaQuery<Map> query = cb.createQuery(Map.class);
         final Root<?> root = query.from(entityType);
@@ -494,20 +517,17 @@ public final class GraphQLJpaQueryFactory {
 
         final List<Selection<?>> selections = new ArrayList<>();
 
-        Stream.of(groupBy)
-            .map(group ->  root.get(group.getValue()).alias(group.getKey()))
-            .forEach(selections::add);
+        Stream.of(groupBy).map(group -> root.get(group.getValue()).alias(group.getKey())).forEach(selections::add);
 
         final Expression<?>[] groupings = Stream
             .of(groupBy)
-            .map(group ->  root.get(group.getValue()))
+            .map(group -> root.get(group.getValue()))
             .toArray(Expression[]::new);
 
-        countOfJoin
-            .ifPresentOrElse(
-                it ->selections.add(cb.count(root.join(it)).alias(alias)),
-                () -> selections.add(cb.count(root).alias(alias))
-            );
+        countOfJoin.ifPresentOrElse(
+            it -> selections.add(cb.count(root.join(it)).alias(alias)),
+            () -> selections.add(cb.count(root).alias(alias))
+        );
 
         query.multiselect(selections).groupBy(groupings);
 
