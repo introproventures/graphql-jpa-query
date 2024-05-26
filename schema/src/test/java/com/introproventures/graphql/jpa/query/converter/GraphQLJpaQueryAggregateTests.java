@@ -29,6 +29,7 @@ import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
 import graphql.ExecutionResult;
+import graphql.GraphQLError;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -437,6 +438,147 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
 
         String expected =
             "{TaskVariables={aggregate={group=[{name=variable1, value=data, count=1}, {name=variable2, value=true, count=1}, {name=variable3, value=null, count=1}, {name=variable4, value={key=data}, count=1}, {name=variable5, value=1.2345, count=2}, {name=variable6, value=12345, count=1}, {name=variable7, value=[1, 2, 3, 4, 5], count=1}]}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountGroupByEmptyFields() {
+        //given
+        String query =
+            """
+            query {
+              TaskVariables {
+                aggregate {
+                  # Aggregate by group of fields
+                  group {
+                    count
+                  }
+                }
+              }
+            }
+            """;
+
+        String expected =
+            "{TaskVariables={aggregate={group=[{name=variable1, value=data, count=1}, {name=variable2, value=true, count=1}, {name=variable3, value=null, count=1}, {name=variable4, value={key=data}, count=1}, {name=variable5, value=1.2345, count=2}, {name=variable6, value=12345, count=1}, {name=variable7, value=[1, 2, 3, 4, 5], count=1}]}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors())
+            .isNotEmpty()
+            .extracting(GraphQLError::getMessage)
+            .anyMatch(message -> message.contains("At least one field is required for aggregate group"));
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountGroupByMissingCount() {
+        //given
+        String query =
+            """
+            query {
+              TaskVariables {
+                aggregate {
+                  # Aggregate by group of fields
+                  group {
+                    by(field: name)
+                  }
+                }
+              }
+            }
+            """;
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors())
+            .isNotEmpty()
+            .extracting(GraphQLError::getMessage)
+            .anyMatch(message -> message.contains("Missing aggregate count for group"));
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountByMultipleFields() {
+        //given
+        String query =
+            """
+            query {
+              TaskVariables(
+                # Apply filter criteria
+                where: {name: {IN: ["variable1", "variable5"]}}
+              ) {
+                aggregate {
+                  # count by variables
+                  variables: count
+                  # Count by associated tasks
+                  tasks: count(of: task)
+                }
+              }
+            }
+            """;
+
+        String expected = "{TaskVariables={aggregate={variables=3, tasks=3}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountByMultipleEntities() {
+        //given
+        String query =
+            """
+            query {
+                TaskVariables
+                  # Apply filter criteria
+                  (where: {name: {IN: ["variable1", "variable5"]}})
+                {
+                  aggregate {
+                    # count by variables
+                    totalVariables: count
+                    # Count by associated tasks
+                    totalTasks: count(of: task)
+                    # Group by task variable entity fields
+                    groupByNameValue: group {
+                      # Use aliases to group by multiple fields
+                      name: by(field: name)
+                      value: by(field: value)
+                      # Count aggregate
+                      count
+                    }
+                    # Group by associated tasks
+                    groupTasksByVariableName: group(of: task) {
+                      variable: by(field: name)
+                      count
+                    }
+                  }
+                }
+                Tasks {
+                  aggregate {
+                    totalTasks: count
+                    totalVariables: count(of: variables)
+                    groupByStatus: group {
+                      status: by(field: status)
+                      count
+                    }
+                  }
+                }
+            }
+            """;
+
+        String expected =
+            "{TaskVariables={aggregate={totalVariables=3, totalTasks=3, groupByNameValue=[{name=variable1, value=data, count=1}, {name=variable5, value=1.2345, count=2}], groupTasksByVariableName=[{variable=variable1, count=1}, {variable=variable5, count=2}]}}, Tasks={aggregate={totalTasks=6, totalVariables=8, groupByStatus=[{status=ASSIGNED, count=1}, {status=COMPLETED, count=2}, {status=CREATED, count=3}]}}}";
 
         //when
         ExecutionResult result = executor.execute(query);
