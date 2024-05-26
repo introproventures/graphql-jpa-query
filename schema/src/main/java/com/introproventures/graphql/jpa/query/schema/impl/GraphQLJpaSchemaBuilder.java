@@ -147,6 +147,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private boolean toManyDefaultOptional = true; // the many end is a collection, and it is always optional by default (empty collection)
     private boolean enableSubscription = false; // experimental
     private boolean enableRelay = false; // experimental
+    private boolean enableAggregate = false; // experimental
     private int defaultMaxResults = 100;
     private int defaultFetchSize = 100;
     private int defaultPageLimitSize = 100;
@@ -380,7 +381,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         final GraphQLObjectType selectObjectType = getEntityObjectType(entityType);
         final var selectTypeName = resolveSelectTypeName(entityType);
 
-        GraphQLObjectType selectPagedResultType = newObject()
+        var selectPagedResultType = newObject()
             .name(selectTypeName)
             .description(
                 "Query response wrapper object for " +
@@ -407,11 +408,13 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .description("The queried records container")
                     .type(new GraphQLList(selectObjectType))
                     .build()
-            )
-            .field(getAggregateFieldDefinition(entityType))
-            .build();
+            );
 
-        return selectPagedResultType;
+        if (enableAggregate) {
+            selectPagedResultType.field(getAggregateFieldDefinition(entityType));
+        }
+
+        return selectPagedResultType.build();
     }
 
     private GraphQLFieldDefinition getAggregateFieldDefinition(EntityType<?> entityType) {
@@ -1683,6 +1686,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     @Deprecated
     public void setNamingStrategy(NamingStrategy namingStrategy) {
         this.namingStrategy = namingStrategy;
+    }
+
+    public GraphQLSchemaBuilder enableAggregate(boolean enableAggregate) {
+        this.enableAggregate = enableAggregate;
+
+        return this;
     }
 
     static class NoOpCoercing implements Coercing<Object, Object> {

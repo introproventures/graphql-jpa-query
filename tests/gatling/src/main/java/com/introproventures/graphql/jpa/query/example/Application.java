@@ -50,6 +50,7 @@ public class Application {
                 builder
                     .name("Query")
                     .description("Activiti Cloud Query Schema")
+                    .enableAggregate(true)
                     .scalar(
                         VariableValue.class,
                         newScalar()

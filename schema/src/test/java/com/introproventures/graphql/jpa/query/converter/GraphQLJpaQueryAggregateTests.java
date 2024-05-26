@@ -66,6 +66,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
             return new GraphQLJpaSchemaBuilder(entityManager)
                 .name("CustomAttributeConverterSchema")
                 .description("Custom Attribute Converter Schema")
+                .enableAggregate(true)
                 .scalar(
                     VariableValue.class,
                     newScalar()
