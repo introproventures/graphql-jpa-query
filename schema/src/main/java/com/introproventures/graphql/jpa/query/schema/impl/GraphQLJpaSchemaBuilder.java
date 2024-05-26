@@ -19,7 +19,6 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 import static com.introproventures.graphql.jpa.query.support.GraphQLSupport.getAliasOrName;
 import static graphql.Scalars.GraphQLBoolean;
 import static graphql.Scalars.GraphQLInt;
-import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLEnumValueDefinition.newEnumValueDefinition;
@@ -486,7 +485,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                 .build()
                                         )
                                 )
-                                .type(GraphQLString)
+                                .type(JavaScalars.GraphQLObjectScalar)
                         )
                         .field(newFieldDefinition().name("count").type(GraphQLInt))
                         .build()
