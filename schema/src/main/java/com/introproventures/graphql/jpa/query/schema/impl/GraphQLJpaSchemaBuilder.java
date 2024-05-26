@@ -444,7 +444,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .getAttributes()
             .stream()
             .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
-            .filter(this::isBasic)
+            .filter(it -> isBasic(it) || isEmbeddable(it))
             .map(Attribute::getName)
             .map(name -> newEnumValueDefinition().name(name).build())
             .toList();
