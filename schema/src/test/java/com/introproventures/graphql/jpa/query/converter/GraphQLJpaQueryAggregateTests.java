@@ -587,4 +587,115 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getData().toString()).isEqualTo(expected);
     }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountByNestedAssociation() {
+        //given
+        String query =
+            """
+                query {
+                  TaskVariables(
+                    # Apply filter criteria
+                    where: {name: {IN: ["variable1", "variable5"]}}
+                  ) {
+                    aggregate {
+                      # count by variables
+                      variables: count
+                      # Count by associated tasks
+                      tasks: task {
+                        by(field: status)
+                        count
+                      }
+                    }
+                  }
+                }
+            """;
+
+        String expected =
+            "{TaskVariables={aggregate={variables=3, tasks=[{by=COMPLETED, count=1}, {by=CREATED, count=2}]}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountByNestedAssociationAlias() {
+        //given
+        String query =
+            """
+                query {
+                  TaskVariables(
+                    # Apply filter criteria
+                    where: {name: {IN: ["variable1", "variable5"]}}
+                  ) {
+                    aggregate {
+                      # count by variables
+                      variables: count
+                      # Count by associated tasks
+                      tasks: task {
+                        status: by(field: status)
+                        count
+                      }
+                    }
+                  }
+                }
+            """;
+
+        String expected =
+            "{TaskVariables={aggregate={variables=3, tasks=[{status=COMPLETED, count=1}, {status=CREATED, count=2}]}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryVariablesTaskNestedAggregateCountByNestedAssociationMultipleAliases() {
+        //given
+        String query =
+            """
+                query {
+                  TaskVariables(
+                    # Apply filter criteria
+                    where: {name: {IN: ["variable1", "variable5"]}}
+                  ) {
+                    aggregate {
+                      # count by variables
+                      variables: count
+                      # Count by associated tasks
+                      groupByVariableName: group {
+                        name: by(field: name)
+                        count
+                      }
+                      groupByTaskStatus: task {
+                        status: by(field: status)
+                        count
+                      }
+                      # Count by associated tasks
+                      groupByTaskAssignee: task {
+                        assignee: by(field: assignee)
+                        count
+                      }
+                    }
+                  }
+                }
+            """;
+
+        String expected =
+            "{TaskVariables={aggregate={variables=3, groupByVariableName=[{name=variable1, count=1}, {name=variable5, count=2}], groupByTaskStatus=[{status=COMPLETED, count=1}, {status=CREATED, count=2}], groupByTaskAssignee=[{assignee=assignee, count=3}]}}}";
+
+        //when
+        ExecutionResult result = executor.execute(query);
+
+        // then
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().toString()).isEqualTo(expected);
+    }
 }

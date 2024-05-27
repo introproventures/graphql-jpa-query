@@ -414,6 +414,37 @@ public final class GraphQLJpaQueryFactory {
         return Collections.emptyList();
     }
 
+    public List<Map> queryAggregateGroupByAssociationCount(
+        String countAlias,
+        String association,
+        DataFetchingEnvironment environment,
+        Optional<List<Object>> restrictedKeys,
+        Map.Entry<String, String>... groupings
+    ) {
+        final MergedField queryField = flattenEmbeddedIdArguments(environment.getField());
+
+        final DataFetchingEnvironment queryEnvironment = getQueryEnvironment(environment, queryField);
+
+        if (restrictedKeys.isPresent()) {
+            TypedQuery<Map> countQuery = getAggregateGroupByAssociationCountQuery(
+                queryEnvironment,
+                queryEnvironment.getField(),
+                countAlias,
+                association,
+                restrictedKeys.get(),
+                groupings
+            );
+
+            if (logger.isDebugEnabled()) {
+                logger.info("\nGraphQL JPQL Count Query String:\n    {}", getJPQLQueryString(countQuery));
+            }
+
+            return countQuery.getResultList();
+        }
+
+        return Collections.emptyList();
+    }
+
     protected <T> TypedQuery<T> getQuery(
         DataFetchingEnvironment environment,
         Field field,
@@ -528,6 +559,55 @@ public final class GraphQLJpaQueryFactory {
             it -> selections.add(cb.count(root.join(it)).alias(alias)),
             () -> selections.add(cb.count(root).alias(alias))
         );
+
+        query.multiselect(selections).groupBy(groupings);
+
+        List<Predicate> predicates = field
+            .getArguments()
+            .stream()
+            .map(it -> getPredicate(field, cb, root, null, queryEnvironment, it))
+            .filter(it -> it != null)
+            .collect(Collectors.toList());
+
+        if (!keys.isEmpty() && hasIdAttribute()) {
+            Predicate restrictions = root.get(idAttributeName()).in(keys);
+            predicates.add(restrictions);
+        }
+
+        query.where(predicates.toArray(new Predicate[0]));
+
+        return entityManager.createQuery(query);
+    }
+
+    protected TypedQuery<Map> getAggregateGroupByAssociationCountQuery(
+        DataFetchingEnvironment environment,
+        Field field,
+        String countAlias,
+        String association,
+        List<Object> keys,
+        Map.Entry<String, String>... groupBy
+    ) {
+        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        final CriteriaQuery<Map> query = cb.createQuery(Map.class);
+        final Root<?> root = query.from(entityType);
+        final Join<?, ?> join = root.join(association);
+
+        final DataFetchingEnvironment queryEnvironment = DataFetchingEnvironmentBuilder
+            .newDataFetchingEnvironment(environment)
+            .root(query)
+            .localContext(Boolean.FALSE) // Join mode
+            .build();
+
+        final List<Selection<?>> selections = new ArrayList<>();
+
+        Stream.of(groupBy).map(group -> join.get(group.getValue()).alias(group.getKey())).forEach(selections::add);
+
+        selections.add(cb.count(join).alias(countAlias));
+
+        final Expression<?>[] groupings = Stream
+            .of(groupBy)
+            .map(group -> join.get(group.getValue()))
+            .toArray(Expression[]::new);
 
         query.multiselect(selections).groupBy(groupings);
 

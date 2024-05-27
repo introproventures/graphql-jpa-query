@@ -35,6 +35,7 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,6 +174,57 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                         .toList();
 
                     aggregate.put(getAliasOrName(groupField), resultList);
+                });
+
+            aggregateField
+                .getSelectionSet()
+                .getSelections()
+                .stream()
+                .filter(Field.class::isInstance)
+                .map(Field.class::cast )
+                .filter(it -> !Arrays.asList("count","group").contains(it.getName()))
+                .forEach(groupField -> {
+                    var countField = getFields(groupField.getSelectionSet(), "count")
+                        .stream()
+                        .findFirst()
+                        .orElseThrow(() -> new GraphQLException("Missing aggregate count for group: " + groupField));
+
+                    Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), "by")
+                        .stream()
+                        .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
+                        .toArray(Map.Entry[]::new);
+
+                    if (groupings.length == 0) {
+                        throw new GraphQLException("At least one field is required for aggregate group: " + groupField);
+                    }
+
+                    var resultList = queryFactory
+                        .queryAggregateGroupByAssociationCount(
+                            getAliasOrName(countField),
+                            groupField.getName(),
+                            environment,
+                            restrictedKeys,
+                            groupings
+                        )
+                        .stream()
+                        .peek(map ->
+                            Stream
+                                .of(groupings)
+                                .forEach(group -> {
+                                    var value = map.get(group.getKey());
+
+                                    Optional
+                                        .ofNullable(value)
+                                        .map(Object::getClass)
+                                        .map(JavaScalars::of)
+                                        .map(GraphQLScalarType::getCoercing)
+                                        .ifPresent(coercing -> map.put(group.getKey(), coercing.serialize(value)));
+                                })
+                        )
+                        .toList();
+
+                    aggregate.put(getAliasOrName(groupField), resultList);
+
                 });
 
             pagedResult.withAggregate(aggregate);
