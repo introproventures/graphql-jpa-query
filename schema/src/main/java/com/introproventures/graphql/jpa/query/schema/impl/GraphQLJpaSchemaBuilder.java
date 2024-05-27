@@ -512,9 +512,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
             .filter(Attribute::isAssociation)
             .forEach(association -> {
-                var javaType = isPlural(association) ? PluralAttribute.class.cast(association).getBindableJavaType() : association.getJavaType();
+                var javaType = isPlural(association)
+                    ? PluralAttribute.class.cast(association).getBindableJavaType()
+                    : association.getJavaType();
                 var attributes = EntityIntrospector.resultOf(javaType).getAttributes();
-                var fields =  attributes
+                var fields = attributes
                     .values()
                     .stream()
                     .filter(it -> isBasic(it) || isEmbeddable(it))
@@ -527,32 +529,41 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                         newFieldDefinition()
                             .name(association.getName())
                             .dataFetcher(aggregateDataFetcher)
-                            .type(new GraphQLList(
-                                newObject()
-                                .name(aggregateObjectTypeName.concat(capitalize(association.getName())).concat("GroupByNestedAssociation"))
-                                .field(                            newFieldDefinition()
-                                    .name("by")
-                                    .dataFetcher(aggregateDataFetcher)
-                                    .argument(
-                                        newArgument()
-                                            .name("field")
-                                            .type(
-                                                newEnum()
-                                                    .name(aggregateObjectTypeName.concat(capitalize(association.getName())).concat("GroupByNestedAssociationEnum"))
-                                                    .values(fields)
-                                                    .build()
-                                            )
-                                    )
-                                    .type(JavaScalars.GraphQLObjectScalar)
+                            .type(
+                                new GraphQLList(
+                                    newObject()
+                                        .name(
+                                            aggregateObjectTypeName
+                                                .concat(capitalize(association.getName()))
+                                                .concat("GroupByNestedAssociation")
+                                        )
+                                        .field(
+                                            newFieldDefinition()
+                                                .name("by")
+                                                .dataFetcher(aggregateDataFetcher)
+                                                .argument(
+                                                    newArgument()
+                                                        .name("field")
+                                                        .type(
+                                                            newEnum()
+                                                                .name(
+                                                                    aggregateObjectTypeName
+                                                                        .concat(capitalize(association.getName()))
+                                                                        .concat("GroupByNestedAssociationEnum")
+                                                                )
+                                                                .values(fields)
+                                                                .build()
+                                                        )
+                                                )
+                                                .type(JavaScalars.GraphQLObjectScalar)
+                                        )
+                                        .field(newFieldDefinition().name("count").type(GraphQLInt))
+                                        .build()
                                 )
-                                .field(newFieldDefinition().name("count").type(GraphQLInt))
-                                .build()
                             )
-                        )
                     );
                 }
             });
-
 
         aggregateObjectType.field(countFieldDefinition).field(groupFieldDefinition);
 

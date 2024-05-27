@@ -181,8 +181,8 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                 .getSelections()
                 .stream()
                 .filter(Field.class::isInstance)
-                .map(Field.class::cast )
-                .filter(it -> !Arrays.asList("count","group").contains(it.getName()))
+                .map(Field.class::cast)
+                .filter(it -> !Arrays.asList("count", "group").contains(it.getName()))
                 .forEach(groupField -> {
                     var countField = getFields(groupField.getSelectionSet(), "count")
                         .stream()
@@ -224,7 +224,6 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                         .toList();
 
                     aggregate.put(getAliasOrName(groupField), resultList);
-
                 });
 
             pagedResult.withAggregate(aggregate);
