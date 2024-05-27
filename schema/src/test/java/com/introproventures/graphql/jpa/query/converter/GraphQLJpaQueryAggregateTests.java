@@ -558,9 +558,9 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                       count
                     }
                     # Group by associated tasks
-                    groupTasksByVariableName: group(of: task) {
+                    groupTasksByVariableName: group {
                       variable: by(field: name)
-                      count
+                      count(of: task)
                     }
                   }
                 }

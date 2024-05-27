@@ -488,23 +488,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                 )
                                 .type(JavaScalars.GraphQLObjectScalar)
                         )
-                        .field(newFieldDefinition().name("count").type(GraphQLInt))
+                        .field(countFieldDefinition)
                         .build()
                 )
             );
-
-        if (entityType.getAttributes().stream().anyMatch(Attribute::isAssociation)) {
-            groupFieldDefinition.argument(
-                newArgument()
-                    .name("of")
-                    .type(
-                        newEnum()
-                            .name(aggregateObjectTypeName.concat("GroupOfAssociationsEnum"))
-                            .values(associationEnumValueDefinitions)
-                            .build()
-                    )
-            );
-        }
 
         entityType
             .getAttributes()

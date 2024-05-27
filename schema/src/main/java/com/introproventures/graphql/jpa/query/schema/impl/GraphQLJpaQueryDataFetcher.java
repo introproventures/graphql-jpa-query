@@ -137,7 +137,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                         .findFirst()
                         .orElseThrow(() -> new GraphQLException("Missing aggregate count for group: " + groupField));
 
-                    var countOfArgumentValue = getCountOfArgument(groupField);
+                    var countOfArgumentValue = getCountOfArgument(countField);
 
                     Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), "by")
                         .stream()
