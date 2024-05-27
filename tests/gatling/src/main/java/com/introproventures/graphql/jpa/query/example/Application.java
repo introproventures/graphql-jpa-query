@@ -63,7 +63,7 @@ public class Application {
                                             .ofNullable(input)
                                             .filter(VariableValue.class::isInstance)
                                             .map(VariableValue.class::cast)
-                                            .map(it -> Optional.ofNullable(it.getValue()).orElse("null"))
+                                            .map(it -> Optional.ofNullable(it.getValue()).orElse(Optional.empty()))
                                             .orElse(input);
                                     }
                                 }
