@@ -17,7 +17,9 @@
 package com.introproventures.graphql.jpa.query.schema.impl;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PagedResult<T> {
 
@@ -26,6 +28,7 @@ public class PagedResult<T> {
     private final long pages;
     private final int offset;
     private final List<T> select;
+    private final Map<String, Object> aggregate;
 
     private PagedResult(Builder<T> builder) {
         this.limit = builder.limit;
@@ -33,6 +36,7 @@ public class PagedResult<T> {
         this.offset = builder.offset;
         this.select = builder.select;
         this.pages = ((Double) Math.ceil(total / (double) limit)).longValue();
+        this.aggregate = builder.aggregate;
     }
 
     public Long getTotal() {
@@ -55,6 +59,10 @@ public class PagedResult<T> {
         return limit;
     }
 
+    public Map<String, Object> getAggregate() {
+        return aggregate;
+    }
+
     /**
      * Creates builder to build {@link PagedResult}.
      * @return created builder
@@ -73,6 +81,7 @@ public class PagedResult<T> {
         private long pages;
         private int offset;
         private List<T> select = Collections.emptyList();
+        private Map<String, Object> aggregate = new LinkedHashMap<>();
 
         private Builder() {}
 
@@ -123,6 +132,16 @@ public class PagedResult<T> {
          */
         public Builder<T> withSelect(List<T> select) {
             this.select = select;
+            return this;
+        }
+
+        /**
+         * Builder method for select parameter.
+         * @param select field to set
+         * @return builder
+         */
+        public Builder<T> withAggregate(Map<String, Object> aggregate) {
+            this.aggregate.putAll(aggregate);
             return this;
         }
 

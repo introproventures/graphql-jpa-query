@@ -136,6 +136,25 @@ public class GraphQLSupport {
         return GraphQLSupport.fields(field.getSelectionSet()).filter(it -> fieldName.equals(it.getName())).findFirst();
     }
 
+    public static Optional<Argument> findArgument(Field selectedField, String name) {
+        return Optional
+            .ofNullable(selectedField.getArguments())
+            .flatMap(arguments -> arguments.stream().filter(argument -> name.equals(argument.getName())).findFirst());
+    }
+
+    public static List<Field> getFields(SelectionSet selections, String fieldName) {
+        return selections
+            .getSelections()
+            .stream()
+            .map(Field.class::cast)
+            .filter(it -> fieldName.equals(it.getName()))
+            .collect(Collectors.toList());
+    }
+
+    public static String getAliasOrName(Field field) {
+        return Optional.ofNullable(field.getAlias()).orElse(field.getName());
+    }
+
     public static Collector<Object, List<Object>, List<Object>> toResultList() {
         return Collector.of(
             ArrayList::new,

@@ -21,6 +21,7 @@ import com.introproventures.graphql.jpa.query.autoconfigure.EnableGraphQLJpaQuer
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
 import com.introproventures.graphql.jpa.query.schema.JavaScalars;
 import java.util.Date;
+import java.util.Optional;
 import org.activiti.cloud.services.query.model.ProcessInstanceEntity;
 import org.activiti.cloud.services.query.model.VariableValue;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,12 +50,24 @@ public class Application {
                 builder
                     .name("Query")
                     .description("Activiti Cloud Query Schema")
+                    .enableAggregate(true)
                     .scalar(
                         VariableValue.class,
                         newScalar()
                             .name("VariableValue")
                             .description("VariableValue type")
-                            .coercing(new JavaScalars.GraphQLObjectCoercing())
+                            .coercing(
+                                new JavaScalars.GraphQLObjectCoercing() {
+                                    public Object serialize(final Object input) {
+                                        return Optional
+                                            .ofNullable(input)
+                                            .filter(VariableValue.class::isInstance)
+                                            .map(VariableValue.class::cast)
+                                            .map(it -> Optional.ofNullable(it.getValue()).orElse(Optional.empty()))
+                                            .orElse(input);
+                                    }
+                                }
+                            )
                             .build()
                     )
                     .scalar(

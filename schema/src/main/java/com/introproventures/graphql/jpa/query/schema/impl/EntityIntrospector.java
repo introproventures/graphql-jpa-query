@@ -441,7 +441,7 @@ public class EntityIntrospector {
     /**
      * Returns a String which capitalizes the first letter of the string.
      */
-    private static String capitalize(String name) {
+    public static String capitalize(String name) {
         if (name == null || name.length() == 0) {
             return name;
         }
