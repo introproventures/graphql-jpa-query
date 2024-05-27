@@ -1,6 +1,7 @@
 # Change Log
 
-## 1.2.6-SNAPSHOT
+## 1.2.6
+* Add optional feature for aggregate count query support on plural entity object types #488 [5ef0f9f](https://github.com/introproventures/graphql-jpa-query/commit/5ef0f9f2b5fdf4f1ac3f1f814b1a44bda68877b1)
 * revert maven-gpg-plugin version to 3.1.0 [3fcb6e3](https://github.com/introproventures/graphql-jpa-query/commit/3fcb6e32df3549f70aaa2b611c81605f746b30fe)
 * Fix where query criteria with multiple associations joins (#485) [026068d](https://github.com/introproventures/graphql-jpa-query/commit/026068df2768d010acc1004760028deefcfd229c)
 * chore(deps): bump spring-boot.version from 3.2.2 to 3.2.3 (#456) [35975f1](https://github.com/introproventures/graphql-jpa-query/commit/35975f104cae8879ab936a72441042ebdbcae2d2)
