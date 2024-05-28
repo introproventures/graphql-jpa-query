@@ -421,7 +421,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         final var selectTypeName = resolveSelectTypeName(entityType);
         final var aggregateObjectTypeName = selectTypeName.concat("Aggregate");
 
-        var aggregateObjectType = newObject().name(aggregateObjectTypeName);
+        var aggregateObjectType = newObject().name(aggregateObjectTypeName).description("%s entity aggregate object type".formatted(selectTypeName));
 
         DataFetcher<Object> aggregateDataFetcher = environment -> {
             Map<String, Object> source = environment.getSource();
@@ -431,6 +431,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         var countFieldDefinition = newFieldDefinition()
             .name("count")
+            .description("Count the number of records in the database for the %s aggregate".formatted(selectTypeName))
             .dataFetcher(aggregateDataFetcher)
             .type(GraphQLInt);
 
@@ -440,7 +441,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
             .filter(Attribute::isAssociation)
             .map(Attribute::getName)
-            .map(name -> newEnumValueDefinition().name(name).build())
+            .map(name -> newEnumValueDefinition().name(name)
+                .description("%s entity associated %s child entity".formatted(selectTypeName, name))
+                .build())
             .toList();
 
         var fieldsEnumValueDefinitions = entityType
@@ -449,16 +452,20 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .filter(it -> EntityIntrospector.introspect(entityType).isNotIgnored(it.getName()))
             .filter(it -> isBasic(it) || isEmbeddable(it))
             .map(Attribute::getName)
-            .map(name -> newEnumValueDefinition().name(name).build())
+            .map(name -> newEnumValueDefinition().name(name)
+                .description("%s entity %s attribute".formatted(selectTypeName, name))
+                .build())
             .toList();
 
         if (entityType.getAttributes().stream().anyMatch(Attribute::isAssociation)) {
             countFieldDefinition.argument(
                 newArgument()
                     .name("of")
+                    .description("Count the number of associated records in the database for the %s aggregate".formatted(selectTypeName))
                     .type(
                         newEnum()
                             .name(aggregateObjectTypeName.concat("CountOfAssociationsEnum"))
+                            .description("%s entity associated entity name values".formatted(selectTypeName))
                             .values(associationEnumValueDefinitions)
                             .build()
                     )
@@ -467,21 +474,26 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         var groupFieldDefinition = newFieldDefinition()
             .name("group")
+            .description("Group by %s entity query field aggregated by multiple fields".formatted(selectTypeName))
             .dataFetcher(aggregateDataFetcher)
             .type(
                 new GraphQLList(
                     newObject()
                         .name(aggregateObjectTypeName.concat("GroupBy"))
+                        .description("%s entity group by object type".formatted(selectTypeName))
                         .field(
                             newFieldDefinition()
                                 .name("by")
+                                .description("Group by %s field container used to query aggregate data by one or more fields".formatted(selectTypeName))
                                 .dataFetcher(aggregateDataFetcher)
                                 .argument(
                                     newArgument()
                                         .name("field")
+                                        .description("Group by field argument used to specify %s entity field name".formatted(selectTypeName))
                                         .type(
                                             newEnum()
                                                 .name(aggregateObjectTypeName.concat("GroupByFieldsEnum"))
+                                                .description("%s entity field name values".formatted(selectTypeName))
                                                 .values(fieldsEnumValueDefinitions)
                                                 .build()
                                         )
@@ -515,6 +527,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     aggregateObjectType.field(
                         newFieldDefinition()
                             .name(association.getName())
+                            .description("Aggregate %s query field definition for the associated %s entity".formatted(selectTypeName, association.getName()))
                             .dataFetcher(aggregateDataFetcher)
                             .type(
                                 new GraphQLList(
@@ -524,13 +537,16 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                 .concat(capitalize(association.getName()))
                                                 .concat("GroupByNestedAssociation")
                                         )
+                                        .description("Aggregate %s query object type for the associated %s entity".formatted(selectTypeName, association.getName()))
                                         .field(
                                             newFieldDefinition()
                                                 .name("by")
                                                 .dataFetcher(aggregateDataFetcher)
+                                                .description("Group by %s attribute field used to query aggregate data by one or more fields".formatted(association.getName()))
                                                 .argument(
                                                     newArgument()
                                                         .name("field")
+                                                        .description("Group by field argument used to specify associated %s entity field name".formatted(association.getName()))
                                                         .type(
                                                             newEnum()
                                                                 .name(
@@ -544,7 +560,9 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                                                 )
                                                 .type(JavaScalars.GraphQLObjectScalar)
                                         )
-                                        .field(newFieldDefinition().name("count").type(GraphQLInt))
+                                        .field(newFieldDefinition().name("count")
+                                            .description("Count the number of records in the database for the %s associated nested aggregate".formatted(association.getName()))
+                                            .type(GraphQLInt))
                                         .build()
                                 )
                             )
@@ -554,7 +572,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
 
         aggregateObjectType.field(countFieldDefinition).field(groupFieldDefinition);
 
-        var aggregateFieldDefinition = newFieldDefinition().name("aggregate").type(aggregateObjectType);
+        var aggregateFieldDefinition = newFieldDefinition().name("aggregate")
+            .description("Aggregate data query field for %s entity".formatted(selectTypeName)).type(aggregateObjectType);
 
         return aggregateFieldDefinition.build();
     }
