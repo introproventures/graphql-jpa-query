@@ -1,6 +1,8 @@
 # Change Log
 
-## 1.2.7-SNAPSHOT
+## 1.2.7
+* Extract aggregate query fields for nested associations into dedicated by field (#490) [4c36f74](https://github.com/introproventures/graphql-jpa-query/commit/4c36f7447690e8bfeede3ad34c991c39559bf454)
+* Add aggregate query schema field and type descriptions (#489) [56c5872](https://github.com/introproventures/graphql-jpa-query/commit/56c5872e1148b7cf58c242ba233f3e39ff046349)
 * Add optional feature for aggregate count query support on plural entity object types #488 [5ef0f9f](https://github.com/introproventures/graphql-jpa-query/commit/5ef0f9f2b5fdf4f1ac3f1f814b1a44bda68877b1)
 * revert maven-gpg-plugin version to 3.1.0 [3fcb6e3](https://github.com/introproventures/graphql-jpa-query/commit/3fcb6e32df3549f70aaa2b611c81605f746b30fe)
 * Fix where query criteria with multiple associations joins (#485) [026068d](https://github.com/introproventures/graphql-jpa-query/commit/026068df2768d010acc1004760028deefcfd229c)
