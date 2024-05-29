@@ -602,9 +602,11 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                       # count by variables
                       variables: count
                       # Count by associated tasks
-                      tasks: task {
-                        by(field: status)
-                        count
+                      by {
+                        tasks: task {
+                          by(field: status)
+                          count
+                        }
                       }
                     }
                   }
@@ -612,7 +614,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
             """;
 
         String expected =
-            "{TaskVariables={aggregate={variables=3, tasks=[{by=COMPLETED, count=1}, {by=CREATED, count=2}]}}}";
+            "{TaskVariables={aggregate={variables=3, by={tasks=[{by=COMPLETED, count=1}, {by=CREATED, count=2}]}}}}";
 
         //when
         ExecutionResult result = executor.execute(query);
@@ -636,9 +638,11 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                       # count by variables
                       variables: count
                       # Count by associated tasks
-                      tasks: task {
-                        status: by(field: status)
-                        count
+                      by {
+                        tasks: task {
+                          status: by(field: status)
+                          count
+                        }
                       }
                     }
                   }
@@ -646,7 +650,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
             """;
 
         String expected =
-            "{TaskVariables={aggregate={variables=3, tasks=[{status=COMPLETED, count=1}, {status=CREATED, count=2}]}}}";
+            "{TaskVariables={aggregate={variables=3, by={tasks=[{status=COMPLETED, count=1}, {status=CREATED, count=2}]}}}}";
 
         //when
         ExecutionResult result = executor.execute(query);
@@ -674,14 +678,16 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
                         name: by(field: name)
                         count
                       }
-                      groupByTaskStatus: task {
-                        status: by(field: status)
-                        count
-                      }
-                      # Count by associated tasks
-                      groupByTaskAssignee: task {
-                        assignee: by(field: assignee)
-                        count
+                      by {
+                        groupByTaskStatus: task {
+                          status: by(field: status)
+                          count
+                        }
+                        # Count by associated tasks
+                        groupByTaskAssignee: task {
+                          assignee: by(field: assignee)
+                          count
+                        }
                       }
                     }
                   }
@@ -689,7 +695,7 @@ public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport
             """;
 
         String expected =
-            "{TaskVariables={aggregate={variables=3, groupByVariableName=[{name=variable1, count=1}, {name=variable5, count=2}], groupByTaskStatus=[{status=COMPLETED, count=1}, {status=CREATED, count=2}], groupByTaskAssignee=[{assignee=assignee, count=3}]}}}";
+            "{TaskVariables={aggregate={variables=3, groupByVariableName=[{name=variable1, count=1}, {name=variable5, count=2}], by={groupByTaskStatus=[{status=COMPLETED, count=1}, {status=CREATED, count=2}], groupByTaskAssignee=[{assignee=assignee, count=3}]}}}}";
 
         //when
         ExecutionResult result = executor.execute(query);

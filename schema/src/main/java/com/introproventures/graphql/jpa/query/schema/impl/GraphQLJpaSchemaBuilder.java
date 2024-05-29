@@ -525,6 +525,10 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 )
             );
 
+        var aggregateByObjectType = newObject()
+            .name(selectTypeName.concat("AggregateBy"))
+            .description("%s aggregate query type groups by nested associations".formatted(selectTypeName));
+
         entityType
             .getAttributes()
             .stream()
@@ -544,11 +548,11 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .toList();
 
                 if (!fields.isEmpty()) {
-                    aggregateObjectType.field(
+                    aggregateByObjectType.field(
                         newFieldDefinition()
                             .name(association.getName())
                             .description(
-                                "Aggregate %s query field definition for the associated %s entity".formatted(
+                                "Aggregate by %s query field definition for the associated %s entity".formatted(
                                         selectTypeName,
                                         association.getName()
                                     )
@@ -616,6 +620,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             });
 
         aggregateObjectType.field(countFieldDefinition).field(groupFieldDefinition);
+
+        if (!aggregateByObjectType.build().getFieldDefinitions().isEmpty()) {
+            aggregateObjectType.field(
+                newFieldDefinition()
+                    .name("by")
+                    .description("Nested aggregate by query field for %s entity".formatted(selectTypeName))
+                    .type(aggregateByObjectType)
+            );
+        }
 
         var aggregateFieldDefinition = newFieldDefinition()
             .name("aggregate")
