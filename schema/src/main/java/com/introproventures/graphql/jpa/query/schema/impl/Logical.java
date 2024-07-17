@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 enum Logical {
     AND,
     OR,
+    NOT,
     EXISTS,
     NOT_EXISTS;
 

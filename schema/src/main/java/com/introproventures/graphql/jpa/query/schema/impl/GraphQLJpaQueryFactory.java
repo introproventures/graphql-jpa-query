@@ -1603,12 +1603,24 @@ public final class GraphQLJpaQueryFactory {
         if (predicates.isEmpty()) return cb.disjunction();
 
         if (predicates.size() == 1) {
+            if(logical == Logical.NOT){
+                return cb.not(predicates.get(0));
+            }
             return predicates.get(0);
         }
 
-        return (logical == Logical.OR)
-            ? cb.or(predicates.toArray(new Predicate[0]))
-            : cb.and(predicates.toArray(new Predicate[0]));
+        switch (logical){
+            case OR:
+                return cb.or(predicates.toArray(new Predicate[0]));
+            case AND:
+            case EXISTS:
+            case NOT_EXISTS:
+                return cb.and(predicates.toArray(new Predicate[0]));
+            case NOT:
+                throw new RuntimeException("NOT expression cannot be applied to multiple predicates at once");
+            default:
+                throw new RuntimeException("Unable to resolve applicable compound predicate for logical operand "+logical);
+        }
     }
 
     private PredicateFilter getPredicateFilter(
