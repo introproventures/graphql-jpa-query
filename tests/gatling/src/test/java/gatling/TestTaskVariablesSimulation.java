@@ -40,7 +40,7 @@ public class TestTaskVariablesSimulation extends Simulation {
                                 """
                                   {
                                     "query": "query($page: Int!, $limit: Int!) {TaskVariables(page: {start: $page, limit: $limit}, where: {name: {EQ: \\"accountNumber\\"}}) {select {id,name,value(orderBy: ASC),taskId,task {assignee,name,description,completedTo,completedFrom,candidateUsers: taskCandidateUsers {userId},candidateGroups: taskCandidateGroups {groupId},variables {name,value,type},accountNumber: variables(where: {name: {EQ: \\"accountNumber\\"}}) {value},processVariables: processInstance {variables {name,value,type}}}}}}",
-                                    "variables": {"page": ${page}, "limit": ${limit}}
+                                    "variables": {"page": #{page}, "limit": #{limit}}
                                   }
                                 """
                             )
