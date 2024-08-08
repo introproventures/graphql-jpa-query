@@ -14,7 +14,7 @@
     <java.version>21</java.version>
     <activiti-cloud.version>8.6.0</activiti-cloud.version>
     <gatling.version>3.10.5</gatling.version>
-    <gatling-maven-plugin.version>4.8.2</gatling-maven-plugin.version>
+    <gatling-maven-plugin.version>4.9.6</gatling-maven-plugin.version>
     <hibernate.version>6.4.10.Final</hibernate.version>
   </properties>
 
