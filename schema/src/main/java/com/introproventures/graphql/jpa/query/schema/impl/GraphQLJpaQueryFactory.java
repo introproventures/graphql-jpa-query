@@ -1306,7 +1306,16 @@ public final class GraphQLJpaQueryFactory {
                     new Field(objectField.getName())
                 );
 
-                if (Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical)) {
+                List<Map<String, Object>> logicalArguments = Optional
+                    .ofNullable(environment.getArgument(logical.name()))
+                    .filter(List.class::isInstance)
+                    .map(List.class::cast)
+                    .orElseGet(List::of);
+
+                final var isMultipleLogical =
+                    logicalArguments.stream().filter(it -> it.containsKey(objectField.getName())).count() >= 1;
+
+                if (Arrays.asList(Logical.EXISTS, Logical.NOT_EXISTS).contains(logical) || isMultipleLogical) {
                     AbstractQuery<?> query = environment.getRoot();
                     Subquery<?> subquery = query.subquery(attribute.getJavaType());
                     From<?, ?> correlation = Root.class.isInstance(from)
@@ -1329,28 +1338,17 @@ public final class GraphQLJpaQueryFactory {
 
                     Predicate exists = cb.exists(subquery.select((Join) correlationJoin).where(restriction));
 
-                    return logical == Logical.EXISTS ? exists : cb.not(exists);
+                    return logical == Logical.NOT_EXISTS ? cb.not(exists) : exists;
                 }
 
-                AbstractQuery<?> query = environment.getRoot();
-                Boolean isFetch = environment.getLocalContext();
-                boolean isOptional = isOptionalAttribute(attribute);
-                List<Map<String, Object>> logicalArguments = Optional
-                    .ofNullable(environment.getArgument(logical.name()))
-                    .filter(List.class::isInstance)
-                    .map(List.class::cast)
-                    .orElseGet(List::of);
+                final AbstractQuery<?> query = environment.getRoot();
+                final Boolean isFetch = environment.getLocalContext();
+                final boolean isOptional = isOptionalAttribute(attribute);
 
-                From<?, ?> context;
-                if (logicalArguments.stream().filter(it -> it.containsKey(objectField.getName())).count() >= 1) {
-                    context =
-                        isOptional ? from.join(objectField.getName(), JoinType.LEFT) : from.join(objectField.getName());
-                } else {
-                    context =
-                        (isSubquery(query) || isCountQuery(query) || !isFetch)
-                            ? reuseJoin(from, objectField.getName(), isOptional)
-                            : reuseFetch(from, objectField.getName(), isOptional);
-                }
+                final From<?, ?> context = (isSubquery(query) || isCountQuery(query) || !isFetch)
+                    ? reuseJoin(from, objectField.getName(), isOptional)
+                    : reuseFetch(from, objectField.getName(), isOptional);
+
                 return getArgumentPredicate(
                     cb,
                     context,

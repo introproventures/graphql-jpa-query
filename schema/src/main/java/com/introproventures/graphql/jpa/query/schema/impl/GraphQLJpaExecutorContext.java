@@ -24,8 +24,6 @@ import graphql.GraphQLContext;
 import graphql.execution.ExecutionStrategy;
 import graphql.execution.instrumentation.ChainedInstrumentation;
 import graphql.execution.instrumentation.Instrumentation;
-import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
-import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentationOptions;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.visibility.GraphqlFieldVisibility;
@@ -45,7 +43,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     private final Supplier<GraphqlFieldVisibility> graphqlFieldVisibility;
     private final Supplier<Instrumentation> instrumentation;
     private final Supplier<GraphQLContext> graphqlContext;
-    private final Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions;
     private final Supplier<DataLoaderRegistry> dataLoaderRegistry;
     private final Supplier<ExecutionStrategy> queryExecutionStrategy;
     private final Supplier<ExecutionStrategy> mutationExecutionStrategy;
@@ -57,7 +54,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         this.graphqlFieldVisibility = builder.graphqlFieldVisibility;
         this.instrumentation = builder.instrumentation;
         this.graphqlContext = builder.graphqlContext;
-        this.dataLoaderDispatcherInstrumentationOptions = builder.dataLoaderDispatcherInstrumentationOptions;
         this.dataLoaderRegistry = builder.dataLoaderRegistry;
         this.queryExecutionStrategy = builder.queryExecutionStrategy;
         this.mutationExecutionStrategy = builder.mutationExecutionStrategy;
@@ -93,13 +89,7 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     }
 
     public Instrumentation newIstrumentation() {
-        DataLoaderDispatcherInstrumentationOptions options = dataLoaderDispatcherInstrumentationOptions.get();
-
-        DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation(
-            options
-        );
-
-        List<Instrumentation> list = Arrays.asList(dispatcherInstrumentation, instrumentation.get());
+        List<Instrumentation> list = Arrays.asList(instrumentation.get());
 
         return new ChainedInstrumentation(list);
     }
@@ -126,27 +116,23 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
     }
 
     public interface IBuildStage {
-        public IBuildStage executionInputFactory(GraphQLExecutionInputFactory executionInputFactory);
+        IBuildStage executionInputFactory(GraphQLExecutionInputFactory executionInputFactory);
 
-        public IBuildStage graphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility);
+        IBuildStage graphqlFieldVisibility(Supplier<GraphqlFieldVisibility> graphqlFieldVisibility);
 
-        public IBuildStage instrumentation(Supplier<Instrumentation> instrumentation);
+        IBuildStage instrumentation(Supplier<Instrumentation> instrumentation);
 
-        public IBuildStage graphqlContext(Supplier<GraphQLContext> graphqlContext);
+        IBuildStage graphqlContext(Supplier<GraphQLContext> graphqlContext);
 
-        public IBuildStage dataLoaderDispatcherInstrumentationOptions(
-            Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions
-        );
+        IBuildStage dataLoaderRegistry(Supplier<DataLoaderRegistry> dataLoaderRegistry);
 
-        public IBuildStage dataLoaderRegistry(Supplier<DataLoaderRegistry> dataLoaderRegistry);
+        IBuildStage queryExecutionStrategy(Supplier<ExecutionStrategy> queryExecutionStrategy);
 
-        public IBuildStage queryExecutionStrategy(Supplier<ExecutionStrategy> queryExecutionStrategy);
+        IBuildStage mutationExecutionStrategy(Supplier<ExecutionStrategy> mutationExecutionStrategy);
 
-        public IBuildStage mutationExecutionStrategy(Supplier<ExecutionStrategy> mutationExecutionStrategy);
+        IBuildStage subscriptionExecutionStrategy(Supplier<ExecutionStrategy> subscriptionExecutionStrategy);
 
-        public IBuildStage subscriptionExecutionStrategy(Supplier<ExecutionStrategy> subscriptionExecutionStrategy);
-
-        public GraphQLJpaExecutorContext build();
+        GraphQLJpaExecutorContext build();
     }
 
     /**
@@ -159,7 +145,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         private Supplier<GraphqlFieldVisibility> graphqlFieldVisibility;
         private Supplier<Instrumentation> instrumentation;
         private Supplier<GraphQLContext> graphqlContext;
-        private Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions;
         private Supplier<DataLoaderRegistry> dataLoaderRegistry;
         private Supplier<ExecutionStrategy> queryExecutionStrategy;
         private Supplier<ExecutionStrategy> mutationExecutionStrategy;
@@ -194,15 +179,6 @@ public class GraphQLJpaExecutorContext implements GraphQLExecutorContext {
         @Override
         public IBuildStage graphqlContext(Supplier<GraphQLContext> graphqlContext) {
             this.graphqlContext = graphqlContext;
-            return this;
-        }
-
-        @Override
-        public IBuildStage dataLoaderDispatcherInstrumentationOptions(
-            Supplier<DataLoaderDispatcherInstrumentationOptions> dataLoaderDispatcherInstrumentationOptions
-        ) {
-            this.dataLoaderDispatcherInstrumentationOptions = dataLoaderDispatcherInstrumentationOptions;
-
             return this;
         }
 

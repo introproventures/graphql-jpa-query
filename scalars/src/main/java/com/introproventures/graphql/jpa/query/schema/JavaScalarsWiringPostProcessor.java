@@ -9,24 +9,22 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLTypeVisitorStub;
 import graphql.schema.SchemaTransformer;
-import graphql.schema.idl.SchemaGeneratorPostProcessing;
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
 import graphql.util.TreeTransformerUtil;
 import java.util.function.Function;
 
-public class JavaScalarsWiringPostProcessor implements SchemaGeneratorPostProcessing {
+public class JavaScalarsWiringPostProcessor {
 
     public JavaScalarsWiringPostProcessor() {}
 
-    @Override
     public GraphQLSchema process(GraphQLSchema originalSchema) {
         Visitor visitor = new Visitor();
 
         return SchemaTransformer.transformSchema(originalSchema, visitor);
     }
 
-    class Visitor extends GraphQLTypeVisitorStub {
+    public static class Visitor extends GraphQLTypeVisitorStub {
 
         private boolean schemaChanged = false;
 

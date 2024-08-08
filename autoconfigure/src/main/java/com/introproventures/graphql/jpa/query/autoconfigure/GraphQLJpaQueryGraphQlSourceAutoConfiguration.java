@@ -15,9 +15,11 @@
  */
 package com.introproventures.graphql.jpa.query.autoconfigure;
 
+import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
 import graphql.GraphQL;
 import graphql.execution.instrumentation.Instrumentation;
 import graphql.schema.GraphQLSchema;
+import java.util.List;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -112,5 +114,13 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     @ConditionalOnMissingBean
     public JavaScalarsRuntimeWiringConfigurer javaScalarsRuntimeWiringConfigurer() {
         return new JavaScalarsRuntimeWiringConfigurer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public GraphQlSourceBuilderCustomizer javaScalarGraphQlSourceBuilderCustomizer() {
+        return customizer -> {
+            customizer.typeVisitorsToTransformSchema(List.of(new JavaScalarsWiringPostProcessor.Visitor()));
+        };
     }
 }

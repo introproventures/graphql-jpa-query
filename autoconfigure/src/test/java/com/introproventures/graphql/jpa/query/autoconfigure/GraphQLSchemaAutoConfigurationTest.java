@@ -363,10 +363,12 @@ public class GraphQLSchemaAutoConfigurationTest {
                             .coercing(new JavaScalars.GraphQLObjectCoercing())
                             .build()
                     )
-                    .scalar(ExtendedScalars.GraphQLLong)
-                    .transformer(new JavaScalarsWiringPostProcessor());
+                    .scalar(ExtendedScalars.GraphQLLong);
 
-                registry.register(new SchemaGenerator().makeExecutableSchema(typeRegistry, wiring.build()));
+                registry.register(
+                    new JavaScalarsWiringPostProcessor()
+                        .process(new SchemaGenerator().makeExecutableSchema(typeRegistry, wiring.build()))
+                );
             }
         }
     }
