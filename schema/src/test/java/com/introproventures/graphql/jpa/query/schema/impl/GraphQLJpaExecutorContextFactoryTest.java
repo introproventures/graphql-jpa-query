@@ -192,6 +192,6 @@ public class GraphQLJpaExecutorContextFactoryTest {
         ExecutionResult result = executor.execute(query);
 
         // then
-        assertThat(result.getExtensions().get("tracing")).isNull();
+        assertThat(result.getExtensions()).isNull();
     }
 }
