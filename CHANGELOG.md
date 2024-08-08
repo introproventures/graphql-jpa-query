@@ -1,6 +1,12 @@
 # Change Log
 
-## 1.2.8-SNAPSHOT
+## 1.2.8
+* chore(deps-dev): Bump io.gatling.highcharts:gatling-charts-highcharts from 3.10.5 to 3.11.5 (#493) [7d0937b](https://github.com/introproventures/graphql-jpa-query/commit/7d0937b08e50c3328490d1cfd9b907e1919968ac)
+* chore(deps): bump org.apache.maven.plugins:maven-compiler-plugin (#460) [21fba89](https://github.com/introproventures/graphql-jpa-query/commit/21fba893ca8e00cfae9ee44487d43d8c239cb8d7)
+* chore(deps): Bump io.gatling:gatling-maven-plugin from 4.8.2 to 4.9.6 (#494) [c172d70](https://github.com/introproventures/graphql-jpa-query/commit/c172d7091748f53052cd642575cd57005c038575)
+* chore(deps): bump jakarta.interceptor:jakarta.interceptor-api (#472) [eda30b1](https://github.com/introproventures/graphql-jpa-query/commit/eda30b1ae4f35c130cf781e62d37d29d98c99317)
+* chore(deps): Update dependency versions to align with Spring Boot 3.3.2 managed dependencies (#487) [dbbdc10](https://github.com/introproventures/graphql-jpa-query/commit/dbbdc10d1317608cb017ccf0380580ed09299037)
+* chore(deps-dev): bump io.github.graphql-java:graphql-java-annotations (#486) [405ea8b](https://github.com/introproventures/graphql-jpa-query/commit/405ea8b81ba4f2f9f8850633dd20bcc122d950c7)
 * Extract aggregate query fields for nested associations into dedicated by field (#490) [4c36f74](https://github.com/introproventures/graphql-jpa-query/commit/4c36f7447690e8bfeede3ad34c991c39559bf454)
 * Add aggregate query schema field and type descriptions (#489) [56c5872](https://github.com/introproventures/graphql-jpa-query/commit/56c5872e1148b7cf58c242ba233f3e39ff046349)
 * Add optional feature for aggregate count query support on plural entity object types #488 [5ef0f9f](https://github.com/introproventures/graphql-jpa-query/commit/5ef0f9f2b5fdf4f1ac3f1f814b1a44bda68877b1)
