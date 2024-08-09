@@ -1603,13 +1603,13 @@ public final class GraphQLJpaQueryFactory {
         if (predicates.isEmpty()) return cb.disjunction();
 
         if (predicates.size() == 1) {
-            if(logical == Logical.NOT){
+            if (logical == Logical.NOT) {
                 return cb.not(predicates.get(0));
             }
             return predicates.get(0);
         }
 
-        switch (logical){
+        switch (logical) {
             case OR:
                 return cb.or(predicates.toArray(new Predicate[0]));
             case AND:
@@ -1619,7 +1619,9 @@ public final class GraphQLJpaQueryFactory {
             case NOT:
                 throw new RuntimeException("NOT expression cannot be applied to multiple predicates at once");
             default:
-                throw new RuntimeException("Unable to resolve applicable compound predicate for logical operand "+logical);
+                throw new RuntimeException(
+                    "Unable to resolve applicable compound predicate for logical operand " + logical
+                );
         }
     }
 

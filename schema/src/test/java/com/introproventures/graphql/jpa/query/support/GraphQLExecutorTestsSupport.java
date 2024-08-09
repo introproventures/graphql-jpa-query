@@ -398,10 +398,11 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
         //given
         String query = "{ Books(where: {genre: {NOT: {EQ:PLAY}}}) { select { id title, genre } }}";
 
-        String expected = "{Books={select=["
-                + "{id=2, title=War and Peace, genre=NOVEL}, "
-                + "{id=3, title=Anna Karenina, genre=NOVEL}"
-                + "]}}";
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, genre=NOVEL}, " +
+            "{id=3, title=Anna Karenina, genre=NOVEL}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -433,10 +434,11 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
         //given
         String query = "{ Books(where: {genre: {NOT: {IN: PLAY}}}) { select { id title, genre } }}";
 
-        String expected = "{Books={select=["
-                + "{id=2, title=War and Peace, genre=NOVEL}, "
-                + "{id=3, title=Anna Karenina, genre=NOVEL}"
-                + "]}}";
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, genre=NOVEL}, " +
+            "{id=3, title=Anna Karenina, genre=NOVEL}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -504,31 +506,33 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
     @Test
     public void queryAuthorBooksWithExplictOptionalNotLike() {
         //given
-        String query = "query { "
-                + "Authors(" +
-                "    where: {" +
-                "      books: {" +
-                "        title: {NOT: {LIKE: \"Th\"}}" +
-                "      }" +
-                "    }" +
-                "  ) {" +
-                "    select {" +
-                "      id" +
-                "      name" +
-                "      books(optional: true) {" +
-                "        id" +
-                "        title(orderBy: ASC)" +
-                "        genre" +
-                "      }" +
-                "    }" +
-                "  }"
-                + "}";
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        title: {NOT: {LIKE: \"Th\"}}" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
 
-        String expected = "{Authors={select=["
-                + "{id=1, name=Leo Tolstoy, books=["
-                + "{id=3, title=Anna Karenina, genre=NOVEL}, "
-                + "{id=2, title=War and Peace, genre=NOVEL}]}"
-                + "]}}";
+        String expected =
+            "{Authors={select=[" +
+            "{id=1, name=Leo Tolstoy, books=[" +
+            "{id=3, title=Anna Karenina, genre=NOVEL}, " +
+            "{id=2, title=War and Peace, genre=NOVEL}]}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
@@ -540,33 +544,35 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
     @Test
     public void queryAuthorBooksWithExplictOptionalNotLikeConjunction() {
         //given
-        String query = "query { "
-                + "Authors(" +
-                "    where: {" +
-                "      books: {" +
-                "        AND: [{title: {NOT: {LIKE: \"War\"}}} {title: {NOT: {LIKE: \"Anna\"}}}]" +
-                "      }" +
-                "    }" +
-                "  ) {" +
-                "    select {" +
-                "      id" +
-                "      name" +
-                "      books(optional: true) {" +
-                "        id" +
-                "        title(orderBy: ASC)" +
-                "        genre" +
-                "      }" +
-                "    }" +
-                "  }"
-                + "}";
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        AND: [{title: {NOT: {LIKE: \"War\"}}} {title: {NOT: {LIKE: \"Anna\"}}}]" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
 
-        String expected = "{Authors={select=["
-            +   "{id=4, name=Anton Chekhov, books=["
-            +       "{id=5, title=The Cherry Orchard, genre=PLAY}, "
-            +       "{id=6, title=The Seagull, genre=PLAY}, "
-            +       "{id=7, title=Three Sisters, genre=PLAY}"
-            +   "]}"
-            +   "]}}";
+        String expected =
+            "{Authors={select=[" +
+            "{id=4, name=Anton Chekhov, books=[" +
+            "{id=5, title=The Cherry Orchard, genre=PLAY}, " +
+            "{id=6, title=The Seagull, genre=PLAY}, " +
+            "{id=7, title=Three Sisters, genre=PLAY}" +
+            "]}" +
+            "]}}";
 
         //when
         Object result = executor.execute(query).getData();
