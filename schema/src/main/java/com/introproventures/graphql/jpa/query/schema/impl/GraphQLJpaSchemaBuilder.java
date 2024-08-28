@@ -725,6 +725,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .field(
                 GraphQLInputObjectField
                     .newInputObjectField()
+                    .name(Logical.NOT.name())
+                    .description("Logical operation for expression")
+                    .type(new GraphQLTypeReference(type))
+                    .build()
+            )
+            .field(
+                GraphQLInputObjectField
+                    .newInputObjectField()
                     .name(Logical.EXISTS.name())
                     .description("Logical EXISTS subquery expression")
                     .type(new GraphQLList(getSubqueryInputType(managedType)))
@@ -818,6 +826,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .field(
                 GraphQLInputObjectField
                     .newInputObjectField()
+                    .name(Logical.NOT.name())
+                    .description("Logical operation for expression")
+                    .type(new GraphQLTypeReference(type))
+                    .build()
+            )
+            .field(
+                GraphQLInputObjectField
+                    .newInputObjectField()
                     .name(Logical.EXISTS.name())
                     .description("Logical EXISTS subquery expression")
                     .type(new GraphQLList(new GraphQLTypeReference(type)))
@@ -894,6 +910,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .name(Logical.AND.name())
                     .description("Logical operation for expressions")
                     .type(new GraphQLList(new GraphQLTypeReference(type)))
+                    .build()
+            )
+            .field(
+                GraphQLInputObjectField
+                    .newInputObjectField()
+                    .name(Logical.NOT.name())
+                    .description("Logical operation for expression")
+                    .type(new GraphQLTypeReference(type))
                     .build()
             )
             .field(
@@ -1006,6 +1030,14 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                     .name(Logical.AND.name())
                     .description("Logical AND criteria expression")
                     .type(new GraphQLList(new GraphQLTypeReference(type)))
+                    .build()
+            )
+            .field(
+                GraphQLInputObjectField
+                    .newInputObjectField()
+                    .name(Logical.NOT.name())
+                    .description("Logical NOT criteria expression")
+                    .type(new GraphQLTypeReference(type))
                     .build()
             )
             .field(

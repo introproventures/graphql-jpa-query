@@ -394,9 +394,45 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
     }
 
     @Test
+    public void queryForEnumNotEq() {
+        //given
+        String query = "{ Books(where: {genre: {NOT: {EQ:PLAY}}}) { select { id title, genre } }}";
+
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, genre=NOVEL}, " +
+            "{id=3, title=Anna Karenina, genre=NOVEL}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryForEnumNin() {
         //given
         String query = "{ Books(where: {genre: {NIN: PLAY}}) { select { id title, genre } }}";
+
+        String expected =
+            "{Books={select=[" +
+            "{id=2, title=War and Peace, genre=NOVEL}, " +
+            "{id=3, title=Anna Karenina, genre=NOVEL}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryForEnumNotIn() {
+        //given
+        String query = "{ Books(where: {genre: {NOT: {IN: PLAY}}}) { select { id title, genre } }}";
 
         String expected =
             "{Books={select=[" +
@@ -468,6 +504,165 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
     }
 
     @Test
+    public void queryAuthorBooksWithExplictOptionalNotLike() {
+        //given
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        title: {NOT: {LIKE: \"Th\"}}" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Authors={select=[" +
+            "{id=1, name=Leo Tolstoy, books=[" +
+            "{id=3, title=Anna Karenina, genre=NOVEL}, " +
+            "{id=2, title=War and Peace, genre=NOVEL}]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithExplictOptionalNotLikeConjunction() {
+        //given
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        AND: [{title: {NOT: {LIKE: \"War\"}}} {title: {NOT: {LIKE: \"Anna\"}}}]" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Authors={select=[" +
+            "{id=4, name=Anton Chekhov, books=[" +
+            "{id=5, title=The Cherry Orchard, genre=PLAY}, " +
+            "{id=6, title=The Seagull, genre=PLAY}, " +
+            "{id=7, title=Three Sisters, genre=PLAY}" +
+            "]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithNotOutsideOfLikeDisjunction() {
+        //should be the same result as queryAuthorBooksWithExplictOptionalNotLikeConjunction above
+        //due to logical inversion AND(Not Like A, Not Like B) => NOT(OR(Like a, Like b))
+        //given
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        NOT: {OR: [{title: {LIKE: \"War\"}} {title: {LIKE: \"Anna\"}}]}" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Authors={select=[" +
+            "{id=4, name=Anton Chekhov, books=[" +
+            "{id=5, title=The Cherry Orchard, genre=PLAY}, " +
+            "{id=6, title=The Seagull, genre=PLAY}, " +
+            "{id=7, title=Three Sisters, genre=PLAY}" +
+            "]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithNotOutsideOfConjunction() {
+        //given
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      books: {" +
+            "        NOT: {AND: [{id: {GE: 4}} {genre: {EQ: PLAY}}]}" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Authors={select=[" +
+            "{id=1, name=Leo Tolstoy, books=[" +
+            "{id=3, title=Anna Karenina, genre=NOVEL}, " +
+            "{id=2, title=War and Peace, genre=NOVEL}" +
+            "]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryAuthorBooksWithExplictOptionalEXISTS() {
         //given
         String query =
@@ -497,6 +692,51 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
             "{Authors={select=[" +
             "{id=1, name=Leo Tolstoy, books=[{id=3, title=Anna Karenina, genre=NOVEL}, " +
             "{id=2, title=War and Peace, genre=NOVEL}]}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryAuthorBooksWithExplictOptionalNotEXISTS() {
+        //given
+        String query =
+            "query { " +
+            "Authors(" +
+            "    where: {" +
+            "      NOT: {" +
+            "        EXISTS: {" +
+            "          books: {" +
+            "            title: {LIKE: \"War\"}" +
+            "          }" +
+            "        }" +
+            "      }" +
+            "    }" +
+            "  ) {" +
+            "    select {" +
+            "      id" +
+            "      name" +
+            "      books(optional: true) {" +
+            "        id" +
+            "        title(orderBy: ASC)" +
+            "        genre" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{Authors={select=[" +
+            "{id=4, name=Anton Chekhov, books=[" +
+            "{id=5, title=The Cherry Orchard, genre=PLAY}," +
+            " {id=6, title=The Seagull, genre=PLAY}," +
+            " {id=7, title=Three Sisters, genre=PLAY}" +
+            "]}, " +
+            "{id=8, name=Igor Dianov, books=[]}" +
             "]}}";
 
         //when
@@ -2053,6 +2293,22 @@ public abstract class GraphQLExecutorTestsSupport extends AbstractSpringBootTest
             .extracting(ValidationError.class::cast)
             .extracting("errorType", "queryPath")
             .contains(ErrorType.ValidationError, Arrays.asList("Books", "select", "description"));
+    }
+
+    @Test
+    public void logicalNotOnlySupportsSingleOperand() {
+        //given
+        String query = "{ Books(where: {NOT: [{id: {EQ: 1}} {id: {EQ: 2}}]}){ select { id description } }}";
+
+        List<GraphQLError> result = executor.execute(query).getErrors();
+
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0))
+            .isExactlyInstanceOf(ValidationError.class)
+            .extracting(ValidationError.class::cast)
+            .extracting("errorType", "queryPath")
+            .contains(ErrorType.ValidationError, Arrays.asList("Books"));
     }
 
     @Test
