@@ -1,6 +1,7 @@
 # Change Log
 
-## 1.2.9-SNAPSHOT
+## 1.2.9
+* Add logical NOT support (#492) [bf4ab3d](https://github.com/introproventures/graphql-jpa-query/commit/bf4ab3d8b3c681fc7f43a15af6cb308d77ad6d95)
 * chore(deps-dev): Bump io.gatling.highcharts:gatling-charts-highcharts from 3.10.5 to 3.11.5 (#493) [7d0937b](https://github.com/introproventures/graphql-jpa-query/commit/7d0937b08e50c3328490d1cfd9b907e1919968ac)
 * chore(deps): bump org.apache.maven.plugins:maven-compiler-plugin (#460) [21fba89](https://github.com/introproventures/graphql-jpa-query/commit/21fba893ca8e00cfae9ee44487d43d8c239cb8d7)
 * chore(deps): Bump io.gatling:gatling-maven-plugin from 4.8.2 to 4.9.6 (#494) [c172d70](https://github.com/introproventures/graphql-jpa-query/commit/c172d7091748f53052cd642575cd57005c038575)
