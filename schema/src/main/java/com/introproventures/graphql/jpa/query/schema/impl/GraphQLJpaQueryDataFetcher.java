@@ -34,7 +34,7 @@ import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,12 @@ import org.slf4j.LoggerFactory;
 class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
 
     private static final Logger logger = LoggerFactory.getLogger(GraphQLJpaQueryDataFetcher.class);
+    public static final String AGGREGATE_PARAM_NAME = "aggregate";
+    public static final String COUNT_FIELD_NAME = "count";
+    public static final String GROUP_FIELD_NAME = "group";
+    public static final String BY_FILED_NAME = "by";
+    public static final String FIELD_ARGUMENT_NAME = "field";
+    public static final String OF_ARGUMENT_NAME = "of";
 
     private final int defaultMaxResults;
     private final int defaultPageLimitSize;
@@ -76,7 +82,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         Optional<Field> pagesSelection = getSelectionField(rootNode, PAGE_PAGES_PARAM_NAME);
         Optional<Field> totalSelection = getSelectionField(rootNode, PAGE_TOTAL_PARAM_NAME);
         Optional<Field> recordsSelection = searchByFieldName(rootNode, QUERY_SELECT_PARAM_NAME);
-        Optional<Field> aggregateSelection = getSelectionField(rootNode, "aggregate");
+        Optional<Field> aggregateSelection = getSelectionField(rootNode, AGGREGATE_PARAM_NAME);
 
         final int firstResult = page.getOffset();
         final int maxResults = Integer.min(page.getLimit(), defaultMaxResults); // Limit max results to avoid OoM
@@ -85,27 +91,39 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
             .builder()
             .withOffset(firstResult)
             .withLimit(maxResults);
-        Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
+
+        final Optional<List<Object>> restrictedKeys = queryFactory.getRestrictedKeys(environment);
 
         if (recordsSelection.isPresent()) {
             if (restrictedKeys.isPresent()) {
-                final List<Object> queryKeys = new ArrayList<>();
-
                 if (pageArgument.isPresent() || enableDefaultMaxResults) {
-                    queryKeys.addAll(
-                        queryFactory.queryKeys(environment, firstResult, maxResults, restrictedKeys.get())
+                    final List<Object> queryKeys = queryFactory.queryKeys(
+                        environment,
+                        firstResult,
+                        maxResults,
+                        restrictedKeys.get()
                     );
-                } else {
-                    queryKeys.addAll(restrictedKeys.get());
-                }
 
-                final List<Object> resultList = queryFactory.queryResultList(environment, maxResults, queryKeys);
-                pagedResult.withSelect(resultList);
+                    if (!queryKeys.isEmpty()) {
+                        pagedResult.withSelect(
+                            queryFactory.queryResultList(environment, maxResults, restrictedKeys.get())
+                        );
+                    } else {
+                        pagedResult.withSelect(List.of());
+                    }
+                } else {
+                    pagedResult.withSelect(queryFactory.queryResultList(environment, maxResults, restrictedKeys.get()));
+                }
             }
         }
 
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            final Long total = queryFactory.queryTotalCount(environment, restrictedKeys);
+            final var selectResult = pagedResult.getSelect();
+
+            final long total = recordsSelection.isEmpty() ||
+                selectResult.filter(Predicate.not(Collection::isEmpty)).isPresent()
+                ? queryFactory.queryTotalCount(environment, restrictedKeys)
+                : 0L;
 
             pagedResult.withTotal(total);
         }
@@ -113,7 +131,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         aggregateSelection.ifPresent(aggregateField -> {
             Map<String, Object> aggregate = new LinkedHashMap<>();
 
-            getFields(aggregateField.getSelectionSet(), "count")
+            getFields(aggregateField.getSelectionSet(), COUNT_FIELD_NAME)
                 .forEach(countField -> {
                     getCountOfArgument(countField)
                         .ifPresentOrElse(
@@ -130,16 +148,16 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                         );
                 });
 
-            getFields(aggregateField.getSelectionSet(), "group")
+            getFields(aggregateField.getSelectionSet(), GROUP_FIELD_NAME)
                 .forEach(groupField -> {
-                    var countField = getFields(groupField.getSelectionSet(), "count")
+                    var countField = getFields(groupField.getSelectionSet(), COUNT_FIELD_NAME)
                         .stream()
                         .findFirst()
                         .orElseThrow(() -> new GraphQLException("Missing aggregate count for group: " + groupField));
 
                     var countOfArgumentValue = getCountOfArgument(countField);
 
-                    Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), "by")
+                    Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), BY_FILED_NAME)
                         .stream()
                         .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
                         .toArray(Map.Entry[]::new);
@@ -176,21 +194,21 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                     aggregate.put(getAliasOrName(groupField), resultList);
                 });
 
-            getSelectionField(aggregateField, "by")
+            getSelectionField(aggregateField, BY_FILED_NAME)
                 .map(byField -> byField.getSelectionSet().getSelections().stream().map(Field.class::cast).toList())
                 .filter(Predicate.not(List::isEmpty))
                 .ifPresent(aggregateBySelections -> {
                     var aggregatesBy = new LinkedHashMap<>();
-                    aggregate.put("by", aggregatesBy);
+                    aggregate.put(BY_FILED_NAME, aggregatesBy);
 
                     aggregateBySelections.forEach(groupField -> {
-                        var countField = getFields(groupField.getSelectionSet(), "count")
+                        var countField = getFields(groupField.getSelectionSet(), COUNT_FIELD_NAME)
                             .stream()
                             .findFirst()
                             .orElseThrow(() -> new GraphQLException("Missing aggregate count for group: " + groupField)
                             );
 
-                        Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), "by")
+                        Map.Entry<String, String>[] groupings = getFields(groupField.getSelectionSet(), BY_FILED_NAME)
                             .stream()
                             .map(GraphQLJpaQueryDataFetcher::groupByFieldEntry)
                             .toArray(Map.Entry[]::new);
@@ -239,7 +257,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
     static Map.Entry<String, String> groupByFieldEntry(Field selectedField) {
         String key = Optional.ofNullable(selectedField.getAlias()).orElse(selectedField.getName());
 
-        String value = findArgument(selectedField, "field")
+        String value = findArgument(selectedField, FIELD_ARGUMENT_NAME)
             .map(Argument::getValue)
             .map(EnumValue.class::cast)
             .map(EnumValue::getName)
@@ -257,7 +275,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
     }
 
     static Optional<String> getCountOfArgument(Field selectedField) {
-        return findArgument(selectedField, "of")
+        return findArgument(selectedField, OF_ARGUMENT_NAME)
             .map(Argument::getValue)
             .map(EnumValue.class::cast)
             .map(EnumValue::getName);
