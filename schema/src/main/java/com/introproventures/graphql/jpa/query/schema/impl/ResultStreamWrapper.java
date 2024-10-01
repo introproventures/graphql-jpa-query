@@ -63,8 +63,6 @@ class ResultStreamWrapper<T> {
                 return System.identityHashCode(proxy);
             } else if ("spliterator".equals(method.getName())) {
                 return stream.spliterator();
-            } else if ("isEmpty".equals(method.getName())) {
-                return size == 0;
             }
             throw new UnsupportedOperationException(method + " is not supported");
         }

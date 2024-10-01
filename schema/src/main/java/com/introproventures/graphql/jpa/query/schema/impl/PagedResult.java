@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class PagedResult<T> {
 
@@ -134,10 +133,6 @@ public class PagedResult<T> {
         public Builder<T> withSelect(List<T> select) {
             this.select = select;
             return this;
-        }
-
-        public Optional<List<T>> getSelect() {
-            return Optional.ofNullable(select);
         }
 
         /**
