@@ -393,6 +393,20 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     }
 
     @Test
+    public void queryWhereRoot2() {
+        //given:
+        String query = "query { Humans( page: { start: 4, limit: 2 }) { pages, total, select { name } } }";
+
+        String expected = "{Humans={pages=3, total=5, select=[]}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
     public void queryWhereRootPagedWithVariables() {
         //given:
         String query =
@@ -417,6 +431,20 @@ public abstract class StarwarsQueryExecutorTestsSupport extends AbstractSpringBo
     public void queryPaginationWithoutRecords() {
         //given:
         String query = "query { Humans ( page: { start: 1, limit: 2 }) { pages, total } }";
+
+        String expected = "{Humans={pages=3, total=5}}";
+
+        //when:
+        Object result = executor.execute(query).getData();
+
+        //then:
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryPaginationWithoutRecords2() {
+        //given:
+        String query = "query { Humans ( page: { start: 4, limit: 2 }) { pages, total } }";
 
         String expected = "{Humans={pages=3, total=5}}";
 

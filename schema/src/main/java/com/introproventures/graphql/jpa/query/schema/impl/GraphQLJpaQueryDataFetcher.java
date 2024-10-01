@@ -34,7 +34,6 @@ import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLScalarType;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +117,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
         }
 
         if (totalSelection.isPresent() || pagesSelection.isPresent()) {
-            final var selectResult = pagedResult.getSelect();
-
-            final long total = recordsSelection.isEmpty() ||
-                selectResult.filter(Predicate.not(Collection::isEmpty)).isPresent()
-                ? queryFactory.queryTotalCount(environment, restrictedKeys)
-                : 0L;
+            final Long total = queryFactory.queryTotalCount(environment, restrictedKeys);
 
             pagedResult.withTotal(total);
         }
