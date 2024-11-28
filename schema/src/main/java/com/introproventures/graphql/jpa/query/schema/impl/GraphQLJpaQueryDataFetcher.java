@@ -104,9 +104,7 @@ class GraphQLJpaQueryDataFetcher implements DataFetcher<PagedResult<Object>> {
                     );
 
                     if (!queryKeys.isEmpty()) {
-                        pagedResult.withSelect(
-                            queryFactory.queryResultList(environment, maxResults, restrictedKeys.get())
-                        );
+                        pagedResult.withSelect(queryFactory.queryResultList(environment, maxResults, queryKeys));
                     } else {
                         pagedResult.withSelect(List.of());
                     }
