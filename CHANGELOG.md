@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.11
+## 1.2.12-SNAPSHOT
 * Fix regression when query keys filter is not applied to the fetch query (#515) [2f75f35](https://github.com/introproventures/graphql-jpa-query/commit/2f75f355e232172a5f49b342f6c87fd74604858b)
 * Update codecov action to v4 (#516) [3d93040](https://github.com/introproventures/graphql-jpa-query/commit/3d93040218af393cc31c62a9e4cd31d41acac9fe)
 * Add test coverage for total count edge cases (#509) [9292ac7](https://github.com/introproventures/graphql-jpa-query/commit/9292ac797ff9246775f6135e048febd53af2cc7c)
