@@ -1054,4 +1054,33 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
 
         assertThat(result.toString()).isEqualTo(expected);
     }
+
+    @Test
+    void testGraphqlTasksQueryWithAliases() {
+        // @formatter:off
+        String query ="""
+            query {
+              page1: Tasks(page: {start: 1, limit: 2}) {
+                select {
+                  id
+                  name
+                }
+              }
+              page2: Tasks(page: {start: 3, limit: 2}) {
+                select {
+                  id
+                  name
+                }
+              }
+            }
+            """;
+        // @formatter:on
+
+        Object result = executor.execute(query).getData();
+
+        String expected =
+            "{page1={select=[{id=1, name=task1}, {id=2, name=task2}]}, page2={select=[{id=5, name=task5}, {id=6, name=task6}]}}";
+
+        assertThat(result.toString()).isEqualTo(expected);
+    }
 }
