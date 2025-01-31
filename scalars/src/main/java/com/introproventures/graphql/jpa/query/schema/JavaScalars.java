@@ -741,8 +741,7 @@ public class JavaScalars {
             if (input instanceof Long longInput) {
                 return new Timestamp(longInput);
             } else if (input instanceof String stringInput) {
-                Instant instant = DateTimeHelper.parseDate(stringInput);
-                return Timestamp.from(instant);
+                return Optional.of(stringInput).map(DateTimeHelper::parseDate).map(Timestamp::from).orElse(null);
             } else if (input instanceof Timestamp timestampInput) {
                 return timestampInput;
             } else if (input instanceof Date dateInput) {

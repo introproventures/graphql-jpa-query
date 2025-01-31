@@ -273,7 +273,7 @@ public class JavaScalarsTest {
 
         ZonedDateTime resultLDT = (ZonedDateTime) result;
 
-        assert resultLDT.getDayOfMonth() == 05;
+        assert resultLDT.getDayOfMonth() == 5;
         assert resultLDT.getMonth() == Month.AUGUST;
         assert resultLDT.getYear() == 2019;
         assert resultLDT.getHour() == 13;
@@ -363,6 +363,20 @@ public class JavaScalarsTest {
         assertThat(result)
             .asInstanceOf(new InstanceOfAssertFactory<>(Timestamp.class, Assertions::assertThat))
             .isEqualTo(expected);
+    }
+
+    @Test
+    public void testTimestampParseInvalidValue() {
+        //given
+        Coercing<?, ?> coercing = JavaScalars.of(Timestamp.class).getCoercing();
+
+        //when
+        var throwable = catchThrowable(() -> coercing.parseValue("foobar"));
+
+        //then
+        assertThat(throwable)
+            .isInstanceOf(CoercingParseValueException.class)
+            .hasMessageContaining("Invalid value 'foobar' for Timestamp");
     }
 
     @Test
