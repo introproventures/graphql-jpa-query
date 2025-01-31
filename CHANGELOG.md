@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.2.12
+## 1.2.13-SNAPSHOT
 * Fix NPE when parsing invalid timestamp variable inputs (#518) [bc55e8e](https://github.com/introproventures/graphql-jpa-query/commit/bc55e8e62150202eaba71571d7e0392ecbeedcf6)
 * Fix regression when query keys filter is not applied to the fetch query (#515) [2f75f35](https://github.com/introproventures/graphql-jpa-query/commit/2f75f355e232172a5f49b342f6c87fd74604858b)
 * Update codecov action to v4 (#516) [3d93040](https://github.com/introproventures/graphql-jpa-query/commit/3d93040218af393cc31c62a9e4cd31d41acac9fe)
