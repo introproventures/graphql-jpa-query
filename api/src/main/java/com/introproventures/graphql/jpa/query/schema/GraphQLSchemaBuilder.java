@@ -76,6 +76,14 @@ public interface GraphQLSchemaBuilder {
     GraphQLSchemaBuilder graphQLIDType(boolean useGraphQLIDType);
 
     /**
+     * Register restricted keys provider
+     *
+     * @param restrictedKeysProvider instance
+     * @return this builder instance
+     */
+    GraphQLSchemaBuilder restrictedKeysProvider(RestrictedKeysProvider restrictedKeysProvider);
+
+    /**
      * Builds {code #GraphQLSchema} instance
      *
      * @return GraphQLSchema instance
