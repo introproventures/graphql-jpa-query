@@ -24,6 +24,11 @@
 
     <dependency>
       <groupId>com.introproventures</groupId>
+      <artifactId>graphql-jpa-query-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.introproventures</groupId>
       <artifactId>graphql-jpa-query-scalars</artifactId>
     </dependency>
 
