@@ -51,6 +51,14 @@ public interface GraphQLSchemaBuilder {
     GraphQLSchemaBuilder entityPath(String path);
 
     /**
+     * Add package path to scan for additional entities to be included in GraphQL Schema.
+     *
+     * @param type GraphQL entitys package path
+     * @return this builder instance
+     */
+    GraphQLSchemaBuilder additionalType(String type);
+
+    /**
      * Add package path to scan for entities to be included in GraphQL Schema.
      *
      * @param instance GraphQL query naming strategy

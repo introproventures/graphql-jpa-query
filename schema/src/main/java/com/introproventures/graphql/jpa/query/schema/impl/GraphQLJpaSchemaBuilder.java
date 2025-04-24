@@ -162,6 +162,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
     private final Relay relay = new Relay();
 
     private final List<String> entityPaths = new ArrayList<>();
+    private final List<String> additionalTypes = new ArrayList<>();
 
     private final Supplier<BatchLoaderRegistry> batchLoadersRegistry = BatchLoaderRegistry::getInstance;
     private final Function<String, EntityType<?>> entityObjectTypeResolver = entityTypeMap::get;
@@ -190,6 +191,7 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
             .getEntities()
             .stream()
             .filter(Predicate.not(entityCache::containsKey))
+            .filter(this::isAdditionalType)
             .forEach(entity -> schema.additionalType(getEntityObjectType(entity)));
 
         if (enableSubscription) {
@@ -1715,6 +1717,12 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         return false;
     }
 
+    private boolean isAdditionalType(EntityType<?> entityType) {
+        return additionalTypes
+            .stream()
+            .anyMatch(additionalType -> entityType.getJavaType().getName().startsWith(additionalType));
+    }
+
     @SuppressWarnings("unchecked")
     private GraphQLOutputType getGraphQLTypeFromJavaType(Class<?> clazz) {
         if (clazz.isEnum()) {
@@ -1883,6 +1891,15 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
         Assert.assertNotNull(path, () -> "path is null");
 
         entityPaths.add(path);
+
+        return this;
+    }
+
+    @Override
+    public GraphQLJpaSchemaBuilder additionalType(String type) {
+        Assert.assertNotNull(type, () -> "type can't be null");
+
+        additionalTypes.add(type);
 
         return this;
     }
