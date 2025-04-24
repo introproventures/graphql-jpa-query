@@ -546,7 +546,8 @@ public class GraphQLJpaSchemaBuilder implements GraphQLSchemaBuilder {
                 var javaType = isPlural(association)
                     ? PluralAttribute.class.cast(association).getBindableJavaType()
                     : association.getJavaType();
-                var attributes = EntityIntrospector.resultOf(javaType).getAttributes();
+                var javaTypeEntity = entityManager.getMetamodel().entity(javaType);
+                var attributes = EntityIntrospector.introspect(javaTypeEntity).getAttributes();
                 var fields = attributes
                     .values()
                     .stream()
