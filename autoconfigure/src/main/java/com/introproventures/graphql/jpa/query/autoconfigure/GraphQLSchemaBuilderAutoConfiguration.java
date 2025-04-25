@@ -126,7 +126,7 @@ public class GraphQLSchemaBuilderAutoConfiguration {
             .toManyDefaultOptional(properties.isToManyDefaultOptional())
             .enableRelay(properties.isEnableRelay());
 
-        EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames().stream().forEach(builder::entityPath);
+        EnableGraphQLJpaQuerySchemaImportSelector.getPackageNames().stream().forEach(builder::additionalType);
 
         restrictedKeysProvider.ifAvailable(builder::restrictedKeysProvider);
 
