@@ -1,6 +1,7 @@
 # Change Log
 
-## 1.2.14-SNAPSHOT
+## 1.2.14
+* Add additional type entity filter to schema builder api (#522) [ed94288](https://github.com/introproventures/graphql-jpa-query/commit/ed9428889cd73925bd4d6c35d8580dad4d9cfbc8)
 * Fix introspection error result due to missing entity type (#521) [56d55c3](https://github.com/introproventures/graphql-jpa-query/commit/56d55c31c0d2ff526d0abcbc1155b703783eedb3)
 * Fix missing entity types for type reference resolution (#520) [a415c6b](https://github.com/introproventures/graphql-jpa-query/commit/a415c6bfd6e5f2fcea2825960ff80783250fb946)
 * Fix NPE when parsing invalid timestamp variable inputs (#518) [bc55e8e](https://github.com/introproventures/graphql-jpa-query/commit/bc55e8e62150202eaba71571d7e0392ecbeedcf6)
