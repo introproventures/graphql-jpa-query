@@ -1,6 +1,7 @@
 # Change Log
 
-## 1.2.15-SNAPSHOT
+## 1.2.15
+* Fix LOCATE search exception while fetching data: Parameter 2 of function &#39;locate()&#39; has type &#39;STRING&#39;, (#523) [05f5563](https://github.com/introproventures/graphql-jpa-query/commit/05f5563719ee3e5582eb6f19b20321c86ab89a8a)
 * Add additional type entity filter to schema builder api (#522) [ed94288](https://github.com/introproventures/graphql-jpa-query/commit/ed9428889cd73925bd4d6c35d8580dad4d9cfbc8)
 * Fix introspection error result due to missing entity type (#521) [56d55c3](https://github.com/introproventures/graphql-jpa-query/commit/56d55c31c0d2ff526d0abcbc1155b703783eedb3)
 * Fix missing entity types for type reference resolution (#520) [a415c6b](https://github.com/introproventures/graphql-jpa-query/commit/a415c6bfd6e5f2fcea2825960ff80783250fb946)
