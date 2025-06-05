@@ -12,7 +12,7 @@ spring:
   jpa:
     hibernate.ddl-auto: validate
     generate-ddl: false
-    show-sql: false
+    show-sql: true
     defer-datasource-initialization: false
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect

@@ -23,4 +23,8 @@ public class JsonEntity {
     @Convert(converter = JsonNodeConverter.class)
     @Column(columnDefinition = "text")
     private JsonNode attributes;
+
+    @Convert(converter = JsonNodeConverter.class)
+    @Column(columnDefinition = "jsonb")
+    private JsonNode json;
 }

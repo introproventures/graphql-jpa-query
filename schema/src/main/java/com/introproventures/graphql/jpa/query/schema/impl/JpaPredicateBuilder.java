@@ -18,6 +18,7 @@ package com.introproventures.graphql.jpa.query.schema.impl;
 
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import graphql.language.NullValue;
+import jakarta.persistence.Column;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -825,7 +827,7 @@ class JpaPredicateBuilder {
         } // TODO need better detection mechanism
         else if (Object.class.isAssignableFrom(type)) {
             if (filter.getCriterias().contains(PredicateFilter.Criteria.LOCATE)) {
-                return cb.gt(cb.locate(from.<String>get(filter.getField()), value.toString()), 0);
+                return cb.gt(cb.locate(field.as(String.class), value.toString()), 0);
             } else {
                 Object object = value;
 
