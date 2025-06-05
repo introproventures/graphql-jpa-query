@@ -1,7 +1,7 @@
 -- Json entity
-insert into json_entity (id, first_name, last_name, attributes) values
-	(1, 'john', 'doe', '{"attr":{"key":["1","2","3","4","5"]}}'),
-	(2, 'joe', 'smith', '{"attr":["1","2","3","4","5"]}');
+insert into json_entity (id, first_name, last_name, attributes, json) values
+	(1, 'john', 'doe', '{"attr":{"key":["1","2","3","4","5"]}}','{"attr":{"key":["1","2","3","4","5"]}}'),
+	(2, 'joe', 'smith', '{"attr":["1","2","3","4","5"]}', '{"attr":["1","2","3","4","5"]}');
 
 insert into task (id, assignee, business_key, created_date, description, due_date, last_modified, last_modified_from, last_modified_to, name, priority, process_definition_id, process_instance_id, status, owner, claimed_date) values
 ('1', 'assignee', 'bk1', CURRENT_TIMESTAMP, 'description', null, null, null, null, 'task1', 5, 'process_definition_id', 0, 'COMPLETED'  , 'owner', null),

@@ -49,7 +49,7 @@ import org.springframework.context.annotation.Bean;
 @SpringBootTest(
     properties = {
         "spring.sql.init.data-locations=GraphQLJpaAggregateTests.sql",
-        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE",
+        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE;INIT=RUNSCRIPT FROM 'classpath:h2-init.sql'",
     }
 )
 public class GraphQLJpaQueryAggregateTests extends AbstractSpringBootTestSupport {

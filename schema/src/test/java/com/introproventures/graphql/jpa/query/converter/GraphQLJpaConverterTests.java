@@ -50,7 +50,7 @@ import org.springframework.context.annotation.Bean;
 @SpringBootTest(
     properties = {
         "spring.sql.init.data-locations=GraphQLJpaConverterTests.sql",
-        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE",
+        "spring.datasource.url=jdbc:h2:mem:db;NON_KEYWORDS=VALUE;INIT=RUNSCRIPT FROM 'classpath:h2-init.sql'",
     }
 )
 public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
@@ -369,6 +369,23 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
     }
 
     @Test
+    @Transactional
+    public void criteriaTesterLocateJson() {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<JsonEntity> criteria = builder.createQuery(JsonEntity.class);
+        Root<JsonEntity> json = criteria.from(JsonEntity.class);
+
+        criteria.select(json).where(builder.gt(builder.locate(json.<String>get("json").as(String.class), "key"), 0));
+
+        // when:
+        List<?> result = entityManager.createQuery(criteria).getResultList();
+
+        // then:
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
     public void queryJsonEntity() {
         //given
         String query =
@@ -416,6 +433,35 @@ public class GraphQLJpaConverterTests extends AbstractSpringBootTestSupport {
         String expected =
             "{JsonEntities={select=[" +
             "{id=1, firstName=john, lastName=doe, attributes={\"attr\":{\"key\":[\"1\",\"2\",\"3\",\"4\",\"5\"]}}}" +
+            "]}}";
+
+        //when
+        Object result = executor.execute(query).getData();
+
+        // then
+        assertThat(result.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    public void queryJsonEntityWhereSearchCriteriaJsonb() {
+        //given
+        String query =
+            "query {" +
+            "  JsonEntities(where: {" +
+            "json: {LOCATE: \"key\"}" +
+            "}) {" +
+            "    select {" +
+            "      id" +
+            "      firstName" +
+            "      lastName" +
+            "      json" +
+            "    }" +
+            "  }" +
+            "}";
+
+        String expected =
+            "{JsonEntities={select=[" +
+            "{id=1, firstName=john, lastName=doe, json=\"{\\\"attr\\\":{\\\"key\\\":[\\\"1\\\",\\\"2\\\",\\\"3\\\",\\\"4\\\",\\\"5\\\"]}}\"}" +
             "]}}";
 
         //when
