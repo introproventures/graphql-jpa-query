@@ -8,6 +8,8 @@ public class JavaScalarsRuntimeWiringConfigurer implements RuntimeWiringConfigur
 
     @Override
     public void configure(RuntimeWiring.Builder wiringBuilder) {
+        wiringBuilder.strictMode(false);
+
         JavaScalars.scalars().forEach(wiringBuilder::scalar);
     }
 }
