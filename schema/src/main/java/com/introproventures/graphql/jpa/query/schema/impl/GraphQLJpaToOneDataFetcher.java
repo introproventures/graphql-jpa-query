@@ -26,6 +26,7 @@ import graphql.schema.GraphQLNamedType;
 import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.Optional;
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
@@ -81,9 +82,12 @@ class GraphQLJpaToOneDataFetcher implements DataFetcher<Object> {
                     queryFactory
                 );
 
-                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
+                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false).build();
 
-                DataLoader<Object, Object> dataLoader = DataLoader.newMappedDataLoader(mappedBatchLoader, options);
+                DataLoader<Object, Object> dataLoader = DataLoaderFactory.newMappedDataLoader(
+                    mappedBatchLoader,
+                    options
+                );
                 dataLoaderRegistry.register(dataLoaderKey, dataLoader);
             }
         }

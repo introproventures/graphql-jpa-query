@@ -26,6 +26,7 @@ import jakarta.persistence.metamodel.PluralAttribute;
 import java.util.List;
 import java.util.Optional;
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.MappedBatchLoaderWithContext;
@@ -84,9 +85,9 @@ class GraphQLJpaToManyDataFetcher implements DataFetcher<Object> {
                     queryFactory
                 );
 
-                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
+                DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false).build();
 
-                DataLoader<Object, List<Object>> dataLoader = DataLoader.newMappedDataLoader(
+                DataLoader<Object, List<Object>> dataLoader = DataLoaderFactory.newMappedDataLoader(
                     mappedBatchLoader,
                     options
                 );

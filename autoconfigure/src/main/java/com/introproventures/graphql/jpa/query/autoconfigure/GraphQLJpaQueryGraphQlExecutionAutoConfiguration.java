@@ -28,7 +28,7 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
     BatchLoaderRegistry batchLoaderRegistry(ListableBeanFactory beanFactory) {
         var batchLoaderRegistry = new GraphQlAutoConfiguration(beanFactory).batchLoaderRegistry();
 
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false).build();
 
         batchLoaderRegistry
             .forName(GraphQLJpaQueryGraphQlExecutionAutoConfiguration.class.getName())
@@ -54,7 +54,7 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
     @Bean
     InitializingBean batchLoaderRegistryConfigurer(BatchLoaderRegistry batchLoaderRegistry) {
         return () -> {
-            DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false);
+            DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false).build();
 
             getMappedBatchDataLoaderMap()
                 .forEach((name, mappedBatchLoader) ->

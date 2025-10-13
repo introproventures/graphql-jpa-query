@@ -45,10 +45,13 @@ public class GraphQLJpaExecutorContextFactory implements GraphQLExecutorContextF
     private Supplier<Instrumentation> instrumentation = () -> new SimpleInstrumentation();
     private Supplier<GraphQLContext> graphqlContext = () -> GraphQLContext.newContext().build();
 
-    private Supplier<DataLoaderOptions> dataLoaderOptions = () -> DataLoaderOptions.newOptions();
+    private Supplier<DataLoaderOptions> dataLoaderOptions = () -> DataLoaderOptions.newOptions().build();
 
     private Supplier<DataLoaderRegistry> dataLoaderRegistry = () -> {
-        DataLoaderOptions options = dataLoaderOptions.get().setCachingEnabled(false);
+        DataLoaderOptions options = DataLoaderOptions
+            .newOptions(dataLoaderOptions.get())
+            .setCachingEnabled(false)
+            .build();
 
         return BatchLoaderRegistry.newDataLoaderRegistry(options);
     };
