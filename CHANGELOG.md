@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.3.0
+## 1.3.1-SNAPSHOT
 * Migrate to Sonatype Central for publishing artifacts [e72c364](https://github.com/introproventures/graphql-jpa-query/commit/e72c36417cbceda3e21e0f6fcd626b08a82ff333)
 * update project versions to 1.3.0-SNAPSHOT [f926871](https://github.com/introproventures/graphql-jpa-query/commit/f92687190b90e5bab8b90df5547b23f841ca617f)
 * Upgrade Spring Boot version to 3.5.4 / GraphQl Java version 24.1 (#526) [550fc91](https://github.com/introproventures/graphql-jpa-query/commit/550fc9177491bbf64855638125c7a4a5d511f3dc)
