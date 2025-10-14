@@ -1006,29 +1006,29 @@ insert into TASK (id, assignee, created_date, description, due_date, last_modifi
 (999, 'drembrantrq', '2020-01-04T05:06:42Z', 'Organized holistic methodology', '2019-09-01T05:23:48Z', '2019-05-04T17:52:43Z', '2019-04-20T11:34:28Z', '2019-05-04T22:15:09Z', 'Voyatouch', 1, '45665a22-b353-4e6e-a9b8-e92a901473d7', 2, 'CREATED', 'dmcilroyrq', '2019-08-10T17:07:51Z'),
 (1000, 'jlambarthrr', '2019-07-23T04:10:06Z', 'Intuitive full-range encoding', '2019-09-06T07:44:38Z', '2019-04-06T05:15:02Z', '2019-10-26T08:08:17Z', '2019-05-08T08:59:28Z', 'Fintone', 67, '13a93fb0-895e-4e5d-9a38-aafded574cd8', 2, 'ASSIGNED', 'lhobdenrr', '2019-04-23T12:34:42Z');
 
-insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value) values
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 0, 'json', '{"value":["andrelaksmana"]}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 0, 'string', '{"value":"LBU"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 0, 'string', '{"value":null}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 0, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 0, 'string', '{"value":"232951752337576"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 0, 'boolean', '{"value":true}');
+insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value, ephemeral) values
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 0, 'json', '{"value":["andrelaksmana"]}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 0, 'string', '{"value":"LBU"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 0, 'string', '{"value":null}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 0, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 0, 'string', '{"value":"232951752337576"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 0, 'boolean', '{"value":true}', false);
 
-insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value) values
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 1, 'json', '{"value":["andrelaksmana"]}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 1, 'string', '{"value":"LBU"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 1, 'string', '{"value":null}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 1, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 1, 'string', '{"value":"232951752337576"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 1, 'boolean', '{"value":true}');
+insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value, ephemeral) values
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 1, 'json', '{"value":["andrelaksmana"]}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 1, 'string', '{"value":"LBU"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 1, 'string', '{"value":null}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 1, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 1, 'string', '{"value":"232951752337576"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 1, 'boolean', '{"value":true}', false);
 
-insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value) values
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 2, 'json', '{"value":["andrelaksmana"]}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 2, 'string', '{"value":"LBU"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 2, 'string', '{"value":null}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 2, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 2, 'string', '{"value":"232951752337576"}'),
-    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 2, 'boolean', '{"value":true}');
+insert into PROCESS_VARIABLE (create_time, execution_id, last_updated_time, name, process_instance_id, type, value, ephemeral) values
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'approverlist', 2, 'json', '{"value":["andrelaksmana"]}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'moduleid', 2, 'string', '{"value":"LBU"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'nullable', 2, 'string', '{"value":null}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationDate', 2, 'string', '{"value":"2023-10-22T00:00:00.000+0000"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'applicationId', 2, 'string', '{"value":"232951752337576"}', false),
+    (CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'isApproved', 2, 'boolean', '{"value":true}', false);
 
 insert into TASK_VARIABLE (id, create_time, execution_id, last_updated_time, name, process_instance_id, task_id, type, value) values
   (1, CURRENT_TIMESTAMP, 'execution_id', CURRENT_TIMESTAMP, 'accountNumber', 0, '1', 'string', '{"value":"data"}'),
