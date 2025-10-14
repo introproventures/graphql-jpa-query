@@ -9,6 +9,7 @@
   </parent>
 
   <artifactId>graphql-jpa-query-tests-gatling</artifactId>
+  <name>${artifactId}</name>
 
   <properties>
     <java.version>21</java.version>

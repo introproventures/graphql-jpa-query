@@ -9,6 +9,8 @@
   </parent>
 
   <artifactId>graphql-jpa-query-test-models</artifactId>
+  <name>${artifactId}</name>
+
   <packaging>pom</packaging>
 
   <modules>

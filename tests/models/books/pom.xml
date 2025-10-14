@@ -8,6 +8,7 @@
   </parent>
 
   <artifactId>graphql-jpa-query-test-model-books</artifactId>
+  <name>${artifactId}</name>
 
   <dependencies>
     <dependency>

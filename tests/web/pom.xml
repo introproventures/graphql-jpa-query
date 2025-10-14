@@ -9,6 +9,7 @@
   </parent>
 
   <artifactId>graphql-jpa-query-test-web</artifactId>
+  <name>${artifactId}</name>
 
   <dependencies>
     <dependency>
