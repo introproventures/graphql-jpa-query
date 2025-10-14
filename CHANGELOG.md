@@ -1,6 +1,9 @@
 # Change Log
 
-## 1.2.16-SNAPSHOT
+## 1.3.0
+* Migrate to Sonatype Central for publishing artifacts [e72c364](https://github.com/introproventures/graphql-jpa-query/commit/e72c36417cbceda3e21e0f6fcd626b08a82ff333)
+* update project versions to 1.3.0-SNAPSHOT [f926871](https://github.com/introproventures/graphql-jpa-query/commit/f92687190b90e5bab8b90df5547b23f841ca617f)
+* Upgrade Spring Boot version to 3.5.4 / GraphQl Java version 24.1 (#526) [550fc91](https://github.com/introproventures/graphql-jpa-query/commit/550fc9177491bbf64855638125c7a4a5d511f3dc)
 * Fix LOCATE search exception while fetching data: Parameter 2 of function &#39;locate()&#39; has type &#39;STRING&#39;, (#523) [05f5563](https://github.com/introproventures/graphql-jpa-query/commit/05f5563719ee3e5582eb6f19b20321c86ab89a8a)
 * Add additional type entity filter to schema builder api (#522) [ed94288](https://github.com/introproventures/graphql-jpa-query/commit/ed9428889cd73925bd4d6c35d8580dad4d9cfbc8)
 * Fix introspection error result due to missing entity type (#521) [56d55c3](https://github.com/introproventures/graphql-jpa-query/commit/56d55c31c0d2ff526d0abcbc1155b703783eedb3)
