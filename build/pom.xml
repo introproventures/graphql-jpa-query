@@ -7,7 +7,7 @@
     <relativePath>../dependencies</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-build</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
   <packaging>pom</packaging>
 
   <description>

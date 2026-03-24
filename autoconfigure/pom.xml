@@ -7,7 +7,7 @@
     <relativePath>../build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-autoconfigure</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <description>
     Provides Spring Boot Auto-Configuration Support

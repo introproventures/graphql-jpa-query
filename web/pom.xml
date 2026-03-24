@@ -7,7 +7,7 @@
     <relativePath>../build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-web</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <description>
     Provides GraphQL JPA Query HTTP Transport Web Controller Support

@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>graphql-jpa-query-test-models</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <packaging>pom</packaging>
 

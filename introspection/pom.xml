@@ -7,7 +7,7 @@
     <relativePath>../build</relativePath>
   </parent>
   <artifactId>graphql-jpa-query-introspection</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <description>
     Provides Java Class Introspection Support for JPA Entities

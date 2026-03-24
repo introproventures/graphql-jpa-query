@@ -8,7 +8,7 @@
   </parent>
     
   <artifactId>graphql-jpa-query-test-model-starwars</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <dependencies>
     <dependency>
