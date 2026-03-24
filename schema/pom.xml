@@ -81,6 +81,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-persistence</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
