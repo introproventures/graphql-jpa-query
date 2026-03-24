@@ -1,6 +1,5 @@
 package com.introproventures.graphql.jpa.query.web.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.web.GraphQLController;
 import com.introproventures.graphql.jpa.query.web.GraphQLControllerProperties;
@@ -12,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.ObjectMapper;
 
 @AutoConfiguration
 @ConditionalOnWebApplication

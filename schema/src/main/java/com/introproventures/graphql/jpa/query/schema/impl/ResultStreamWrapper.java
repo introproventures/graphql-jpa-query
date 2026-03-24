@@ -65,7 +65,10 @@ class ResultStreamWrapper<T> {
                 return stream.spliterator();
             } else if ("isEmpty".equals(method.getName())) {
                 return size == 0;
+            } else if ("toString".equals(method.getName())) {
+                return this.toString();
             }
+
             throw new UnsupportedOperationException(method + " is not supported");
         }
     }

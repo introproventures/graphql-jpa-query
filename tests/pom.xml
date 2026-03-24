@@ -4,12 +4,12 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-build</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <relativePath>../build</relativePath>
   </parent>
 
   <artifactId>graphql-jpa-query-tests</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <packaging>pom</packaging>
 
@@ -30,7 +30,7 @@
     <profile>
       <id>java21</id>
       <activation>
-        <jdk>21</jdk>
+        <jdk>25</jdk>
       </activation>
       <modules>
         <module>gatling</module>

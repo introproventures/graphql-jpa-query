@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-test-models</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
     
   <artifactId>graphql-jpa-query-test-model-starwars</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <dependencies>
     <dependency>

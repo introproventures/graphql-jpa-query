@@ -4,7 +4,7 @@
 
   <groupId>com.introproventures</groupId>
   <artifactId>graphql-jpa-query</artifactId>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>GraphQL JPA Query</name>
 
@@ -383,7 +383,7 @@
             <configuration>
               <publishingServerId>central</publishingServerId>
               <skipPublishing>${skipPublishing}</skipPublishing>
-              <deploymentName>${artifactId}-${version}</deploymentName>
+              <deploymentName>${project.artifactId}-${project.version}</deploymentName>
             </configuration>
           </plugin>
         </plugins>

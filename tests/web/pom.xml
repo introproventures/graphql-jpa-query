@@ -4,12 +4,12 @@
   <parent>
     <groupId>com.introproventures</groupId>
     <artifactId>graphql-jpa-query-tests</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>graphql-jpa-query-test-web</artifactId>
-  <name>${artifactId}</name>
+  <name>${project.artifactId}</name>
 
   <dependencies>
     <dependency>
@@ -40,6 +40,16 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

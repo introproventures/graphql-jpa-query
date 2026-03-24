@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "spring.graphql.jpa.query.web.enabled=false")
 public class GraphQLControllerAutoConfigurationPropertyDisabledTest {
 
-    @MockBean
+    @MockitoBean
     private GraphQLExecutor graphQLExecutor;
 
     @Autowired(required = false)
