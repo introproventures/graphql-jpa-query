@@ -5,6 +5,7 @@ import static graphql.schema.GraphQLTypeUtil.isNonNull;
 
 import graphql.Assert;
 import graphql.AssertException;
+import graphql.GraphQLContext;
 import graphql.GraphQLException;
 import graphql.Internal;
 import graphql.Scalars;
@@ -42,6 +43,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Internal
@@ -220,9 +222,10 @@ public class AstValueHelper {
 
     private static Object serialize(GraphQLType type, Object value) {
         if (type instanceof GraphQLScalarType) {
-            return ((GraphQLScalarType) type).getCoercing().serialize(value);
+            return ((GraphQLScalarType) type).getCoercing()
+                .serialize(value, new GraphQLContext.Builder().build(), Locale.ROOT);
         } else {
-            return ((GraphQLEnumType) type).serialize(value);
+            return ((GraphQLEnumType) type).serialize(value, new GraphQLContext.Builder().build(), Locale.ROOT);
         }
     }
 

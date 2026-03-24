@@ -37,6 +37,7 @@ import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.Ent
 import com.introproventures.graphql.jpa.query.schema.impl.EntityIntrospector.EntityIntrospectionResult.AttributePropertyDescriptor;
 import com.introproventures.graphql.jpa.query.schema.impl.PredicateFilter.Criteria;
 import com.introproventures.graphql.jpa.query.support.GraphQLSupport;
+import graphql.GraphQLContext;
 import graphql.GraphQLException;
 import graphql.execution.CoercedVariables;
 import graphql.execution.MergedField;
@@ -252,7 +253,7 @@ public final class GraphQLJpaQueryFactory {
         Stream<Object> resultStream = queryResultStream(environment, maxResults, keys);
         var size = keys.isEmpty() ? maxResults : min(keys.size(), maxResults);
         // Let's wrap stream into lazy list to pass it downstream
-        return ResultStreamWrapper.wrap(resultStream, size);
+        return resultStream.limit(size).toList();
     }
 
     protected Stream<Object> queryResultStream(DataFetchingEnvironment environment, int maxResults, List<Object> keys) {
@@ -1779,7 +1780,10 @@ public final class GraphQLJpaQueryFactory {
                 }
             } else {
                 Coercing<?, ?> coercing = JavaScalars.of(javaType).getCoercing();
-                Function<Object, Object> valueConverter = it -> javaType.isInstance(it) ? it : coercing.parseValue(it);
+                Function<Object, Object> valueConverter = it ->
+                    javaType.isInstance(it)
+                        ? it
+                        : coercing.parseValue(it, new GraphQLContext.Builder().build(), Locale.ROOT);
 
                 if (argumentValue instanceof Collection<?> argumentValues) {
                     return argumentValues.stream().map(valueConverter).toList();
@@ -2063,8 +2067,8 @@ public final class GraphQLJpaQueryFactory {
         return null;
     }
 
-    protected boolean hasIdAttribute() {
-        return entityType.getIdType() != null;
+    private boolean hasIdAttribute() {
+        return entityType.getIdType() != null && entityType.hasSingleIdAttribute();
     }
 
     protected String idAttributeName() {
@@ -2072,7 +2076,7 @@ public final class GraphQLJpaQueryFactory {
     }
 
     protected boolean hasIdClassAttribue() {
-        return entityType.getIdClassAttributes() != null;
+        return !entityType.hasSingleIdAttribute() && entityType.getIdClassAttributes() != null;
     }
 
     protected String[] idClassAttributeNames() {

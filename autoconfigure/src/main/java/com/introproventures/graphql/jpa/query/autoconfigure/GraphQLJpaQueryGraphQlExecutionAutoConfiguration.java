@@ -12,10 +12,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration;
+import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.execution.BatchLoaderRegistry;
+import org.springframework.graphql.execution.DefaultBatchLoaderRegistry;
+import org.springframework.graphql.execution.DefaultExecutionGraphQlService;
 import org.springframework.graphql.execution.GraphQlSource;
 import reactor.core.publisher.Mono;
 
@@ -25,9 +27,8 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    BatchLoaderRegistry batchLoaderRegistry(ListableBeanFactory beanFactory) {
-        var batchLoaderRegistry = new GraphQlAutoConfiguration(beanFactory).batchLoaderRegistry();
-
+    BatchLoaderRegistry batchLoaderRegistry() {
+        var batchLoaderRegistry = new DefaultBatchLoaderRegistry();
         DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(false).build();
 
         batchLoaderRegistry
@@ -44,11 +45,13 @@ public class GraphQLJpaQueryGraphQlExecutionAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean(GraphQlSource.class)
     ExecutionGraphQlService executionGraphQlService(
-        ListableBeanFactory beanFactory,
         GraphQlSource graphQlSource,
         BatchLoaderRegistry batchLoaderRegistry
     ) {
-        return new GraphQlAutoConfiguration(beanFactory).executionGraphQlService(graphQlSource, batchLoaderRegistry);
+        DefaultExecutionGraphQlService service = new DefaultExecutionGraphQlService(graphQlSource);
+        service.addDataLoaderRegistrar(batchLoaderRegistry);
+
+        return service;
     }
 
     @Bean

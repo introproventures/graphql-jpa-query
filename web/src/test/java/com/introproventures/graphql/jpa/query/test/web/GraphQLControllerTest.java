@@ -25,8 +25,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.web.GraphQLController;
 import com.introproventures.graphql.jpa.query.web.GraphQLController.GraphQLQueryRequest;
@@ -38,13 +36,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = GraphQLController.class)
 public class GraphQLControllerTest {
@@ -52,7 +52,7 @@ public class GraphQLControllerTest {
     @Autowired
     private MockMvc mockmvc;
 
-    @MockBean
+    @MockitoBean
     private GraphQLJpaExecutor executor;
 
     @Autowired
@@ -79,11 +79,11 @@ public class GraphQLControllerTest {
             .thenReturn(new ExecutionResultImpl(new HashMap<>(), new ArrayList<>()));
     }
 
-    private void ok(final GraphQLQueryRequest query) throws Exception, JsonProcessingException {
+    private void ok(final GraphQLQueryRequest query) throws Exception, JacksonException {
         ok(mapper.writeValueAsString(query));
     }
 
-    private void ok(final String json) throws Exception, JsonProcessingException {
+    private void ok(final String json) throws Exception, JacksonException {
         perform(json)
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));

@@ -17,6 +17,7 @@ package com.introproventures.graphql.jpa.query.boot.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.introproventures.graphql.jpa.query.autoconfigure.GraphQLJPASchemaBuilderCustomizer;
@@ -38,32 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GraphQLJpaQueryAutoConfigurationTest {
-
-    @TestConfiguration
-    static class Application {
-
-        @MockBean
-        private GraphQLExecutionInputFactory mockExecutionInputFactory;
-
-        @MockBean
-        private Supplier<Instrumentation> mockInstrumentation;
-
-        @MockBean
-        private Supplier<GraphqlFieldVisibility> mockGraphqlFieldVisibility;
-
-        @MockBean
-        private Supplier<GraphQLContext> graphqlContext;
-
-        @MockBean
-        private RestrictedKeysProvider restrictedKeysProvider;
-
-        @MockBean
-        private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
-    }
 
     @Autowired(required = false)
     private GraphQLExecutor graphQLExecutor;
@@ -75,24 +56,24 @@ public class GraphQLJpaQueryAutoConfigurationTest {
     private GraphQLJpaExecutorContextFactory executorContextFactory;
 
     @Autowired
-    private ObjectProvider<GraphQLExecutionInputFactory> executionInputFactory;
-
-    @Autowired
-    private ObjectProvider<Supplier<Instrumentation>> instrumentation;
-
-    @Autowired
-    private ObjectProvider<Supplier<GraphqlFieldVisibility>> graphqlFieldVisibility;
-
-    @Autowired
-    private ObjectProvider<Supplier<GraphQLContext>> graphqlContext;
-
-    @Autowired
-    private ObjectProvider<RestrictedKeysProvider> restrictedKeysObjectProvider;
-
-    @Autowired
     private GraphQLSchema graphQLSchema;
 
-    @Autowired
+    @MockitoBean
+    private GraphQLExecutionInputFactory executionInputFactory;
+
+    @MockitoBean
+    private Supplier<Instrumentation> instrumentation;
+
+    @MockitoBean
+    private Supplier<GraphqlFieldVisibility> graphqlFieldVisibility;
+
+    @MockitoBean
+    private Supplier<GraphQLContext> graphqlContext;
+
+    @MockitoBean
+    private RestrictedKeysProvider restrictedKeysObjectProvider;
+
+    @MockitoBean
     private GraphQLJPASchemaBuilderCustomizer graphQLJPASchemaBuilderCustomizer;
 
     @Test
@@ -102,19 +83,19 @@ public class GraphQLJpaQueryAutoConfigurationTest {
         assertThat(graphQLSchemaBuilder).isNotNull().isInstanceOf(GraphQLJpaSchemaBuilder.class);
 
         assertThat(GraphQLJpaSchemaBuilder.class.cast(graphQLSchemaBuilder).getRestrictedKeysProvider())
-            .isEqualTo(restrictedKeysObjectProvider.getObject());
+            .isEqualTo(restrictedKeysObjectProvider);
 
         assertThat(executorContextFactory).isNotNull().isInstanceOf(GraphQLJpaExecutorContextFactory.class);
 
-        assertThat(executionInputFactory.getIfAvailable()).isNotNull();
-        assertThat(instrumentation.getIfAvailable()).isNotNull();
-        assertThat(graphqlFieldVisibility.getIfAvailable()).isNotNull();
-        assertThat(graphqlContext.getIfAvailable()).isNotNull();
+        assertThat(executionInputFactory).isNotNull();
+        assertThat(instrumentation).isNotNull();
+        assertThat(graphqlFieldVisibility).isNotNull();
+        assertThat(graphqlContext).isNotNull();
 
-        assertThat(executorContextFactory.getExecutionInputFactory()).isEqualTo(executionInputFactory.getObject());
-        assertThat(executorContextFactory.getInstrumentation()).isEqualTo(instrumentation.getObject());
-        assertThat(executorContextFactory.getGraphqlFieldVisibility()).isEqualTo(graphqlFieldVisibility.getObject());
-        assertThat(executorContextFactory.getGraphqlContext()).isEqualTo(graphqlContext.getObject());
+        assertThat(executorContextFactory.getExecutionInputFactory()).isEqualTo(executionInputFactory);
+        assertThat(executorContextFactory.getInstrumentation()).isEqualTo(instrumentation);
+        assertThat(executorContextFactory.getGraphqlFieldVisibility()).isEqualTo(graphqlFieldVisibility);
+        assertThat(executorContextFactory.getGraphqlContext()).isEqualTo(graphqlContext);
 
         assertThat(graphQLSchema.getQueryType())
             .extracting(GraphQLObjectType::getName, GraphQLObjectType::getDescription)

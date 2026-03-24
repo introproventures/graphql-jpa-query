@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.AbstractSpringBootTestSupport;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaSchemaBuilder;
+import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionResult;
 import jakarta.persistence.EntityManager;
 import java.io.IOException;
@@ -196,7 +197,7 @@ public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSup
             "       }" +
             "   }" +
             "}";
-
+        ExceptionWhileDataFetching dataFetching;
         //when
         ExecutionResult executionResult = executor.execute(query, getVariablesMap(variables));
 

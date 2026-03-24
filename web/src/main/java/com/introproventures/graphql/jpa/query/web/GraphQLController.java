@@ -15,8 +15,6 @@
  */
 package com.introproventures.graphql.jpa.query.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.introproventures.graphql.jpa.query.schema.GraphQLExecutor;
 import com.introproventures.graphql.jpa.query.schema.impl.GraphQLJpaExecutor;
 import graphql.ExecutionResult;
@@ -40,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Spring Boot GraphQL Query Rest Controller with HTTP mapping endpoints for GraphQLExecutor relay
@@ -423,7 +423,7 @@ public class GraphQLController {
         private String bodyToString() {
             try {
                 return mapper.writeValueAsString(body);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 // TODO Auto-generated catch block
                 throw new RuntimeException(e);
             }

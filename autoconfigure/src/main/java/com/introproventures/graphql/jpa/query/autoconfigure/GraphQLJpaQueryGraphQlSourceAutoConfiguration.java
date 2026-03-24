@@ -18,9 +18,16 @@ package com.introproventures.graphql.jpa.query.autoconfigure;
 import com.introproventures.graphql.jpa.query.schema.JavaScalarsWiringPostProcessor;
 import graphql.GraphQL;
 import graphql.execution.instrumentation.Instrumentation;
+import graphql.introspection.Introspection;
 import graphql.schema.GraphQLSchema;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -28,13 +35,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.graphql.ConditionalOnGraphQlSchema;
-import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
-import org.springframework.boot.autoconfigure.graphql.GraphQlSourceBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.graphql.autoconfigure.ConditionalOnGraphQlSchema;
+import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration;
+import org.springframework.boot.graphql.autoconfigure.GraphQlProperties;
+import org.springframework.boot.graphql.autoconfigure.GraphQlSourceBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.log.LogMessage;
+import org.springframework.graphql.execution.ConnectionTypeDefinitionConfigurer;
 import org.springframework.graphql.execution.DataFetcherExceptionResolver;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
@@ -45,6 +55,8 @@ import org.springframework.graphql.execution.SubscriptionExceptionResolver;
 @ConditionalOnProperty(name = "spring.graphql.jpa.query.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(GraphQlProperties.class)
 public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
+
+    private static final Log logger = LogFactory.getLog(GraphQLJpaQueryGraphQlSourceAutoConfiguration.class);
 
     @Bean
     @ConditionalOnBean(GraphQLSchema.class)
@@ -63,7 +75,6 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
     @Bean
     @ConditionalOnGraphQlSchema
     GraphQLSchemaConfigurer graphQlSourceSchemaConfigurer(
-        ListableBeanFactory beanFactory,
         ResourcePatternResolver resourcePatternResolver,
         GraphQlProperties properties,
         ObjectProvider<DataFetcherExceptionResolver> exceptionResolvers,
@@ -73,19 +84,58 @@ public class GraphQLJpaQueryGraphQlSourceAutoConfiguration {
         ObjectProvider<GraphQlSourceBuilderCustomizer> sourceCustomizers
     ) {
         return registry -> {
-            GraphQlAutoConfiguration graphQlAutoConfiguration = new GraphQlAutoConfiguration(beanFactory);
-
-            GraphQlSource graphQlSource = graphQlAutoConfiguration.graphQlSource(
-                resourcePatternResolver,
-                properties,
-                exceptionResolvers,
-                subscriptionExceptionResolvers,
-                instrumentations,
-                wiringConfigurers,
-                sourceCustomizers
+            String[] schemaLocations = properties.getSchema().getLocations();
+            List<Resource> schemaResources = new ArrayList<>();
+            schemaResources.addAll(
+                resolveSchemaResources(
+                    resourcePatternResolver,
+                    schemaLocations,
+                    properties.getSchema().getFileExtensions()
+                )
             );
-            registry.register(graphQlSource.schema());
+            schemaResources.addAll(Arrays.asList(properties.getSchema().getAdditionalFiles()));
+
+            GraphQlSource.SchemaResourceBuilder builder = GraphQlSource
+                .schemaResourceBuilder()
+                .schemaResources(schemaResources.toArray(new Resource[0]))
+                .exceptionResolvers(exceptionResolvers.orderedStream().toList())
+                .subscriptionExceptionResolvers(subscriptionExceptionResolvers.orderedStream().toList())
+                .instrumentation(instrumentations.orderedStream().toList());
+            if (properties.getSchema().getInspection().isEnabled()) {
+                builder.inspectSchemaMappings(logger::info);
+            }
+            if (!properties.getSchema().getIntrospection().isEnabled()) {
+                Introspection.enabledJvmWide(false);
+            }
+            builder.configureTypeDefinitions(new ConnectionTypeDefinitionConfigurer());
+            wiringConfigurers.orderedStream().forEach(builder::configureRuntimeWiring);
+            sourceCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
+
+            registry.register(builder.build().schema());
         };
+    }
+
+    private List<Resource> resolveSchemaResources(
+        ResourcePatternResolver resolver,
+        String[] locations,
+        String[] extensions
+    ) {
+        List<Resource> resources = new ArrayList<>();
+        for (String location : locations) {
+            for (String extension : extensions) {
+                resources.addAll(resolveSchemaResources(resolver, location + "*" + extension));
+            }
+        }
+        return resources;
+    }
+
+    private List<Resource> resolveSchemaResources(ResourcePatternResolver resolver, String pattern) {
+        try {
+            return Arrays.asList(resolver.getResources(pattern));
+        } catch (IOException ex) {
+            logger.debug(LogMessage.format("Could not resolve schema location: '%s'", pattern), ex);
+            return Collections.emptyList();
+        }
     }
 
     @Bean
