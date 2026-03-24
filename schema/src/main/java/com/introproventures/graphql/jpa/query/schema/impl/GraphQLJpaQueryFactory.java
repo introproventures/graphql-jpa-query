@@ -1781,7 +1781,7 @@ public final class GraphQLJpaQueryFactory {
             } else {
                 Coercing<?, ?> coercing = JavaScalars.of(javaType).getCoercing();
                 Function<Object, Object> valueConverter = it ->
-                    javaType.isInstance(it)
+                    (it == null || javaType.isInstance(it))
                         ? it
                         : coercing.parseValue(it, new GraphQLContext.Builder().build(), Locale.ROOT);
 
