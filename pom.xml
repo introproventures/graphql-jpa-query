@@ -383,7 +383,7 @@
             <configuration>
               <publishingServerId>central</publishingServerId>
               <skipPublishing>${skipPublishing}</skipPublishing>
-              <deploymentName>${project.artifactId}-${version}</deploymentName>
+              <deploymentName>${project.artifactId}-${project.version}</deploymentName>
             </configuration>
           </plugin>
         </plugins>

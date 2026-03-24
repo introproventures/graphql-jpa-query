@@ -30,7 +30,7 @@
     <profile>
       <id>java21</id>
       <activation>
-        <jdk>21</jdk>
+        <jdk>25</jdk>
       </activation>
       <modules>
         <module>gatling</module>
