@@ -54,7 +54,7 @@ class ResultStreamWrapper<T> {
             if ("size".equals(method.getName())) {
                 return size;
             } else if ("iterator".equals(method.getName())) {
-                return stream.iterator();
+                return stream.limit(size).iterator();
             } else if ("equals".equals(method.getName())) {
                 // Only consider equal when proxies are identical.
                 return (proxy == args[0]);
@@ -65,8 +65,6 @@ class ResultStreamWrapper<T> {
                 return stream.spliterator();
             } else if ("isEmpty".equals(method.getName())) {
                 return size == 0;
-            } else if ("stream".equals(method.getName())) {
-                return stream;
             } else if ("toString".equals(method.getName())) {
                 return this.toString();
             }

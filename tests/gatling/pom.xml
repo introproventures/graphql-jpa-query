@@ -102,7 +102,7 @@
               <skip>${skipTests}</skip>
               <mainClass>com.introproventures.graphql.jpa.query.example.TestApplication</mainClass>
               <useTestClasspath>true</useTestClasspath>
-              <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+              <classesDirectory>${project.build.testOutputDirectory}${path.separator}${project.build.outputDirectory}</classesDirectory>
               <jvmArguments>
                 -Xms512m
                 -Xmx1024m

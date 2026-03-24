@@ -197,7 +197,7 @@ public class GraphQLWhereVariableBindingsTests extends AbstractSpringBootTestSup
             "       }" +
             "   }" +
             "}";
-        ExceptionWhileDataFetching dataFetching;
+
         //when
         ExecutionResult executionResult = executor.execute(query, getVariablesMap(variables));
 
