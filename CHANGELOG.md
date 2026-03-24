@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.4.0
+## 1.4.1-SNAPSHOT
 * Upgrade Spring Boot 4 dependencies (#528) [468f563](https://github.com/introproventures/graphql-jpa-query/commit/468f563d20a1439a5f7d7ca4cf81d6efd5371fdd)
 * Bump Spring Boot version to 3.5.8 (#527) [9d7f92d](https://github.com/introproventures/graphql-jpa-query/commit/9d7f92d60ae3ee72c59001f2d0985ee8716c2d94)
 * Migrate to Sonatype Central for publishing artifacts [e72c364](https://github.com/introproventures/graphql-jpa-query/commit/e72c36417cbceda3e21e0f6fcd626b08a82ff333)
